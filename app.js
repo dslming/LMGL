@@ -5,7 +5,7 @@ console.error(lmgl.version);
 const vertexShader = `
 void main(){
   gl_Position = vec4(0.,0., 0.0, 1.0);
-  gl_PointSize = 50.0;
+  gl_PointSize = 10.0;
 }`
 
 const fragmentShader = `
@@ -15,6 +15,12 @@ const fragmentShader = `
 	`
 window.onload = () => {
   const canvas = document.getElementById("c")
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+  const ratio = window.devicePixelRatio
+  canvas.style.width = ratio * canvas.width + "px"
+  canvas.style.height = ratio * canvas.height + "px"
+
   const gl = canvas.getContext("webgl");
   const program = lmgl.createProgram(gl, {
     vertexShader: vertexShader,
