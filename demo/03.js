@@ -28,7 +28,7 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
   let app = new lmgl.Stage()
-  app.initRender("c", width, height)
+  app.initRender(document.querySelector("#c"), width, height)
   const p1 = {
     x: width / 2,
     y: height/2
@@ -62,6 +62,7 @@ window.onload = () => {
   const mat = {
     vertexShader,
     fragmentShader,
+    side: lmgl.SIDE.DoubleSide,
     uniforms: {
       uScreenSize: {
         value: {

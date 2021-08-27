@@ -7,6 +7,7 @@ export default class Renderer {
     this.handleResize(width, height)
     const gl = this.getContext()
     this.gl = gl
+    this._setGlState()
   }
 
   getContext() {
@@ -30,6 +31,10 @@ export default class Renderer {
     // canvas.style.height = height * ratio + "px"
   }
 
+  _setGlState() {
+    const { gl} = this
+     gl.enable(gl.DEPTH_TEST);
+  }
   clear() {
      const { gl } = this
      gl.clearColor(0, 0, 0, 1.0);

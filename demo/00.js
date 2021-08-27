@@ -18,7 +18,7 @@ window.onload = () => {
   document.title = "从一个点开始"
 
   let app = new lmgl.Stage()
-  app.initRender("c",window.innerWidth, window.innerHeight)
+  app.initRender(document.querySelector("#c"), window.innerWidth, window.innerHeight)
   app.createMesh(
     {
     type: lmgl.MESH_TYPE.POINTS

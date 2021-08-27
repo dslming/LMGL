@@ -1,6 +1,6 @@
 import Renderer from './Renderer.js'
 import * as WebGLInterface from './WebGLInterface.js'
-import { MESH_TYPE,VERSION } from './global.js'
+import { MESH_TYPE,VERSION,SIDE } from './global.js'
 import MyOrbitControls from './camera-control/MyOrbitControls.js'
 import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
 import { Matrix4 } from './math/Matrix4.js'
@@ -8,6 +8,7 @@ import { Matrix4 } from './math/Matrix4.js'
 export * from "./geometry/Circle.js"
 export * from "./geometry/Cube.js"
 export * from "./global.js"
+export * from "./ImageLoader.js"
 
 export * from "./math/Euler.js"
 export * from "./math/MathUtils.js"
@@ -46,6 +47,10 @@ export class Stage {
 
         case "m4":
           gl.uniformMatrix4fv(uParam, false, value.elements);
+          break
+
+        case "t":
+          WebGLInterface.setTexture(gl, uParam, value)
           break
       }
     }
@@ -108,17 +113,39 @@ export class Stage {
 
   createMaterial(mat) {
     const { gl } = this
-    const { uniforms } = mat
+    const { uniforms,side } = mat
     const program = WebGLInterface.createProgram(gl, mat);
     gl.useProgram(program);
     this._buildUniform(uniforms, program)
     this.program = program
     this._updateUniformMatrix()
+
+    gl.enable(gl.CULL_FACE);
+    gl.frontFace(gl.CCW);
+
+    if (side !== undefined) {
+      gl.cullFace(gl.FRONT);
+      return program
+    }
+
+    switch (side) {
+      case SIDE.FrontSide:
+        gl.cullFace(gl.FRONT);
+        break
+
+      case SIDE.BackSide:
+        gl.cullFace(gl.BACK);
+        break
+
+      case SIDE.FrontSide:
+        gl.cullFace(gl.FRONT_AND_BACK);
+      break
+    }
     return program
   }
 
   createMesh(geo,mat) {
-    const { renderer } = this
+    const { renderer ,gl} = this
     const program = this.createMaterial(mat)
     if (!geo.type) { geo.type = MESH_TYPE.TRIANGLES }
     if (geo.type == MESH_TYPE.POINTS) {
@@ -132,6 +159,7 @@ export class Stage {
   }
 
   run() {
+    // return
     window.requestAnimationFrame(this.run)
     this.camera.updateMatrix()
     this.camera.updateMatrixWorld()

@@ -30,7 +30,7 @@ window.onload = () => {
   const centerX = width/2
   const centerY = height / 2
   let app = new lmgl.Stage()
-  app.initRender("c", width, height)
+  app.initRender(document.querySelector("#c"), width, height)
   const h = 100
   const geo = {
     attribute: {
@@ -48,6 +48,7 @@ window.onload = () => {
   const mat = {
     vertexShader,
     fragmentShader,
+    side: lmgl.SIDE.DoubleSide,
     uniforms: {
       uColor: {
         value: {

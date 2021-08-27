@@ -24,20 +24,23 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
   let app = new lmgl.Stage()
-  app.initRender("c", width, height)
+  app.initRender(document.querySelector("#c"), width, height)
 
+  const geoInfo = lmgl.createCircle(width / 2, height / 2, 100, 50)
   const geo = {
     attribute: {
       aPosition: {
-        value: lmgl.createCircle(width/2, height / 2, 100, 50),
+        value: geoInfo,
         itemSize: 2
       },
     },
   };
+  // console.info(geoInfo);
 
   const mat = {
     vertexShader,
     fragmentShader,
+    side: lmgl.SIDE.DoubleSide,
     uniforms: {
       uScreenSize: {
         value: {

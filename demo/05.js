@@ -24,7 +24,7 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
   let app = new lmgl.Stage()
-  app.initRender("c", width, height)
+  app.initRender(document.querySelector("#c"), width, height)
 
   const geoInfo = lmgl.createRing(width / 2, height / 2, 30, 50, 100);
   console.error(geoInfo);
