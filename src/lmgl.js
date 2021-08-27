@@ -1,19 +1,34 @@
 import Renderer from './Renderer.js'
 import * as WebGLInterface from './WebGLInterface.js'
 import { MESH_TYPE,VERSION } from './global.js'
+import MyOrbitControls from './camera-control/MyOrbitControls.js'
+import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
+import { Matrix4 } from './math/Matrix4.js'
 
 export * from "./geometry/Circle.js"
+export * from "./geometry/Cube.js"
 export * from "./global.js"
+
+export * from "./math/Euler.js"
+export * from "./math/MathUtils.js"
+export * from "./math/Matrix3.js"
+export * from "./math/Matrix4.js"
+export * from "./math/Vector2.js"
+export * from "./math/Vector3.js"
+export * from "./math/Vector4.js"
 
 export class Stage {
   constructor() {
+    window.lm = this
     this.gl = null
     this.indicesLength = 0
+    this.geoType = null
+    this.run = this.run.bind(this)
   }
 
   _buildUniform(uniforms, program) {
     if (!uniforms) return
-    const { gl, renderer } = this
+    const { gl, renderer, camera } = this
     const keys = Object.keys(uniforms)
     for (let i = 0; i < keys.length; i++) {
       const name = keys[i]
@@ -28,8 +43,27 @@ export class Stage {
         case "v4":
           gl.uniform4f(uParam, value.x, value.y, value.z, value.w);
           break;
+
+        case "m4":
+          gl.uniformMatrix4fv(uParam, false, value.elements);
+          break
       }
     }
+
+
+  }
+
+  _updateUniformMatrix() {
+     const { gl, camera, program } = this
+    const projectionMatrixGL = gl.getUniformLocation(program, "projectionMatrix");
+    camera.updateProjectionMatrix()
+    gl.uniformMatrix4fv(projectionMatrixGL, false, camera.projectionMatrix.elements);
+
+    const modelViewMatrix = new Matrix4()
+    const matrixWorld = new Matrix4()
+    modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, matrixWorld);
+    const modelViewMatrixGL = gl.getUniformLocation(program, "modelViewMatrix");
+    gl.uniformMatrix4fv(modelViewMatrixGL, false, modelViewMatrix.elements);
   }
 
   _buildTriangleMesh(geo, program) {
@@ -67,6 +101,9 @@ export class Stage {
   initRender(...param) {
     this.renderer = new Renderer(...param)
     this.gl = this.renderer.getContext()
+    this.camera = new PerspectiveCamera(30, param[1] / param[2], 1, 10000)
+    this.control = new MyOrbitControls(this.camera, param[0])
+    // this.control.
   }
 
   createMaterial(mat) {
@@ -75,6 +112,8 @@ export class Stage {
     const program = WebGLInterface.createProgram(gl, mat);
     gl.useProgram(program);
     this._buildUniform(uniforms, program)
+    this.program = program
+    this._updateUniformMatrix()
     return program
   }
 
@@ -89,10 +128,16 @@ export class Stage {
     }
     renderer.clear()
     renderer.render(geo.type)
+    this.geoType = geo.type
   }
 
   run() {
-    this.renderer.render()
+    window.requestAnimationFrame(this.run)
+    this.camera.updateMatrix()
+    this.camera.updateMatrixWorld()
+    // this.camera.update
+    this._updateUniformMatrix()
+    this.renderer.render(this.geoType)
   }
 }
 

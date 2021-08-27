@@ -1,8 +1,8 @@
 
 import { MESH_TYPE} from './global.js'
 export default class Renderer {
-  constructor(domId, width, height) {
-    const canvas = document.getElementById(domId)
+  constructor(dom, width, height) {
+    const canvas = dom
     this.canvas = canvas
     this.handleResize(width, height)
     const gl = this.getContext()
@@ -37,6 +37,7 @@ export default class Renderer {
   }
 
   render(type) {
+    this.clear()
     const { gl } = this
     if (type == MESH_TYPE.POINTS) {
       gl.drawArrays(gl.POINTS, 0, 1);
