@@ -3,60 +3,40 @@ import * as lmgl from '../src/lmgl.js'
 const vertexShader = `
   precision mediump float;
   attribute vec2 aPosition;
-  attribute vec4 aColor;
-	varying vec4 vColor;
   uniform vec2 uScreenSize;
 
   void main() {
     vec2 position = (aPosition / uScreenSize) * 2.0 - 1.0;
     gl_Position = vec4(position, 0., 1.0);
-    vColor = aColor;
   }
 `
 
 const fragmentShader = `
   precision mediump float;
-	varying vec4 vColor;
 
 	void main() {
-	  gl_FragColor = vColor;
+	  gl_FragColor = vec4(.0,0.0,0.8,1.);
 	}
 	`
 
 window.onload = () => {
-  document.title = "利用索引绘制矩形"
+  document.title = "绘制环形"
   const width = window.innerWidth
   const height = window.innerHeight
   let app = new lmgl.Stage()
   app.initRender("c", width, height)
-  const p1 = {
-    x: width / 2,
-    y: height/2
-  }
-  const size = 100
+
+  const geoInfo = lmgl.createRing(width / 2, height / 2, 30, 50, 100);
+  console.error(geoInfo);
 
   const geo = {
     attribute: {
       aPosition: {
-        value: [
-          p1.x - size, p1.y - size,
-          p1.x - size, p1.y + size,
-          p1.x + size, p1.y + size,
-          p1.x + size, p1.y - size
-        ],
+        value: geoInfo.positions,
         itemSize: 2
       },
-      aColor: {
-        value: [
-          1, 0., 0, 1,
-          0., 1, 0., 1,
-          0., 0., 1, 1,
-          1., 0., 0, 1,
-        ],
-        itemSize: 4
-      }
     },
-    indices: [0,1,2, 0, 2, 3]
+    indices: geoInfo.indices
   };
 
   const mat = {
@@ -72,7 +52,5 @@ window.onload = () => {
       }
     }
   }
-  const mesh = app.createMesh(geo, mat)
-
-  app.run()
+  app.createMesh(geo, mat)
 }

@@ -1,4 +1,5 @@
-import lmgl from '../src/lmgl.js'
+import * as lmgl from '../src/lmgl.js'
+
 
 // console.error(lmgl.version);
 
@@ -28,18 +29,20 @@ window.onload = () => {
   const height = window.innerHeight
   const centerX = width/2
   const centerY = height / 2
-  let app = new lmgl()
+  let app = new lmgl.Stage()
   app.initRender("c", width, height)
   const h = 100
   const geo = {
-    aPosition: {
-      value: [
-        centerX, centerY,
-        centerX - h, centerY+h,
-        centerX + h, centerY+h,
-      ],
-      itemSize: 2
-    },
+    attribute: {
+       aPosition: {
+         value: [
+           centerX, centerY,
+           centerX - h, centerY + h,
+           centerX + h, centerY + h,
+         ],
+         itemSize: 2
+       },
+    }
   };
 
   const mat = {

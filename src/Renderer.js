@@ -1,4 +1,5 @@
 
+import { MESH_TYPE} from './global.js'
 export default class Renderer {
   constructor(domId, width, height) {
     const canvas = document.getElementById(domId)
@@ -16,6 +17,10 @@ export default class Renderer {
     this.indicesLength = v
   }
 
+  setVertexLength(v) {
+    this.vertexLength = v
+  }
+
   handleResize(width, height) {
     const { canvas} = this
     const ratio = window.devicePixelRatio
@@ -25,18 +30,22 @@ export default class Renderer {
     // canvas.style.height = height * ratio + "px"
   }
 
-  render() {
-    const { gl } = this
-    gl.clearColor(0, 0, 0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    // gl.drawArrays(gl.POINTS, 0, 1);
-
-    let primitiveType = gl.TRIANGLES;
-    let drawOffset = 0;
-    // gl.drawArrays(primitiveType, drawOffset, 3);
-
-    gl.drawElements(gl.TRIANGLES, this.indicesLength, gl.UNSIGNED_SHORT, 0);
-
+  clear() {
+     const { gl } = this
+     gl.clearColor(0, 0, 0, 1.0);
+     gl.clear(gl.COLOR_BUFFER_BIT);
   }
 
+  render(type) {
+    const { gl } = this
+    if (type == MESH_TYPE.POINTS) {
+      gl.drawArrays(gl.POINTS, 0, 1);
+    } else if (type == MESH_TYPE.TRIANGLES) {
+      if (this.indicesLength) {
+        gl.drawElements(gl.TRIANGLES, this.indicesLength, gl.UNSIGNED_SHORT, 0);
+      } else {
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, this.vertexLength);
+      }
+    }
+  }
 }

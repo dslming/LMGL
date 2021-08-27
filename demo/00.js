@@ -1,4 +1,4 @@
-import lmgl from '../src/lmgl.js'
+import * as lmgl from '../src/lmgl.js'
 
 // console.error(lmgl.version);
 
@@ -17,12 +17,13 @@ const fragmentShader = `
 window.onload = () => {
   document.title = "从一个点开始"
 
-  let app = new lmgl()
+  let app = new lmgl.Stage()
   app.initRender("c",window.innerWidth, window.innerHeight)
-  app.setMaterial({ vertexShader, fragmentShader })
-  app.run()
-  window.lm = {
-    lmgl,
-  }
-
+  app.createMesh(
+    {
+    type: lmgl.MESH_TYPE.POINTS
+  }, {
+    vertexShader,
+    fragmentShader
+  })
 }

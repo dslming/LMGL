@@ -1,5 +1,12 @@
-const version = "0.0.1";
+const VERSION = "0.0.1";
+
+const MESH_TYPE = {
+  "POINTS": "POINTS",
+  "TRIANGLES": "TRIANGLES",
+  "TRIANGLE_FAN": "TRIANGLE_FAN",
+}
 
 export {
-  version
+  VERSION,
+  MESH_TYPE
 }
