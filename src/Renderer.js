@@ -12,6 +12,10 @@ export default class Renderer {
     return this.canvas.getContext("webgl");
   }
 
+  setIndicesLength(v) {
+    this.indicesLength = v
+  }
+
   handleResize(width, height) {
     const { canvas} = this
     const ratio = window.devicePixelRatio
@@ -29,7 +33,10 @@ export default class Renderer {
 
     let primitiveType = gl.TRIANGLES;
     let drawOffset = 0;
-    gl.drawArrays(primitiveType, drawOffset, 3);
+    // gl.drawArrays(primitiveType, drawOffset, 3);
+
+    gl.drawElements(gl.TRIANGLES, this.indicesLength, gl.UNSIGNED_SHORT, 0);
+
   }
 
 }

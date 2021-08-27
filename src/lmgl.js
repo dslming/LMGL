@@ -4,6 +4,7 @@ import * as WebGLInterface from './WebGLInterface.js'
 export default class lmgl {
   constructor() {
     this.gl = null
+    this.indicesLength = 0
   }
 
   initRender(...param) {
@@ -37,18 +38,28 @@ export default class lmgl {
   }
 
   createMesh(geo,mat) {
-    const { gl } = this
+    const { gl,renderer } = this
+    const { indices, attribute } = geo
     const program = this.createMaterial(mat)
 
-    const keys = Object.keys(geo)
+    const keys = Object.keys(attribute)
     for (let i = 0; i < keys.length; i++) {
       const name = keys[i]
-      const { value, itemSize } = geo[name]
+      const { value, itemSize } = attribute[name]
+      // 一个属性对应一个buffer
       WebGLInterface.createAttribute(gl, program, {
         attribureName: name,
         attriburData: value,
         itemSize: itemSize
       })
+    }
+
+    if (indices) {
+      this.indicesLength += indices.length
+        let indicesBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+      renderer.setIndicesLength(this.indicesLength)
     }
   }
 
