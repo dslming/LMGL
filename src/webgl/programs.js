@@ -1,4 +1,4 @@
-import { createAttributeSetters } from './attrbute.js'
+// import { createAttributeSetters } from './attrbute.js'
 
 function getVariableCounts(gl, program, type) {
   return gl.getProgramParameter(program, type);

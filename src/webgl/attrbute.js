@@ -216,6 +216,26 @@ function setUniforms(setters, values) {
   });
 }
 
+function createAttribute(gl, program, param) {
+  const {
+    attribureName,
+    attriburData,
+    itemSize,
+  } = param
+
+  let attribure = gl.getAttribLocation(program, attribureName);
+  let buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.enableVertexAttribArray(attribure);
+
+  let type = gl.FLOAT;
+  let normalize = false;
+  let stride = 0;
+  let offset = 0;
+  gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attriburData), gl.STATIC_DRAW);
+}
+
 export {
-  createAttributeSetters
+  createAttribute
 }

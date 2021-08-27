@@ -1,11 +1,11 @@
-import lmgl from './src/lmgl.js'
+import lmgl from '../src/lmgl.js'
 
 // console.error(lmgl.version);
 
 const vertexShader = `
 void main(){
   gl_Position = vec4(0.,0., 0.0, 1.0);
-  gl_PointSize = 10.0;
+  gl_PointSize = 10.;
 }`
 
 const fragmentShader = `
@@ -15,10 +15,12 @@ const fragmentShader = `
 	`
 
 window.onload = () => {
+  document.title = "从一个点开始"
 
   let app = new lmgl()
   app.initRender("c",window.innerWidth, window.innerHeight)
-
+  app.setMaterial({ vertexShader, fragmentShader })
+  app.run()
   window.lm = {
     lmgl,
   }
