@@ -32,7 +32,7 @@ window.onload = () => {
   app.camera.updateMatrix()
   app.camera.updateMatrixWorld()
   const geoInfo = lmgl.createCube();
-  console.error(geoInfo);
+  console.info(geoInfo);
 
   const geo = {
     attribute: {
