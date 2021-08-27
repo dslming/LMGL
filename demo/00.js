@@ -1,6 +1,6 @@
 import * as lmgl from '../src/lmgl.js'
 
-// console.error(lmgl.version);
+console.log(lmgl.version);
 
 const vertexShader = `
 void main(){

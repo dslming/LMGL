@@ -1,6 +1,6 @@
 import Renderer from './Renderer.js'
 import * as WebGLInterface from './WebGLInterface.js'
-import { MESH_TYPE } from './global.js'
+import { MESH_TYPE,VERSION } from './global.js'
 
 export * from "./geometry/Circle.js"
 export * from "./global.js"
@@ -95,3 +95,5 @@ export class Stage {
     this.renderer.render()
   }
 }
+
+console.log(VERSION);
