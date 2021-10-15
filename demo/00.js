@@ -21,7 +21,7 @@ window.onload = () => {
   app.initRender(document.querySelector("#c"), window.innerWidth, window.innerHeight)
   app.createMesh(
     {
-    type: lmgl.MESH_TYPE.POINTS
+    type: lmgl.GEOMETRY_TYPE.POINTS
   }, {
     vertexShader,
     fragmentShader

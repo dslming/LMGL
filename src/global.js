@@ -1,6 +1,6 @@
 const VERSION = "0.0.1";
 
-const MESH_TYPE = {
+const GEOMETRY_TYPE = {
   "POINTS": "POINTS",
   "TRIANGLES": "TRIANGLES",
   "TRIANGLE_FAN": "TRIANGLE_FAN",
@@ -14,5 +14,5 @@ const SIDE = {
 export {
   SIDE,
   VERSION,
-  MESH_TYPE
+  GEOMETRY_TYPE
 }
