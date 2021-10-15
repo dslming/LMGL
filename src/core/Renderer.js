@@ -182,7 +182,7 @@ export default class Renderer {
       gl.useProgram(program);
       // 开启深度检测
       gl.enable(gl.DEPTH_TEST);
-      if (!geo.type) { geo.type = GEOMETRY_TYPE.TRIANGLES }
+
       if (geo.type == GEOMETRY_TYPE.POINTS) {
         //  todo
       } else if (geo.type == GEOMETRY_TYPE.TRIANGLES) {
