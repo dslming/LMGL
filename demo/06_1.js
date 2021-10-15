@@ -34,10 +34,11 @@ window.onload = () => {
   stage.camera.updateMatrix()
   stage.camera.updateMatrixWorld()
 
+  const z = -0.1;
   const geo1 = {
     attribute: {
       aPosition: {
-        value: [1, 0, 0, -1., 0, 0, -1., 1, 0],
+        value: [1, 0, z, -1., 0, z, -1., 1, z],
         itemSize: 3
       },
     },

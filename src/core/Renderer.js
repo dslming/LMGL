@@ -16,6 +16,7 @@ export default class Renderer {
     this.gl = dao.getData("gl")
     // this._setGlState()
     this.currentPrograme = null
+    this.autoClear = false;
   }
 
   _setGlState() {
@@ -179,6 +180,7 @@ export default class Renderer {
       const geo = mesh.geometry;
       const program = mat.program;
       gl.useProgram(program);
+      // 开启深度检测
       gl.enable(gl.DEPTH_TEST);
       if (!geo.type) { geo.type = GEOMETRY_TYPE.TRIANGLES }
       if (geo.type == GEOMETRY_TYPE.POINTS) {
