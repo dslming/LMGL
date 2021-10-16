@@ -26,14 +26,14 @@ class Mesh {
 
     this.position = addProxy(this.position, this.updateMatrix)
     this.scale = addProxy(this.scale, this.updateMatrix)
-    this.rotation = addProxy(this.position, this._onRotationChange)
+    this.rotation = addProxy(this.rotation, this._onRotationChange)
 
     this._buildGeometry(geo)
   }
 
 
   _onRotationChange() {
-    this.quaternion.setFromEuler(rotation, false);
+    this.quaternion.setFromEuler(this.rotation, false);
     this.updateMatrix()
   }
 

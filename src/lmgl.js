@@ -30,6 +30,7 @@ export class Stage {
     this.indicesLength = 0
     this.geoType = null
     this.run = this.run.bind(this)
+    this.updateChildren = new Map()
   }
 
   add(object) {
@@ -45,19 +46,6 @@ export class Stage {
     }
   }
 
-  // _updateUniformMatrix() {
-  //    const { gl, camera, program } = this
-  //   const projectionMatrixGL = gl.getUniformLocation(program, "projectionMatrix");
-  //   camera.updateProjectionMatrix()
-  //   gl.uniformMatrix4fv(projectionMatrixGL, false, camera.projectionMatrix.elements);
-
-  //   const modelViewMatrix = new Matrix4()
-  //   const matrixWorld = new Matrix4()
-  //   modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, matrixWorld);
-  //   const modelViewMatrixGL = gl.getUniformLocation(program, "modelViewMatrix");
-  //   gl.uniformMatrix4fv(modelViewMatrixGL, false, modelViewMatrix.elements);
-  // }
-
   init(...param) {
     this.renderer = new Renderer(...param)
     this.gl = this.renderer.getContext()
@@ -72,16 +60,24 @@ export class Stage {
     this.renderer.handleResize(width, height)
   }
 
-
   run() {
-    // return
     window.requestAnimationFrame(this.run)
     this.camera.updateMatrix()
     this.camera.updateMatrixWorld()
-    // this.camera.update
-    // this._updateUniformMatrix()
     this.renderer.render()
+
+    this.updateChildren.forEach(cb => {
+      cb();
+    })
+  }
+
+  addOnUpdate(name, cb) {
+    this.updateChildren.set(name, cb);
+  }
+
+  removeOnUpdate(name) {
+    this.updateChildren.delete(name)
   }
 }
 
-console.log(VERSION);
+console.log("lmgl", VERSION);

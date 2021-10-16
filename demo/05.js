@@ -25,7 +25,7 @@ window.onload = () => {
 
   stage = new lmgl.Stage()
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.position.set(0, 0, 20)
+  stage.camera.position.set(0, 0, 10)
 
   const geoInfo = lmgl.createCube();
   const geo = {
@@ -43,7 +43,11 @@ window.onload = () => {
     fragmentShader,
   }
 
-  let mesh = new lmgl.Mesh(geo, mat);
-  stage.add(mesh)
+  const cube = new lmgl.Mesh(geo, mat);
+  stage.add(cube)
   stage.run()
+
+  stage.addOnUpdate("rotation", () => {
+    cube.rotation.x += 0.05;
+  })
 }
