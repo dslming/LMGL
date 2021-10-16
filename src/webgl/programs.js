@@ -1,69 +1,29 @@
-// import { createAttributeSetters } from './attrbute.js'
+import { getShader, deleteShader, SHADER_TYPE } from './shader.js'
 
-function getVariableCounts(gl, program, type) {
-  return gl.getProgramParameter(program, type);
+const PROGRAM_INFO_TYPE = {
+  DELETE_STATUS: "DELETE_STATUS",
+  LINK_STATUS: "LINK_STATUS",
+  VALIDATE_STATUS: "VALIDATE_STATUS",
+  ATTACHED_SHADERS: "ATTACHED_SHADERS",
+  ACTIVE_ATTRIBUTES: "ACTIVE_ATTRIBUTES",
+  ACTIVE_UNIFORMS: "ACTIVE_UNIFORMS",
 }
-
-function createUniformSetter(gl, program, uniformInfo) {
-  let uniformLocation = gl.getUniformLocation(program, uniformInfo.name);
-  let type = uniformInfo.type;
-  let isArray = uniformInfo.size > 1 && uniformInfo.name.substr(-3) === '[0]';
-
-  if (isArray && type == enums.INT.value) {
-    return function(v) {
-      gl.uniform1iv(uniformLocation, v);
-    };
-  }
-  if (isArray && type == enums.FLOAT.value) {
-    return function(v) {
-      gl.uniform1fv(uniformLocation, v);
-    };
-  }
-  return function createSetter(v) {
-    return enums[getKeyFromType(type)].setter(uniformLocation, v);
-  };
-}
-
-function createUniformSetters(gl, program) {
-  let uniformSetters = {};
-  let uniformsCount = getVariableCounts(gl, program, gl.ACTIVE_UNIFORMS);
-  for (let i = 0; i < uniformsCount; i++) {
-    let uniformInfo = gl.getActiveUniform(program, i);
-    if (!uniformInfo) {
-      break;
-    }
-    let name = uniformInfo.name;
-    if (name.substr(-3) === '[0]') {
-      name = name.substr(0, name.length - 3);
-    }
-    let setter = createUniformSetter(gl, program, uniformInfo);
-    uniformSetters[name] = setter;
-  }
-  return uniformSetters;
-}
-
-function _createShader(gl, type, source) {
-  let shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  //检测是否编译正常。
-  let success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-  if (success) {
-    return shader;
-  }
-  console.error(gl.getShaderInfoLog(shader));
-  gl.deleteShader(shader);
-}
-
+export { PROGRAM_INFO_TYPE }
 
 function _createProgram(gl, vertexShader, fragmentShader) {
   let program = gl.createProgram();
+
+  // 连接shader, shader对是否编译没有要求
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
+
+  // 链接
   gl.linkProgram(program);
   let result = gl.getProgramParameter(program, gl.LINK_STATUS);
   if (result) {
-    console.log('着色器程序创建成功');
+    // console.log('着色器程序创建成功');
+    deleteShader(gl, vertexShader)
+    deleteShader(gl, fragmentShader)
     return program
   }
   let errorLog = gl.getProgramInfoLog(program);
@@ -71,44 +31,25 @@ function _createProgram(gl, vertexShader, fragmentShader) {
   throw errorLog;
 }
 
-// function createSimpleProgram(gl, vertexShader, fragmentShader) {
-//   if (!vertexShader || !fragmentShader) {
-//     console.warn('着色器不能为空');
-//     return;
-//   }
-//   let program = gl.createProgram();
-//   gl.attachShader(program, vertexShader);
-//   gl.attachShader(program, fragmentShader);
-//   gl.linkProgram(program);
-//   let success = gl.getProgramParameter(program, gl.LINK_STATUS);
-//   if (success) {
-//     return program;
-//   }
-//   console.error(gl.getProgramInfoLog(program));
-//   gl.deleteProgram(program);
-// }
+export function getProgramInfo(gl, program, type) {
+  return gl.getProgramParameter(program, type);
+}
 
-function createProgram(gl, shaderSource) {
+export function getProgram(gl, shaderSource) {
   const { vertexShader: vs, fragmentShader: fs } = shaderSource
   //创建顶点着色器
-  let vertexShader = _createShader(
-    gl,
-    gl.VERTEX_SHADER,
-    vs
-  );
+  const vertexShader = getShader(gl, SHADER_TYPE.VERTEX_SHADER,vs);
   //创建片元着色器
-  let fragmentShader = _createShader(
-    gl,
-    gl.FRAGMENT_SHADER,
-    fs
-  );
-
+  let fragmentShader = getShader(gl, SHADER_TYPE.FRAGMENT_SHADER,fs);
   //创建着色器程序
-  let program = _createProgram(gl, vertexShader, fragmentShader);
-  return program;
+  return _createProgram(gl, vertexShader, fragmentShader);
 }
 
-export {
-  createProgram,
-  getVariableCounts,
+export function useProgram(gl, program) {
+  gl.useProgram(program)
 }
+
+export function deleteProgram(gl, program) {
+  gl.deleteProgram(program);
+}
+

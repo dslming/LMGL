@@ -23,12 +23,19 @@ const fragmentShader = `
 	}
 	`
 
+let stage
+window.onresize = () => {
+  const width = window.innerWidth
+  const height = window.innerHeight
+  stage.resize(width, height)
+}
+
 window.onload = () => {
   document.title = "创建三角形"
   const width = window.innerWidth
   const height = window.innerHeight
 
-  let stage = new lmgl.Stage();
+  stage = new lmgl.Stage();
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
   stage.camera.updateMatrix()

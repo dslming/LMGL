@@ -68,6 +68,10 @@ export class Stage {
     dao.setData({ name: "camera", data: this.camera })
   }
 
+  resize(width, height) {
+    this.renderer.handleResize(width, height)
+  }
+
 
   run() {
     // return
