@@ -1,4 +1,5 @@
 import * as lmgl from '../src/lmgl.js'
+window.lmgl = lmgl;
 
 const vertexShader = `
   precision mediump float;

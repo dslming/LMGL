@@ -24,7 +24,7 @@ export default class Renderer {
     gl.enable(gl.DEPTH_TEST);
   }
 
-  _updateUniformMatrix(program) {
+  _updateUniformMatrix(program, matrixWorld) {
     const gl = dao.getData("gl")
     const camera = dao.getData("camera")
 
@@ -32,7 +32,7 @@ export default class Renderer {
     WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4")
 
     const modelViewMatrix = new Matrix4()
-    const matrixWorld = new Matrix4()
+    // const matrixWorld = new Matrix4()
     modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, matrixWorld);
     WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4")
   }
@@ -143,7 +143,8 @@ export default class Renderer {
       // 开启深度检测
       gl.enable(gl.DEPTH_TEST);
 
-      this._updateUniformMatrix(program);
+      // 更新相机视图、相机投影矩阵
+      this._updateUniformMatrix(program, mesh.matrix);
 
       if (geo.type == GEOMETRY_TYPE.POINTS) {
         //  todo
