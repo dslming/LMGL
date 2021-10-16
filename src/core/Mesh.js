@@ -1,8 +1,8 @@
 import * as MathUtils from '../math/MathUtils.js';
-import * as WebGLInterface from '../WebGLInterface.js'
+import * as WebGLInterface from '../webgl/index.js'
 import Material from './Material.js'
-import dao from '../Dao.js'
-import { GEOMETRY_TYPE, SIDE } from '../global.js'
+import dao from './Dao.js'
+import { GEOMETRY_TYPE, SIDE } from './global.js'
 import { Matrix4 } from '../math/Matrix4.js';
 import { Vector3 } from '../math/Vector3.js';
 import { Euler } from '../math/Euler.js';

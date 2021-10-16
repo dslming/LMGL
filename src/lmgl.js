@@ -1,18 +1,19 @@
 import Renderer from './core/Renderer.js'
-import * as WebGLInterface from './WebGLInterface.js'
-import { GEOMETRY_TYPE,VERSION,SIDE } from './global.js'
+import * as WebGLInterface from './webgl/index.js'
+import { GEOMETRY_TYPE,VERSION,SIDE } from './core/global.js'
 import MyOrbitControls from './camera-control/MyOrbitControls.js'
 import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
 
-import dao from './Dao.js'
+import dao from './core/Dao.js'
 
 export * from "./geometry/Circle.js"
 export * from "./geometry/Cube.js"
-export * from "./global.js"
-export * from "./ImageLoader.js"
+export * from "./core/global.js"
+
+// loader
+export * from "./loader/ImageLoader.js"
 
 export * from "./math/Euler.js"
-// export * from "./math/MathUtils.js"
 export * from "./math/Matrix3.js"
 export * from "./math/Matrix4.js"
 export * from "./math/Vector2.js"

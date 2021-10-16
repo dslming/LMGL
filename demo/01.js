@@ -1,27 +1,23 @@
 import * as lmgl from '../src/lmgl.js'
 
 const vertexShader = `
-  precision mediump float;
-  attribute vec3 aPosition;
-  uniform vec3 uColor;
-  varying vec3 vColor;
-  uniform mat4 projectionMatrix;
-  uniform mat4 modelViewMatrix;
+precision mediump float;
+attribute vec3 aPosition;
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
 
-  void main() {
-    vColor = uColor;
-   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-  }
+void main() {
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+}
 `
 
 const fragmentShader = `
-  precision mediump float;
-  uniform vec3 uColor;
-  varying vec3 vColor;
-	void main() {
-	  gl_FragColor = vec4(vColor, 1.);
-	}
-	`
+precision mediump float;
+uniform vec3 uColor;
+void main() {
+  gl_FragColor = vec4(uColor, 1.);
+}
+`
 
 let stage
 window.onresize = () => {
@@ -35,10 +31,13 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
 
+  // 创建一个场景
   stage = new lmgl.Stage();
   stage.init(document.querySelector("#c"), width, height)
+  // 设置相机位置
   stage.camera.position.set(0, 0, 10)
 
+  // 三角形的几何数据
   const z = 0;
   const geo = {
     attribute: {
@@ -53,6 +52,7 @@ window.onload = () => {
     },
     indices: [0, 2, 1]
   };
+
 
   const mat = {
     vertexShader,

@@ -11,6 +11,7 @@ const SIDE = {
   BackSide: 1,
   DoubleSide: 2
 }
+
 export {
   SIDE,
   VERSION,

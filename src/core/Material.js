@@ -1,5 +1,5 @@
-import dao from '../Dao.js'
-import * as WebGLInterface from '../WebGLInterface.js'
+import dao from './Dao.js'
+import * as WebGLInterface from '../webgl/index.js'
 
 export default class Material {
   constructor(mat) {
