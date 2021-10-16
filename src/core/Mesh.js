@@ -20,7 +20,15 @@ class Mesh {
     }
 
     // 创建顶点缓冲区
-    const { attribute } = geo
+    const { attribute, indices } = geo
+    if (!indices) {
+      console.error("geometry 需要 indices");
+      return;
+    }
+    if (attribute.indices) {
+      console.error("attribute和indices是并列关系...");
+      return
+    }
     const keys = Object.keys(attribute)
     for (let i = 0; i < keys.length; i++) {
       const name = keys[i]

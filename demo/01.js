@@ -1,74 +1,71 @@
 import * as lmgl from '../src/lmgl.js'
 
-
-// console.error(lmgl.version);
-
 const vertexShader = `
   precision mediump float;
-  attribute vec2 aPosition;
-  uniform vec2 uScreenSize;
+  attribute vec3 aPosition;
+  uniform vec3 uColor;
+  varying vec3 vColor;
+  uniform mat4 projectionMatrix;
+  uniform mat4 modelViewMatrix;
 
   void main() {
-    vec2 position = (aPosition / uScreenSize) * 2.0 - 1.0;
-    gl_Position = vec4(position, 0., 1.0);
+    vColor = uColor;
+   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
   }
 `
 
 const fragmentShader = `
   precision mediump float;
-	uniform vec4 uColor;
-
+  uniform vec3 uColor;
+  varying vec3 vColor;
 	void main() {
-	  gl_FragColor = uColor;
+	  gl_FragColor = vec4(vColor, 1.);
 	}
 	`
 
-window.onload = () => {
-  document.title = "绘制三角形"
+let stage
+window.onresize = () => {
   const width = window.innerWidth
   const height = window.innerHeight
-  const centerX = width/2
-  const centerY = height / 2
-  let app = new lmgl.Stage()
-  app.initRender(document.querySelector("#c"), width, height)
-  const h = 100
+  stage.resize(width, height)
+}
+
+window.onload = () => {
+  document.title = "创建三角形"
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  stage = new lmgl.Stage();
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 10)
+
+  const z = 0;
   const geo = {
     attribute: {
-       aPosition: {
-         value: [
-           centerX, centerY,
-           centerX - h, centerY + h,
-           centerX + h, centerY + h,
-         ],
-         itemSize: 2
-       },
-    }
+      aPosition: {
+        value: [
+          0, 1.5, z,
+          -1., 0, z,
+           1., 0, z
+        ],
+        itemSize: 3
+      },
+    },
+    indices: [0, 2, 1]
   };
 
   const mat = {
     vertexShader,
     fragmentShader,
-    side: lmgl.SIDE.DoubleSide,
     uniforms: {
       uColor: {
-        value: {
-          x: 1,
-          y: 0.5,
-          z: 0,
-          w: 1
-        },
-        type: "v4"
-      },
-      uScreenSize: {
-        value: {
-          x: width,
-          y: height
-        },
-        type: "v2"
+        type: "v3",
+        value: new lmgl.Vector3(1, 0, 0)
       }
     }
   }
-  const mesh = app.createMesh(geo, mat)
 
-  app.run()
+  let mesh = new lmgl.Mesh(geo, mat);
+  stage.add(mesh)
+  stage.run()
 }

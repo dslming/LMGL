@@ -23,7 +23,8 @@ window.onload = () => {
    stage.init(document.querySelector("#c"), width, height)
 
   const geo = {
-     type: lmgl.GEOMETRY_TYPE.POINTS,
+    type: lmgl.GEOMETRY_TYPE.POINTS,
+    attribute: {}
    };
 
    const mat = {

@@ -4,7 +4,7 @@ import * as WebGLInterface from '../WebGLInterface.js'
 export default class Material {
   constructor(mat) {
     this.program = this._buildMaterial(mat);
-    this.uniforms = mat.uniforms;
+    this.uniforms = mat.uniforms || {};
     this._buildUniform(this.uniforms, this.program)
     // this.opacity = 1;
     // this.format = RGBAFormat;

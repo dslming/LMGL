@@ -1,18 +1,18 @@
 import * as lmgl from '../src/lmgl.js'
-
-
 // console.error(lmgl.version);
 
 const vertexShader = `
   precision mediump float;
-  attribute vec2 aPosition;
+  attribute vec3 aPosition;
+
   attribute vec4 aColor;
 	varying vec4 vColor;
-  uniform vec2 uScreenSize;
+
+  uniform mat4 projectionMatrix;
+  uniform mat4 modelViewMatrix;
 
   void main() {
-    vec2 position = (aPosition / uScreenSize) * 2.0 - 1.0;
-    gl_Position = vec4(position, 0., 1.0);
+   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
     vColor = aColor;
   }
 `
@@ -26,24 +26,28 @@ const fragmentShader = `
 	}
 	`
 
+let stage
+
 window.onload = () => {
-  document.title = "单个 buffer 绘制渐变三角形"
+  document.title = "绘制渐变三角形,自定义属性"
   const width = window.innerWidth
   const height = window.innerHeight
-  const centerX = width/2
-  const centerY = height / 2
-  let app = new lmgl.Stage()
-  app.initRender(document.querySelector("#c"), width, height)
-  const h = 100
+
+  stage = new lmgl.Stage()
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 10)
+
+  const z = 0;
   const geo = {
+    indices: [0, 1, 2],
     attribute: {
       aPosition: {
           value: [
-            centerX, centerY,
-            centerX - h, centerY + h,
-            centerX + h, centerY + h,
+           0, 1.5, z,
+           -1., 0, z,
+           1., 0, z
           ],
-          itemSize: 2
+          itemSize: 3
         },
         aColor: {
           value: [
@@ -59,16 +63,9 @@ window.onload = () => {
   const mat = {
     vertexShader,
     fragmentShader,
-    side: lmgl.SIDE.DoubleSide,
-    uniforms: {
-      uScreenSize: {
-        value: {
-          x: width,
-          y: height
-        },
-        type: "v2"
-      }
-    }
   }
-  const mesh = app.createMesh(geo, mat)
+
+  let mesh = new lmgl.Mesh(geo, mat);
+  stage.add(mesh)
+  stage.run()
 }
