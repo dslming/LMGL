@@ -27,11 +27,11 @@
 
 
         const demoMap = {
-          "从一个点开始": "00",
-          "创建三角形": "01",
-          "绘制渐变三角形": "02",
-          "绘制矩形": "03",
-          "绘制圆环": "04",
+          "一个点": "00",
+          "三角形": "01",
+          "渐变三角形": "02",
+          "矩形": "03",
+          "圆环": "04",
           "立方体": "05",
           "纹理": "06",
           "深度": "07",
@@ -67,10 +67,10 @@
           content.appendChild(span);
           const ul = document.createElement('ul');
           content.appendChild(ul);
-          exampleNames[categoryName].forEach(name => {
+          exampleNames[categoryName].forEach((name,index) => {
             const li = document.createElement('li');
             const a = document.createElement('a');
-            a.innerText = name;
+            a.innerText = `${index} ${name}`;
             a.href = "demo/" + name + '/index.html';
             a.target = 'viewer';
             a.addEventListener('click', event => {

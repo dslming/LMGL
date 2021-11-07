@@ -32,6 +32,8 @@ export class Stage {
     this.geoType = null
     this.run = this.run.bind(this)
     this.updateChildren = new Map()
+
+    this.resize = this.resize.bind(this)
   }
 
   add(object) {
@@ -55,6 +57,13 @@ export class Stage {
 
     dao.setData({ name: "gl", data: this.gl })
     dao.setData({ name: "camera", data: this.camera })
+
+    const dom = param[0];
+    window.addEventListener("resize", () => {
+      const width = dom.clientWidth
+      const height = dom.clientHeight
+      this.resize(width, height)
+    })
   }
 
   resize(width, height) {
