@@ -1,4 +1,13 @@
-import * as lmgl from '../src/lmgl.js'
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="content">
+    <canvas id="c"></canvas>
+  </div>
+  <script type="module">
+    import * as lmgl from '../src/lmgl.js'
 // console.error(lmgl.version);
 
 const vertexShader = `
@@ -69,3 +78,7 @@ window.onload = () => {
   stage.add(mesh)
   stage.run()
 }
+
+  </script>
+</body>
+</html>

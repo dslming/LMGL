@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>lmgl examples</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="./show.css">
+  </head>
+  <body>
+    <div id="panel">
+      <div id="header">
+        <h1><a href="https://github.com/dslming/lmgl" target="_blank">lmgl</a></h1>
+        <div id="expandButton"></div>
+      </div>
+      <div id="panelScrim"></div>
+      <div id="contentWrapper">
+        <div id="content"></div>
+      </div>
+    </div>
+
+    <iframe id="viewer" name="viewer" onmousewheel=""></iframe>
+
+    <script>
+       const categoryNames = [
+          'basic'
+        ];
+
+
+        const demoMap = {
+          "从一个点开始": "00",
+          "创建三角形": "01",
+          "绘制渐变三角形": "02",
+          "绘制矩形": "03",
+          "绘制圆环": "04",
+          "立方体": "05",
+          "纹理": "06",
+          "深度": "07",
+        }
+
+        const exampleNames = {
+          basic: []
+        };
+        exampleNames.basic = Object.keys(demoMap);
+
+        const content = document.getElementById('content');
+        const viewer = document.getElementById('viewer');
+        const panel = document.getElementById('panel');
+        const panelScrim = document.getElementById('panelScrim');
+        const expandButton = document.getElementById('expandButton');
+
+
+        function createViewByName(viewer, name) {
+          viewer.src = "./demo/"+demoMap[name]+".html";
+        }
+
+        const openExample = exampleName => {
+          createViewByName(viewer, exampleName)
+
+          window.location.hash = exampleName;
+          viewer.focus();
+          panel.classList.remove('open');
+        };
+
+        categoryNames.forEach(categoryName => {
+          const span = document.createElement('span');
+          span.innerText = categoryName;
+          content.appendChild(span);
+          const ul = document.createElement('ul');
+          content.appendChild(ul);
+          exampleNames[categoryName].forEach(name => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.innerText = name;
+            a.href = "demo/" + name + '/index.html';
+            a.target = 'viewer';
+            a.addEventListener('click', event => {
+              if (event.button !== 0 || event.ctrlKey || event.altKey ||
+                event.shiftKey || event.metaKey) {
+                return;
+              }
+              event.preventDefault();
+              openExample(name);
+            });
+            li.appendChild(a);
+            ul.appendChild(li);
+          });
+        });
+
+        const onClickForOpen = event => {
+          event.preventDefault();
+          panel.classList.toggle('open');
+        };
+
+        expandButton.addEventListener('click', onClickForOpen);
+        panelScrim.addEventListener('click', onClickForOpen);
+
+        // 第一个例子
+        createViewByName(viewer, exampleNames.basic[2])
+
+        // iOS iframe auto-resize workaround
+        if (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) {
+          viewer.style.width = getComputedStyle(viewer).width;
+          viewer.style.height = getComputedStyle(viewer).height;
+          viewer.setAttribute('scrolling', 'no');
+        }
+
+        if (window.location.hash !== '') {
+          const hash = window.location.hash.substring(1);
+          for (const categoryName of categoryNames) {
+            if (exampleNames[categoryName].includes(hash)) {
+              openExample(hash);
+              break;
+            }
+          }
+        }
+
+    </script>
+  </body>
+</html>
