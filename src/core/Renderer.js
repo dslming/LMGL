@@ -7,6 +7,7 @@ import dao from './Dao.js'
 import * as WebGLInterface from '../webgl/index.js'
 import { Matrix4 } from '../math/Matrix4.js'
 
+let flag = false;
 export default class Renderer {
   constructor(dom, width, height) {
     const canvas = dom
@@ -68,29 +69,29 @@ export default class Renderer {
     // return program
   }
 
-   _setAttributes(attributeBuffer, indicesBuffer, geo, program) {
-     const { indices, attribute } = geo
-     const gl = dao.getData("gl");
+  _setAttributes(attributeBuffer, indicesBuffer, geo, program) {
+    const { indices, attribute } = geo
+    const gl = dao.getData("gl");
 
-     const keys = Object.keys(attribute)
-     for (let i = 0; i < keys.length; i++) {
-       const name = keys[i]
-       const { value, itemSize } = attribute[name]
-       // 一个属性对应一个buffer
-       WebGLInterface.setAttribBuffer(
-         gl,
-         program,
-         attributeBuffer[name], {
-         attribureName: name,
-         attriburData: value,
-         itemSize: itemSize
-       })
-     }
+    const keys = Object.keys(attribute)
+    for (let i = 0; i < keys.length; i++) {
+      const name = keys[i]
+      const { value, itemSize } = attribute[name]
+      // 一个属性对应一个buffer
+      WebGLInterface.setAttribBuffer(
+        gl,
+        program,
+        attributeBuffer[name], {
+        attribureName: name,
+        attriburData: value,
+        itemSize: itemSize
+      })
+    }
 
-     if (indices) {
-       WebGLInterface.setIndicesBuffer(gl, indicesBuffer, indices)
-     }
-   }
+    if (indices) {
+      WebGLInterface.setIndicesBuffer(gl, indicesBuffer, indices)
+    }
+  }
 
   _render(geoType, count) {
     const gl = dao.getData("gl")
@@ -149,7 +150,7 @@ export default class Renderer {
       if (geo.type == GEOMETRY_TYPE.POINTS) {
         //  todo
       } else if (geo.type == GEOMETRY_TYPE.TRIANGLES) {
-        this._setAttributes(mesh.attributeBuffer, mesh.indicesBuffer, geo, program)
+        this._setAttributes(mesh.attributeBuffer, mesh.indicesBuffer, geo, program);
       }
 
       let count = geo.indices.length;
