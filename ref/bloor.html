@@ -88,6 +88,8 @@ function draw() {
  * blur can be applied to further blur the image.
  */
 function blur() {
+    gl.clearColor(1,0,0,1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
     function drawWithOffset(a,b) { // helper function
         gl.uniform2f(u_offset, a, b);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);

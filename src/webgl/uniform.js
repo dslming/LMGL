@@ -30,3 +30,7 @@ export function setUniform(gl, program, name, value, type) {
       break
   }
 }
+
+export function getUniformLocation(gl, program, name) {
+  return gl.getUniformLocation(program, name);
+}

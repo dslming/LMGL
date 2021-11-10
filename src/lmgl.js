@@ -1,5 +1,4 @@
 import Renderer from './core/Renderer.js'
-import * as WebGLInterface from './webgl/index.js'
 import { GEOMETRY_TYPE,VERSION,SIDE } from './core/global.js'
 import MyOrbitControls from './camera-control/MyOrbitControls.js'
 import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
@@ -22,6 +21,9 @@ export * from "./math/Vector4.js"
 
 export * from "./core/Mesh.js"
 
+import * as webgl from './webgl/index.js'
+export {webgl}
+
 export class Stage {
   constructor() {
     window.lm = this
@@ -32,8 +34,16 @@ export class Stage {
     this.geoType = null
     this.run = this.run.bind(this)
     this.updateChildren = new Map()
-
+    this.renderFlag = true;
     this.resize = this.resize.bind(this)
+  }
+
+  getGl() {
+    return this.gl;
+  }
+
+  setRenderState(v) {
+    this.renderFlag = v;
   }
 
   add(object) {
@@ -74,7 +84,7 @@ export class Stage {
     window.requestAnimationFrame(this.run)
     this.camera.updateMatrix()
     this.camera.updateMatrixWorld()
-    this.renderer.render()
+    this.renderFlag && this.renderer.render()
 
     this.updateChildren.forEach(cb => {
       cb();

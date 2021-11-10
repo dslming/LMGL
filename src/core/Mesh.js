@@ -20,7 +20,7 @@ class Mesh {
     this.scale = new Vector3(1, 1, 1);
     this.rotation = new Euler();
     this.quaternion = new Quaternion();
-
+    this.setVBO = false;
     this.updateMatrix = this.updateMatrix.bind(this);
     this._onRotationChange = this._onRotationChange.bind(this);
 
@@ -36,7 +36,6 @@ class Mesh {
     this.quaternion.setFromEuler(this.rotation, false);
     this.updateMatrix()
   }
-
 
   _buildGeometry(geo) {
     const gl = dao.getData("gl");
@@ -71,6 +70,33 @@ class Mesh {
 
   updateMatrix() {
     this.matrix.compose(this.position, this.quaternion, this.scale);
+  }
+
+  // 设置VBO
+  setAttributes(attributeBuffer, indicesBuffer, geo, program) {
+    if (this.setVBO == true) return;
+
+    const { indices, attribute } = geo
+    const gl = dao.getData("gl");
+
+    const keys = Object.keys(attribute)
+    for (let i = 0; i < keys.length; i++) {
+      const name = keys[i]
+      const { value, itemSize } = attribute[name]
+      // 一个属性对应一个buffer
+      WebGLInterface.setAttribBuffer(
+        gl,
+        program,
+        attributeBuffer[name], {
+          attribureName: name,
+          attriburData: value,
+          itemSize: itemSize
+        })
+    }
+
+    if (indices) {
+      WebGLInterface.setIndicesBuffer(gl, indicesBuffer, indices)
+    }
   }
 }
 

@@ -35,7 +35,7 @@ export function getProgramInfo(gl, program, type) {
   return gl.getProgramParameter(program, type);
 }
 
-export function getProgram(gl, shaderSource) {
+export function createProgram(gl, shaderSource) {
   const { vertexShader: vs, fragmentShader: fs } = shaderSource
   //创建顶点着色器
   const vertexShader = getShader(gl, SHADER_TYPE.VERTEX_SHADER,vs);

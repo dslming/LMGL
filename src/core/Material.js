@@ -5,7 +5,7 @@ export default class Material {
   constructor(mat) {
     this.program = this._buildMaterial(mat);
     this.uniforms = mat.uniforms || {};
-    this._buildUniform(this.uniforms, this.program)
+    // this._buildUniform(this.uniforms, this.program)
     // this.opacity = 1;
     // this.format = RGBAFormat;
     // this.transparent = false;
@@ -25,7 +25,12 @@ export default class Material {
     // this.depthWrite = true;
   }
 
-  _buildUniform(uniforms, program) {
+  _buildMaterial(mat) {
+    const gl = dao.getData("gl")
+    return WebGLInterface.createProgram(gl, mat);
+  }
+
+  setUniform(uniforms, program) {
     if (!uniforms) return
 
     const gl = dao.getData("gl");
@@ -37,10 +42,5 @@ export default class Material {
       const { value, type } = uniforms[name]
       WebGLInterface.setUniform(gl, program, name, value, type)
     }
-  }
-
-  _buildMaterial(mat) {
-    const gl = dao.getData("gl")
-    return WebGLInterface.getProgram(gl, mat);
   }
 }
