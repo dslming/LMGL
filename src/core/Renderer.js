@@ -101,6 +101,7 @@ export default class Renderer {
 
     gl.clearColor(0, 0, 0, 0); // fill color buffer with zeros
     gl.clear(gl.COLOR_BUFFER_BIT);
+
     gl.enable(gl.BLEND); // turn on blending
     gl.blendFunc(gl.ONE, gl.ONE);
 

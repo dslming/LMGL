@@ -1,4 +1,4 @@
-import { createTexture, unbindTexture } from './texture.js'
+import { activeTexture,createTexture, unbindTexture } from './texture.js'
 import { getUniformLocation } from './uniform.js'
 
 export function createFramebuffer(gl) {
@@ -20,8 +20,9 @@ export function copyFramebufferToTexture(gl, name, program, width, hieght) {
     hieght = 256;
   }
 
-  const unitId = 1;
-  createTexture(gl, unitId);
+  const unitId = 0;
+  activeTexture(gl)
+  // createTexture(gl, unitId);
   gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, width, hieght, 0);
 
   let location = getUniformLocation(gl, program, name);

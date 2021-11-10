@@ -11,7 +11,7 @@
  * @param {*} img
  */
 export function setTexture(gl, attribute, img) {
-   createTexture(gl)
+   createTexture(gl, 0)
    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
 
    // gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
