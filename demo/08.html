@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-  <link rel="stylesheet" href="./style.css">
+  <!-- <link rel="stylesheet" href="./style.css"> -->
 </head>
 <body>
   <div class="content">
@@ -17,36 +17,67 @@ const vertexShader = `
   precision mediump float;
   attribute vec3 aPosition;
   attribute vec2 aUv;
+
   uniform mat4 projectionMatrix;
   uniform mat4 modelViewMatrix;
+  uniform vec2 offset;
+
   varying vec2 vUv;
   void main() {
-    vUv = aUv;
+    vUv = aUv + offset;
    gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
   }
 `
-
 const fragmentShader = `
   precision mediump float;
-  uniform sampler2D uTexture;
+  uniform sampler2D image;
+  uniform vec2 offset;
+  uniform float multiplier;
+
   varying vec2 vUv;
 	void main() {
-	  gl_FragColor = texture2D(uTexture, vec2(vUv.x, vUv.y));
-    gl_FragColor.x = 0.5;
-    // gl_FragColor = vec4(1.,0.,0.,1.);
+	  vec4 color = texture2D(image, vUv);
+    gl_FragColor = vec4(multiplier * color.rgb, 1.0 );
+    gl_FragColor = vec4(0.5,0.,0.,1.);
 	}
 	`
+
+// const vertexShader  = `
+//     attribute vec2 a_coords;
+//     uniform vec2 offset;
+//     varying vec2 v_coords;
+//     void main() {
+//         vec2 coords;  // coords translated from default range -1 to 1 to the range 0 to 1.
+//         coords = vec2( (a_coords.x + 1.0)*0.5, (a_coords.y + 1.0)* 0.5 );
+//         v_coords = coords + offset;
+//         gl_Position = vec4(a_coords,0.0,1.0);
+//     }`;
+
+// const fragmentShader = `
+//     precision mediump float;
+//     uniform sampler2D image;
+//     uniform float multiplier;
+//     varying vec2 v_coords;
+//     void main() {
+//         vec4 color = texture2D( image, v_coords );
+//         gl_FragColor = vec4( multiplier*color.rgb, 1.0 );
+//         // gl_FragColor = vec4(0.5, 0.,0.,1.);
+//     }`;
+
 let stage
 
 window.onload = () => {
   document.title = "模糊图片"
-  const width = window.innerWidth
-  const height = window.innerHeight
+
+  // 2^n
+  const width = 512
+  const height = 256
 
   stage = new lmgl.Stage()
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 20)
 
+  var blur = null;
   const center = {
     x: 0,
     y: 0
@@ -67,45 +98,84 @@ window.onload = () => {
         // todo: y轴不对
         value: [ 0,0, 0,1,  1,1,1,0,],
         itemSize: 2
-      }
+      },
+      // a_coords: {
+      //   value: [-1,-1, 1,-1, 1,1, -1,1 ],
+      //   itemSize: 2
+      // }
     },
     indices: [0,1,2, 2,3,0]
   };
 
-  lmgl.loadImage("./images/house.jpg", data => {
+  let img = new Image();
+  img.onload = function() {
+    let imageTexture = new lmgl.ImageTexture(img)
     const mat = {
-      vertexShader,
+      vertexShader: vertexShader,
       fragmentShader,
       uniforms: {
-        uTexture: {
-          value: data,
+        multiplier:{
+          value: 1,
+          type: "f"
+        },
+        offset:{
+          value: { x:0, y:0 },
+          type: "v2"
+        },
+        image: {
+          value: imageTexture.getTexture(),
           type: "t"
         }
       }
     }
-    let mesh = new lmgl.Mesh(geo, mat);
+
+    const mesh = new lmgl.Mesh(geo, mat);
     stage.add(mesh);
+    stage.renderer.render()
+    // stage.run()
+    // const material = mesh.material;
+    // material.updateUniform()
+    // mesh.setAttributesBuffer();
 
-    stage.setRenderState(false)
-    stage.renderer.render();
+    // 自定义渲染
+    // stage.setRenderState(false)
+    // const webgl = lmgl.webgl;
+    // const gl = stage.getGl()
 
-    const webgl = lmgl.webgl;
-    const gl = stage.getGl()
-
-    stage.addOnUpdate("loop",()=>{
-      const material = mesh.material;
-      const program = material.program;
-      const geometry = mesh.geometry;
-
-      material.setUniform(material.uniforms, program)
-      webgl.copyFramebufferToTexture(gl,"uTexture", program, 256, 256)
-      stage.renderer.renderOne(geometry);
-    })
+    // stage.renderer.renderOne(mesh.geometry);
 
 
+    window.blur = ()=>{
+      const count = 9;
+      const kernel = [
+        {x:-1,y: -1},
+        {x:-1,y: 0},
+        {x:-1,y: 1},
+        {x: 0,y: 1},
+        {x:0,y: 0},
+        {x:0,y: -1},
+        {x:1,y: -1},
+        {x:1,y: 0},
+        {x:1,y: 1},
+      ]
+      material.uniforms.multiplier.value = 1/count;
 
-  })
-  stage.run()
+      for(let i=0;i<count;i++) {
+        let dx = 4/width;
+        let dy = 4/height;
+        const item = kernel[i]
+        material.uniforms.offset.value = {
+          x: item.x * dx,
+          y: item.y * dy,
+        }
+        material.updateUniform()
+        stage.renderer.renderOne(mesh.geometry);
+      }
+      webgl.copyFramebufferToTexture(gl, width, height)
+    }
+
+  }
+  img.src = "./images/house.jpg"
 }
 
   </script>

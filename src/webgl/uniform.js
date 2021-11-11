@@ -9,6 +9,10 @@ export function setUniform(gl, program, name, value, type) {
   }
 
   switch (type) {
+    case "f":
+     gl.uniform1f(addr, value);
+      break;
+
     case "v2":
       gl.uniform2f(addr, value.x, value.y);
       break;

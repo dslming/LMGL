@@ -95,12 +95,13 @@ export default class Renderer {
 
   renderOne(geometry) {
     const geoType = geometry.type;
-    let count = geometry.indices.length;
+    const count = geometry.indices.length;
     const gl = dao.getData("gl")
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+    // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    gl.clearColor(0, 0, 0, 0); // fill color buffer with zeros
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    // gl.clearColor(0, 0, 0, 0); // fill color buffer with zeros
+    // gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.enable(gl.BLEND); // turn on blending
     gl.blendFunc(gl.ONE, gl.ONE);
@@ -110,11 +111,11 @@ export default class Renderer {
     } else if (geoType == GEOMETRY_TYPE.TRIANGLES) {
       gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
     }
-    gl.disable(gl.BLEND);
+    // gl.disable(gl.BLEND);
   }
 
   getContext() {
-    return this.canvas.getContext("webgl");
+    return this.canvas.getContext("experimental-webgl");
   }
 
   setVertexLength(v) {
@@ -157,12 +158,12 @@ export default class Renderer {
       // 更新相机视图、相机投影矩阵
       this._updateUniformMatrix(program, mesh.matrix);
       // 设置材质的uniform属性,todo:需要每帧更新么?
-      mat.setUniform(mat.uniforms, program)
+      mat.updateUniform()
 
       if (geo.type == GEOMETRY_TYPE.POINTS) {
         //  todo
       } else if (geo.type == GEOMETRY_TYPE.TRIANGLES) {
-        mesh.setAttributes(mesh.attributeBuffer, mesh.indicesBuffer, geo, program);
+        mesh.setAttributesBuffer(mesh.attributeBuffer, mesh.indicesBuffer, geo, program);
         // this._setAttributes(mesh.attributeBuffer, mesh.indicesBuffer, geo, program);
       }
 

@@ -29,6 +29,7 @@ class Mesh {
     this.rotation = addProxy(this.rotation, this._onRotationChange)
 
     this._buildGeometry(geo)
+    this.setAttributesBuffer()
   }
 
 
@@ -73,10 +74,11 @@ class Mesh {
   }
 
   // 设置VBO
-  setAttributes(attributeBuffer, indicesBuffer, geo, program) {
-    if (this.setVBO == true) return;
+  setAttributesBuffer() {
+    const { attributeBuffer, indicesBuffer, geometry } = this;
+    const {program} = this.material;
 
-    const { indices, attribute } = geo
+    const { indices, attribute } = geometry
     const gl = dao.getData("gl");
 
     const keys = Object.keys(attribute)

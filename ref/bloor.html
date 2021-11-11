@@ -101,7 +101,7 @@ function blur() {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND);  // turn on blending
     gl.blendFunc(gl.ONE, gl.ONE);  // just add the source and destination values, with no dependence on alpha
-    gl.uniform1f(u_multiplier, 1/9);  // (the only value we need in this program; could be different for other blur functions)
+    // gl.uniform1f(u_multiplier, 1/9);  // (the only value we need in this program; could be different for other blur functions)
     let dx = 1/512;  // width of one pixel in the texture image, which is 512x256
     let dy = 1/256;  // height of one pixel in the texture image
     drawWithOffset(-dx,-dy);  // Draw the texture 9 times, with different offsets

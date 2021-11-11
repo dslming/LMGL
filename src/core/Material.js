@@ -3,8 +3,10 @@ import * as WebGLInterface from '../webgl/index.js'
 
 export default class Material {
   constructor(mat) {
+    const gl = dao.getData("gl");
     this.program = this._buildMaterial(mat);
     this.uniforms = mat.uniforms || {};
+
     // this._buildUniform(this.uniforms, this.program)
     // this.opacity = 1;
     // this.format = RGBAFormat;
@@ -30,9 +32,8 @@ export default class Material {
     return WebGLInterface.createProgram(gl, mat);
   }
 
-  setUniform(uniforms, program) {
-    if (!uniforms) return
-
+  updateUniform() {
+    const { program, uniforms } = this
     const gl = dao.getData("gl");
     WebGLInterface.useProgram(gl, program);
 
@@ -40,7 +41,7 @@ export default class Material {
     for (let i = 0; i < keys.length; i++) {
       const name = keys[i]
       const { value, type } = uniforms[name]
-      WebGLInterface.setUniform(gl, program, name, value, type)
+      WebGLInterface.setUniform(gl, program, name, value, type, this.texture)
     }
   }
 }

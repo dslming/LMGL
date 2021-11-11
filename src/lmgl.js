@@ -3,11 +3,14 @@ import { GEOMETRY_TYPE,VERSION,SIDE } from './core/global.js'
 import MyOrbitControls from './camera-control/MyOrbitControls.js'
 import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
 
+import * as MathUtils from './math/MathUtils.js'
 import dao from './core/Dao.js'
 
 export * from "./geometry/Circle.js"
 export * from "./geometry/Cube.js"
 export * from "./core/global.js"
+export * from "./core/ImageTexture.js"
+export { MathUtils };
 
 // loader
 export * from "./loader/ImageLoader.js"
@@ -69,11 +72,13 @@ export class Stage {
     dao.setData({ name: "camera", data: this.camera })
 
     const dom = param[0];
-    window.addEventListener("resize", () => {
-      const width = dom.clientWidth
-      const height = dom.clientHeight
-      this.resize(width, height)
-    })
+    const resize = () => {
+       const width = dom.clientWidth
+       const height = dom.clientHeight
+       this.resize(width, height)
+    }
+    this.resize(param[1], param[2])
+    window.addEventListener("resize", resize.bind(this))
   }
 
   resize(width, height) {
