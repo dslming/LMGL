@@ -1,8 +1,10 @@
 import { SIDE } from '../core/constants.js'
 
 export function createFramebuffer(gl) {
-  gl.createFramebuffer()
-  gl.bindRenderbuffer()
+  var framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+  // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
 /**
