@@ -1,5 +1,4 @@
-import { activeTexture,createTexture, unbindTexture } from './texture.js'
-import { getUniformLocation } from './uniform.js'
+import { SIDE } from '../core/constants.js'
 
 export function createFramebuffer(gl) {
   gl.createFramebuffer()
@@ -20,4 +19,43 @@ export function copyFramebufferToTexture(gl,width, hieght) {
     hieght = 256;
   }
   gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, width, hieght, 0);
+}
+
+export function setBlend(gl, flag) {
+  if (flag) {
+    gl.enable(gl.BLEND);
+    // RBGA 整体
+    gl.blendFunc(gl.ONE, gl.ONE);
+  } else {
+    gl.disable(gl.BLEND);
+    return;
+  }
+
+  // 分别设置RGB和Alpha的混合因子
+  // gl.blendFuncSeparate()
+}
+
+export function setDepthTest(gl, flag) {
+  if (flag) {
+    gl.enable(gl.DEPTH_TEST);
+  } else {
+    gl.disable(gl.DEPTH_TEST);
+  }
+}
+
+
+export function setSide(gl, side) {
+  switch (side) {
+    case SIDE.FrontSide:
+      gl.cullFace(gl.FRONT);
+      break
+
+    case SIDE.BackSide:
+      gl.cullFace(gl.BACK);
+      break
+
+    case SIDE.DoubleSide:
+      gl.cullFace(gl.FRONT_AND_BACK);
+      break
+  }
 }

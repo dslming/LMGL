@@ -1,5 +1,5 @@
 import Renderer from './core/Renderer.js'
-import { GEOMETRY_TYPE,VERSION,SIDE } from './core/global.js'
+import { GEOMETRY_TYPE,VERSION,SIDE } from './core/constants.js'
 import MyOrbitControls from './camera-control/MyOrbitControls.js'
 import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
 
@@ -8,7 +8,7 @@ import dao from './core/Dao.js'
 
 export * from "./geometry/Circle.js"
 export * from "./geometry/Cube.js"
-export * from "./core/global.js"
+export * from "./core/constants.js"
 export * from "./core/ImageTexture.js"
 export { MathUtils };
 

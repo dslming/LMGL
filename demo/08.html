@@ -3,8 +3,25 @@
   <!-- <link rel="stylesheet" href="./style.css"> -->
 </head>
 <body>
+
+  <style>
+    .button {
+      position: fixed;
+      top: 280px;
+      width: 80px;
+      height: 30px;
+      background-color: bisque;
+      border-radius: 8px;
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+  </style>
   <div class="content">
     <canvas id="c"></canvas>
+    <div class="button">模糊</div>
   </div>
   <script type="module">
     // https://math.hws.edu/graphicsbook/c7/s4.html
@@ -25,7 +42,7 @@ const vertexShader = `
   varying vec2 vUv;
   void main() {
     vUv = aUv + offset;
-   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+   gl_Position = vec4(aPosition, 1.0);
   }
 `
 const fragmentShader = `
@@ -38,36 +55,12 @@ const fragmentShader = `
 	void main() {
 	  vec4 color = texture2D(image, vUv);
     gl_FragColor = vec4(multiplier * color.rgb, 1.0 );
-    gl_FragColor = vec4(0.5,0.,0.,1.);
 	}
 	`
-
-// const vertexShader  = `
-//     attribute vec2 a_coords;
-//     uniform vec2 offset;
-//     varying vec2 v_coords;
-//     void main() {
-//         vec2 coords;  // coords translated from default range -1 to 1 to the range 0 to 1.
-//         coords = vec2( (a_coords.x + 1.0)*0.5, (a_coords.y + 1.0)* 0.5 );
-//         v_coords = coords + offset;
-//         gl_Position = vec4(a_coords,0.0,1.0);
-//     }`;
-
-// const fragmentShader = `
-//     precision mediump float;
-//     uniform sampler2D image;
-//     uniform float multiplier;
-//     varying vec2 v_coords;
-//     void main() {
-//         vec4 color = texture2D( image, v_coords );
-//         gl_FragColor = vec4( multiplier*color.rgb, 1.0 );
-//         // gl_FragColor = vec4(0.5, 0.,0.,1.);
-//     }`;
-
 let stage
 
 window.onload = () => {
-  document.title = "模糊图片"
+  document.title = "模糊纹理"
 
   // 2^n
   const width = 512
@@ -75,40 +68,36 @@ window.onload = () => {
 
   stage = new lmgl.Stage()
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.position.set(0, 0, 20)
 
-  var blur = null;
   const center = {
     x: 0,
     y: 0
   }
-  const size = 2
+  const size = {
+    x: 1,
+    y: 1
+  }
   const geo = {
     attribute: {
       aPosition: {
         value: [
-          center.x - size, center.y + size, 0,
-          center.x - size, center.y - size, 0,
-          center.x + size, center.y - size, 0,
-          center.x + size, center.y + size, 0,
+          center.x - size.x, center.y + size.y, 0,
+          center.x - size.x, center.y - size.y, 0,
+          center.x + size.x, center.y - size.y, 0,
+          center.x + size.x, center.y + size.y, 0,
         ],
         itemSize: 3
       },
       aUv:{
-        // todo: y轴不对
-        value: [ 0,0, 0,1,  1,1,1,0,],
+        value: [ 0,1, 0,0, 1,0, 1,1],
         itemSize: 2
       },
-      // a_coords: {
-      //   value: [-1,-1, 1,-1, 1,1, -1,1 ],
-      //   itemSize: 2
-      // }
     },
     indices: [0,1,2, 2,3,0]
   };
 
-  let img = new Image();
-  img.onload = function() {
+  stage.run()
+  lmgl.loadImage("./images/house.jpg", img => {
     let imageTexture = new lmgl.ImageTexture(img)
     const mat = {
       vertexShader: vertexShader,
@@ -130,22 +119,18 @@ window.onload = () => {
     }
 
     const mesh = new lmgl.Mesh(geo, mat);
-    stage.add(mesh);
-    stage.renderer.render()
-    // stage.run()
-    // const material = mesh.material;
-    // material.updateUniform()
-    // mesh.setAttributesBuffer();
+    const material = mesh.material;
+    material.blending = true;
+    material.depthTest = false;
+    material.setUniform()
 
     // 自定义渲染
-    // stage.setRenderState(false)
-    // const webgl = lmgl.webgl;
-    // const gl = stage.getGl()
+    stage.setRenderState(false)
+    const webgl = lmgl.webgl;
+    const gl = stage.getGl()
+    stage.renderer.renderMesh(mesh);
 
-    // stage.renderer.renderOne(mesh.geometry);
-
-
-    window.blur = ()=>{
+    var blur = ()=>{
       const count = 9;
       const kernel = [
         {x:-1,y: -1},
@@ -168,14 +153,16 @@ window.onload = () => {
           x: item.x * dx,
           y: item.y * dy,
         }
-        material.updateUniform()
-        stage.renderer.renderOne(mesh.geometry);
+        material.setUniform()
+        stage.renderer.renderMesh(mesh);
       }
+      // 拷贝帧缓存的内容到当前使用的纹理中
       webgl.copyFramebufferToTexture(gl, width, height)
     }
-
-  }
-  img.src = "./images/house.jpg"
+    document.querySelector(".button").addEventListener("pointerdown", ()=>{
+      blur()
+    })
+  })
 }
 
   </script>

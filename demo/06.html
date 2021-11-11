@@ -57,13 +57,14 @@ window.onload = () => {
 
 
   stage.run()
-  lmgl.loadImage("./images/colors.png", data => {
+  lmgl.loadImage("./images/colors.png", img => {
+    let imageTexture = new lmgl.ImageTexture(img)
     const mat = {
       vertexShader,
       fragmentShader,
       uniforms: {
         uTexture: {
-          value: data,
+          value: imageTexture.getTexture(),
           type: "t"
         }
       }

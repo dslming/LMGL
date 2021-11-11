@@ -1,5 +1,6 @@
 import dao from './Dao.js'
 import * as WebGLInterface from '../webgl/index.js'
+import { SIDE } from './constants.js'
 
 export default class Material {
   constructor(mat) {
@@ -12,7 +13,9 @@ export default class Material {
     // this.format = RGBAFormat;
     // this.transparent = false;
 
-    // this.blending = NormalBlending;
+    this.blending = false;
+    this.depthTest = true;
+    this.side = SIDE.FrontSide;
     // this.blendSrc = SrcAlphaFactor;
     // this.blendDst = OneMinusSrcAlphaFactor;
     // this.blendEquation = AddEquation;
@@ -23,7 +26,6 @@ export default class Material {
     // this.side = FrontSide;
 
     // this.depthFunc = LessEqualDepth;
-    // this.depthTest = true;
     // this.depthWrite = true;
   }
 
@@ -32,7 +34,7 @@ export default class Material {
     return WebGLInterface.createProgram(gl, mat);
   }
 
-  updateUniform() {
+  setUniform() {
     const { program, uniforms } = this
     const gl = dao.getData("gl");
     WebGLInterface.useProgram(gl, program);

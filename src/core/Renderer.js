@@ -2,7 +2,7 @@
 // WebGLIndexedBufferRenderer.js
 
 
-import { GEOMETRY_TYPE, SIDE } from './global.js'
+import { GEOMETRY_TYPE, SIDE } from './constants.js'
 import dao from './Dao.js'
 import * as WebGLInterface from '../webgl/index.js'
 import { Matrix4 } from '../math/Matrix4.js'
@@ -13,16 +13,8 @@ export default class Renderer {
     const canvas = dom
     this.canvas = canvas
     this.handleResize(width, height)
-    // const gl = this.getContext()
-    this.gl = dao.getData("gl")
-    // this._setGlState()
     this.currentPrograme = null
     this.autoClear = false;
-  }
-
-  _setGlState() {
-    const { gl } = this
-    gl.enable(gl.DEPTH_TEST);
   }
 
   _updateUniformMatrix(program, matrixWorld) {
@@ -33,85 +25,39 @@ export default class Renderer {
     WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4")
 
     const modelViewMatrix = new Matrix4()
-    // const matrixWorld = new Matrix4()
     modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, matrixWorld);
     WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4")
   }
 
-  _buildMaterial(mat) {
-    // const gl = dao.getData("gl")
-    // const { uniforms, side } = mat
-    // const program = WebGLInterface.createProgram(gl, mat);
-    // gl.useProgram(program);
-    // this._buildUniform(uniforms, program)
-    // this.program = program
-    // gl.enable(gl.CULL_FACE);
-    // gl.frontFace(gl.CCW);
-
-    // if (side !== undefined) {
-    //   gl.cullFace(gl.FRONT);
-    //   return program
-    // }
-
-    // switch (side) {
-    //   case SIDE.FrontSide:
-    //     gl.cullFace(gl.FRONT);
-    //     break
-
-    //   case SIDE.BackSide:
-    //     gl.cullFace(gl.BACK);
-    //     break
-
-    //   case SIDE.FrontSide:
-    //     gl.cullFace(gl.FRONT_AND_BACK);
-    //     break
-    // }
-    // return program
+  // 根据材质设置webgl状态
+  _readMaterial(material) {
+    const gl = dao.getData("gl")
+    const { blending, depthTest,side } = material;
+    WebGLInterface.setDepthTest(gl, depthTest);
+    WebGLInterface.setBlend(gl, blending);
+    WebGLInterface.setSide(gl, side);
   }
 
-  // _setAttributes(attributeBuffer, indicesBuffer, geo, program) {
-  //   const { indices, attribute } = geo
-  //   const gl = dao.getData("gl");
+  renderMesh(mesh) {
+    const gl = dao.getData("gl")
+    const { geometry, material } = mesh;
+    const program = material.program;
+    WebGLInterface.useProgram(gl, program);
 
-  //   const keys = Object.keys(attribute)
-  //   for (let i = 0; i < keys.length; i++) {
-  //     const name = keys[i]
-  //     const { value, itemSize } = attribute[name]
-  //     // 一个属性对应一个buffer
-  //     WebGLInterface.setAttribBuffer(
-  //       gl,
-  //       program,
-  //       attributeBuffer[name], {
-  //       attribureName: name,
-  //       attriburData: value,
-  //       itemSize: itemSize
-  //     })
-  //   }
+    mesh.setAttributesBuffer();
+    this._updateUniformMatrix(program, mesh.matrix);
+    material.setUniform()
 
-  //   if (indices) {
-  //     WebGLInterface.setIndicesBuffer(gl, indicesBuffer, indices)
-  //   }
-  // }
-
-  renderOne(geometry) {
     const geoType = geometry.type;
     const count = geometry.indices.length;
-    const gl = dao.getData("gl")
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-    // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    // gl.clearColor(0, 0, 0, 0); // fill color buffer with zeros
-    // gl.clear(gl.COLOR_BUFFER_BIT);
-
-    gl.enable(gl.BLEND); // turn on blending
-    gl.blendFunc(gl.ONE, gl.ONE);
-
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    this._readMaterial(material);
     if (geoType == GEOMETRY_TYPE.POINTS) {
       gl.drawArrays(gl.POINTS, 0, 1);
     } else if (geoType == GEOMETRY_TYPE.TRIANGLES) {
       gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
     }
-    // gl.disable(gl.BLEND);
   }
 
   getContext() {
@@ -141,33 +87,12 @@ export default class Renderer {
   }
 
   render() {
-    const gl = dao.getData("gl")
     const allMesh = dao.getData("allMesh")|| []
     this.clear()
 
-
     for (let i = 0; i < allMesh.length; i++) {
       const mesh = allMesh[i]
-      const mat = mesh.material;
-      const geo = mesh.geometry;
-      const program = mat.program;
-      WebGLInterface.useProgram(gl, program);
-      // 开启深度检测
-      gl.enable(gl.DEPTH_TEST);
-
-      // 更新相机视图、相机投影矩阵
-      this._updateUniformMatrix(program, mesh.matrix);
-      // 设置材质的uniform属性,todo:需要每帧更新么?
-      mat.updateUniform()
-
-      if (geo.type == GEOMETRY_TYPE.POINTS) {
-        //  todo
-      } else if (geo.type == GEOMETRY_TYPE.TRIANGLES) {
-        mesh.setAttributesBuffer(mesh.attributeBuffer, mesh.indicesBuffer, geo, program);
-        // this._setAttributes(mesh.attributeBuffer, mesh.indicesBuffer, geo, program);
-      }
-
-      this.renderOne(geo)
+      this.renderMesh(mesh)
     }
   }
 }
