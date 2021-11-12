@@ -4,6 +4,7 @@ const GEOMETRY_TYPE = {
   "POINTS": "POINTS",
   "TRIANGLES": "TRIANGLES",
   "TRIANGLE_FAN": "TRIANGLE_FAN",
+  "LINE_LOOP": "LINE_LOOP",
 }
 
 const SIDE = {

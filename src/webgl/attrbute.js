@@ -10,7 +10,6 @@ export function setAttribBuffer(gl, program, buffer,param) {
 
   // 属性使能数组
   const attribure = gl.getAttribLocation(program, attribureName);
-  gl.enableVertexAttribArray(attribure);
 
   const type = gl.FLOAT;
   const normalize = false;
@@ -21,6 +20,9 @@ export function setAttribBuffer(gl, program, buffer,param) {
   gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
   // 缓冲区指定数据
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attriburData), gl.STATIC_DRAW);
+
+  gl.enableVertexAttribArray(attribure);
+
 }
 
 export function setIndicesBuffer(gl, indicesBuffer, indices) {

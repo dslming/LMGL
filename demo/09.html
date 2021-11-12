@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="content">
+    <canvas id="c"></canvas>
+  </div>
+  <script type="module">
+    import * as lmgl from '../src/lmgl.js'
+    window.lmgl = lmgl;
+
+// const vertexShader = `
+//   precision mediump float;
+//   attribute vec3 aPosition;
+//   attribute vec4 aColor;
+// 	varying vec4 vColor;
+
+//   uniform mat4 projectionMatrix;
+//   uniform mat4 modelViewMatrix;
+
+//   void main() {
+//     gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+//     vColor = aColor;
+//   }
+// `
+
+// const fragmentShader = `
+//   precision mediump float;
+// 	varying vec4 vColor;
+
+// 	void main() {
+// 	  gl_FragColor = vColor;
+// 	}
+// 	`
+const vsTexture = `
+    attribute vec2 a_coords;
+    uniform vec2 translation;
+    void main() {
+        gl_Position = vec4(a_coords + translation, 0, 1);
+    }`
+
+const fsTexture = `
+    precision mediump float;
+    uniform vec4 color;
+    void main() {
+        gl_FragColor = color;
+    }`
+
+const vs = `
+    attribute vec3 a_coords;
+    attribute vec3 a_normal;
+    attribute vec2 a_texCoords;
+    uniform mat4 modelview;
+    uniform mat4 projection;
+    uniform float textureScale;
+    varying vec3 v_normal;
+    varying vec3 v_eyeCoords;
+    varying vec2 v_texCoords;
+    void main() {
+        vec4 objectCoords = vec4(a_coords,1.0);
+        vec4 eyeCoords = modelview * objectCoords;
+        gl_Position = projection * eyeCoords;
+        v_normal = normalize(a_normal);
+        v_eyeCoords = eyeCoords.xyz/eyeCoords.w;
+        v_texCoords = textureScale*a_texCoords;
+    }`
+
+const fs = `
+   #ifdef GL_FRAGMENT_PRECISION_HIGH
+      precision highp float;
+    #else
+       precision mediump float;
+    #endif
+    uniform mat3 normalMatrix;
+    uniform sampler2D texture;
+    varying vec3 v_normal;
+    varying vec3 v_eyeCoords;
+    varying vec2 v_texCoords;
+    void main() {
+        vec3 N = normalize( normalMatrix*v_normal );
+        vec3 L = normalize( -v_eyeCoords);
+        float diffuseFactor = dot(N,L);
+        vec4 color = texture2D(texture, v_texCoords);
+        gl_FragColor = vec4( diffuseFactor*color.rgb, 1.0);
+    }`
+let stage
+
+// This is the number of disks.
+const DISK_COUNT = 30;
+// This is the size of the disks.
+const DISK_DIAMETER = 0.6;
+
+class Disks {
+  constructor() {
+    this.diskCenters = []
+    this.diskVelocities = []
+    this.diskColors = []
+
+    let diskCoords = new Array(2*64);
+    for (let i = 0; i < 64; i++) {
+        let angle = i/64 * 2*Math.PI;
+        diskCoords[2*i] = DISK_DIAMETER/2 * Math.cos(angle);
+        diskCoords[2*i+1] = DISK_DIAMETER/2 * Math.sin(angle);
+    }
+    const geoInfo = {
+      type: lmgl.GEOMETRY_TYPE.TRIANGLE_FAN,
+      attribute: {
+        a_coords: {
+          value: diskCoords,
+          itemSize: 2
+        },
+        count: 2
+      },
+    };
+
+    const matInfo = {
+      vertexShader: vsTexture,
+      fragmentShader: fsTexture,
+      uniforms: {
+        translation:{
+          value: {x:0,y:0},
+          type: "v2"
+        },
+        color:{
+          value: {x:0,y:1,z:0,w:1},
+          type: "v4"
+        }
+      }
+    }
+    this.mesh = new lmgl.Mesh(geoInfo, matInfo);
+  }
+
+  updateDiskPositions() {
+    const {diskCenters, diskVelocities} = this;
+
+    for (let i = 0; i < DISK_COUNT; i++) {
+        diskCenters[i][0] += diskVelocities[i][0];
+        if (diskCenters[i][0] < -1) {
+            diskCenters[i][0] += 2;
+        }
+        else if (diskCenters[i][0] > 1) {
+            diskCenters[i][0] -=2;
+        }
+        diskCenters[i][1] += diskVelocities[i][1];
+        if (diskCenters[i][1] < -1) {
+            diskCenters[i][1] += 2;
+        }
+        else if (diskCenters[i][1] > 1) {
+            diskCenters[i][1] -=2;
+        }
+        if (Math.random() < 0.02) {
+            let angle = Math.random()*2*Math.PI;
+            let speed = 0.003 + 0.01*Math.random();
+            diskVelocities[i] = [ speed*Math.cos(angle), speed*Math.sin(angle) ];
+        }
+    }
+  }
+
+  createDiskData() {
+    const {diskCenters, diskVelocities, diskColors} = this;
+
+    diskCenters = new Array(DISK_COUNT);
+    diskColors = new Array(DISK_COUNT);
+    diskVelocities = new Array(DISK_COUNT);
+    for (let i = 0; i < DISK_COUNT; i++) {
+        diskColors[i] = [ Math.random(), Math.random(), Math.random(), 0.5 ];
+        diskCenters[i] = [ 2*Math.random() - 1, 2*Math.random() - 1 ];
+        let angle = Math.random()*2*Math.PI;
+        let speed = 0.003 + 0.01*Math.random();
+        diskVelocities[i] = [ speed*Math.cos(angle), speed*Math.sin(angle) ];
+    }
+  }
+
+  drawDisks() {
+    const {diskCenters, diskColors} = this;
+
+    function disk(i, extraTranslateX, extraTranslateY) {
+        gl.uniform4fv(u_color_texture, diskColors[i]);
+        gl.uniform2f(u_translation_texture, diskCenters[i][0] + extraTranslateX, diskCenters[i][1] + extraTranslateY);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 64);
+        gl.uniform4f(u_color_texture, 0, 0, 0, 1);
+        gl.drawArrays(gl.LINE_LOOP, 0, 64);
+    }
+
+    let r = DISK_DIAMETER/2;  // disk radius
+    for (let i = 0; i < DISK_COUNT; i++) {
+        disk(i,0,0);  // draw the disk with no extra translation (in its usual position)
+        if (diskCenters[i][0] < -1 + r) { // disk hangs off left edge, draw it again on the right side
+            disk(i,2,0);
+            disk(i,2,2);    // in case it also hangs off the bottom (in that case, we need three copies)
+            disk(i,2,-2);   // in case it also hangs off the top
+        }
+        if (diskCenters[i][0] > 1 - r) { // disk hangs off right edge, draw it again on the left side
+            disk(i,-2,0);
+            disk(i,-2,2);    // in case it also hangs off the bottom
+            disk(i,-2,-2);  // in case it also hangs off the top
+        }
+        if (diskCenters[i][1] < -1 + r) { // hangs off the bottom
+            disk(i,0,2);
+        }
+        if (diskCenters[i][1] > 1 - r) { // hangs off the top
+            disk(i,0,-2);
+        }
+    }
+}
+
+}
+
+window.onload = () => {
+  document.title = "绘制矩形"
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  stage = new lmgl.Stage()
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 20)
+
+  let disks = new Disks();
+  // stage.add(disks.mesh)
+  // const center = {
+  //   x: 0,
+  //   y: 0
+  // }
+  // const size = 2
+  // const geo = {
+  //   attribute: {
+  //     aPosition: {
+  //       value: [
+  //         center.x - size, center.y - size, 0,
+  //         center.x - size, center.y + size, 0,
+  //         center.x + size, center.y + size, 0,
+  //         center.x + size, center.y - size, 0,
+  //       ],
+  //       itemSize: 3
+  //     },
+  //     aColor: {
+  //       value: [
+  //         1, 0., 0, 1,
+  //         0., 1, 0., 1,
+  //         0., 0., 1, 1,
+  //         1., 0., 0, 1,
+  //       ],
+  //       itemSize: 4
+  //     }
+  //   },
+  //   indices: [0,1,2, 2,3,0]
+  // };
+
+  // const mat = {
+  //   vertexShader,
+  //   fragmentShader,
+  // }
+
+  // let mesh = new lmgl.Mesh(geo, mat);
+  // stage.add(mesh)
+  stage.run()
+}
+
+  </script>
+</body>
+</html>

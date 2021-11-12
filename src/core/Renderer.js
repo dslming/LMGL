@@ -49,7 +49,8 @@ export default class Renderer {
     material.setUniform()
 
     const geoType = geometry.type;
-    const count = geometry.indices.length;
+    let count = geometry.indices.length;
+    count = count == 0 ? geometry.count : count;
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     this._readMaterial(material);
@@ -57,6 +58,8 @@ export default class Renderer {
       gl.drawArrays(gl.POINTS, 0, 1);
     } else if (geoType == GEOMETRY_TYPE.TRIANGLES) {
       gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
+    } else if (geoType == GEOMETRY_TYPE.TRIANGLE_FAN) {
+      // gl.drawArrays(gl.TRIANGLE_FAN, 0, count);
     }
   }
 

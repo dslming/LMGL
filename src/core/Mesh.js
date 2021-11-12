@@ -10,10 +10,10 @@ import { Quaternion } from '../math/Quaternion.js';
 import { addProxy } from '../utils/Tool.js';
 
 class Mesh {
-  constructor(geo, mat) {
+  constructor(geometry, material) {
     this.uuid = MathUtils.generateUUID();
-    this.material = new Material(mat);
-    this.geometry = geo;
+    this.material = new Material(material);
+    this.geometry = geometry;
     this.attributeBuffer = {};
     this.matrix = new Matrix4();
     this.position = new Vector3();
@@ -28,7 +28,7 @@ class Mesh {
     this.scale = addProxy(this.scale, this.updateMatrix)
     this.rotation = addProxy(this.rotation, this._onRotationChange)
 
-    this._buildGeometry(geo)
+    this._buildGeometry(geometry)
     this.setAttributesBuffer()
   }
 
@@ -38,7 +38,7 @@ class Mesh {
     this.updateMatrix()
   }
 
-  _buildGeometry(geo) {
+  _buildGeometry(geometry) {
     const gl = dao.getData("gl");
 
     if (!this.geometry.type) {
@@ -50,7 +50,7 @@ class Mesh {
     }
 
     // 创建属性缓冲区
-    const { attribute, indices } = geo
+    const { attribute, indices } = geometry
     if (!indices) {
       console.error("geometry 需要 indices");
       return;
@@ -66,7 +66,7 @@ class Mesh {
     }
 
     // 创建顶点缓冲区
-    this.indicesBuffer = WebGLInterface.createBuffer(gl);
+    indices.length>0 && (this.indicesBuffer = WebGLInterface.createBuffer(gl));
   }
 
   updateMatrix() {
@@ -96,7 +96,7 @@ class Mesh {
         })
     }
 
-    if (indices) {
+    if (indices.length > 0) {
       WebGLInterface.setIndicesBuffer(gl, indicesBuffer, indices)
     }
   }
