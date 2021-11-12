@@ -7,7 +7,7 @@ webglfundamentals https://webglfundamentals.org/webgl/lessons/resources/webgl-st
 
 webgl lib: https://gitee.com/changjiuxiong/cool.js/tree/sprite/
 
-webgl trun https://math.hws.edu/graphicsbook/c7/s4.html
+[webgl 教程](https://math.hws.edu/graphicsbook/c7/s4.html)
 
 
 todo:

@@ -120,6 +120,7 @@ window.onload = () => {
 
     const mesh = new lmgl.Mesh(geo, mat);
     const material = mesh.material;
+    // 深度和混合互斥
     material.blending = true;
     material.depthTest = false;
     material.setUniform()

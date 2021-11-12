@@ -28,6 +28,18 @@ export function setTextureImage(gl, img, texture) {
    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
 }
 
+// 渲染到纹理, 用于离屏渲染
+export function setTextureNull(gl, texture, width, height) {
+  // 如果为true， 则把图片上下对称翻转坐标轴(图片本身不变)
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
+
+  activeTexture(gl)
+  bindTexture(gl, texture)
+  //With null as the last parameter, the previous method allocates memory for the texture and fills it with zeros.
+   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+}
+
 export function createTexture(gl) {
    return gl.createTexture();
 }

@@ -55,8 +55,8 @@ window.onload = () => {
   stage.add(cube)
   stage.run()
 
-  stage.addOnUpdate("rotation", () => {
-    // cube.rotation.x += 0.05;
+  stage.addUpdate("rotation", () => {
+    cube.rotation.x += 0.05;
   })
 }
 </script>

@@ -100,6 +100,10 @@ class Mesh {
       WebGLInterface.setIndicesBuffer(gl, indicesBuffer, indices)
     }
   }
+
+  dispose() {
+    // todo: 删除vao,vbo...
+  }
 }
 
 export { Mesh }

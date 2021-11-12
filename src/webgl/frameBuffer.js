@@ -1,10 +1,16 @@
-import { SIDE } from '../core/constants.js'
+import { SIDE ,BLENDING_TYPE } from '../core/constants.js'
 
-export function createFramebuffer(gl) {
+// 创建帧缓存对象,todo包含深度信息
+export function createFramebuffer(gl, texture) {
   var framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-  // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+  if (gl.getError() != gl.NO_ERROR) {
+    throw "Some WebGL error occurred while trying to create framebuffer.";
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return framebuffer
 }
 
 /**
@@ -23,18 +29,21 @@ export function copyFramebufferToTexture(gl,width, hieght) {
   gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, width, hieght, 0);
 }
 
-export function setBlend(gl, flag) {
+export function setBlend(gl, flag, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst) {
   if (flag) {
     gl.enable(gl.BLEND);
-    // RBGA 整体
-    gl.blendFunc(gl.ONE, gl.ONE);
   } else {
     gl.disable(gl.BLEND);
     return;
   }
 
-  // 分别设置RGB和Alpha的混合因子
-  // gl.blendFuncSeparate()
+  if (blendingType == BLENDING_TYPE.RGBA) {
+    // RBGA 整体
+    gl.blendFunc(gl[blendRGBASrc], gl[blendRGBADst]);
+  } else {
+    // 分别设置RGB和Alpha的混合因子
+    gl.blendFuncSeparate(gl[blendRGBASrc], gl[blendRGBADst], gl[blendRGB_ASrc], gl[blendRGB_ADst]);
+   }
 }
 
 export function setDepthTest(gl, flag) {
@@ -44,7 +53,6 @@ export function setDepthTest(gl, flag) {
     gl.disable(gl.DEPTH_TEST);
   }
 }
-
 
 export function setSide(gl, side) {
   switch (side) {
@@ -60,4 +68,8 @@ export function setSide(gl, side) {
       gl.cullFace(gl.FRONT_AND_BACK);
       break
   }
+}
+
+export function setViewPort(gl, width, height) {
+  gl.viewport(0, 0, width, height);
 }

@@ -23,6 +23,7 @@ export * from "./math/Vector3.js"
 export * from "./math/Vector4.js"
 
 export * from "./core/Mesh.js"
+export * from "./core/RenderTarget.js"
 
 import * as webgl from './webgl/index.js'
 export {webgl}
@@ -96,7 +97,7 @@ export class Stage {
     })
   }
 
-  addOnUpdate(name, cb) {
+  addUpdate(name, cb) {
     this.updateChildren.set(name, cb);
   }
 

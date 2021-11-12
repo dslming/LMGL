@@ -5,3 +5,6 @@
 
 todo
 obj gltf
+
+实现列表:
+- [x] FBO 渲染到纹理

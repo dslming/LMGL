@@ -32,9 +32,10 @@ export default class Renderer {
   // 根据材质设置webgl状态
   _readMaterial(material) {
     const gl = dao.getData("gl")
-    const { blending, depthTest,side } = material;
+    const { blending, depthTest, side} = material;
+    const { blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst } = material
     WebGLInterface.setDepthTest(gl, depthTest);
-    WebGLInterface.setBlend(gl, blending);
+    WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
     WebGLInterface.setSide(gl, side);
   }
 
@@ -52,14 +53,17 @@ export default class Renderer {
     let count = geometry.indices.length;
     count = count == 0 ? geometry.count : count;
 
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     this._readMaterial(material);
+
     if (geoType == GEOMETRY_TYPE.POINTS) {
       gl.drawArrays(gl.POINTS, 0, 1);
     } else if (geoType == GEOMETRY_TYPE.TRIANGLES) {
       gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
     } else if (geoType == GEOMETRY_TYPE.TRIANGLE_FAN) {
-      // gl.drawArrays(gl.TRIANGLE_FAN, 0, count);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, count);
+    } else if (geoType == GEOMETRY_TYPE.LINE_LOOP) {
+      gl.lineWidth(1);
+      gl.drawArrays(gl.LINE_LOOP, 0, count);
     }
   }
 
@@ -89,10 +93,16 @@ export default class Renderer {
      gl.clear(gl.COLOR_BUFFER_BIT);
   }
 
+  setRenderTarget(framebuffer) {
+    const gl = dao.getData("gl")
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  }
+
   render() {
     const allMesh = dao.getData("allMesh")|| []
     this.clear()
-
+    const gl = dao.getData("gl")
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     for (let i = 0; i < allMesh.length; i++) {
       const mesh = allMesh[i]
       this.renderMesh(mesh)
