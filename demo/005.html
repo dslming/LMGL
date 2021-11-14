@@ -7,7 +7,6 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">import * as lmgl from '../src/lmgl.js'
-  import Axis from './meshLib/Axis.js'
 
 const vertexShader = `
   precision mediump float;
@@ -37,7 +36,7 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-   new Axis(100, stage)
+   new lmgl.Axis(100, stage)
 
   const geoInfo = lmgl.createCube();
   const geo = {

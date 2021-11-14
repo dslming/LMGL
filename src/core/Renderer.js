@@ -17,16 +17,20 @@ export default class Renderer {
     this.autoClear = false;
   }
 
-  _updateUniformMatrix(program, matrixWorld) {
+  _updateUniformMatrix(program, mesh) {
     const gl = dao.getData("gl")
     const camera = dao.getData("camera")
 
     camera.updateProjectionMatrix()
     WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4")
 
+    const matrixWorld = mesh.matrix;
     const modelViewMatrix = new Matrix4()
     modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, matrixWorld);
     WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4")
+
+    mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
+    WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m4")
   }
 
   // 根据材质设置webgl状态
@@ -52,7 +56,7 @@ export default class Renderer {
     WebGLInterface.useProgram(gl, program);
 
     mesh.setAttributesBuffer();
-    this._updateUniformMatrix(program, mesh.matrix);
+    this._updateUniformMatrix(program, mesh);
     material.needUpdate && material.setUniform()
 
     const geoType = geometry.type;

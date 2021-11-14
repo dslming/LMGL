@@ -4,6 +4,7 @@ import Material from './Material.js'
 import dao from './Dao.js'
 import { GEOMETRY_TYPE, SIDE } from './constants.js'
 import { Matrix4 } from '../math/Matrix4.js';
+import { Matrix3 } from '../math/Matrix3.js';
 import { Vector3 } from '../math/Vector3.js';
 import { Euler } from '../math/Euler.js';
 import { Quaternion } from '../math/Quaternion.js';
@@ -16,6 +17,7 @@ class Mesh {
     this.geometry = geometry;
     this.attributeBuffer = {};
     this.matrix = new Matrix4();
+    this.normalMatrix = new Matrix3();
     this.position = new Vector3();
     this.scale = new Vector3(1, 1, 1);
     this.rotation = new Euler();

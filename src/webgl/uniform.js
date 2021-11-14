@@ -3,8 +3,8 @@ import { bindCubeTexture, bindTexture } from './texture.js';
 export function setUniform(gl, program, name, value, type) {
   // 变量地址
   const addr = gl.getUniformLocation(program, name);
-  if (addr == -1) {
-    console.error(name, "不存在...");
+  if (addr == null) {
+    // console.error(name, "不存在...");
     return;
   }
 

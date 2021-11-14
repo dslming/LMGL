@@ -8,7 +8,6 @@
   </div>
   <script type="module">
     import * as lmgl from '../src/lmgl.js'
-  import Axis from './meshLib/Axis.js'
 
 // console.error(lmgl.version);
 
@@ -48,7 +47,7 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  new Axis(100, stage)
+  new lmgl.Axis(100, stage)
 
   const z = 0;
   const geo = {

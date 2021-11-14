@@ -27,7 +27,13 @@ export * from "./core/Mesh.js"
 export * from "./core/RenderTarget.js"
 
 import * as webgl from './webgl/index.js'
-export {webgl}
+export { webgl }
+
+// mesh lib
+export * from './meshLib/Axis.js'
+export * from './meshLib/Plane.js'
+export * from './meshLib/ReflectingObject.js'
+export * from './meshLib/SkyBox.js'
 
 export class Stage {
   constructor() {

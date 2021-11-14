@@ -1,0 +1,67 @@
+import { Mesh } from '../core/Mesh.js'
+
+export class SkyBox {
+  constructor(stage) {
+    this.init(stage);
+  }
+
+  async init(stage) {
+    const vertexShaderSourceSB = `
+        precision mediump float;
+        attribute vec3 aPosition;
+        uniform mat4 projectionMatrix;
+        uniform mat4 modelViewMatrix;
+        varying vec3 vUv;
+
+        void main() {
+          vUv = aPosition;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+        }`;
+    const fragmentShaderSourceSB = `
+          precision mediump float;
+          varying vec3 v_objCoords;
+          uniform samplerCube skybox;
+          varying vec3 vUv;
+
+          void main() {
+                gl_FragColor = textureCube(skybox, vUv);
+          }`;
+
+    const urls = [
+      "cubeMap/posx.jpg",
+      "cubeMap/negx.jpg",
+      "cubeMap/posy.jpg",
+      "cubeMap/negy.jpg",
+      "cubeMap/posz.jpg",
+      "cubeMap/negz.jpg"
+    ];
+    const images = await lmgl.loadCubeImages(urls)
+    let cubeMap = new lmgl.ImageCubeTexture(images)
+
+    const mat = {
+      vertexShader: vertexShaderSourceSB,
+      fragmentShader: fragmentShaderSourceSB,
+      uniforms: {
+        skybox: {
+          type: "tcube",
+          value: cubeMap.getTexture()
+        }
+      }
+    }
+
+    const geoInfo = lmgl.createCube(20);
+    const geo = {
+      attribute: {
+        aPosition: {
+          value: geoInfo.positions,
+          itemSize: 3
+        },
+      },
+      indices: geoInfo.indices
+    };
+    let mesh = new Mesh(geo, mat);
+    this.mesh = mesh;
+    stage.add(mesh)
+  }
+
+}

@@ -1,6 +1,7 @@
-import * as lmgl from '../../src/lmgl.js'
+import { Mesh } from '../core/Mesh.js'
+import { GEOMETRY_TYPE } from '../core/constants.js'
 
-export default class Axis {
+export class Axis {
   constructor(size, stage) {
     const geoX = this.getGeoX(size);
     const geoY = this.getGeoX(size);
@@ -20,9 +21,9 @@ export default class Axis {
     const matY = this.getMat({ x: 0, y: 1, z: 0, w: 1 });
     const matZ = this.getMat({ x: 0, y: 0, z: 1, w: 1 });
 
-    let meshX = new lmgl.Mesh(geoX, matX);
-    let meshY = new lmgl.Mesh(geoY, matY);
-    let meshZ = new lmgl.Mesh(geoZ, matZ);
+    let meshX = new Mesh(geoX, matX);
+    let meshY = new Mesh(geoY, matY);
+    let meshZ = new Mesh(geoZ, matZ);
 
     meshX.name = "meshX"
     meshY.name = "meshY"
@@ -68,7 +69,7 @@ export default class Axis {
   getGeoX(size) {
     return {
       count: 2,
-      type: lmgl.GEOMETRY_TYPE.LINES,
+      type: GEOMETRY_TYPE.LINES,
       attribute: {
         aPosition: {
           value: [

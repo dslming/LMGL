@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="content">
+    <canvas id="c"></canvas>
+  </div>
+  <script type="module">
+    import * as lmgl from '../src/lmgl.js'
+    // import SkyBox from './meshLib/SkyBox.js'
+    // import ReflectingObject from './meshLib/ReflectingObject.js'
+
+    window.lmgl = lmgl;
+
+  let stage
+
+  window.onload = () => {
+    document.title = "环境反射"
+    let width = window.innerWidth
+    let height = window.innerHeight
+
+    window.addEventListener("resize", ()=>{
+      width = window.innerWidth
+      height = window.innerHeight
+    })
+
+    stage = new lmgl.Stage()
+    stage.init(document.querySelector("#c"), width, height)
+    stage.camera.position.set(0, 0, 20)
+
+    const skyBox = new lmgl.SkyBox(stage);
+    const plane = new Plane();
+    stage.add(plane.mesh);
+
+    stage.addUpdate("loop",()=>{
+      skyBox.mesh && (skyBox.mesh.rotation.y += 0.001);
+      // plane && (plane.mesh.rotation.y += 0.01);
+    })
+    stage.run()
+  }
+
+  </script>
+</body>
+</html>
