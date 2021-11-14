@@ -532,7 +532,7 @@ iframe {
 }
 
 /* mobile */
-
+/*
 @media all and (max-width: 640px) {
 
   :root {
@@ -584,27 +584,6 @@ iframe {
     pointer-events: auto;
     background-color: rgba(0, 0, 0, 0.4);
   }
-
-  #contentWrapper {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    background: var(--background-color);
-    box-shadow: 0 0 8px rgba(0, 0, 0, .1);
-    width: calc(100vw - 60px);
-    max-width: 360px;
-    z-index: 10000;
-    transition: .25s transform;
-    overflow-x: hidden;
-    margin-right: -380px;
-    line-height: 2rem;
-  }
-
-  #panel.open #contentWrapper {
-    transform: translate3d(-380px, 0, 0);
-  }
-
   #viewer,
   iframe {
     left: 0;
@@ -616,4 +595,4 @@ iframe {
   #viewer {
     padding-left: 0;
   }
-}
+} */

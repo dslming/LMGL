@@ -5,11 +5,15 @@ export function setAttribBuffer(gl, program, buffer,param) {
     itemSize,
   } = param
 
-  // 创建缓冲区
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-
   // 属性使能数组
   const attribure = gl.getAttribLocation(program, attribureName);
+  gl.enableVertexAttribArray(attribure);
+
+    // 创建缓冲区
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+  // 缓冲区指定数据
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attriburData), gl.STATIC_DRAW);
 
   const type = gl.FLOAT;
   const normalize = false;
@@ -18,10 +22,8 @@ export function setAttribBuffer(gl, program, buffer,param) {
 
   // 绑定顶点缓冲区对象,传送给GPU
   gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
-  // 缓冲区指定数据
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attriburData), gl.STATIC_DRAW);
 
-  gl.enableVertexAttribArray(attribure);
+
 
 }
 

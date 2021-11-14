@@ -7,6 +7,7 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
+    // https://math.hws.edu/graphicsbook/source/webgl/render-to-texture.html
     import * as lmgl from '../src/lmgl.js'
     window.lmgl = lmgl;
 
@@ -97,6 +98,7 @@
       this.mesh = new lmgl.Mesh(geoInfo, matInfo);
         // 深度和混合互斥
       this.mesh.material.blending = true;
+      this.mesh.material.needUpdate = true;
       this.mesh.material.blendingType = lmgl.BLENDING_TYPE.RGB_A;
       this.mesh.material.blendRGBASrc = lmgl.BLENDING_FACTOR.ONE_MINUS_SRC_ALPHA;
       this.mesh.material.blendRGBADst = lmgl.BLENDING_FACTOR.ONE_MINUS_SRC_ALPHA;

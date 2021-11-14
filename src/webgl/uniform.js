@@ -1,4 +1,4 @@
-import { setTexture } from './texture.js';
+import { bindCubeTexture, bindTexture } from './texture.js';
 
 export function setUniform(gl, program, name, value, type) {
   // 变量地址
@@ -30,7 +30,13 @@ export function setUniform(gl, program, name, value, type) {
       break
 
     case "t":
-      setTexture(gl, addr, value)
+      bindTexture(gl, value)
+      gl.uniform1i(addr, 0);
+      break
+
+    case "tcube":
+      bindCubeTexture(gl, value)
+      gl.uniform1i(addr, 0);
       break
   }
 }

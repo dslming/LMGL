@@ -41,13 +41,19 @@ export default class Renderer {
 
   renderMesh(mesh) {
     const gl = dao.getData("gl")
-    const { geometry, material } = mesh;
+    const { geometry, material } = mesh || {};
+    if (!geometry || !material) {
+      flag == false && console.error("no mesh");
+      flag = true;
+      return;
+    }
+
     const program = material.program;
     WebGLInterface.useProgram(gl, program);
 
     mesh.setAttributesBuffer();
     this._updateUniformMatrix(program, mesh.matrix);
-    material.setUniform()
+    material.needUpdate && material.setUniform()
 
     const geoType = geometry.type;
     let count = geometry.indices.length;
@@ -64,6 +70,9 @@ export default class Renderer {
     } else if (geoType == GEOMETRY_TYPE.LINE_LOOP) {
       gl.lineWidth(1);
       gl.drawArrays(gl.LINE_LOOP, 0, count);
+    } else if (geoType == GEOMETRY_TYPE.LINES) {
+      gl.lineWidth(1);
+      gl.drawArrays(gl.LINES, 0, count);
     }
   }
 

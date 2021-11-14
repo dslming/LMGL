@@ -1,5 +1,6 @@
 // https://threejsfundamentals.org/threejs/lessons/threejs-custom-buffergeometry.html
-export function createCube() {
+export function createCube(size) {
+  size |= 1;
   const vertices = [
     // front
     { pos: [-1, -1, 1], norm: [0, 0, 1], uv: [0, 0], }, // 0
@@ -46,7 +47,11 @@ export function createCube() {
   var positions = []
   var uvs = []
   vertices.forEach(item => {
-    positions.push(...item.pos)
+    const pos = item.pos;
+    pos[0] *= size;
+    pos[1] *= size;
+    pos[2] *= size;
+    positions.push(...pos)
     uvs.push(...item.uv)
   })
   return { positions, indices, uvs }

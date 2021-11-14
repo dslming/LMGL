@@ -10,6 +10,7 @@ export * from "./geometry/Circle.js"
 export * from "./geometry/Cube.js"
 export * from "./core/constants.js"
 export * from "./core/ImageTexture.js"
+export * from "./core/ImageCubeTexture.js"
 export { MathUtils };
 
 // loader

@@ -8,10 +8,14 @@
   </div>
   <script type="module">
     import * as lmgl from '../src/lmgl.js'
+  import Axis from './meshLib/Axis.js'
+
+// console.error(lmgl.version);
 
 const vertexShader = `
   precision mediump float;
   attribute vec3 aPosition;
+
   attribute vec4 aColor;
 	varying vec4 vColor;
 
@@ -19,7 +23,7 @@ const vertexShader = `
   uniform mat4 modelViewMatrix;
 
   void main() {
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
     vColor = aColor;
   }
 `
@@ -32,44 +36,41 @@ const fragmentShader = `
 	  gl_FragColor = vColor;
 	}
 	`
+
 let stage
 
 window.onload = () => {
-  document.title = "绘制矩形"
+  document.title = "绘制渐变三角形,自定义属性"
   const width = window.innerWidth
   const height = window.innerHeight
 
   stage = new lmgl.Stage()
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.position.set(0, 0, 20)
+  stage.camera.position.set(0, 0, 10)
 
-  const center = {
-    x: 0,
-    y: 0
-  }
-  const size = 2
+  new Axis(100, stage)
+
+  const z = 0;
   const geo = {
+    indices: [0, 1, 2],
     attribute: {
       aPosition: {
-        value: [
-          center.x - size, center.y - size, 0,
-          center.x - size, center.y + size, 0,
-          center.x + size, center.y + size, 0,
-          center.x + size, center.y - size, 0,
-        ],
-        itemSize: 3
-      },
-      aColor: {
-        value: [
-          1, 0., 0, 1,
-          0., 1, 0., 1,
-          0., 0., 1, 1,
-          1., 0., 0, 1,
-        ],
-        itemSize: 4
-      }
-    },
-    indices: [0,1,2, 2,3,0]
+          value: [
+           0, 1, z,
+           -1., -0.5, z,
+           1., -0.5, z
+          ],
+          itemSize: 3
+        },
+        aColor: {
+          value: [
+            1, 0., 0, 1,
+            0., 1, 0., 1,
+            0., 0., 1, 1,
+          ],
+          itemSize: 4
+        }
+    }
   };
 
   const mat = {
