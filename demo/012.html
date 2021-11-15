@@ -7,11 +7,11 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
+    // https://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
     import * as lmgl from '../src/lmgl.js'
-    // import SkyBox from './meshLib/SkyBox.js'
-    // import ReflectingObject from './meshLib/ReflectingObject.js'
+    import teapotModel from './module/teapotModel.js'
+    console.error(teapotModel);
 
-    window.lmgl = lmgl;
 
   let stage
 
@@ -30,11 +30,11 @@
     stage.camera.position.set(0, 0, 20)
 
     const skyBox = new lmgl.SkyBox(stage);
-    const plane = new Plane();
-    stage.add(plane.mesh);
+    const obj = new lmgl.ReflectingObject(teapotModel);
+    stage.add(obj.mesh);
 
     stage.addUpdate("loop",()=>{
-      skyBox.mesh && (skyBox.mesh.rotation.y += 0.001);
+      // skyBox.mesh && (skyBox.mesh.rotation.y += 0.001);
       // plane && (plane.mesh.rotation.y += 0.01);
     })
     stage.run()

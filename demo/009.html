@@ -278,6 +278,8 @@
       stage.renderer.clear();
       plane.mesh.material.uniforms["texture"].value = renderTarget.getTexture();
       stage.renderer.renderMesh(plane.mesh);
+
+      plane.mesh.rotation.y += 0.01;
     })
 
 

@@ -78,6 +78,9 @@ window.onload = () => {
   }
 
   let mesh = new lmgl.Mesh(geo, mat);
+  stage.addUpdate("loop",()=>{
+    mesh.rotation.y += 0.01;
+  })
   stage.add(mesh)
   stage.run()
 }

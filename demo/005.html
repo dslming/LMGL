@@ -34,7 +34,7 @@ window.onload = () => {
 
   stage = new lmgl.Stage()
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.position.set(0, 0, 10)
+  stage.camera.position.set(0, 0, 20)
 
    new lmgl.Axis(100, stage)
 
@@ -59,7 +59,7 @@ window.onload = () => {
   stage.run()
 
   stage.addUpdate("rotation", () => {
-    cube.rotation.x += 0.05;
+    cube.rotation.y -= 0.03;
   })
 }
 </script>

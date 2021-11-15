@@ -6,6 +6,7 @@ import { GEOMETRY_TYPE, SIDE } from './constants.js'
 import dao from './Dao.js'
 import * as WebGLInterface from '../webgl/index.js'
 import { Matrix4 } from '../math/Matrix4.js'
+import { Vector3 } from '../math/Vector3.js'
 
 let flag = false;
 export default class Renderer {
@@ -30,7 +31,13 @@ export default class Renderer {
     WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4")
 
     mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
-    WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m4")
+    WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m3")
+
+    const _vector3 = new Vector3();
+    _vector3.setFromMatrixPosition(camera.matrixWorld)
+    WebGLInterface.setUniform(gl, program, "cameraPosition", _vector3, "v3")
+
+    	WebGLInterface.setUniform(gl, program, 'viewMatrix', camera.matrixWorldInverse.elements, "m4");
   }
 
   // 根据材质设置webgl状态

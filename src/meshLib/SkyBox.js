@@ -1,5 +1,7 @@
 import { Mesh } from '../core/Mesh.js'
-
+import { loadCubeImages } from '../loader/ImageLoader.js'
+import { ImageCubeTexture } from '../core/ImageCubeTexture.js'
+import { createCube } from '../geometry/Cube.js'
 export class SkyBox {
   constructor(stage) {
     this.init(stage);
@@ -35,8 +37,8 @@ export class SkyBox {
       "cubeMap/posz.jpg",
       "cubeMap/negz.jpg"
     ];
-    const images = await lmgl.loadCubeImages(urls)
-    let cubeMap = new lmgl.ImageCubeTexture(images)
+    const images = await loadCubeImages(urls)
+    let cubeMap = new ImageCubeTexture(images)
 
     const mat = {
       vertexShader: vertexShaderSourceSB,
@@ -49,7 +51,7 @@ export class SkyBox {
       }
     }
 
-    const geoInfo = lmgl.createCube(20);
+    const geoInfo = createCube(20);
     const geo = {
       attribute: {
         aPosition: {
