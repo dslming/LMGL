@@ -3,7 +3,8 @@ import { loadCubeImages } from '../loader/ImageLoader.js'
 import { ImageCubeTexture } from '../core/ImageCubeTexture.js'
 import { createCube } from '../geometry/Cube.js'
 export class SkyBox {
-  constructor(stage) {
+  constructor(stage, cb) {
+    this.cb = cb;
     this.init(stage);
   }
 
@@ -64,6 +65,8 @@ export class SkyBox {
     let mesh = new Mesh(geo, mat);
     this.mesh = mesh;
     stage.add(mesh)
-  }
 
+    this.cubeMap = cubeMap;
+    this.cb && this.cb(this.cubeMap.getTexture());
+  }
 }

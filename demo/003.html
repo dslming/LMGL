@@ -8,6 +8,7 @@
   </div>
   <script type="module">
     import * as lmgl from '../src/lmgl.js'
+     import planeModel from './module/planeModel.js'
 
 const vertexShader = `
   precision mediump float;
@@ -52,12 +53,7 @@ window.onload = () => {
   const geo = {
     attribute: {
       aPosition: {
-        value: [
-          center.x - size, center.y - size, 0,
-          center.x - size, center.y + size, 0,
-          center.x + size, center.y + size, 0,
-          center.x + size, center.y - size, 0,
-        ],
+        value: planeModel.vertexPositions,
         itemSize: 3
       },
       aColor: {
@@ -68,9 +64,9 @@ window.onload = () => {
           1., 0., 0, 1,
         ],
         itemSize: 4
-      }
+      },
     },
-    indices: [0,1,2, 2,3,0]
+    indices: planeModel.indices
   };
 
   const mat = {

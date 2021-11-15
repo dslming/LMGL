@@ -1,4 +1,6 @@
-export function setAttribBuffer(gl, program, buffer,param) {
+let errorFlag = false;
+
+export function setAttribBuffer(gl, program, buffer, param) {
   const {
     attribureName,
     attriburData,
@@ -7,6 +9,14 @@ export function setAttribBuffer(gl, program, buffer,param) {
 
   // 属性使能数组
   const attribure = gl.getAttribLocation(program, attribureName);
+  if (attribure == -1 && errorFlag == false) {
+    console.error("error", attribureName);
+    errorFlag = true;
+    return;
+  } else if (attribure == -1) {
+    return;
+  }
+
   gl.enableVertexAttribArray(attribure);
 
     // 创建缓冲区
@@ -22,9 +32,8 @@ export function setAttribBuffer(gl, program, buffer,param) {
 
   // 绑定顶点缓冲区对象,传送给GPU
   gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
-
-
-
+  errorFlag = false;
+  // gl.disableVertexAttribArray(attribure);
 }
 
 export function setIndicesBuffer(gl, indicesBuffer, indices) {

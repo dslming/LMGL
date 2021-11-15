@@ -31,7 +31,6 @@ class Mesh {
     this.rotation = addProxy(this.rotation, this._onRotationChange)
 
     this._buildGeometry(geometry)
-    this.setAttributesBuffer()
   }
 
 
