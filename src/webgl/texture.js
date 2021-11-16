@@ -2,8 +2,21 @@
  * three.js/src/renderers/webgl/WebGLState
  */
 
+function getCubemapTargets(gl) {
+   return [
+      gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+      gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+      gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+      gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+      gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+      gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
+    ];
+}
+
+
 // 设置纹理的图片
 export function setTextureImage(gl, img, texture) {
+
    // 如果为true， 则把图片上下对称翻转坐标轴(图片本身不变)
    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
 
@@ -21,15 +34,7 @@ export function setTextureImage(gl, img, texture) {
 // 设置cube纹理的图片
 export function setCubeTextureImage(gl, images, texture) {
    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-
-   const cubemapTargets = [
-      gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-      gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-      gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-      gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-      gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-      gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
-   ];
+   const cubemapTargets = getCubemapTargets(gl);
 
    for (let j = 0; j < 6; j++) {
       gl.texImage2D(cubemapTargets[j], 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[j]);
@@ -50,6 +55,16 @@ export function setTextureNull(gl, texture, width, height) {
   //With null as the last parameter, the previous method allocates memory for the texture and fills it with zeros.
    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+}
+
+// 渲染到cube纹理, 用于离屏渲染
+export function setTextureNullCube(gl, texture, width, height) {
+   const cubemapTargets = getCubemapTargets(gl);
+   gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture); // create storage for the reflection map images
+   for (let i = 0; i < 6; i++) {
+      gl.texImage2D(cubemapTargets[i], 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+   }
+   gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
 }
 
 // 生成纹理对象id

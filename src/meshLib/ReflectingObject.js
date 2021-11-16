@@ -42,6 +42,11 @@ export class ReflectingObject {
 
 
           gl_FragColor = textureCube(skybox, T);
+
+          // 没有反射贴图,显示物体的轮廓
+          if(gl_FragColor.xyz == vec3(0.)) {
+            gl_FragColor = vec4(0.1,0.1,0.1, 0.5);
+          }
         }
         `
 
@@ -72,6 +77,7 @@ export class ReflectingObject {
     }
 
     this.mesh = new Mesh(geo, mat);
+    this.mesh.material.needUpdate = true;
     this.mesh.scale.set(0.5,0.5, 0.5)
     this.mesh.name = "tea"
   }

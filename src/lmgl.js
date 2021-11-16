@@ -1,33 +1,34 @@
-import Renderer from './core/Renderer.js'
-import { GEOMETRY_TYPE,VERSION,SIDE } from './core/constants.js'
-import MyOrbitControls from './camera-control/MyOrbitControls.js'
+// camera
 import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
+import MyOrbitControls from './camera-control/MyOrbitControls.js'
+export * from "./camera/CubeCamera.js"
 
-import * as MathUtils from './math/MathUtils.js'
-import dao from './core/Dao.js'
-
+// geometry
 export * from "./geometry/Circle.js"
 export * from "./geometry/Cube.js"
+
+// core
+import dao from './core/Dao.js'
+import Renderer from './core/Renderer.js'
 export * from "./core/constants.js"
 export * from "./core/ImageTexture.js"
 export * from "./core/ImageCubeTexture.js"
-export { MathUtils };
+export * from "./core/Mesh.js"
+export * from "./core/RenderTarget.js"
+export * from "./core/RenderTargetCube.js"
 
 // loader
 export * from "./loader/ImageLoader.js"
 
+// math
+import * as MathUtils from './math/MathUtils.js'
 export * from "./math/Euler.js"
 export * from "./math/Matrix3.js"
 export * from "./math/Matrix4.js"
 export * from "./math/Vector2.js"
 export * from "./math/Vector3.js"
 export * from "./math/Vector4.js"
-
-export * from "./core/Mesh.js"
-export * from "./core/RenderTarget.js"
-
-import * as webgl from './webgl/index.js'
-export { webgl }
+export { MathUtils };
 
 // mesh lib
 export * from './meshLib/Axis.js'
@@ -35,6 +36,10 @@ export * from './meshLib/Plane.js'
 export * from './meshLib/ReflectingObject.js'
 export * from './meshLib/SkyBox.js'
 export * from './meshLib/Cube.js'
+
+// webgl
+import * as webgl from './webgl/index.js'
+export { webgl }
 
 export class Stage {
   constructor() {
@@ -113,5 +118,3 @@ export class Stage {
     this.updateChildren.delete(name)
   }
 }
-
-console.log("lmgl", VERSION);

@@ -3,12 +3,12 @@ import { loadCubeImages } from '../loader/ImageLoader.js'
 import { ImageCubeTexture } from '../core/ImageCubeTexture.js'
 import { createCube } from '../geometry/Cube.js'
 export class SkyBox {
-  constructor(stage, cb) {
+  constructor(cb) {
     this.cb = cb;
-    this.init(stage);
+    this.init();
   }
 
-  async init(stage) {
+  async init() {
     const vertexShaderSourceSB = `
         precision mediump float;
         attribute vec3 aPosition;
@@ -53,7 +53,7 @@ export class SkyBox {
       }
     }
 
-    const geoInfo = createCube(20);
+    const geoInfo = createCube(40);
     const geo = {
       attribute: {
         aPosition: {
@@ -64,8 +64,9 @@ export class SkyBox {
       indices: geoInfo.indices
     };
     let mesh = new Mesh(geo, mat);
+    mesh.material.needUpdate = true;
     this.mesh = mesh;
-    stage.add(mesh)
+    // stage.add(mesh)
 
     this.cubeMap = cubeMap;
     this.cb && this.cb(this.cubeMap.getTexture());

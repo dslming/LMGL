@@ -4,7 +4,7 @@ import lambert from '../modules/lambert/lambert.glsl.js';
 
 // 平面
 export class Cube {
-  constructor() {
+  constructor(size) {
     const vertexShader = `
       precision mediump float;
       attribute vec3 aPosition;
@@ -13,6 +13,7 @@ export class Cube {
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
       uniform mat3 normalMatrix;
+
 
       varying vec3 vColor;
 
@@ -27,14 +28,15 @@ export class Cube {
 
     const fragmentShader = `
       precision mediump float;
+      uniform vec3 diffuseColor;
       varying vec3 vColor;
 
       void main() {
-        gl_FragColor = vec4(vColor, 1.);
+        gl_FragColor = vec4(diffuseColor * vColor, 1.);
       }
       `
 
-    const geoInfo = createCube(2);
+    const geoInfo = createCube(size);
     const geo = {
       attribute: {
         aPosition: {
@@ -53,10 +55,14 @@ export class Cube {
     const mat = {
       vertexShader,
       fragmentShader,
+      uniforms: {
+        diffuseColor: { type: "v3", value: {x:1,y:1,z:1}}
+      }
     }
 
     this.mesh = new Mesh(geo, mat);
-    this.mesh.name = "cube"
+    this.mesh.material.needUpdate = true;
+    // this.mesh.name = "cube"
     // this.mesh.scale.set(1,2.3)
   }
 }

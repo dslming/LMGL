@@ -2,8 +2,12 @@ import { SIDE ,BLENDING_TYPE } from '../core/constants.js'
 import error from './ErrorCount.js'
 
 // 创建帧缓存对象,todo包含深度信息
-export function createFramebuffer(gl, texture) {
+export function createFramebuffer(gl) {
   var framebuffer = gl.createFramebuffer();
+  return framebuffer;
+}
+
+export function bindFramebuffer(gl, framebuffer, texture) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 
@@ -11,6 +15,15 @@ export function createFramebuffer(gl, texture) {
     throw "Some WebGL error occurred while trying to create framebuffer.";
   }
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return framebuffer
+}
+
+export function bindFramebufferCube(gl, framebuffer) {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+  if (gl.getError() != gl.NO_ERROR) {
+    throw "Some WebGL error occurred while trying to create framebuffer.";
+  }
   return framebuffer
 }
 

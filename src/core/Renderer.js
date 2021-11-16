@@ -19,11 +19,13 @@ export default class Renderer {
     this.autoClear = false;
   }
 
-  _updateUniformMatrix(program, mesh) {
+  _updateUniformMatrix(program, mesh, camera) {
     const gl = dao.getData("gl")
-    const camera = dao.getData("camera")
+    camera = camera || dao.getData("camera")
 
     camera.updateProjectionMatrix()
+    camera.updateWorldMatrix()
+    camera.updateMatrix()
     WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4", mesh.name)
 
     const modelViewMatrix = new Matrix4()
@@ -58,7 +60,7 @@ export default class Renderer {
     WebGLInterface.setSide(gl, side);
   }
 
-  renderMesh(mesh) {
+  renderMesh(mesh, camera) {
     const gl = dao.getData("gl")
     const { geometry, material } = mesh || {};
     if (!geometry || !material) {
@@ -71,7 +73,7 @@ export default class Renderer {
     WebGLInterface.useProgram(gl, program);
 
     mesh.setAttributesBuffer();
-    this._updateUniformMatrix(program, mesh);
+    this._updateUniformMatrix(program, mesh, camera);
     material.needUpdate && material.setUniform()
 
     const geoType = geometry.type;
@@ -130,10 +132,11 @@ export default class Renderer {
     const allMesh = dao.getData("allMesh")|| []
     this.clear()
     const gl = dao.getData("gl")
+    const camera = dao.getData("camera")
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     for (let i = 0; i < allMesh.length; i++) {
       const mesh = allMesh[i]
-      this.renderMesh(mesh)
+      this.renderMesh(mesh, camera)
     }
   }
 }

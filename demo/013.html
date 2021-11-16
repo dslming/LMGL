@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="content">
+    <canvas id="c"></canvas>
+  </div>
+  <script type="module">
+    // https://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
+    import * as lmgl from '../src/lmgl.js'
+    import teapotModel from './module/teapotModel.js'
+
+
+  let stage
+  function createMovingCubeData(count, size, flag) {
+    var movingCubeData = [];
+    for (let i = 0; i <= count; i++) {
+       movingCubeData.push( {
+          translation: [4*size*i - 10*size, 0, flag*10*size],
+          localRotationAxis: [Math.random(),Math.random(),Math.random()],
+          localAngularVelocity: 0.005 + 0.1*Math.random(),
+          globalRotationAxis: [Math.random(),Math.random(),Math.random()],
+          globalAngularVelocity: 0.005 + 0.02*Math.random(),
+          color: [Math.random(),Math.random(),Math.random()]
+      } );
+      new lmgl.Vector3(movingCubeData[i].localRotationAxis, movingCubeData[i].localRotationAxis).normalize();
+      new lmgl.Vector3(movingCubeData[i].globalRotationAxis, movingCubeData[i].globalRotationAxis).normalize();
+      if (Math.random() < 0.5) {
+        movingCubeData[i].globalAngularVelocity *= -1;
+      }
+    }
+    return movingCubeData;
+  }
+
+  function creatCubeMesh(stage,count) {
+    let cubes = [];
+    const size = 1;
+    let arr1 = createMovingCubeData(count/2, size, 1)
+    let arr2 = createMovingCubeData(count/2, size, -1)
+    let movingCubeData = [...arr1, ...arr2]
+    for(let i=0;i<count;i++) {
+      const cube = new lmgl.Cube(size);
+      let cd = movingCubeData[i];
+      cube.mesh.position.set(cd.translation[0],cd.translation[1], cd.translation[2])
+      cube.mesh.material.uniforms["diffuseColor"].value = {
+        x: cd.color[0],
+        y: cd.color[1],
+        z: cd.color[2],
+      }
+      cube.mesh.material.needUpdate = true;
+      cubes.push(cube.mesh);
+    }
+    return {cubes,movingCubeData};
+  }
+
+  window.onload = () => {
+    document.title = "单向动态环境反射"
+    let width = window.innerWidth
+    let height = window.innerHeight
+
+    window.addEventListener("resize", ()=>{
+      width = window.innerWidth
+      height = window.innerHeight
+    })
+
+    stage = new lmgl.Stage()
+    stage.init(document.querySelector("#c"), width, height)
+    stage.camera.position.set(0, 0, 30)
+    stage.setRenderState(false)
+
+    // 创建cube
+    const count = 10;
+    const {cubes, movingCubeData} = creatCubeMesh(stage,count)
+
+    let reflectObj = null
+    let renderTarget = null;
+    let cubeCamera = null;
+    let envMesh = null;
+
+    // 创建天空盒
+    const skyBox = new lmgl.SkyBox(texture=>{
+      const textureSize = {
+        w: 512,
+        h: 512
+      }
+      envMesh = [skyBox.mesh, ...cubes]
+      renderTarget = new lmgl.RenderTargetCube(textureSize.w, textureSize.h);
+      cubeCamera = new lmgl.CubeCamera(1, 1000, renderTarget)
+
+      reflectObj = new lmgl.ReflectingObject(teapotModel, renderTarget.getTexture());
+    });
+
+    const webgl = lmgl.webgl;
+    const gl = stage.getGl()
+    let time = 0;
+    stage.addUpdate("loop",()=>{
+      // 立方体动画
+      for(let i=0;i<count;i++) {
+        let cube = cubes[i];
+        let cd = movingCubeData[i];
+        cube.rotation.x += cd.localAngularVelocity * cd.localRotationAxis[0]
+        cube.rotation.y += cd.localAngularVelocity * cd.localRotationAxis[1]
+        cube.rotation.z += cd.localAngularVelocity * cd.localRotationAxis[2]
+        cube.position.y = 2*Math.sin(4*time+i)
+        time += 0.002
+      }
+
+      if(envMesh) {
+        // 渲染环境到 renderTarget
+        cubeCamera.render(stage.renderer, envMesh);
+
+        // 渲染反射物体到屏幕
+        webgl.setViewPort(gl, width, height)
+        stage.renderer.setRenderTarget(null);
+        stage.renderer.renderMesh(reflectObj.mesh)
+
+        // 渲染环境到屏幕
+        envMesh.forEach(mesh=>{
+          stage.renderer.renderMesh(mesh)
+        })
+      }
+    })
+
+    stage.run()
+  }
+  </script>
+</body>
+</html>
