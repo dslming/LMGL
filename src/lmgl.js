@@ -34,6 +34,7 @@ export * from './meshLib/Axis.js'
 export * from './meshLib/Plane.js'
 export * from './meshLib/ReflectingObject.js'
 export * from './meshLib/SkyBox.js'
+export * from './meshLib/Cube.js'
 
 export class Stage {
   constructor() {
@@ -73,7 +74,7 @@ export class Stage {
   init(...param) {
     this.renderer = new Renderer(...param)
     this.gl = this.renderer.getContext()
-    this.camera = new PerspectiveCamera(30, param[1] / param[2], 1, 10000)
+    this.camera = new PerspectiveCamera(75, param[1] / param[2], 1, 1000)
     this.control = new MyOrbitControls(this.camera, param[0])
 
     dao.setData({ name: "gl", data: this.gl })

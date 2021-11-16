@@ -8,23 +8,6 @@
   </div>
   <script type="module">import * as lmgl from '../src/lmgl.js'
 
-const vertexShader = `
-  precision mediump float;
-  attribute vec3 aPosition;
-  uniform mat4 projectionMatrix;
-  uniform mat4 modelViewMatrix;
-
-  void main() {
-   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-  }
-`
-
-const fragmentShader = `
-  precision mediump float;
-	void main() {
-	  gl_FragColor = vec4(.0,0.0,0.8,1.);
-	}
-	`
 let stage
 
 window.onload = () => {
@@ -38,28 +21,12 @@ window.onload = () => {
 
    new lmgl.Axis(100, stage)
 
-  const geoInfo = lmgl.createCube();
-  const geo = {
-    attribute: {
-      aPosition: {
-        value: geoInfo.positions,
-        itemSize: 3
-      },
-    },
-    indices: geoInfo.indices
-  };
-
-  const mat = {
-    vertexShader,
-    fragmentShader,
-  }
-
-  const cube = new lmgl.Mesh(geo, mat);
-  stage.add(cube)
+  const cube = new lmgl.Cube();
+  stage.add(cube.mesh)
   stage.run()
 
   stage.addUpdate("rotation", () => {
-    cube.rotation.y -= 0.03;
+    // cube.mesh.rotation.y -= 0.03;
   })
 }
 </script>

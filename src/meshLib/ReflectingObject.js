@@ -14,8 +14,8 @@ export class ReflectingObject {
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
         uniform vec3 cameraPosition;
-        // uniform mat4 viewMatrix;
-        // uniform mat3 normalMatrix;
+        uniform mat4 viewMatrix;
+        uniform mat3 normalMatrix;
 
         // ${commom}
         void main() {
@@ -27,14 +27,16 @@ export class ReflectingObject {
           // // v_normal = normalize(a_normal);
 
           // vec3 transformed = vec3( aPosition );
-	        // vec4 worldPosition = vec4( transformed, 1.0 );
-          // vec3 cameraToVertex = normalize( worldPosition.xyz - cameraPosition );
+	        vec4 worldPosition = vec4( aPosition, 1.0 );
+          vec3 cameraToVertex = normalize( worldPosition.xyz - cameraPosition );
 
-          vReflect = aNormal;
+          // vReflect = aNormal;
           // vec3 transformedNormal = objectNormal;
-          // vec3 N = normalize(normalMatrix * a_normal);
-          // vec3 worldNormal = inverseTransformDirection( transformedNormal, viewMatrix );
-          // vReflect = vec3(0.2, 0.1, .2);//reflect(cameraToVertex, N);
+          // vec3 N = normalize(normalMatrix * aNormal);
+          // vReflect = N;
+          vec3 worldNormal = inverseTransformDirection( normalMatrix * aNormal, viewMatrix );
+          vReflect = reflect(-cameraToVertex, worldNormal );
+          // vReflect = cameraToVertex;//vec3(0.2, 0.1, .2);//reflect(cameraToVertex, N);
         }
       `
 
@@ -42,7 +44,7 @@ export class ReflectingObject {
         precision mediump float;
         varying vec3 vReflect;
 
-        // uniform samplerCube skybox;
+        uniform samplerCube skybox;
         // uniform mat3 normalMatrix;
 
         // varying vec3 v_normal;
@@ -51,8 +53,8 @@ export class ReflectingObject {
 
 
         void main() {
-          gl_FragColor = vec4(1.,0., 0., 1.);
-          // vec4 envColor = textureCube(skybox, vReflect);
+          // gl_FragColor = vec4(1.,0., 0., 1.);
+          gl_FragColor = textureCube(skybox, vReflect);
           // gl_FragColor = envColor;
         }
         `
