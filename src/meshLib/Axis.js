@@ -25,9 +25,6 @@ export class Axis {
     let meshY = new Mesh(geoY, matY);
     let meshZ = new Mesh(geoZ, matZ);
 
-    meshX.name = "meshX"
-    meshY.name = "meshY"
-    meshZ.name = "meshZ"
 
     stage.add(meshX)
     stage.add(meshY)

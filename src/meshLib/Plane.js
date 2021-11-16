@@ -11,6 +11,7 @@ export class Plane {
         varying vec2 vUv;
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
+        uniform mat3 normalMatrix;
 
         void main() {
           vUv = aUv;

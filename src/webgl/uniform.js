@@ -1,10 +1,17 @@
+import error from './ErrorCount.js'
 import { bindCubeTexture, bindTexture } from './texture.js';
 
-export function setUniform(gl, program, name, value, type) {
+const moduleName = "uniform"
+export function setUniform(gl, program, name, value, type, meshName) {
+  const subName = `${name}_${meshName}`
   // 变量地址
   const addr = gl.getUniformLocation(program, name);
-  if (addr == null) {
-    // console.error(name, "不存在...");
+  if (addr == null && meshName != "" && meshName != undefined) {
+    error.catchError({
+      moduleName: moduleName,
+      subName: subName,
+      info: "不存在...",
+    });
     return;
   }
 
@@ -25,6 +32,10 @@ export function setUniform(gl, program, name, value, type) {
       gl.uniform4f(addr, value.x, value.y, value.z, value.w);
       break;
 
+    case "m3":
+      gl.uniformMatrix3fv(addr, false, new Float32Array(value));
+      break
+
     case "m4":
       gl.uniformMatrix4fv(addr, false, new Float32Array(value));
       break
@@ -38,7 +49,14 @@ export function setUniform(gl, program, name, value, type) {
       bindCubeTexture(gl, value)
       gl.uniform1i(addr, 0);
       break
+
+    default:
+      console.error("error", type, name);
+      break
   }
+
+  // 错误只关心mesh有名称的
+  meshName != "" && meshName != undefined && error.clear(moduleName, subName);
 }
 
 export function getUniformLocation(gl, program, name) {

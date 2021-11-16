@@ -23,11 +23,11 @@ export default class Renderer {
     const camera = dao.getData("camera")
 
     camera.updateProjectionMatrix()
-    WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4")
+    WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4", mesh.name)
 
     const modelViewMatrix = new Matrix4()
     modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, mesh.matrix);
-    WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4")
+    WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4", mesh.name)
     // console.error(modelViewMatrix);
 
     // 0    3     6
@@ -36,12 +36,12 @@ export default class Renderer {
     mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
     // mesh.normalMatrix.set(0,0.3,0.6, 0.1,0.4,0.7, 0.2,0.5,0.8)
     mesh.normalMatrix.set(1,1,1, 1,1,1, 1,1,1)
-    WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m3")
+    WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m3", mesh.name)
 
     const _vector3 = new Vector3();
     _vector3.setFromMatrixPosition(camera.matrixWorld)
-    WebGLInterface.setUniform(gl, program, "cameraPosition", _vector3, "v3")
-    WebGLInterface.setUniform(gl, program, 'viewMatrix', camera.matrixWorldInverse.elements, "m4");
+    WebGLInterface.setUniform(gl, program, "cameraPosition", _vector3, "v3", mesh.name)
+    WebGLInterface.setUniform(gl, program, 'viewMatrix', camera.matrixWorldInverse.elements, "m4", mesh.name);
   }
 
   // 根据材质设置webgl状态

@@ -1,5 +1,5 @@
-let errorFlag = false;
-
+import error from './ErrorCount.js'
+const moduleName = "attribute"
 export function setAttribBuffer(gl, program, buffer, param) {
   const {
     attribureName,
@@ -9,11 +9,12 @@ export function setAttribBuffer(gl, program, buffer, param) {
 
   // 属性使能数组
   const attribure = gl.getAttribLocation(program, attribureName);
-  if (attribure == -1 && errorFlag == false) {
-    console.error("error", attribureName);
-    errorFlag = true;
-    return;
-  } else if (attribure == -1) {
+  if (attribure == -1) {
+    error.catchError({
+      info: `"error"`,
+      moduleName: moduleName,
+      subName: attribureName
+    });
     return;
   }
 
@@ -32,7 +33,7 @@ export function setAttribBuffer(gl, program, buffer, param) {
 
   // 绑定顶点缓冲区对象,传送给GPU
   gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
-  errorFlag = false;
+  error.clear(moduleName, attribureName);
   // gl.disableVertexAttribArray(attribure);
 }
 

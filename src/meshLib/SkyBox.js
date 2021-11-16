@@ -14,6 +14,7 @@ export class SkyBox {
         attribute vec3 aPosition;
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
+        uniform mat3 normalMatrix;
         varying vec3 vUv;
 
         void main() {

@@ -1,4 +1,5 @@
 import { SIDE ,BLENDING_TYPE } from '../core/constants.js'
+import error from './ErrorCount.js'
 
 // 创建帧缓存对象,todo包含深度信息
 export function createFramebuffer(gl, texture) {
