@@ -9,53 +9,39 @@ export class ReflectingObject {
         attribute vec3 aPosition;
         attribute vec3 aNormal;
 
-        varying vec3 vReflect;
+        // varying vec3 vReflect;
+        varying vec3 v_eyeCoords;
+        varying vec3 v_normal;
 
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
-        uniform vec3 cameraPosition;
-        uniform mat4 viewMatrix;
-        uniform mat3 normalMatrix;
 
-        // ${commom}
         void main() {
-           gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-          // vec4 eyeCoords = modelViewMatrix * vec4(aPosition, 1.0);
-          // gl_Position = projectionMatrix * eyeCoords;
+          vec4 eyeCoords = modelViewMatrix * vec4(aPosition, 1.0);
+          gl_Position = projectionMatrix * eyeCoords;
 
-          // v_eyeCoords = eyeCoords.xyz;
-          // // v_normal = normalize(a_normal);
-
-          // vec3 transformed = vec3( aPosition );
-	        vec4 worldPosition = vec4( aPosition, 1.0 );
-          vec3 cameraToVertex = normalize( worldPosition.xyz - cameraPosition );
-
-          // vReflect = aNormal;
-          // vec3 transformedNormal = objectNormal;
-          // vec3 N = normalize(normalMatrix * aNormal);
-          // vReflect = N;
-          vec3 worldNormal = inverseTransformDirection( normalMatrix * aNormal, viewMatrix );
-          vReflect = reflect(-cameraToVertex, worldNormal );
-          // vReflect = cameraToVertex;//vec3(0.2, 0.1, .2);//reflect(cameraToVertex, N);
+          v_eyeCoords = eyeCoords.xyz;
+          v_normal = normalize(aNormal);
         }
       `
 
     const fsPlane = `
         precision mediump float;
-        varying vec3 vReflect;
-
         uniform samplerCube skybox;
-        // uniform mat3 normalMatrix;
+        uniform mat3 normalMatrix;
+        uniform mat3 inverseViewTransform;
 
-        // varying vec3 v_normal;
-        // varying vec3 v_eyeCoords;
-        // varying vec3 vReflect;
-
+        varying vec3 v_normal;
+        varying vec3 v_eyeCoords;
 
         void main() {
-          // gl_FragColor = vec4(1.,0., 0., 1.);
-          gl_FragColor = textureCube(skybox, vReflect);
-          // gl_FragColor = envColor;
+          vec3 N = normalize(normalMatrix * v_normal);
+          vec3 V = -v_eyeCoords;
+          vec3 R = -reflect(V,N);
+          vec3 T = inverseViewTransform * R;
+
+
+          gl_FragColor = textureCube(skybox, T);
         }
         `
 
@@ -86,6 +72,7 @@ export class ReflectingObject {
     }
 
     this.mesh = new Mesh(geo, mat);
-    this.mesh.scale.set(0.1,0.1, 0.1)
+    this.mesh.scale.set(0.5,0.5, 0.5)
+    this.mesh.name = "tea"
   }
 }

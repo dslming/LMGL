@@ -6,6 +6,7 @@ import { GEOMETRY_TYPE, SIDE } from './constants.js'
 import dao from './Dao.js'
 import * as WebGLInterface from '../webgl/index.js'
 import { Matrix4 } from '../math/Matrix4.js'
+import { Matrix3 } from '../math/Matrix3.js'
 import { Vector3 } from '../math/Vector3.js'
 
 let flag = false;
@@ -30,18 +31,21 @@ export default class Renderer {
     WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4", mesh.name)
     // console.error(modelViewMatrix);
 
-    // 0    3     6
-    // 1    4     7
-    // 2    5     8
     mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
-    // mesh.normalMatrix.set(0,0.3,0.6, 0.1,0.4,0.7, 0.2,0.5,0.8)
-    mesh.normalMatrix.set(1,1,1, 1,1,1, 1,1,1)
     WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m3", mesh.name)
 
-    const _vector3 = new Vector3();
-    _vector3.setFromMatrixPosition(camera.matrixWorld)
+    let _vector3 = new Vector3();
+    _vector3 = _vector3.setFromMatrixPosition(camera.matrixWorld)
     WebGLInterface.setUniform(gl, program, "cameraPosition", _vector3, "v3", mesh.name)
+
+
     WebGLInterface.setUniform(gl, program, 'viewMatrix', camera.matrixWorldInverse.elements, "m4", mesh.name);
+
+    let _tempMat3 = new Matrix3();
+    _tempMat3.setFromMatrix4(camera.matrixWorldInverse).invert();
+    WebGLInterface.setUniform(gl, program, 'inverseViewTransform', _tempMat3.elements, "m3", mesh.name);
+
+    WebGLInterface.setUniform(gl, program, 'modelMatrix', camera.matrix.elements, "m4", mesh.name);
   }
 
   // 根据材质设置webgl状态
