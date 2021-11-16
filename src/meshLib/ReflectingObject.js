@@ -40,7 +40,6 @@ export class ReflectingObject {
           vec3 R = -reflect(V,N);
           vec3 T = inverseViewTransform * R;
 
-
           gl_FragColor = textureCube(skybox, T);
 
           // 没有反射贴图,显示物体的轮廓

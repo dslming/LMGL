@@ -56,8 +56,9 @@
 
   window.onload = () => {
     document.title = "单向动态环境反射"
-    let width = window.innerWidth
-    let height = window.innerHeight
+    const radio = window.devicePixelRatio;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
 
     window.addEventListener("resize", ()=>{
       width = window.innerWidth
@@ -111,7 +112,7 @@
         cubeCamera.render(stage.renderer, envMesh);
 
         // 渲染反射物体到屏幕
-        webgl.setViewPort(gl, width, height)
+        webgl.setViewPort(gl, width*radio, height*radio)
         stage.renderer.setRenderTarget(null);
         stage.renderer.renderMesh(reflectObj.mesh)
 
