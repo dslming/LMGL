@@ -46,6 +46,7 @@ export class Stage {
   constructor() {
     window.lm = this
 
+    this.enablePick = false;
     this.children = []
     this.gl = null
     this.indicesLength = 0
@@ -58,16 +59,16 @@ export class Stage {
     this.raycaster = new Raycaster()
   }
 
+  // 拾取
   onClick(event) {
+    if (!this.enablePick) return;
+
     var mouse = {}
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     this.raycaster.setFromCamera(mouse, this.camera);
-    // console.error(1234);
     const intersections = this.raycaster.intersectObjects(this.children);
     console.error(intersections);
-
-
   }
   getGl() {
     return this.gl;
@@ -101,11 +102,11 @@ export class Stage {
 
     const dom = param[0];
     const resize = () => {
-       const width = dom.clientWidth
-       const height = dom.clientHeight
+       const width = window.innerWidth//dom.clientWidth
+       const height = window.innerHeight//dom.clientHeight
        this.resize(width, height)
     }
-    this.resize(param[1], param[2])
+    this.resize(window.innerWidth, window.innerHeight)
     window.addEventListener("resize", resize.bind(this))
     window.addEventListener("click", this.onClick.bind(this))
   }

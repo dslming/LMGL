@@ -47,7 +47,7 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  new lmgl.Axis(100, stage)
+  // new lmgl.Axis(100, stage)
 
   const z = 0;
   const geo = {
@@ -79,7 +79,7 @@ window.onload = () => {
 
   let mesh = new lmgl.Mesh(geo, mat);
   stage.addUpdate("loop",()=>{
-    mesh.rotation.y += 0.01;
+    // mesh.rotation.y += 0.01;
   })
   stage.add(mesh)
   stage.run()

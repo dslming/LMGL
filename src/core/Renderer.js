@@ -79,7 +79,6 @@ export default class Renderer {
     const geoType = geometry.type;
     let count = geometry.indices.length;
     count = count == 0 ? geometry.count : count;
-
     this._readMaterial(material);
 
     if (geoType == GEOMETRY_TYPE.POINTS) {

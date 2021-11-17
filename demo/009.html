@@ -240,6 +240,7 @@
 
   window.onload = () => {
     document.title = "FBO-渲染到纹理"
+    const radio = devicePixelRatio
     let width = window.innerWidth
     let height = window.innerHeight
 
@@ -250,7 +251,7 @@
 
     stage = new lmgl.Stage()
     stage.init(document.querySelector("#c"), width, height)
-    stage.camera.position.set(0, 0, 20)
+    stage.camera.position.set(0, 0, 10)
 
     // 自定义渲染
     stage.setRenderState(false)
@@ -273,7 +274,7 @@
       disks.updateDiskPositions();
       disks.drawDisks();
 
-      webgl.setViewPort(gl, width, height)
+      webgl.setViewPort(gl, width*radio, height*radio)
       stage.renderer.setRenderTarget(null);
       stage.renderer.clear();
       plane.mesh.material.uniforms["texture"].value = renderTarget.getTexture();
