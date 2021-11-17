@@ -11,8 +11,13 @@ export class RenderTarget {
     this.texture = WebGLInterface.createTexture(gl);
     this.texture.flipY = false;
     WebGLInterface.setTextureNull(gl, this.texture, width, height)
+
     this.framebuffer = WebGLInterface.createFramebuffer(gl)
-    WebGLInterface.bindFramebuffer(gl, this.framebuffer, this.texture)
+    WebGLInterface.bindFramebuffer(gl, this.framebuffer)
+    WebGLInterface.attachFramebufferTexture(gl, this.texture)
+
+    this.renderbuffer = WebGLInterface.createRenderbuffer(gl)
+    WebGLInterface.bindRenderbuffer(gl, this.renderbuffer)
   }
 
   getFrameBuffer() {

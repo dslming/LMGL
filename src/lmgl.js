@@ -37,6 +37,7 @@ export * from './meshLib/Plane.js'
 export * from './meshLib/ReflectingObject.js'
 export * from './meshLib/SkyBox.js'
 export * from './meshLib/Cube.js'
+export * from './meshLib/LambertMesh.js'
 
 // webgl
 import * as webgl from './webgl/index.js'
@@ -116,6 +117,7 @@ export class Stage {
   }
 
   run() {
+    this.control.update()
     window.requestAnimationFrame(this.run)
     this.camera.updateMatrix()
     this.camera.updateMatrixWorld()
@@ -124,6 +126,7 @@ export class Stage {
     this.updateChildren.forEach(cb => {
       cb();
     })
+
   }
 
   addUpdate(name, cb) {

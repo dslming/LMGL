@@ -10,9 +10,17 @@ https://github.com/greggman/twgl.js
 
 
 [webgl 教程](https://math.hws.edu/graphicsbook/c7/s4.html)
-
+https://github.com/fafa1899/WebGLTutorial
 shadow https://webgl2fundamentals.org/webgl/lessons/zh_cn/webgl-shadows.html
 https://wgld.org/d/webgl/w084.html
+
+
+#### shadowmap
+https://www.chinedufn.com/webgl-shadow-mapping-tutorial/
+https://aw32.github.io/shadows2d/
+https://aw32.github.io/shadows3d/websm.html
+https://github.com/Uncydave/CST325-ShadowMap
+https://github.com/chinedufn/webgl-shadow-mapping-tutorial
 
 todo:
 - 视锥剔除 https://www.cnblogs.com/linuxheik/articles/10882474.html

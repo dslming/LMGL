@@ -7,25 +7,53 @@ export function createFramebuffer(gl) {
   return framebuffer;
 }
 
-export function bindFramebuffer(gl, framebuffer, texture) {
+// 创建渲染缓冲
+export function createRenderbuffer() {
+  var renderbuffer = gl.createRenderbuffer();
+  return renderbuffer;
+}
+
+export function bindRenderbuffer(gl, renderBuffer, width, height) {
+  gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+
+  //设置渲染缓冲对象作为深度附件
+  //  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
+}
+
+// export function bindFramebuffer(gl, framebuffer, texture) {
+//   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+//   // 设置纹理作为颜色附件
+//   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+//   if (gl.getError() != gl.NO_ERROR) {
+//     throw "Some WebGL error occurred while trying to create framebuffer.";
+//   }
+//   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//   return framebuffer
+// }
+
+// 设置帧缓冲对象的纹理作为颜色附件
+export function attachFramebufferTexture(gl, texture) {
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
+}
+
+export function bindFramebuffer(gl, framebuffer) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 
   if (gl.getError() != gl.NO_ERROR) {
     throw "Some WebGL error occurred while trying to create framebuffer.";
   }
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  return framebuffer
 }
 
-export function bindFramebufferCube(gl, framebuffer) {
-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+// export function bindFramebufferCube(gl, framebuffer) {
+//   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
-  if (gl.getError() != gl.NO_ERROR) {
-    throw "Some WebGL error occurred while trying to create framebuffer.";
-  }
-  return framebuffer
-}
+//   if (gl.getError() != gl.NO_ERROR) {
+//     throw "Some WebGL error occurred while trying to create framebuffer.";
+//   }
+//   return framebuffer
+// }
 
 /**
  * 拷贝帧缓存的内容到当前使用的纹理中
