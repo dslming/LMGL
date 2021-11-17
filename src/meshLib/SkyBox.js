@@ -53,7 +53,7 @@ export class SkyBox {
       }
     }
 
-    const geoInfo = createCube(40);
+    const geoInfo = createCube(100);
     const geo = {
       attribute: {
         aPosition: {

@@ -10,6 +10,7 @@ export * from "./geometry/Cube.js"
 // core
 import dao from './core/Dao.js'
 import Renderer from './core/Renderer.js'
+import { Raycaster } from './core/Raycaster.js'
 export * from "./core/constants.js"
 export * from "./core/ImageTexture.js"
 export * from "./core/ImageCubeTexture.js"
@@ -53,8 +54,21 @@ export class Stage {
     this.updateChildren = new Map()
     this.renderFlag = true;
     this.resize = this.resize.bind(this)
+
+    this.raycaster = new Raycaster()
   }
 
+  onClick(event) {
+    var mouse = {}
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    this.raycaster.setFromCamera(mouse, this.camera);
+    // console.error(1234);
+    const intersections = this.raycaster.intersectObjects(this.children);
+    console.error(intersections);
+
+
+  }
   getGl() {
     return this.gl;
   }
@@ -93,6 +107,7 @@ export class Stage {
     }
     this.resize(param[1], param[2])
     window.addEventListener("resize", resize.bind(this))
+    window.addEventListener("click", this.onClick.bind(this))
   }
 
   resize(width, height) {

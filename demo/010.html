@@ -30,7 +30,9 @@
     stage.init(document.querySelector("#c"), width, height)
     stage.camera.position.set(0, 0, 20)
 
-    const skyBox = new lmgl.SkyBox(stage);
+    const skyBox = new lmgl.SkyBox(()=>{
+      stage.add(skyBox.mesh)
+    });
     const plane = new lmgl.Plane();
     stage.add(plane.mesh);
 

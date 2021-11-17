@@ -98,7 +98,7 @@ export default class Renderer {
   }
 
   getContext() {
-    return this.canvas.getContext("experimental-webgl");
+    return this.canvas.getContext("webgl2");
   }
 
   setVertexLength(v) {

@@ -7,8 +7,10 @@ import { Matrix4 } from '../math/Matrix4.js';
 import { Matrix3 } from '../math/Matrix3.js';
 import { Vector3 } from '../math/Vector3.js';
 import { Euler } from '../math/Euler.js';
+import { Sphere } from '../math/Sphere.js';
 import { Quaternion } from '../math/Quaternion.js';
 import { addProxy } from '../utils/Tool.js';
+
 
 class Mesh {
   constructor(geometry, material) {
@@ -104,6 +106,172 @@ class Mesh {
 
   dispose() {
     // todo: 删除vao,vbo...
+  }
+
+  raycast(raycaster, intersects) {
+
+    const geometry = this.geometry;
+    const material = this.material;
+    const matrixWorld = this.matrix;
+
+    const _sphere = new Sphere();
+
+    if (material === undefined) return;
+
+    // Checking boundingSphere distance to ray
+
+    if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
+
+    _sphere.copy(geometry.boundingSphere);
+    _sphere.applyMatrix4(matrixWorld);
+
+    if (raycaster.ray.intersectsSphere(_sphere) === false) return;
+
+    //
+
+    _inverseMatrix.copy(matrixWorld).invert();
+    _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
+
+    // Check boundingBox before continuing
+
+    if (geometry.boundingBox !== null) {
+
+      if (_ray.intersectsBox(geometry.boundingBox) === false) return;
+
+    }
+
+    let intersection;
+
+    if (geometry.isBufferGeometry) {
+
+      const index = geometry.index;
+      const position = geometry.attributes.position;
+      const morphPosition = geometry.morphAttributes.position;
+      const morphTargetsRelative = geometry.morphTargetsRelative;
+      const uv = geometry.attributes.uv;
+      const uv2 = geometry.attributes.uv2;
+      const groups = geometry.groups;
+      const drawRange = geometry.drawRange;
+
+      if (index !== null) {
+
+        // indexed buffer geometry
+
+        if (Array.isArray(material)) {
+
+          for (let i = 0, il = groups.length; i < il; i++) {
+
+            const group = groups[i];
+            const groupMaterial = material[group.materialIndex];
+
+            const start = Math.max(group.start, drawRange.start);
+            const end = Math.min(index.count, Math.min((group.start + group.count), (drawRange.start + drawRange.count)));
+
+            for (let j = start, jl = end; j < jl; j += 3) {
+
+              const a = index.getX(j);
+              const b = index.getX(j + 1);
+              const c = index.getX(j + 2);
+
+              intersection = checkBufferGeometryIntersection(this, groupMaterial, raycaster, _ray, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c);
+
+              if (intersection) {
+
+                intersection.faceIndex = Math.floor(j / 3); // triangle number in indexed buffer semantics
+                intersection.face.materialIndex = group.materialIndex;
+                intersects.push(intersection);
+
+              }
+
+            }
+
+          }
+
+        } else {
+
+          const start = Math.max(0, drawRange.start);
+          const end = Math.min(index.count, (drawRange.start + drawRange.count));
+
+          for (let i = start, il = end; i < il; i += 3) {
+
+            const a = index.getX(i);
+            const b = index.getX(i + 1);
+            const c = index.getX(i + 2);
+
+            intersection = checkBufferGeometryIntersection(this, material, raycaster, _ray, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c);
+
+            if (intersection) {
+
+              intersection.faceIndex = Math.floor(i / 3); // triangle number in indexed buffer semantics
+              intersects.push(intersection);
+
+            }
+
+          }
+
+        }
+
+      } else if (position !== undefined) {
+
+        // non-indexed buffer geometry
+
+        if (Array.isArray(material)) {
+
+          for (let i = 0, il = groups.length; i < il; i++) {
+
+            const group = groups[i];
+            const groupMaterial = material[group.materialIndex];
+
+            const start = Math.max(group.start, drawRange.start);
+            const end = Math.min(position.count, Math.min((group.start + group.count), (drawRange.start + drawRange.count)));
+
+            for (let j = start, jl = end; j < jl; j += 3) {
+
+              const a = j;
+              const b = j + 1;
+              const c = j + 2;
+
+              intersection = checkBufferGeometryIntersection(this, groupMaterial, raycaster, _ray, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c);
+
+              if (intersection) {
+
+                intersection.faceIndex = Math.floor(j / 3); // triangle number in non-indexed buffer semantics
+                intersection.face.materialIndex = group.materialIndex;
+                intersects.push(intersection);
+
+              }
+
+            }
+
+          }
+
+        } else {
+
+          const start = Math.max(0, drawRange.start);
+          const end = Math.min(position.count, (drawRange.start + drawRange.count));
+
+          for (let i = start, il = end; i < il; i += 3) {
+
+            const a = i;
+            const b = i + 1;
+            const c = i + 2;
+
+            intersection = checkBufferGeometryIntersection(this, material, raycaster, _ray, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c);
+
+            if (intersection) {
+
+              intersection.faceIndex = Math.floor(i / 3); // triangle number in non-indexed buffer semantics
+              intersects.push(intersection);
+
+            }
+
+          }
+
+        }
+
+      }
+
+    }
   }
 }
 
