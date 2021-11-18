@@ -99,7 +99,8 @@
 
     var stage = new lmgl.Stage()
     stage.init(document.querySelector("#c"), width, height)
-    stage.camera.position.set(0, 0, 10)
+    stage.camera.position.set(0, 2, 10)
+    stage.camera.lookAt(new lmgl.Vector3(0, 0, 0));
     // new lmgl.Axis(100, stage)
 
     const lightDirction = new lmgl.Vector3(1,0,0);
@@ -108,7 +109,7 @@
     const plane = new Plane(lightDirction);
     plane.mesh.rotation.x = Math.PI/2;
     plane.mesh.position.y = -0.8
-    // stage.add(plane.mesh)
+    stage.add(plane.mesh)
 
     const cast = new CastShadow(lightDirction)
     stage.add(cast.mesh)
@@ -121,45 +122,110 @@
     const webgl = lmgl.webgl;
     const gl = stage.getGl()
     const shadowmapTextureSize = {
-      w: 512,
-      h: 512
+      w: width * radio,
+      h: height * radio
     }
-    // const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h);
+    const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h);
     const camera = stage.camera
 
     // 设置相机的位置为光源位置
-    const lightPosition = new lmgl.Vector3(10,0,0);
-    const cameraPosition = new lmgl.Vector3().copy(camera.position)
-    camera.position.copy(lightPosition)
-    camera.updateProjectionMatrix()
-    camera.updateMatrix()
-    camera.updateMatrixWorld()
-    const lightMVP = new lmgl.Matrix4();
-    lightMVP.copy(camera.projectionMatrix)
-    lightMVP.multiply(camera.matrixWorldInverse);
-    lightMVP.multiply(lightMVP, cast.mesh.matrix);
+    const lightPosition = new lmgl.Vector3(5,8,0);
+    // const cameraPosition = new lmgl.Vector3().copy(camera.position.clone())
+
+
+    const lightMVPCast = new lmgl.Matrix4();
+    lightMVPCast.copy(camera.projectionMatrix)
+    lightMVPCast.multiply(camera.matrixWorldInverse);
+    lightMVPCast.multiply(cast.mesh.matrix);
+
+     const lightMVPPlane = new lmgl.Matrix4();
+    lightMVPPlane.copy(camera.projectionMatrix)
+    lightMVPPlane.multiply(camera.matrixWorldInverse);
+    lightMVPPlane.multiply(plane.mesh.matrix);
+
     const depth = lmgl.shaderLib.depth()
-    const depthMat = new lmgl.Material({
-        uniforms: {
-          lightMVP: {"type":"m4",value: lightMVP.elements},
-          viewMatrix: {"type":"m4",value: camera.matrixWorldInverse.elements},
-          modelMatrix: {"type":"m4",value: cast.mesh.matrix.elements},
+    const depthMat = new lmgl.Material(depth,{
+      uniforms: {
+        uColor: {
+          value: {x:0.2,y:0,z:0},
+          type: "v3"
         }
-      },depth)
-    cast.mesh.material = depthMat;
-    cast.mesh.material.setUniform();
-    stage.renderer.renderMesh(cast.mesh);
-    // cast.mesh.material.uniforms["lightMVP"].value = ;
-    // cast.mesh.material.setUniform();
-    // stage.renderer.renderMesh(cast.mesh);
-    // stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
-    // stage.renderer.clear();
-    // webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h)
-    // stage.renderer.render();
+      }
+    })
+
+
+    const lightCamera = camera.clone();
+
+    function renderDepth() {
+      lightCamera.position.copy(lightPosition)
+      lightCamera.lookAt(new lmgl.Vector3(0, 0, 0));
+      lightCamera.updateProjectionMatrix()
+      lightCamera.updateMatrix()
+      lightCamera.updateMatrixWorld();
+
+      stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
+      gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.getFrameBuffer());
+      gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.getRenderBuffer());
+
+      stage.renderer.clear();
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h)
+      plane.mesh.material = depthMat;
+      plane.mesh.material.uniforms["uColor"].value = {x:0.5,y:0,z:0}
+      plane.mesh.material.setUniform();
+      stage.renderer.renderMesh(plane.mesh,camera);
+
+      cast.mesh.material = depthMat;
+      cast.mesh.material.uniforms["uColor"].value = {x:0,y:0.5,z:0}
+      cast.mesh.material.setUniform();
+      stage.renderer.renderMesh(cast.mesh,camera);
+    }
+
+    function renderShadow() {
+      camera.lookAt(new lmgl.Vector3(0, 0, 0));
+      camera.updateProjectionMatrix()
+      camera.updateMatrix()
+      camera.updateMatrixWorld();
+
+      // stage.renderer.setRenderTarget(null);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+      gl.enable(gl.CULL_FACE);
+      stage.renderer.clear();
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.disable(gl.CULL_FACE);
+      webgl.setViewPort(gl, width*radio, height*radio)
+      const shadowMap = lmgl.shaderLib.shadowMap()
+      const shadowMapMat = new lmgl.Material({
+        uniforms: {
+          uLightMVP: {"type":"m4",value: null},
+          uShadowMap: {type: "t", value: renderTarget.getTexture()}
+        }
+      },shadowMap);
+
+      plane.mesh.material = shadowMapMat;
+      plane.mesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
+      plane.mesh.material.setUniform();
+      stage.renderer.renderMesh(plane.mesh);
+
+      cast.mesh.material = shadowMapMat;
+      cast.mesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
+      cast.mesh.material.setUniform();
+      stage.renderer.renderMesh(cast.mesh);
+    }
+
+    // renderDepth()
+    // renderShadow()
+
 
     stage.addUpdate("loop",()=>{
-        cast.mesh.material.setUniform();
-        stage.renderer.renderMesh(cast.mesh);
+      renderDepth()
+      renderShadow()
+        // cast.mesh.material.setUniform();
+        // stage.renderer.renderMesh(cast.mesh);
+
+        // plane.mesh.material.setUniform();
+        // stage.renderer.renderMesh(plane.mesh);
 
       // stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
       // stage.renderer.clear();

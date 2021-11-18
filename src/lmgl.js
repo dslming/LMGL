@@ -2,6 +2,8 @@
 import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
 import MyOrbitControls from './camera-control/MyOrbitControls.js'
 export * from "./camera/CubeCamera.js"
+export * from "./camera/PerspectiveCamera.js"
+export * from "./camera/OrthographicCamera.js"
 
 // geometry
 export * from "./geometry/Circle.js"
@@ -28,6 +30,7 @@ export * from "./loader/ImageLoader.js"
 
 // math
 import * as MathUtils from './math/MathUtils.js'
+import { Vector3 } from './math/Vector3.js'
 export * from "./math/Euler.js"
 export * from "./math/Matrix3.js"
 export * from "./math/Matrix4.js"
@@ -101,6 +104,7 @@ export class Stage {
     this.renderer = new Renderer(...param)
     this.gl = this.renderer.getContext()
     this.camera = new PerspectiveCamera(75, param[1] / param[2], 1, 1000)
+
     this.control = new MyOrbitControls(this.camera, param[0])
 
     dao.setData({ name: "gl", data: this.gl })

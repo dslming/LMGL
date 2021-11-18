@@ -3,8 +3,7 @@ import error from './ErrorCount.js'
 
 // 创建帧缓存对象,todo包含深度信息
 export function createFramebuffer(gl) {
-  var framebuffer = gl.createFramebuffer();
-  return framebuffer;
+  return gl.createFramebuffer();
 }
 
 // 创建渲染缓冲
@@ -15,7 +14,9 @@ export function createRenderbuffer(gl) {
 
 export function bindRenderbuffer(gl, renderBuffer, width, height) {
   gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+  if (renderBuffer) {
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+  }
 
   //设置渲染缓冲对象作为深度附件
   //  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
@@ -44,6 +45,7 @@ export function bindFramebuffer(gl, framebuffer) {
   if (gl.getError() != gl.NO_ERROR) {
     throw "Some WebGL error occurred while trying to create framebuffer.";
   }
+  // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
 // export function bindFramebufferCube(gl, framebuffer) {

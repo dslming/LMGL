@@ -26,6 +26,10 @@ export default class Renderer {
     camera.updateProjectionMatrix()
     // camera.updateWorldMatrix()
     camera.updateMatrix()
+    // camera.updateProjectionMatrix()
+    // camera.updateMatrix()
+    camera.updateMatrixWorld();
+
     WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4", mesh.name)
 
     const modelViewMatrix = new Matrix4()
@@ -97,7 +101,7 @@ export default class Renderer {
   }
 
   getContext() {
-    return this.canvas.getContext("webgl2");
+    return this.canvas.getContext("webgl");
   }
 
   setVertexLength(v) {
