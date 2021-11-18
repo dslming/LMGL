@@ -9,24 +9,31 @@ export function getMaterial() {
 
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
-      uniform mat4 lightMVP;
-      uniform mat4 modelMatrix;
-      uniform mat4 viewMatrix;
+      // uniform mat4 lightMVP;
+      // uniform mat4 modelMatrix;
+      // uniform mat4 viewMatrix;
+
+      varying float vDepth;
 
       void main() {
       //  gl_Position = lightMVP * vec4(aPosition, 1.0);
-      //  gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-       gl_Position = lightMVP * vec4(aPosition, 1.0);
+       gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+      //  gl_Position = lightMVP * vec4(aPosition, 1.0);
+       vDepth = (gl_Position.z + 1.0) / 2.0;
       }
     `
 
   const fragmentShader = `
       precision mediump float;
+      varying float vDepth;
+      uniform vec3 uColor;
       ${ common }
       ${ depth }
 
       void main() {
-        gl_FragColor = vec4(1.,0.,0.,1.);//pack(gl_FragCoord.z);
+        gl_FragColor = pack(gl_FragCoord.z);
+        // gl_FragColor = vec4(vDepth, vDepth, vDepth, 1.0);
+        gl_FragColor = vec4(uColor, 1.);
       }
       `
   return { vertexShader, fragmentShader }

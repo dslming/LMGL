@@ -3,6 +3,10 @@ import { bindCubeTexture, bindTexture } from './texture.js';
 
 const moduleName = "uniform"
 export function setUniform(gl, program, name, value, type, meshName) {
+  if (value == null) {
+    return;
+  }
+
   const subName = `${name}_${meshName}`
   // 变量地址
   const addr = gl.getUniformLocation(program, name);
@@ -41,7 +45,7 @@ export function setUniform(gl, program, name, value, type, meshName) {
       break
 
     case "t":
-      bindTexture(gl, value)
+      // bindTexture(gl, value)
       gl.uniform1i(addr, 0);
       break
 
