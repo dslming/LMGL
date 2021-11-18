@@ -1,5 +1,5 @@
 import { Mesh } from '../core/Mesh.js'
-import { getMaterial } from '../materialLib/Lambert.js'
+import { getMaterial } from '../shaderLib/lambert.js'
 
 export class LambertMesh {
   constructor(geoInfo) {

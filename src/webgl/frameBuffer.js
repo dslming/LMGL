@@ -8,7 +8,7 @@ export function createFramebuffer(gl) {
 }
 
 // 创建渲染缓冲
-export function createRenderbuffer() {
+export function createRenderbuffer(gl) {
   var renderbuffer = gl.createRenderbuffer();
   return renderbuffer;
 }

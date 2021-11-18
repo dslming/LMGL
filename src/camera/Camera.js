@@ -39,21 +39,21 @@ class Camera extends Object3D {
 
   }
 
-  updateMatrixWorld(force) {
+  updateMatrixWorld() {
 
-    super.updateMatrixWorld(force);
-
+    // super.updateMatrixWorld(force);
+    this.matrixWorld.copy(this.matrix);
     this.matrixWorldInverse.copy(this.matrixWorld).invert();
 
   }
 
-  updateWorldMatrix(updateParents, updateChildren) {
+  // updateWorldMatrix(updateParents, updateChildren) {
 
-    super.updateWorldMatrix(updateParents, updateChildren);
+  //   super.updateWorldMatrix(updateParents, updateChildren);
 
-    this.matrixWorldInverse.copy(this.matrixWorld).invert();
+  //   this.matrixWorldInverse.copy(this.matrixWorld).invert();
 
-  }
+  // }
 
   clone() {
 

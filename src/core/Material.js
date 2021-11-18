@@ -1,8 +1,9 @@
 import dao from './Dao.js'
 import * as WebGLInterface from '../webgl/index.js'
 import { SIDE, BLENDING_TYPE, BLENDING_FACTOR } from './constants.js'
-export default class Material {
-  constructor(mat) {
+export class Material {
+  constructor(uniform, shader) {
+    const mat = Object.assign(uniform, shader);
     this.program = this._buildMaterial(mat);
     this.uniforms = mat.uniforms || {};
 
@@ -16,7 +17,7 @@ export default class Material {
     this.depthTest = true;
     this.side = SIDE.FrontSide;
     // 是否需要每帧更新uniform变量
-    this.needUpdate = false;
+    this.needUpdate = true;
     this.setUniform();
   }
 

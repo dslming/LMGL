@@ -12,7 +12,7 @@ class ErrorCount {
     this._checkExit(fullName);
 
      if (this.errMap.get(fullName).errorFlag == false) {
-       console.warn(moduleName, subName, info);
+      //  console.warn(moduleName, subName, info);
        this.errMap.get(fullName).errorFlag = true;
      }
    }

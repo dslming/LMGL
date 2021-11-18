@@ -17,64 +17,72 @@
 
   // 阴影接收平面
   class Plane {
-    constructor(size) {
-      const vsPlane = `
-        precision mediump float;
-        attribute vec3 aPosition;
-        attribute vec2 aUv;
-        varying vec2 vUv;
-        uniform mat4 projectionMatrix;
-        uniform mat4 modelViewMatrix;
-
-        void main() {
-          vUv = aUv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-        }
-      `
-
-      const fsPlane = `
-        precision mediump float;
-        uniform sampler2D texture;
-        varying vec2 vUv;
-
-        void main() {
-          gl_FragColor = texture2D(texture, vUv);
-          gl_FragColor = vec4(0.1,0.,0.,1.);
-        }
-        `
-
-      const center = {
-        x: 0,
-        y: 0
-      }
+    constructor(lightDirction) {
+      const size = 5;
       const geo = {
         attribute: {
-          aPosition: {
+          aNormal: {
             value: [
-              center.x - size, center.y - size, 0,
-              center.x - size, center.y + size, 0,
-              center.x + size, center.y + size, 0,
-              center.x + size, center.y - size, 0,
+              0,0,-1,
+              0,0,-1,
+              0,0,-1,
+              0,0,-1,
             ],
             itemSize: 3
           },
-          aUv:{
-            value: [ 0,1, 0,0, 1,0, 1,1],
-            itemSize: 2
+          aPosition: {
+            value: [
+             - size, - size, 0,
+             - size, + size, 0,
+               size, + size, 0,
+               size, - size, 0,
+            ],
+            itemSize: 3
           },
         },
         indices: [0,1,2, 2,3,0]
       };
 
-      const mat = {
-        vertexShader: vsPlane,
-        fragmentShader: fsPlane,
-        // uniforms: {
-        //   texture: {type: "t", value: null}
-        // }
-      }
+      const lambert = lmgl.shaderLib.lambert()
+      const lambertMat = new lmgl.Material({
+        uniforms: {
+          diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
+          lightDirction: {value: lightDirction, type:"v3"},
+        }
+      },lambert)
+      this.mesh = new lmgl.Mesh(geo, lambertMat);
+      this.mat = lambertMat
+    }
+  }
 
-      this.mesh = new lmgl.Mesh(geo, mat);
+  // 产生阴影的模型
+  class CastShadow {
+    constructor(lightDirction) {
+      const geoInfo = {
+        attribute: {
+          aPosition: {
+            value: dataModel.vertexPositions,
+            itemSize: 3
+          },
+          aNormal: {
+            value: dataModel.vertexNormals,
+            itemSize: 3
+          },
+        },
+        indices: dataModel.indices
+      };
+
+      const lambert = lmgl.shaderLib.lambert()
+      const lambertMat = new lmgl.Material({
+        uniforms: {
+          diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
+          lightDirction: {value: lightDirction, type:"v3"},
+        }
+      },lambert)
+
+      this.mesh = new lmgl.Mesh(geoInfo, lambertMat);
+      this.mesh.scale.set(0.1,0.1,0.1)
+      this.mat = lambertMat
     }
   }
 
@@ -91,34 +99,22 @@
 
     var stage = new lmgl.Stage()
     stage.init(document.querySelector("#c"), width, height)
-    stage.camera.position.set(0, 5, 10)
-    new lmgl.Axis(100, stage)
+    stage.camera.position.set(0, 0, 10)
+    // new lmgl.Axis(100, stage)
 
-    // 接收阴影的平面
-    const plane = new Plane(5);
+    const lightDirction = new lmgl.Vector3(1,0,0);
+
+
+    const plane = new Plane(lightDirction);
     plane.mesh.rotation.x = Math.PI/2;
     plane.mesh.position.y = -0.8
-    stage.add(plane.mesh)
+    // stage.add(plane.mesh)
 
-    // 产生阴影的模型
-    const geoInfo = {
-      attribute: {
-        aPosition: {
-          value: dataModel.vertexPositions,
-          itemSize: 3
-        },
-        aNormal: {
-          value: dataModel.vertexNormals,
-          itemSize: 3
-        },
-      },
-      indices: dataModel.indices
-    };
-    const castMesh = new lmgl.LambertMesh(geoInfo)
-    castMesh.mesh.scale.set(0.1,0.1,0.1)
-    castMesh.mesh.position.y = 0
-    stage.add(castMesh.mesh)
+    const cast = new CastShadow(lightDirction)
+    stage.add(cast.mesh)
 
+    // plane.mesh.material = depthMat
+    // cast.mesh.material = depthMat;
 
     // 自定义渲染
     stage.setRenderState(false)
@@ -128,18 +124,43 @@
       w: 512,
       h: 512
     }
-    const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h);
+    // const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h);
+    const camera = stage.camera
 
     // 设置相机的位置为光源位置
-    const lightPosition = new lmgl.Vector3(10,10,0);
-    const cameraPosition = new lmgl.Vector3().copy(stage.camera.position)
-    stage.camera.position.copy(lightPosition)
+    const lightPosition = new lmgl.Vector3(10,0,0);
+    const cameraPosition = new lmgl.Vector3().copy(camera.position)
+    camera.position.copy(lightPosition)
+    camera.updateProjectionMatrix()
+    camera.updateMatrix()
+    camera.updateMatrixWorld()
+    const lightMVP = new lmgl.Matrix4();
+    lightMVP.copy(camera.projectionMatrix)
+    lightMVP.multiply(camera.matrixWorldInverse);
+    lightMVP.multiply(lightMVP, cast.mesh.matrix);
+    const depth = lmgl.shaderLib.depth()
+    const depthMat = new lmgl.Material({
+        uniforms: {
+          lightMVP: {"type":"m4",value: lightMVP.elements},
+          viewMatrix: {"type":"m4",value: camera.matrixWorldInverse.elements},
+          modelMatrix: {"type":"m4",value: cast.mesh.matrix.elements},
+        }
+      },depth)
+    cast.mesh.material = depthMat;
+    cast.mesh.material.setUniform();
+    stage.renderer.renderMesh(cast.mesh);
+    // cast.mesh.material.uniforms["lightMVP"].value = ;
+    // cast.mesh.material.setUniform();
+    // stage.renderer.renderMesh(cast.mesh);
+    // stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
+    // stage.renderer.clear();
+    // webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h)
+    // stage.renderer.render();
 
-    stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
-    stage.renderer.clear();
-    webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h)
+    stage.addUpdate("loop",()=>{
+        cast.mesh.material.setUniform();
+        stage.renderer.renderMesh(cast.mesh);
 
-    // stage.addUpdate("loop",()=>{
       // stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
       // stage.renderer.clear();
       // webgl.setViewPort(gl, textureSize.w, textureSize.h)
@@ -153,7 +174,7 @@
       // stage.renderer.renderMesh(plane.mesh);
 
       // plane.mesh.rotation.y += 0.01;
-    // })
+    })
 
 
     // stage.add(mesh)

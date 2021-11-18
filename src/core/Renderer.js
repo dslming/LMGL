@@ -24,7 +24,7 @@ export default class Renderer {
     camera = camera || dao.getData("camera")
 
     camera.updateProjectionMatrix()
-    camera.updateWorldMatrix()
+    // camera.updateWorldMatrix()
     camera.updateMatrix()
     WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4", mesh.name)
 

@@ -1,6 +1,5 @@
 import * as MathUtils from '../math/MathUtils.js';
 import * as WebGLInterface from '../webgl/index.js'
-import Material from './Material.js'
 import dao from './Dao.js'
 import { GEOMETRY_TYPE, SIDE } from './constants.js'
 import { Matrix4 } from '../math/Matrix4.js';
@@ -17,7 +16,7 @@ import Attribute from './Attribute.js'
 class Mesh {
   constructor(geometryInfo, material) {
     this.uuid = MathUtils.generateUUID();
-    this.material = new Material(material);
+    this.material = material;
     this.geometry = new Geometry(geometryInfo);
     this.attributeBuffer = {};
     this.matrix = new Matrix4();

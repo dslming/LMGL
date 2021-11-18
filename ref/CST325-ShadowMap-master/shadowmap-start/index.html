@@ -1,0 +1,50 @@
+<html>
+
+<head>
+<title>Shadow Mapping Demo</title>
+
+<!-- All code is from scratch for learning purposes. -->
+
+<!-- our own math -->
+<script src="math/vector3.js"></script>
+<script src="math/matrix4.js"></script>
+<script src="math/matrix3.js"></script>
+
+<!-- our own utility code -->
+<script src="misc/input.js"></script>
+<script src="misc/time.js"></script>
+<script src="misc/utils-loading-promises.js"></script>
+<script src="misc/utils-gl.js"></script>
+
+<!-- our own geometry code -->
+<script src="misc/webgl-geometry-json-shadow.js"></script>
+<script src="misc/webgl-geometry-quad-shadow.js"></script>
+
+<script src="misc/camera.js"></script>
+<script src="misc/camera.orbit.js"></script>
+<script src="app.js"></script>
+
+<!-- Don't bother looking for app icon -->
+<link rel="shortcut icon" href="">
+
+<style>
+    /* center the canvas on the screen */
+    #webgl-canvas {
+        border: solid;
+        display: block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+    }
+</style>
+
+</head>
+
+<body>
+    <canvas id="webgl-canvas" width="768" height="512"></canvas>
+</body>
+
+</html>
