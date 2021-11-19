@@ -95,11 +95,11 @@ export function setBlend(gl, flag, blendingType, blendRGBASrc, blendRGBADst, ble
 }
 
 export function setDepthTest(gl, flag) {
-  if (flag) {
-    gl.enable(gl.DEPTH_TEST);
-  } else {
-    gl.disable(gl.DEPTH_TEST);
-  }
+  // if (flag) {
+  //   gl.enable(gl.DEPTH_TEST);
+  // } else {
+  //   gl.disable(gl.DEPTH_TEST);
+  // }
 }
 
 export function setSide(gl, side) {

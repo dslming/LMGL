@@ -11,7 +11,7 @@
     import teapotModel from './module/teapotModel.js'
     import {cube} from './module/cubeModel.js'
 
-    const dataModel = teapotModel//cube(10)
+    const dataModel = teapotModel//cube(12)
     window.lmgl = lmgl;
 
 
@@ -103,7 +103,7 @@
     stage.camera.lookAt(new lmgl.Vector3(0, 0, 0));
     // new lmgl.Axis(100, stage)
 
-    const lightDirction = new lmgl.Vector3(1,0,0);
+    const lightDirction = new lmgl.Vector3(10,0,0);
 
 
     const plane = new Plane(lightDirction);
@@ -122,15 +122,15 @@
     const webgl = lmgl.webgl;
     const gl = stage.getGl()
     const shadowmapTextureSize = {
-      w: width*radio,
-      h: height*radio
+      w: 2048,//width*radio,
+      h: 2048//height*radio
     }
     const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h);
     const camera = stage.camera
 
     // 设置相机的位置为光源位置
     const lightPosition = new lmgl.Vector3(2,2,0);
-    const lightCamera = camera.clone();
+    const lightCamera = camera.clone();//new lmgl.OrthographicCamera(-10,10,10,-10,1,20)//camera.clone();
     lightCamera.position.copy(lightPosition)
     lightCamera.lookAt(new lmgl.Vector3(0, 0, 0));
     lightCamera.updateProjectionMatrix()
@@ -156,13 +156,16 @@
     })
 
     function renderDepth() {
-      // gl.disable(gl.CULL_FACE);
+      gl.enable(gl.DEPTH_TEST);
       gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.getFrameBuffer());
       gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.getRenderBuffer());
 
       stage.renderer.clear();
+      gl.clearColor(0, 1, 0, 1.0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h)
+      // gl.enable(gl.CULL_FACE);
+      gl.disable(gl.CULL_FACE);
       plane.mesh.material = depthMat;
       plane.mesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
       plane.mesh.material.setUniform();
@@ -191,17 +194,20 @@
       const shadowMapMat = new lmgl.Material({
         uniforms: {
           uLightMVP: {"type":"m4",value: null},
-          uShadowMap: {type: "t", value: renderTarget.getTexture()}
+          uShadowMap: {type: "t", value: renderTarget.getTexture()},
+          diffuseColor: {value: {x:1,y:1,z:1}, type:"v3"},
         }
       },shadowMap);
 
       plane.mesh.material = shadowMapMat;
       plane.mesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
+      plane.mesh.material.uniforms["diffuseColor"].value = {x:0.5,y:0.5,z:0.5}
       plane.mesh.material.setUniform();
       stage.renderer.renderMesh(plane.mesh);
 
       cast.mesh.material = shadowMapMat;
       cast.mesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
+      cast.mesh.material.uniforms["diffuseColor"].value = {x:0.8,y:0.5,z:0.5}
       cast.mesh.material.setUniform();
       stage.renderer.renderMesh(cast.mesh);
     }

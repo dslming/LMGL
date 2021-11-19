@@ -239,7 +239,7 @@ function updateAndRender() {
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
 
-    gl.clearColor(0, 1, 0, 1.0);
+    gl.clearColor(0, 0, 0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // specify what portion of the canvas we want to draw to (all of it, full width and height)
@@ -258,7 +258,7 @@ function updateAndRender() {
     // specify what portion of the canvas we want to draw to (all of it, full width and height)
     gl.viewport(0, 0, gl.canvasWidth, gl.canvasHeight);
 
-    // this is a new frame so let's clear out whatever happened last frame
+    // // this is a new frame so let's clear out whatever happened last frame
     gl.clearColor(0.707, 0.707, 1, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -272,7 +272,7 @@ function updateAndRender() {
     gl.uniformMatrix4fv(uniforms.lightVPMatrixUniform, false, lightVPMatrix.transpose().elements);
 
     projectionMatrix.setPerspective(45, aspectRatio, 0.1, 1000);
-    gl.enable(gl.CULL_FACE);
+    // gl.enable(gl.CULL_FACE);
     groundGeometry.render(camera, projectionMatrix, phongShaderProgram, renderTexture);
     teapotGeometry.render(camera, projectionMatrix, phongShaderProgram, renderTexture);
 }

@@ -27,6 +27,7 @@ export function getMaterial() {
 
       varying vec4 vPositionFromLight;
       uniform sampler2D uShadowMap;
+      uniform vec3 diffuseColor;
       ${common}
 
 
@@ -46,7 +47,7 @@ export function getMaterial() {
         // get depth of current fragment from light's perspective
         float currentDepth = shadowCoord.z;
         // check whether current frag pos is in shadow
-        float shadow = closestDepth > currentDepth ? 1.0 : 0.0;
+        float shadow = closestDepth-0.005 > currentDepth ? 1.0 : 0.0;
         return closestDepth;
       }
 
@@ -56,7 +57,7 @@ export function getMaterial() {
       shadowCoord = shadowCoord * 0.5 + 0.5;
 
         float visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
-        gl_FragColor = vec4(vec3(visibility), 1.);
+        gl_FragColor = vec4(vec3(visibility)*diffuseColor, 1.);
         // float shadowColor = unpack(texture2D(uShadowMap, shadowCoord.xy));
         //  float bias = 0.0000;
         // if (shadowCoord.z + bias < shadowColor) {
