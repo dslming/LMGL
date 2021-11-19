@@ -45,7 +45,7 @@ export function setUniform(gl, program, name, value, type, meshName) {
       break
 
     case "t":
-      // bindTexture(gl, value)
+      bindTexture(gl, value)
       gl.uniform1i(addr, 0);
       break
 

@@ -122,48 +122,41 @@
     const webgl = lmgl.webgl;
     const gl = stage.getGl()
     const shadowmapTextureSize = {
-      w: width * radio,
-      h: height * radio
+      w: width*radio,
+      h: height*radio
     }
     const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h);
     const camera = stage.camera
 
     // 设置相机的位置为光源位置
-    const lightPosition = new lmgl.Vector3(5,8,0);
-    // const cameraPosition = new lmgl.Vector3().copy(camera.position.clone())
-
-
+    const lightPosition = new lmgl.Vector3(2,2,0);
+    const lightCamera = camera.clone();
+    lightCamera.position.copy(lightPosition)
+    lightCamera.lookAt(new lmgl.Vector3(0, 0, 0));
+    lightCamera.updateProjectionMatrix()
+    lightCamera.updateMatrix()
+    lightCamera.updateMatrixWorld();
+    window.aaa = lightCamera
+    // lm.control.camera = lightCamera
     const lightMVPCast = new lmgl.Matrix4();
-    lightMVPCast.copy(camera.projectionMatrix)
-    lightMVPCast.multiply(camera.matrixWorldInverse);
+    lightMVPCast.copy(lightCamera.projectionMatrix)
+    lightMVPCast.multiply(lightCamera.matrixWorldInverse);
     lightMVPCast.multiply(cast.mesh.matrix);
 
      const lightMVPPlane = new lmgl.Matrix4();
-    lightMVPPlane.copy(camera.projectionMatrix)
-    lightMVPPlane.multiply(camera.matrixWorldInverse);
+    lightMVPPlane.copy(lightCamera.projectionMatrix)
+    lightMVPPlane.multiply(lightCamera.matrixWorldInverse);
     lightMVPPlane.multiply(plane.mesh.matrix);
 
     const depth = lmgl.shaderLib.depth()
     const depthMat = new lmgl.Material(depth,{
-      uniforms: {
-        uColor: {
-          value: {x:0.2,y:0,z:0},
-          type: "v3"
+       uniforms: {
+          uLightMVP: {"type":"m4",value: null},
         }
-      }
     })
 
-
-    const lightCamera = camera.clone();
-
     function renderDepth() {
-      lightCamera.position.copy(lightPosition)
-      lightCamera.lookAt(new lmgl.Vector3(0, 0, 0));
-      lightCamera.updateProjectionMatrix()
-      lightCamera.updateMatrix()
-      lightCamera.updateMatrixWorld();
-
-      stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
+      // gl.disable(gl.CULL_FACE);
       gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.getFrameBuffer());
       gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.getRenderBuffer());
 
@@ -171,14 +164,14 @@
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h)
       plane.mesh.material = depthMat;
-      plane.mesh.material.uniforms["uColor"].value = {x:0.5,y:0,z:0}
+      plane.mesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
       plane.mesh.material.setUniform();
-      stage.renderer.renderMesh(plane.mesh,camera);
+      stage.renderer.renderMesh(plane.mesh,lightCamera);
 
       cast.mesh.material = depthMat;
-      cast.mesh.material.uniforms["uColor"].value = {x:0,y:0.5,z:0}
       cast.mesh.material.setUniform();
-      stage.renderer.renderMesh(cast.mesh,camera);
+      cast.mesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
+      stage.renderer.renderMesh(cast.mesh,lightCamera);
     }
 
     function renderShadow() {
@@ -190,10 +183,9 @@
       // stage.renderer.setRenderTarget(null);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-      gl.enable(gl.CULL_FACE);
+      // gl.enable(gl.CULL_FACE);
       stage.renderer.clear();
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.disable(gl.CULL_FACE);
       webgl.setViewPort(gl, width*radio, height*radio)
       const shadowMap = lmgl.shaderLib.shadowMap()
       const shadowMapMat = new lmgl.Material({

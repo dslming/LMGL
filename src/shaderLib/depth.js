@@ -9,17 +9,10 @@ export function getMaterial() {
 
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
-      // uniform mat4 lightMVP;
-      // uniform mat4 modelMatrix;
-      // uniform mat4 viewMatrix;
-
       varying float vDepth;
 
       void main() {
-      //  gl_Position = lightMVP * vec4(aPosition, 1.0);
        gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-      //  gl_Position = lightMVP * vec4(aPosition, 1.0);
-       vDepth = (gl_Position.z + 1.0) / 2.0;
       }
     `
 
@@ -35,9 +28,14 @@ export function getMaterial() {
         return rgbaDepth;
       }
 
+         vec4 packRGBA(float v) {
+           vec4 pack = fract(vec4(1.0, 255.0, 65025.0, 16581375.0) * v);
+           pack -= pack.yzww * vec2(1.0 / 255.0, 0.0).xxxy;
+           return pack;
+         }
+
       void main() {
         gl_FragColor = pack(gl_FragCoord.z);
-        //  gl_FragColor = vec4(vec3(gl_FragCoord.z), 1.);
       }
       `
   return { vertexShader, fragmentShader }

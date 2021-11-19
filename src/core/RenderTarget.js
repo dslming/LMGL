@@ -19,17 +19,31 @@ export class RenderTarget {
     WebGLInterface.attachFramebufferTexture(gl, this.texture)
 
     this.renderbuffer = WebGLInterface.createRenderbuffer(gl)
-    WebGLInterface.bindRenderbuffer(gl, this.renderbuffer)
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderBuffer);
+     gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
+
+     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+
+     //将纹理和渲染缓冲区对象关联到帧缓冲区对象上
+     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);
+
+    // WebGLInterface.bindRenderbuffer(gl, this.renderbuffer, width, height)
+    // WebGLInterface.attachFramebufferDepthBuffe(gl, this.renderbuffer)
+    // gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+    // gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderBuffer);
 
     // WebGLInterface.checkFrameBufferStatus(gl)
     // WebGLInterface.bindRenderbuffer(gl, null)
     //  WebGLInterface.bindFramebuffer(gl, null)
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-    WebGLInterface.checkFrameBufferStatus(gl)
+    // gl.bindTexture(gl.TEXTURE_2D, null);
+    // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    // gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    // WebGLInterface.checkFrameBufferStatus(gl)
+
+     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+     gl.bindTexture(gl.TEXTURE_2D, null);
+     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
   }
 
   getFrameBuffer() {

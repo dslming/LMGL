@@ -39,6 +39,10 @@ export function attachFramebufferTexture(gl, texture) {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
 }
 
+export function attachFramebufferDepthBuffe(gl, depthBuffer) {
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+}
+
 export function bindFramebuffer(gl, framebuffer) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
