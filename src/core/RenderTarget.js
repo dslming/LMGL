@@ -4,7 +4,7 @@ import * as WebGLInterface from '../webgl/index.js'
 
 // 把渲染的内容输出到到一张纹理中
 export class RenderTarget {
-  constructor(width, height) {
+  constructor(width, height, opations) {
     this.width = width
     this.height = height
     const gl = dao.getData("gl");
@@ -13,18 +13,19 @@ export class RenderTarget {
     WebGLInterface.setTextureNull(gl, this.texture, width, height)
 
     this.framebuffer = WebGLInterface.createFramebuffer(gl);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+    WebGLInterface.bindFramebuffer(gl, this.framebuffer)
+    WebGLInterface.attachFramebufferTexture(gl, this.texture)
 
-    this.renderbuffer = WebGLInterface.createRenderbuffer(gl)
-    gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);
+    if (opations && opations.depth) {
+      this.renderbuffer = WebGLInterface.createRenderbuffer(gl)
+      gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
+      gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer)
+      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    }
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-
+    //  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    WebGLInterface.bindTexture(gl, null);
   }
 
   getFrameBuffer() {

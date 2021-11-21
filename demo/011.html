@@ -50,31 +50,26 @@
         }
         `
 
-      const center = {
-        x: 0,
-        y: 0
-      }
-      const size = 2
-      const geo = {
+      const dataModel = lmgl.geometryLib.plane(2);
+      const geoInfo = {
         attribute: {
           aPosition: {
-            value: [
-              center.x - size, center.y - size, 0,
-              center.x - size, center.y + size, 0,
-              center.x + size, center.y + size, 0,
-              center.x + size, center.y - size, 0,
-            ],
+            value: dataModel.position,
             itemSize: 3
           },
-          aUv:{
-            value: [ 0,1, 0,0, 1,0, 1,1],
-            itemSize: 2
+          aNormal: {
+            value: dataModel.normal,
+            itemSize: 3
           },
+          aUv: {
+            value: dataModel.uv,
+            itemSize: 2,
+          }
         },
-        indices: [0,1,2, 2,3,0]
+        indices: dataModel.indices
       };
 
-      const mat = {
+      const matInfo = {
         vertexShader: vsPlane,
         fragmentShader: fsPlane,
         uniforms: {
@@ -84,8 +79,8 @@
           }
         }
       }
-
-      this.mesh = new lmgl.Mesh(geo, mat);
+      const mat = new lmgl.Material(matInfo);
+      this.mesh = new lmgl.Mesh(geoInfo, mat);
       this.mesh.material.imageTexture = imageTexture
       this.mesh.material.needUpdate = true;
       this.mesh.position.x = pos.x;

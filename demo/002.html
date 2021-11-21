@@ -9,7 +9,6 @@
   <script type="module">
     import * as lmgl from '../src/lmgl.js'
 
-// console.error(lmgl.version);
 
 const vertexShader = `
   precision mediump float;
@@ -45,7 +44,7 @@ window.onload = () => {
 
   stage = new lmgl.Stage()
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.position.set(0, 0, 10)
+  stage.camera.position.set(0, 0, 5)
 
   // new lmgl.Axis(100, stage)
 
@@ -72,14 +71,15 @@ window.onload = () => {
     }
   };
 
-  const mat = {
+  const matInfo = {
     vertexShader,
     fragmentShader,
   }
 
+  const mat = new lmgl.Material(matInfo);
   let mesh = new lmgl.Mesh(geo, mat);
   stage.addUpdate("loop",()=>{
-    // mesh.rotation.y += 0.01;
+    mesh.rotation.y += 0.01;
   })
   stage.add(mesh)
   stage.run()

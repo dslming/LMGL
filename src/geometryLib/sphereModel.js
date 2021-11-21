@@ -60,8 +60,8 @@ export function getGeometry(radius = 1, widthSegments = 32, heightSegments = 32,
   }
 
   return {
-    vertexPositions: vertices,
-    vertexNormals: normals,
+    position: vertices,
+    normal: normals,
     vertexTextureCoords: uvs,
     indices: indices,
   }

@@ -33,12 +33,28 @@
     const skyBox = new lmgl.SkyBox(()=>{
       stage.add(skyBox.mesh)
     });
-    const plane = new lmgl.Plane();
-    stage.add(plane.mesh);
 
+
+    const model = lmgl.geometryLib.plane();
+    const geo = {
+      indices: model.indices,
+      attribute: {
+        aPosition: {
+            value: model.position,
+            itemSize: 3
+          },
+      }
+    };
+    const mat = new lmgl.Material(lmgl.shaderLib.lambert(),{
+      uniforms: {
+        diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
+      }
+    });
+    let plane = new lmgl.Mesh(geo, mat);
+    stage.add(plane);
     stage.addUpdate("loop",()=>{
-      skyBox.mesh && (skyBox.mesh.rotation.y += 0.001);
-      plane.mesh.rotation.y += 0.01;
+      // skyBox.mesh && (skyBox.mesh.rotation.y += 0.001);
+      // plane.rotation.y += 0.01;
     })
     stage.run()
   }

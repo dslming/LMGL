@@ -59,9 +59,9 @@ export default class Renderer {
     const gl = dao.getData("gl")
     const { blending, depthTest, side} = material;
     const { blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst } = material
-    // WebGLInterface.setDepthTest(gl, depthTest);
-    // WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
-    // WebGLInterface.setSide(gl, side);
+    WebGLInterface.setDepthTest(gl, depthTest);
+    WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
+    WebGLInterface.setSide(gl, side);
   }
 
   renderMesh(mesh, camera) {

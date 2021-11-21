@@ -25,8 +25,8 @@ export function getGeometry(side) {
   face([s, -s, -s, s, s, -s, s, s, s, s, -s, s], [1, 0, 0]);
   face([-s, -s, -s, -s, -s, s, -s, s, s, -s, s, -s], [-1, 0, 0]);
   return {
-    vertexPositions: (coords),
-    vertexNormals: (normals),
+    position: (coords),
+    normal: (normals),
     vertexTextureCoords: (texCoords),
     indices: (indices)
   };

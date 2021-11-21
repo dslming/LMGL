@@ -1,7 +1,7 @@
 /* Defines teapotModel to be an IFS of the famous teapot, about 20 units big.
  * Properties of the model are:
- *    teapotModel.vertexPositions -- the vertex coordinates;
- *    teapotModel.vertexNormals -- the normal vectors;
+ *    teapotModel.positions -- the vertex coordinates;
+ *    teapotModel.normal -- the normal vectors;
  *    teapotModel.vertexTextureCoords -- the texture coordinates;
  *    teapotModel.indices -- the face indices.
  * The first three properties are of type Float32Array, while teapotModel.indices
@@ -11,7 +11,7 @@
 */
 var teapotModel = {
 
-"vertexPositions" : ( [5.929688, 4.125, 0, 5.387188, 4.125, 2.7475, 5.2971, 4.494141, 2.70917,
+"position": ([5.929688, 4.125, 0, 5.387188, 4.125, 2.7475, 5.2971, 4.494141, 2.70917,
     5.832031, 4.494141, 0, 5.401602, 4.617188, 2.753633, 5.945313, 4.617188, 0, 5.614209, 4.494141,
     2.844092, 6.175781, 4.494141, 0, 5.848437, 4.125, 2.94375, 6.429688, 4.125, 0, 3.899688, 4.125, 4.97,
     3.830352, 4.494141, 4.900664, 3.910782, 4.617188, 4.981094, 4.074414, 4.494141, 5.144727, 4.254687,
@@ -235,7 +235,7 @@ var teapotModel = {
     4.570313, -2.26914, 4.925938, 4.125, -2.55125, -0.070312, 5.625, 0, 1.210938, 5.179688, 0, 3.054688,
     4.875, 0, 4.710938, 4.570313, 0, 5.429688, 4.125, 0] ),
 
-"vertexNormals" : ( [-0.966742, -0.255752, 0, -0.893014, -0.256345, -0.369882, -0.893437, 0.255996,
+"normal" : ( [-0.966742, -0.255752, 0, -0.893014, -0.256345, -0.369882, -0.893437, 0.255996,
     -0.369102, -0.966824, 0.255443, 0, -0.083877, 0.995843, -0.035507, -0.092052, 0.995754, 0, 0.629724,
     0.73186, 0.260439, 0.68205, 0.731305, 0, 0.803725, 0.49337, 0.332584, 0.870301, 0.492521, 0,
     -0.683407, -0.256728, -0.683407, -0.683531, 0.256068, -0.683531, -0.064925, 0.995776, -0.064925,

@@ -9,7 +9,6 @@
   <script type="module">
     // https://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
     import * as lmgl from '../src/lmgl.js'
-    import teapotModel from './module/teapotModel.js'
 
 
   let stage
@@ -40,7 +39,7 @@
     let arr2 = createMovingCubeData(count/2, size, -1)
     let movingCubeData = [...arr1, ...arr2]
     for(let i=0;i<count;i++) {
-      const cube = new lmgl.Cube(size);
+      const cube = new lmgl.geometryLib.cube(size);
       let cd = movingCubeData[i];
       cube.mesh.position.set(cd.translation[0],cd.translation[1], cd.translation[2])
       cube.mesh.material.uniforms["diffuseColor"].value = {
@@ -89,6 +88,7 @@
       renderTarget = new lmgl.RenderTargetCube(textureSize.w, textureSize.h);
       cubeCamera = new lmgl.CubeCamera(1, 1000, renderTarget)
 
+      const teapotModel = lmgl.geometryLib.teapot()
       reflectObj = new lmgl.ReflectingObject(teapotModel, renderTarget.getTexture());
     });
 

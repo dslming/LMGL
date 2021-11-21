@@ -1,4 +1,5 @@
 import { Mesh } from '../core/Mesh.js'
+import { Material } from '../core/Material.js'
 import { loadCubeImages } from '../loader/ImageLoader.js'
 import { ImageCubeTexture } from '../core/ImageCubeTexture.js'
 import { getGeometry } from '../geometryLib/cubeModel.js'
@@ -32,17 +33,17 @@ export class SkyBox {
           }`;
 
     const urls = [
-      "cubeMap/posx.jpg",
-      "cubeMap/negx.jpg",
-      "cubeMap/posy.jpg",
-      "cubeMap/negy.jpg",
-      "cubeMap/posz.jpg",
-      "cubeMap/negz.jpg"
+      "images/cubeMap/posx.jpg",
+      "images/cubeMap/negx.jpg",
+      "images/cubeMap/posy.jpg",
+      "images/cubeMap/negy.jpg",
+      "images/cubeMap/posz.jpg",
+      "images/cubeMap/negz.jpg"
     ];
     const images = await loadCubeImages(urls)
     let cubeMap = new ImageCubeTexture(images)
 
-    const mat = {
+    const matInfo = {
       vertexShader: vertexShaderSourceSB,
       fragmentShader: fragmentShaderSourceSB,
       uniforms: {
@@ -57,12 +58,14 @@ export class SkyBox {
     const geo = {
       attribute: {
         aPosition: {
-          value: geoInfo.positions,
+          value: geoInfo.position,
           itemSize: 3
         },
       },
       indices: geoInfo.indices
     };
+
+    const mat = new Material(matInfo);
     let mesh = new Mesh(geo, mat);
     mesh.material.needUpdate = true;
     this.mesh = mesh;

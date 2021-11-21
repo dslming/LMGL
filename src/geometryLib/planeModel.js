@@ -1,4 +1,4 @@
-export function getGeometry(size) {
+export function getGeometry(size=1) {
   const vert = [
     -size, size, 0,
     -size, -size, 0,
@@ -14,9 +14,9 @@ export function getGeometry(size) {
   ];
 
    return {
-     vertexPositions: vert,
-     vertexNormals: normal,
-     vertexTextureCoords: [],
+     position: vert,
+     normal: normal,
+     uv: [0,1, 0,0, 1,0, 1,1],
      indices: indices
    };
 }

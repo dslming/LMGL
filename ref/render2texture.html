@@ -244,9 +244,9 @@ function createModel(modelData) {
     model.indexBuffer = gl.createBuffer();
     model.count = modelData.indices.length;
     gl.bindBuffer(gl.ARRAY_BUFFER, model.coordsBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, modelData.vertexPositions, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, modelData.positions, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, modelData.vertexNormals, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, modelData.normal, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.texCoordsBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, modelData.vertexTextureCoords, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
@@ -374,8 +374,8 @@ function initGL() {
     objects[2] = createModel( uvCylinder() );
     objects[3] = createModel( uvCone() );
     objects[4] = createModel( uvTorus(0.65,0.2,64,24) );
-    for (let i = 0; i < teapotModel.vertexPositions.length; i++) {
-        teapotModel.vertexPositions[i] *= 0.05; // scale teapot model to a size that matches other objects
+    for (let i = 0; i < teapotModel.positions.length; i++) {
+        teapotModel.positions[i] *= 0.05; // scale teapot model to a size that matches other objects
     }
     objects[5] = createModel( teapotModel );
 

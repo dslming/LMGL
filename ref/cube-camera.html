@@ -468,9 +468,9 @@ function createModelENV(modelData) {  // for creating the reflective object mode
     model.indexBuffer = gl.createBuffer();
     model.count = modelData.indices.length;
     gl.bindBuffer(gl.ARRAY_BUFFER, model.coordsBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, modelData.vertexPositions, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, modelData.positions, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, modelData.vertexNormals, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, modelData.normal, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, modelData.indices, gl.STATIC_DRAW);
     model.render = function() {
@@ -494,9 +494,9 @@ function createModelLIT(modelData) {  // For creating the model for the moving c
     model.indexBuffer = gl.createBuffer();
     model.count = modelData.indices.length;
     gl.bindBuffer(gl.ARRAY_BUFFER, model.coordsBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, modelData.vertexPositions, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, modelData.positions, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, modelData.vertexNormals, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, modelData.normal, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, modelData.indices, gl.STATIC_DRAW);
     model.render = function() {
@@ -518,7 +518,7 @@ function createModelSB(modelData) {  // For creating the model for the skybox cu
     model.indexBuffer = gl.createBuffer();
     model.count = modelData.indices.length;
     gl.bindBuffer(gl.ARRAY_BUFFER, model.coordsBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, modelData.vertexPositions, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, modelData.positions, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, modelData.indices, gl.STATIC_DRAW);
     model.render = function() {
@@ -660,8 +660,8 @@ function initGL() {
     reflectiveObjects[2] = createModelENV( uvCylinder() );
     reflectiveObjects[3] = createModelENV( uvCone() );
     reflectiveObjects[4] = createModelENV( uvTorus(0.65,0.2,64,24) );
-    for (let i = 0; i < teapotModel.vertexPositions.length; i++) {
-        teapotModel.vertexPositions[i] *= 0.05; // scale teapot model to a size that matches other objects
+    for (let i = 0; i < teapotModel.positions.length; i++) {
+        teapotModel.positions[i] *= 0.05; // scale teapot model to a size that matches other objects
     }
     reflectiveObjects[5] = createModelENV( teapotModel );
 

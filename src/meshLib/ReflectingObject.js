@@ -1,6 +1,6 @@
 import { Mesh } from '../core/Mesh.js'
 import commom from "../modules/common/common.glsl.js"
-
+import { Material } from '../core/Material.js'
 export class ReflectingObject {
   constructor(modelData, cubeMapTexture) {
     // 平面
@@ -53,11 +53,11 @@ export class ReflectingObject {
     const geo = {
       attribute: {
         aPosition: {
-          value: modelData.vertexPositions,
+          value: modelData.position,
           itemSize: 3
         },
         aNormal: {
-          value: modelData.vertexNormals,
+          value: modelData.normal,
           itemSize: 3
         },
       },
@@ -75,7 +75,7 @@ export class ReflectingObject {
       }
     }
 
-    this.mesh = new Mesh(geo, mat);
+    this.mesh = new Mesh(geo, new Material(mat));
     this.mesh.material.needUpdate = true;
     this.mesh.scale.set(0.5,0.5, 0.5)
     this.mesh.name = "tea"

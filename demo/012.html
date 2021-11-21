@@ -9,7 +9,6 @@
   <script type="module">
     // https://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
     import * as lmgl from '../src/lmgl.js'
-    import teapotModel from './module/teapotModel.js'
 
   let stage
 
@@ -29,14 +28,14 @@
 
 
     const skyBox = new lmgl.SkyBox((texture)=>{
+      const teapotModel = lmgl.geometryLib.teapot()
       const obj = new lmgl.ReflectingObject(teapotModel,texture);
       stage.add(obj.mesh);
       stage.add(skyBox.mesh)
     });
 
     stage.addUpdate("loop",()=>{
-      // skyBox.mesh && (skyBox.mesh.rotation.y += 0.001);
-      // plane && (plane.mesh.rotation.y += 0.01);
+      skyBox.mesh && (skyBox.mesh.rotation.y += 0.001);
     })
     stage.run()
   }

@@ -8,31 +8,7 @@
   </div>
   <script type="module">
     import * as lmgl from '../src/lmgl.js'
-     import planeModel from './module/planeModel.js'
-
-const vertexShader = `
-  precision mediump float;
-  attribute vec3 aPosition;
-  attribute vec4 aColor;
-	varying vec4 vColor;
-
-  uniform mat4 projectionMatrix;
-  uniform mat4 modelViewMatrix;
-
-  void main() {
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-    vColor = aColor;
-  }
-`
-
-const fragmentShader = `
-  precision mediump float;
-	varying vec4 vColor;
-
-	void main() {
-	  gl_FragColor = vColor;
-	}
-	`
+    window.lmgl = lmgl;
 let stage
 
 window.onload = () => {
@@ -44,36 +20,21 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  new lmgl.Axis(100, stage)
-  const center = {
-    x: 0,
-    y: 0
-  }
-  const size = 2
+  const model = lmgl.geometryLib.plane();
   const geo = {
+    indices: model.indices,
     attribute: {
       aPosition: {
-        value: planeModel.vertexPositions,
-        itemSize: 3
-      },
-      aColor: {
-        value: [
-          1, 0., 0, 1,
-          0., 1, 0., 1,
-          0., 0., 1, 1,
-          1., 0., 0, 1,
-        ],
-        itemSize: 4
-      },
-    },
-    indices: planeModel.indices
+          value: model.position,
+          itemSize: 3
+        },
+    }
   };
-
-  const mat = {
-    vertexShader,
-    fragmentShader,
-  }
-
+  const mat = new lmgl.Material(lmgl.shaderLib.lambert(),{
+    uniforms: {
+      diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
+    }
+  });
   let mesh = new lmgl.Mesh(geo, mat);
   stage.add(mesh)
   stage.run()

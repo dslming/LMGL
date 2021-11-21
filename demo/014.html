@@ -17,11 +17,11 @@
       const geoInfo = {
         attribute: {
           aPosition: {
-            value: model.vertexPositions,
+            value: model.position,
             itemSize: 3
           },
           aNormal: {
-            value: model.vertexNormals,
+            value: model.normal,
             itemSize: 3
           },
         },
@@ -47,11 +47,11 @@
       const geoInfo = {
         attribute: {
           aPosition: {
-            value: model.vertexPositions,
+            value: model.position,
             itemSize: 3
           },
           aNormal: {
-            value: model.vertexNormals,
+            value: model.normal,
             itemSize: 3
           },
         },
@@ -76,11 +76,11 @@
       const geoInfo = {
         attribute: {
           aPosition: {
-            value: dataModel.vertexPositions,
+            value: dataModel.position,
             itemSize: 3
           },
           aNormal: {
-            value: dataModel.vertexNormals,
+            value: dataModel.normal,
             itemSize: 3
           },
         },
@@ -147,15 +147,17 @@
           uLightMVP: {"type":"m4",value: null},
         }
     })
+    // depthMat.depthTest = false;
 
     const shadowMap = lmgl.shaderLib.shadowMap()
     const shadowMapMat = new lmgl.Material({
       uniforms: {
         uLightMVP: {"type":"m4",value: null},
-        uShadowMap: {type: "t", value: renderTarget.getTexture()},
+        uShadowMap: {type: "t", value: null},
         diffuseColor: {value: {x:1,y:1,z:1}, type:"v3"},
       }
     },shadowMap);
+    // shadowMapMat.depthTest = false;
 
     // 更新光源的相机位置和矩阵
     function updateLight(pos) {
@@ -214,12 +216,14 @@
       planeMesh.material = shadowMapMat;
       planeMesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
       planeMesh.material.uniforms["diffuseColor"].value = {x:0.2,y:0.5,z:0.2}
+      planeMesh.material.uniforms["uShadowMap"].value = renderTarget.getTexture();
       planeMesh.material.setUniform();
       stage.renderer.renderMesh(planeMesh);
 
       castMesh.material = shadowMapMat;
       castMesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
       castMesh.material.uniforms["diffuseColor"].value = {x:0.8,y:0.5,z:0.5}
+      castMesh.material.uniforms["uShadowMap"].value = renderTarget.getTexture();
       castMesh.material.setUniform();
       stage.renderer.renderMesh(castMesh);
     }

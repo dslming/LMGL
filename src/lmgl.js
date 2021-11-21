@@ -41,10 +41,10 @@ export { MathUtils };
 
 // mesh lib
 export * from './meshLib/Axis.js'
-export * from './meshLib/Plane.js'
+// export * from './meshLib/Plane.js'
 export * from './meshLib/ReflectingObject.js'
 export * from './meshLib/SkyBox.js'
-export * from './meshLib/Cube.js'
+// export * from './meshLib/Cube.js'
 export * from './meshLib/LambertMesh.js'
 
 // webgl
