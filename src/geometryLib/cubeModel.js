@@ -1,4 +1,4 @@
-export function cube(side) {
+export function getGeometry(side) {
   var s = (side || 1) / 2;
   var coords = [];
   var normals = [];
@@ -17,6 +17,7 @@ export function cube(side) {
     texCoords.push(0, 0, 1, 0, 1, 1, 0, 1);
     indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
   }
+
   face([-s, -s, s, s, -s, s, s, s, s, -s, s, s], [0, 0, 1]);
   face([-s, -s, -s, -s, s, -s, s, s, -s, s, -s, -s], [0, 0, -1]);
   face([-s, s, -s, -s, s, s, s, s, s, s, s, -s], [0, 1, 0]);

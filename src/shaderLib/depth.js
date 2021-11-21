@@ -39,8 +39,8 @@ export function getMaterial() {
          }
 
       void main() {
-        // gl_FragColor = pack(gl_FragCoord.z);
-         gl_FragColor = vec4(vDepth, vDepth, vDepth, 1.0);
+        gl_FragColor = pack(gl_FragCoord.z);
+        //  gl_FragColor = vec4(vDepth, vDepth, vDepth, 1.0);
       }
       `
   return { vertexShader, fragmentShader }

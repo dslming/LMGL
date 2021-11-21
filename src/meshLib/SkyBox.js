@@ -1,7 +1,7 @@
 import { Mesh } from '../core/Mesh.js'
 import { loadCubeImages } from '../loader/ImageLoader.js'
 import { ImageCubeTexture } from '../core/ImageCubeTexture.js'
-import { createCube } from '../geometry/Cube.js'
+import { getGeometry } from '../geometryLib/cubeModel.js'
 export class SkyBox {
   constructor(cb) {
     this.cb = cb;
@@ -53,7 +53,7 @@ export class SkyBox {
       }
     }
 
-    const geoInfo = createCube(100);
+    const geoInfo = getGeometry(100);
     const geo = {
       attribute: {
         aPosition: {

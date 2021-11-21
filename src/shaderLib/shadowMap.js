@@ -84,11 +84,12 @@ export function getMaterial() {
         vec3 ambient = diffuseColor * 0.6 ;
         vec3 finalColor = diffuseColor;
         // vec3 finalColor = ambient + lambert;
-        vec4 shadowColor = texture2D(uShadowMap, shadowCoord.xy);
+        float shadowColor = unpack(texture2D(uShadowMap, shadowCoord.xy));
+        // float shadowColor = texture2D(uShadowMap, shadowCoord.xy).z;
         float lightDepth = shadowCoord.z;
         // float closestDepth = unpack(closestDepthVec);
         // float lightDepth = shadowCoord.z;
-        if (lightDepth > shadowColor.z+0.01) {
+        if (lightDepth > shadowColor + 0.05) {
           gl_FragColor = vec4(ambient, 1.0);
           // gl_FragColor = vec4(0., 1., 0., 1.);
           //  gl_FragColor = vec4(ambient, 1.);

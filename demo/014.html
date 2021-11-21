@@ -8,38 +8,24 @@
   </div>
   <script type="module">
     import * as lmgl from '../src/lmgl.js'
-    import teapotModel from './module/teapotModel.js'
-    import {cube} from './module/cubeModel.js'
-
-    const dataModel = cube(2)
     window.lmgl = lmgl;
 
   // 阴影接收平面
   class Plane {
     constructor() {
-      const size = 5;
-      const geo = {
+      const model = lmgl.geometryLib.plane(5);
+      const geoInfo = {
         attribute: {
-          aNormal: {
-            value: [
-              0,0,1,
-              0,0,1,
-              0,0,1,
-              0,0,1,
-            ],
+          aPosition: {
+            value: model.vertexPositions,
             itemSize: 3
           },
-          aPosition: {
-            value: [
-             - size,  size, 0,
-             - size, - size, 0,
-               size, - size, 0,
-               size,  size, 0,
-            ],
+          aNormal: {
+            value: model.vertexNormals,
             itemSize: 3
           },
         },
-        indices: [0,1,2, 2,3,0]
+        indices: model.indices
       };
 
       const lambert = lmgl.shaderLib.lambert()
@@ -49,14 +35,44 @@
           // lightDirction: {value: lightDirction, type:"v3"},
         }
       },lambert)
-      this.mesh = new lmgl.Mesh(geo, lambertMat);
+      this.mesh = new lmgl.Mesh(geoInfo, lambertMat);
       this.mat = lambertMat
     }
   }
 
-  // 产生阴影的模型
+  // 灯光位置可视化
+  class LightVisible {
+    constructor() {
+      const model = lmgl.geometryLib.sphere(0.2);
+      const geoInfo = {
+        attribute: {
+          aPosition: {
+            value: model.vertexPositions,
+            itemSize: 3
+          },
+          aNormal: {
+            value: model.vertexNormals,
+            itemSize: 3
+          },
+        },
+        indices: model.indices
+      };
+
+      const lambert = lmgl.shaderLib.lambert()
+      const lambertMat = new lmgl.Material({
+        uniforms: {
+          diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
+        }
+      },lambert)
+      this.mesh = new lmgl.Mesh(geoInfo, lambertMat);
+      this.mat = lambertMat
+    }
+  }
+
+  // 产生阴影的平面
   class CastShadow {
     constructor() {
+      const dataModel = lmgl.geometryLib.cube(2);
       const geoInfo = {
         attribute: {
           aPosition: {
@@ -80,10 +96,6 @@
       },lambert)
 
       this.mesh = new lmgl.Mesh(geoInfo, lambertMat);
-      // this.mesh.scale.set(0.03,0.03,0.03)
-      // this.mesh.rotation.y = -Math.PI;
-      // this.mesh.position.y = -0.5;
-      // this.mesh.scale.set(0.1,0.1,0.1)
       this.mat = lambertMat
     }
   }
@@ -99,64 +111,36 @@
       height = window.innerHeight
     })
 
+    // 创建场景
     var stage = new lmgl.Stage()
     stage.init(document.querySelector("#c"), width, height)
-    stage.camera.position.set(0, 2, 10)
-    stage.camera.lookAt(new lmgl.Vector3(0, 0, 0));
-    // new lmgl.Axis(100, stage)
+    const camera = stage.camera
+    camera.position.set(0, 10, 0)
 
-    // const lightDirction = new lmgl.Vector3(10,0,0);
+    // 创建mesh
+    const planeMesh = new Plane().mesh;
+    planeMesh.rotation.x = -Math.PI/2;
+    planeMesh.position.y = -1;
+    const lightMesh = new LightVisible().mesh;
+    const castMesh = new CastShadow().mesh
+    castMesh.position.y = 0.1;
 
-
-    const plane = new Plane();
-    plane.mesh.rotation.x = -Math.PI/2;
-    plane.mesh.position.y = -0.8
-    stage.add(plane.mesh)
-
-    const cast = new CastShadow()
-    //  cast.mesh.scale.set(0.03,0.03,0.03)
-      // cast.mesh.rotation.x = Math.PI/2;
-      cast.mesh.position.y = 0.1;
-      // cast.mesh.scale.set(0.1,0.1,0.1)
-    stage.add(cast.mesh)
-
-    // plane.mesh.material = depthMat
-    // cast.mesh.material = depthMat;
 
     // 自定义渲染
     stage.setRenderState(false)
     const webgl = lmgl.webgl;
     const gl = stage.getGl()
-    const shadowmapTextureSize = {
-      w: 2048,//width*radio,
-      h: 2048//height*radio
-    }
+
+    // 存储光源处的深度图
+    const shadowmapTextureSize = {w: 2048, h: 2048 }
     const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h);
-    const camera = stage.camera
 
-    new lmgl.Axis(100, stage)
-
-
-    // 设置相机的位置为光源位置
-    const lightPosition = new lmgl.Vector3(5,3,0);
+    // 光源位置渲染的相机
     const lightCamera = new lmgl.OrthographicCamera(-10,10,10,-10,0.1,20)//camera.clone();
-    lightCamera.position.copy(lightPosition)
-    lightCamera.lookAt(new lmgl.Vector3(0, 0, 0));
-    lightCamera.updateProjectionMatrix()
-    lightCamera.updateMatrix()
-    lightCamera.updateMatrixWorld();
-    window.aaa = lightCamera
-    // lm.control.camera = lightCamera
     const lightMVPCast = new lmgl.Matrix4();
-    lightMVPCast.copy(lightCamera.projectionMatrix)
-    lightMVPCast.multiply(lightCamera.matrixWorldInverse);
-    lightMVPCast.multiply(cast.mesh.matrix);
+    const lightMVPPlane = new lmgl.Matrix4();
 
-     const lightMVPPlane = new lmgl.Matrix4();
-    lightMVPPlane.copy(lightCamera.projectionMatrix)
-    lightMVPPlane.multiply(lightCamera.matrixWorldInverse);
-    lightMVPPlane.multiply(plane.mesh.matrix);
-
+    // 深度材质
     const depth = lmgl.shaderLib.depth()
     const depthMat = new lmgl.Material(depth,{
        uniforms: {
@@ -164,6 +148,33 @@
         }
     })
 
+    const shadowMap = lmgl.shaderLib.shadowMap()
+    const shadowMapMat = new lmgl.Material({
+      uniforms: {
+        uLightMVP: {"type":"m4",value: null},
+        uShadowMap: {type: "t", value: renderTarget.getTexture()},
+        diffuseColor: {value: {x:1,y:1,z:1}, type:"v3"},
+      }
+    },shadowMap);
+
+    // 更新光源的相机位置和矩阵
+    function updateLight(pos) {
+      lightCamera.position.copy(new lmgl.Vector3(pos.x,pos.y,pos.z))
+      lightCamera.lookAt(new lmgl.Vector3(0, 0, 0));
+      lightCamera.updateProjectionMatrix()
+      lightCamera.updateMatrix()
+      lightCamera.updateMatrixWorld();
+
+      lightMVPCast.copy(lightCamera.projectionMatrix)
+      lightMVPCast.multiply(lightCamera.matrixWorldInverse);
+      lightMVPCast.multiply(castMesh.matrix);
+
+      lightMVPPlane.copy(lightCamera.projectionMatrix)
+      lightMVPPlane.multiply(lightCamera.matrixWorldInverse);
+      lightMVPPlane.multiply(planeMesh.matrix);
+    }
+
+    // 渲染深度
     function renderDepth() {
       gl.enable(gl.DEPTH_TEST);
       gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.getFrameBuffer());
@@ -173,86 +184,59 @@
       gl.clearColor(0, 1, 0, 1.0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h)
-      // gl.enable(gl.CULL_FACE);
       gl.disable(gl.CULL_FACE);
-      plane.mesh.material = depthMat;
-      plane.mesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
-      plane.mesh.material.setUniform();
-      stage.renderer.renderMesh(plane.mesh,lightCamera);
 
-      cast.mesh.material = depthMat;
-      cast.mesh.material.setUniform();
-      cast.mesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
-      stage.renderer.renderMesh(cast.mesh,lightCamera);
+      planeMesh.material = depthMat;
+      planeMesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
+      planeMesh.material.setUniform();
+      stage.renderer.renderMesh(planeMesh,lightCamera);
+
+      castMesh.material = depthMat;
+      castMesh.material.setUniform();
+      castMesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
+      stage.renderer.renderMesh(castMesh,lightCamera);
     }
 
+    // 渲染阴影
     function renderShadow() {
       camera.lookAt(new lmgl.Vector3(0, 0, 0));
       camera.updateProjectionMatrix()
       camera.updateMatrix()
       camera.updateMatrixWorld();
 
-      // stage.renderer.setRenderTarget(null);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.bindRenderbuffer(gl.RENDERBUFFER, null);
       gl.disable(gl.CULL_FACE);
       stage.renderer.clear();
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      webgl.setViewPort(gl, width*radio, height*radio)
-      const shadowMap = lmgl.shaderLib.shadowMap()
-      const shadowMapMat = new lmgl.Material({
-        uniforms: {
-          uLightMVP: {"type":"m4",value: null},
-          uDirectionToLight: {"type":"v3",value: lightPosition.normalize()},
-          uShadowMap: {type: "t", value: renderTarget.getTexture()},
-          diffuseColor: {value: {x:1,y:1,z:1}, type:"v3"},
-        }
-      },shadowMap);
+      webgl.setViewPort(gl, width*radio, height*radio);
 
-      plane.mesh.material = shadowMapMat;
-      plane.mesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
-      plane.mesh.material.uniforms["diffuseColor"].value = {x:0.2,y:0.5,z:0.2}
-      plane.mesh.material.setUniform();
-      stage.renderer.renderMesh(plane.mesh);
+      planeMesh.material = shadowMapMat;
+      planeMesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
+      planeMesh.material.uniforms["diffuseColor"].value = {x:0.2,y:0.5,z:0.2}
+      planeMesh.material.setUniform();
+      stage.renderer.renderMesh(planeMesh);
 
-      cast.mesh.material = shadowMapMat;
-      cast.mesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
-      cast.mesh.material.uniforms["diffuseColor"].value = {x:0.8,y:0.5,z:0.5}
-      cast.mesh.material.setUniform();
-      stage.renderer.renderMesh(cast.mesh);
+      castMesh.material = shadowMapMat;
+      castMesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
+      castMesh.material.uniforms["diffuseColor"].value = {x:0.8,y:0.5,z:0.5}
+      castMesh.material.setUniform();
+      stage.renderer.renderMesh(castMesh);
     }
 
-    // renderDepth()
-    // renderShadow()
-
-
+    let time = 0;
+    const radius = 3;
+    const lightPosition = new lmgl.Vector3(0,4,-5);
     stage.addUpdate("loop",()=>{
+      lightPosition.x = radius * Math.sin(time)
+      lightPosition.z = radius * Math.cos(time)
+      lightMesh.position.copy(lightPosition);
+      updateLight(lightPosition)
       renderDepth()
       renderShadow()
-      // stage.renderer.render()
-        // cast.mesh.material.setUniform();
-        // stage.renderer.renderMesh(cast.mesh);
-
-        // plane.mesh.material.setUniform();
-        // stage.renderer.renderMesh(plane.mesh);
-
-      // stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
-      // stage.renderer.clear();
-      // webgl.setViewPort(gl, textureSize.w, textureSize.h)
-      // disks.updateDiskPositions();
-      // disks.drawDisks();
-
-      // webgl.setViewPort(gl, width*radio, height*radio)
-      // stage.renderer.setRenderTarget(null);
-      // stage.renderer.clear();
-      // plane.mesh.material.uniforms["texture"].value = renderTarget.getTexture();
-      // stage.renderer.renderMesh(plane.mesh);
-
-      // plane.mesh.rotation.y += 0.01;
+      time += 0.02;
+      stage.renderer.renderMesh(lightMesh);
     })
-
-
-    // stage.add(mesh)
     stage.run()
   }
 

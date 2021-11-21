@@ -6,8 +6,8 @@ export * from "./camera/PerspectiveCamera.js"
 export * from "./camera/OrthographicCamera.js"
 
 // geometry
-export * from "./geometry/Circle.js"
-export * from "./geometry/Cube.js"
+import * as geometryLib from './geometryLib/index.js'
+export { geometryLib }
 
 // core
 import dao from './core/Dao.js'

@@ -1,5 +1,5 @@
 import { Mesh } from '../core/Mesh.js'
-import { createCube } from '../geometry/Cube.js';
+import { createCube } from '../geometryLib/Cube.js';
 import lambert from '../modules/lambert/lambert.glsl.js';
 
 // 平面

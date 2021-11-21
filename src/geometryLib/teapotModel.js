@@ -713,4 +713,7 @@ var teapotModel = {
 785, 790, 791, 791, 786, 785] )
 };
 
-export default teapotModel;
+
+export function getGeometry() {
+    return teapotModel;
+}
