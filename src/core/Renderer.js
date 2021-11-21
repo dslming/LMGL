@@ -98,6 +98,8 @@ export default class Renderer {
       gl.lineWidth(1);
       gl.drawArrays(gl.LINES, 0, count);
     }
+
+    mesh.disable()
   }
 
   getContext() {

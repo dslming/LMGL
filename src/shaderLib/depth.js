@@ -9,15 +9,19 @@ export function getMaterial() {
 
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
+      uniform mat4 uLightMVP;
       varying float vDepth;
 
       void main() {
-       gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+      //  gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+       gl_Position = uLightMVP * vec4(aPosition, 1.0);
+        vDepth = (gl_Position.z + 1.0) / 2.0;
       }
     `
 
   const fragmentShader = `
       precision mediump float;
+      varying float vDepth;
       vec4 pack(float depth) {
         // 使用rgba 4字节共32位来存储z值,1个字节精度为1/256
         const vec4 bitShift = vec4(1.0, 256.0, 256.0 * 256.0, 256.0 * 256.0 * 256.0);
@@ -35,7 +39,8 @@ export function getMaterial() {
          }
 
       void main() {
-        gl_FragColor = pack(gl_FragCoord.z);
+        // gl_FragColor = pack(gl_FragCoord.z);
+         gl_FragColor = vec4(vDepth, vDepth, vDepth, 1.0);
       }
       `
   return { vertexShader, fragmentShader }

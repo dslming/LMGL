@@ -103,6 +103,22 @@ class Mesh {
     if (indices.length > 0) {
       WebGLInterface.setIndicesBuffer(gl, indicesBuffer, indices)
     }
+
+
+  }
+
+  disable() {
+    const { attributeBuffer, indicesBuffer, geometry } = this;
+    const { indices, attribute } = geometry
+    const keys = Object.keys(attribute)
+    const { program } = this.material;
+    const gl = dao.getData("gl");
+
+     for (let i = 0; i < keys.length; i++) {
+       const attribureName = keys[i];
+       const attribure = gl.getAttribLocation(program, attribureName);
+       attribure != -1 && gl.disableVertexAttribArray(attribure);
+     }
   }
 
   dispose() {

@@ -18,7 +18,6 @@ export function setAttribBuffer(gl, program, buffer, param) {
     return;
   }
 
-  gl.enableVertexAttribArray(attribure);
 
     // 创建缓冲区
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -34,6 +33,10 @@ export function setAttribBuffer(gl, program, buffer, param) {
   // 绑定顶点缓冲区对象,传送给GPU
   gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
   error.clear(moduleName, attribureName);
+  gl.enableVertexAttribArray(attribure);
+
+
+
   // gl.disableVertexAttribArray(attribure);
 }
 
