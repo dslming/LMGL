@@ -40,12 +40,8 @@ export * from "./math/Vector4.js"
 export { MathUtils };
 
 // mesh lib
-export * from './meshLib/Axis.js'
-// export * from './meshLib/Plane.js'
-export * from './meshLib/ReflectingObject.js'
-export * from './meshLib/SkyBox.js'
-// export * from './meshLib/Cube.js'
-export * from './meshLib/LambertMesh.js'
+import * as meshLib from './meshLib/index.js'
+export { meshLib }
 
 // webgl
 import * as webgl from './webgl/index.js'

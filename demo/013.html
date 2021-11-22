@@ -16,7 +16,7 @@
     var movingCubeData = [];
     for (let i = 0; i <= count; i++) {
        movingCubeData.push( {
-          translation: [4*size*i - 10*size, 0, flag*10*size],
+          translation: [4*size*i - 10*size, 0, flag*3*size],
           localRotationAxis: [Math.random(),Math.random(),Math.random()],
           localAngularVelocity: 0.005 + 0.1*Math.random(),
           globalRotationAxis: [Math.random(),Math.random(),Math.random()],
@@ -32,29 +32,56 @@
     return movingCubeData;
   }
 
+  function getCubeMesh(size){
+    const dataModel = lmgl.geometryLib.cube(size);
+    const geoInfo = {
+      attribute: {
+        aPosition: {
+          value: dataModel.position,
+          itemSize: 3
+        },
+        aNormal: {
+          value: dataModel.normal,
+          itemSize: 3
+        },
+      },
+      indices: dataModel.indices
+    };
+
+    const lambert = lmgl.shaderLib.lambert()
+    const lambertMat = new lmgl.Material({
+      uniforms: {
+        diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
+        lightDirction: {value: {x:1,y:1,z:1}, type:"v3"},
+      }
+    },lambert)
+
+    let mesh = new lmgl.Mesh(geoInfo, lambertMat);
+    return mesh;
+  }
   function creatCubeMesh(stage,count) {
     let cubes = [];
-    const size = 1;
+    const size = 2;
     let arr1 = createMovingCubeData(count/2, size, 1)
     let arr2 = createMovingCubeData(count/2, size, -1)
     let movingCubeData = [...arr1, ...arr2]
     for(let i=0;i<count;i++) {
-      const cube = new lmgl.geometryLib.cube(size);
+      const cube = getCubeMesh(size)
       let cd = movingCubeData[i];
-      cube.mesh.position.set(cd.translation[0],cd.translation[1], cd.translation[2])
-      cube.mesh.material.uniforms["diffuseColor"].value = {
+      cube.position.set(cd.translation[0],cd.translation[1], cd.translation[2])
+      cube.material.uniforms["diffuseColor"].value = {
         x: cd.color[0],
         y: cd.color[1],
         z: cd.color[2],
       }
-      cube.mesh.material.needUpdate = true;
-      cubes.push(cube.mesh);
+      cube.material.needUpdate = true;
+      cubes.push(cube);
     }
     return {cubes,movingCubeData};
   }
 
   window.onload = () => {
-    document.title = "单向动态环境反射"
+    document.title = "动态环境反射"
     const radio = window.devicePixelRatio;
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -79,7 +106,7 @@
     let envMesh = null;
 
     // 创建天空盒
-    const skyBox = new lmgl.SkyBox(texture=>{
+    const skyBox = new lmgl.meshLib.SkyBox(texture=>{
       const textureSize = {
         w: 512,
         h: 512
@@ -89,7 +116,7 @@
       cubeCamera = new lmgl.CubeCamera(1, 1000, renderTarget)
 
       const teapotModel = lmgl.geometryLib.teapot()
-      reflectObj = new lmgl.ReflectingObject(teapotModel, renderTarget.getTexture());
+      reflectObj = new lmgl.meshLib.ReflectingObject(teapotModel, renderTarget.getTexture());
     });
 
     const webgl = lmgl.webgl;

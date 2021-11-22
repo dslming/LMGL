@@ -25,7 +25,7 @@ export class RenderTarget {
     }
 
     //  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    WebGLInterface.bindTexture(gl, null);
+    // WebGLInterface.bindTexture(gl, null);
   }
 
   getFrameBuffer() {
