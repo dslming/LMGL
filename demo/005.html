@@ -42,6 +42,7 @@ window.onload = () => {
   const lambertMat = new lmgl.Material({
     uniforms: {
       diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
+      lightDirction: {value: {x:0,y:0,z:1}, type:"v3"},
     }
   },lambert)
 
@@ -51,7 +52,7 @@ window.onload = () => {
   stage.run()
 
   stage.addUpdate("rotation", () => {
-    mesh.rotation.y -= 0.03;
+    // mesh.rotation.y -= 0.03;
   })
 }
 </script>
