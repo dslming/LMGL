@@ -133,7 +133,9 @@
 
     // 存储光源处的深度图
     const shadowmapTextureSize = {w: 2048, h: 2048 }
-    const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h);
+    const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h,{
+      depth: true
+    });
 
     // 光源位置渲染的相机
     const lightCamera = new lmgl.OrthographicCamera(-10,10,10,-10,0.1,20)//camera.clone();
@@ -157,7 +159,6 @@
         diffuseColor: {value: {x:1,y:1,z:1}, type:"v3"},
       }
     },shadowMap);
-    // shadowMapMat.depthTest = false;
 
     // 更新光源的相机位置和矩阵
     function updateLight(pos) {

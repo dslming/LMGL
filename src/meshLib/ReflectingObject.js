@@ -44,7 +44,7 @@ export class ReflectingObject {
 
           // 没有反射贴图,显示物体的轮廓
           if(gl_FragColor.xyz == vec3(0.)) {
-            gl_FragColor = vec4(0.1,0.1,0.1, 0.5);
+            // gl_FragColor = vec4(0.1,0.1,0.1, 0.5);
           }
         }
         `
