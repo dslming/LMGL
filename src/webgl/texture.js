@@ -37,7 +37,6 @@ export function setTextureImage(gl, img, texture) {
 
 // 设置cube纹理的图片
 export function setCubeTextureImage(gl, images, texture) {
-   gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
    const cubemapTargets = getCubemapTargets(gl);
 
    for (let j = 0; j < 6; j++) {
@@ -69,13 +68,11 @@ export function setTextureNull(gl, texture, width, height) {
 }
 
 // 渲染到cube纹理, 用于离屏渲染
-export function setTextureNullCube(gl, texture, width, height) {
+export function setTextureNullCube(gl, width, height) {
    const cubemapTargets = getCubemapTargets(gl);
-   gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture); // create storage for the reflection map images
    for (let i = 0; i < 6; i++) {
       gl.texImage2D(cubemapTargets[i], 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
    }
-   gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
 }
 
 /**

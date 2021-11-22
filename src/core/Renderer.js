@@ -16,6 +16,7 @@ export default class Renderer {
     this.canvas = canvas
     this.handleResize(width, height)
     this.currentPrograme = null
+    this.currentRenderTarget = null;
     this.autoClear = false;
   }
 
@@ -127,12 +128,22 @@ export default class Renderer {
   clear() {
      const gl = dao.getData("gl")
      gl.clearColor(0, 0, 0, 1.0);
-     gl.clear(gl.COLOR_BUFFER_BIT);
+     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   }
 
-  setRenderTarget(framebuffer) {
+  setRenderTarget(renderTarget) {
     const gl = dao.getData("gl")
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    if (renderTarget) {
+      renderTarget.framebuffer && gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.framebuffer);
+      renderTarget.renderbuffer && gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.renderbuffer);
+      this.currentRenderTarget = renderTarget;
+    } else if (this.currentRenderTarget) {
+      this.currentRenderTarget.framebuffer && gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      this.currentRenderTarget.renderbuffer && gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+      this.currentRenderTarget = null;
+    } else {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
   }
 
   render() {

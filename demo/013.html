@@ -108,19 +108,21 @@
     // 创建天空盒
     const skyBox = new lmgl.meshLib.SkyBox(texture=>{
       const textureSize = {
-        w: 512,
-        h: 512
+        w: 2048,
+        h: 2048
       }
       envMesh = [skyBox.mesh, ...cubes]
-      renderTarget = new lmgl.RenderTargetCube(textureSize.w, textureSize.h);
+      renderTarget = new lmgl.RenderTargetCube(textureSize.w, textureSize.h, {depth: true});
       cubeCamera = new lmgl.CubeCamera(1, 1000, renderTarget)
 
-      const teapotModel = lmgl.geometryLib.teapot()
+      const teapotModel = lmgl.geometryLib.teapot();
       reflectObj = new lmgl.meshLib.ReflectingObject(teapotModel, renderTarget.getTexture());
     });
 
     const webgl = lmgl.webgl;
     const gl = stage.getGl()
+    webgl.cullFace(gl, false)
+
     let time = 0;
     stage.addUpdate("loop",()=>{
       // 立方体动画
@@ -139,8 +141,9 @@
         cubeCamera.render(stage.renderer, envMesh);
 
         // 渲染反射物体到屏幕
-        webgl.setViewPort(gl, width*radio, height*radio)
         stage.renderer.setRenderTarget(null);
+        stage.renderer.clear();
+        webgl.setViewPort(gl, width*radio, height*radio)
         stage.renderer.renderMesh(reflectObj.mesh)
 
         // 渲染环境到屏幕

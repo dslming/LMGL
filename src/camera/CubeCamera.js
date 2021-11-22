@@ -51,6 +51,7 @@ class CubeCamera {
 	}
 
 	_render(renderer, meshes, camera) {
+		renderer.clear();
 		for (let i = 0; i < meshes.length; i++) {
 			const mesh = meshes[i];
 			renderer.renderMesh(mesh, camera)
@@ -59,13 +60,11 @@ class CubeCamera {
 	render(renderer, meshes) {
 		 const gl = dao.getData("gl")
 		const {cameraPX, cameraNX, cameraPY, cameraNY, cameraPZ, cameraNZ } = this.children;
+		const { width, height } = this.renderTarget;
 
 		const dynamicCubemap = this.renderTarget.getTexture()
 		const framebuffer = this.renderTarget.getFrameBuffer()
-		const { width, height } = this.renderTarget;
-
-		renderer.setRenderTarget(framebuffer);
-		renderer.clear();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 		gl.viewport(0, 0, width, height);
 
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X, dynamicCubemap, 0);
