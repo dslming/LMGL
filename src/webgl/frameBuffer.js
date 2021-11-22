@@ -5,7 +5,7 @@ export function createFramebuffer(gl) {
 
 // 设置帧缓冲对象的纹理作为颜色附件
 export function attachFramebufferTexture(gl, texture) {
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
 }
 
 export function attachFramebufferDepthBuffe(gl, depthBuffer) {

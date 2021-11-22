@@ -44,3 +44,12 @@ export function setSide(gl, side) {
 export function setViewPort(gl, width, height) {
   gl.viewport(0, 0, width, height);
 }
+
+// 面剔除,所有的不是正面朝向的面都会被丢弃
+export function cullFace(gl, v) {
+  if (v) {
+    gl.enable(gl.CULL_FACE);
+  } else {
+    gl.disable(gl.CULL_FACE);
+  }
+}

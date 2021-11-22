@@ -262,7 +262,7 @@
     });
 
     stage.addUpdate("loop",()=>{
-      stage.renderer.setRenderTarget(renderTarget.getFrameBuffer());
+      stage.renderer.setRenderTarget(renderTarget);
       stage.renderer.clear();
       webgl.setViewPort(gl, textureSize.w, textureSize.h)
       disks.updateDiskPositions();

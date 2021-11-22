@@ -62,6 +62,7 @@
       const lambertMat = new lmgl.Material({
         uniforms: {
           diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
+          lightDirction: {value: {x:1,y:1,z:1}, type:"v3"},
         }
       },lambert)
       this.mesh = new lmgl.Mesh(geoInfo, lambertMat);
@@ -130,6 +131,7 @@
     stage.setRenderState(false)
     const webgl = lmgl.webgl;
     const gl = stage.getGl()
+    webgl.cullFace(gl, false)
 
     // 存储光源处的深度图
     const shadowmapTextureSize = {w: 2048, h: 2048 }
@@ -179,15 +181,9 @@
 
     // 渲染深度
     function renderDepth() {
-      gl.enable(gl.DEPTH_TEST);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.getFrameBuffer());
-      gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.getRenderBuffer());
-
+      stage.renderer.setRenderTarget(renderTarget);
       stage.renderer.clear();
-      gl.clearColor(0, 1, 0, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h)
-      gl.disable(gl.CULL_FACE);
+      webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h);
 
       planeMesh.material = depthMat;
       planeMesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
@@ -207,11 +203,8 @@
       camera.updateMatrix()
       camera.updateMatrixWorld();
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-      gl.disable(gl.CULL_FACE);
+      stage.renderer.setRenderTarget(null);
       stage.renderer.clear();
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       webgl.setViewPort(gl, width*radio, height*radio);
 
       planeMesh.material = shadowMapMat;
