@@ -18,8 +18,9 @@ export function getMaterial() {
 
       void main() {
        gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-       vColor = lambert(normalMatrix * aNormal, normalMatrix * lightDirction);
-       vColor += 0.5;
+       vec3 normal = normalize(normalMatrix * aNormal);
+       vColor = lambert(normal, lightDirction);
+      //  vColor += 0.5;
       }
     `
 
