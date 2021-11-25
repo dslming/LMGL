@@ -1,5 +1,6 @@
 import error from './ErrorCount.js'
 const moduleName = "attribute"
+//------------------------------------------------------------- VBO ------------------------
 export function setAttribBuffer(gl, program, buffer, param) {
   const {
     attribureName,
@@ -35,8 +36,6 @@ export function setAttribBuffer(gl, program, buffer, param) {
   error.clear(moduleName, attribureName);
   gl.enableVertexAttribArray(attribure);
 
-
-
   // gl.disableVertexAttribArray(attribure);
 }
 
@@ -47,4 +46,13 @@ export function setIndicesBuffer(gl, indicesBuffer, indices) {
 
 export function createBuffer(gl) {
   return  gl.createBuffer();
+}
+
+//-------------------------------------VAO-----------------------------
+export function createVertexArray(gl) {
+  return gl.createVertexArray();
+}
+
+export function bindVertexArray(gl, vao) {
+   gl.bindVertexArray(vao)
 }
