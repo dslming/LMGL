@@ -35,9 +35,21 @@ export function setAttribBuffer(gl, program, buffer, param) {
   gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
   error.clear(moduleName, attribureName);
   gl.enableVertexAttribArray(attribure);
-
-  // gl.disableVertexAttribArray(attribure);
 }
+
+
+export function getAttribLocation(gl,program, name) {
+  return gl.getAttribLocation(program, name);
+}
+
+export function enableVertexAttribArray(attribure) {
+  gl.enableVertexAttribArray(attribure)
+}
+
+export function disableVertexAttribArray(gl, attribure) {
+  gl.disableVertexAttribArray(attribure)
+}
+
 
 export function setIndicesBuffer(gl, indicesBuffer, indices) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
@@ -55,4 +67,8 @@ export function createVertexArray(gl) {
 
 export function bindVertexArray(gl, vao) {
    gl.bindVertexArray(vao)
+}
+
+export function deleteVertexArray(vao) {
+  gl.deleteVertexArray(vao);
 }

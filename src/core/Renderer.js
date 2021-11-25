@@ -77,7 +77,8 @@ export default class Renderer {
     const program = material.program;
     WebGLInterface.useProgram(gl, program);
 
-    mesh.setAttributesBuffer();
+    // mesh.setAttributesBuffer();
+    mesh.render();
     this._updateUniformMatrix(program, mesh, camera);
     material.needUpdate && material.setUniform()
 
@@ -100,7 +101,7 @@ export default class Renderer {
       gl.drawArrays(gl.LINES, 0, count);
     }
 
-    mesh.disable()
+    mesh.renderAfter()
   }
 
   getContext() {

@@ -1,5 +1,5 @@
 #### lmgl
-webgl2 精简版的three.js
+只支持webgl2, 精简版的three.js
 
 例子: https://dslming.github.io/lmgl/show.html
 
