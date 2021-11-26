@@ -7,9 +7,9 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
-    import * as lmgl from '../src/lmgl.js'
+    import * as LMGL from '../src/LMGL.js'
 
-    console.log(lmgl.VERSION);
+    console.log(LMGL.VERSION);
 
     const vertexShader = `
     void main(){
@@ -28,11 +28,11 @@
       const width = window.innerWidth
       const height = window.innerHeight
 
-      let stage = new lmgl.Stage();
+      let stage = new LMGL.Stage();
       stage.init(document.querySelector("#c"), width, height)
 
       const geo = {
-        type: lmgl.GEOMETRY_TYPE.POINTS,
+        type: LMGL.GEOMETRY_TYPE.POINTS,
         attribute: {}
       };
 
@@ -40,7 +40,7 @@
         vertexShader,
         fragmentShader,
       }
-      let mesh = new lmgl.Mesh(geo, mat);
+      let mesh = new LMGL.Mesh(geo, mat);
       stage.add(mesh)
       stage.run()
     }

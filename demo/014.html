@@ -7,13 +7,13 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
-    import * as lmgl from '../src/lmgl.js'
-    window.lmgl = lmgl;
+    import * as LMGL from '../src/LMGL.js'
+    window.LMGL = LMGL;
 
   // 阴影接收平面
   class Plane {
     constructor() {
-      const model = lmgl.geometryLib.plane(5);
+      const model = LMGL.geometryLib.plane(5);
       const geoInfo = {
         attribute: {
           aPosition: {
@@ -28,14 +28,14 @@
         indices: model.indices
       };
 
-      const lambert = lmgl.shaderLib.lambert()
-      const lambertMat = new lmgl.Material({
+      const lambert = LMGL.shaderLib.lambert()
+      const lambertMat = new LMGL.Material({
         uniforms: {
           diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
           // lightDirction: {value: lightDirction, type:"v3"},
         }
       },lambert)
-      this.mesh = new lmgl.Mesh(geoInfo, lambertMat);
+      this.mesh = new LMGL.Mesh(geoInfo, lambertMat);
       this.mat = lambertMat
     }
   }
@@ -43,7 +43,7 @@
   // 灯光位置可视化
   class LightVisible {
     constructor() {
-      const model = lmgl.geometryLib.sphere(0.2);
+      const model = LMGL.geometryLib.sphere(0.2);
       const geoInfo = {
         attribute: {
           aPosition: {
@@ -58,14 +58,14 @@
         indices: model.indices
       };
 
-      const lambert = lmgl.shaderLib.lambert()
-      const lambertMat = new lmgl.Material({
+      const lambert = LMGL.shaderLib.lambert()
+      const lambertMat = new LMGL.Material({
         uniforms: {
           diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
           lightDirction: {value: {x:1,y:1,z:1}, type:"v3"},
         }
       },lambert)
-      this.mesh = new lmgl.Mesh(geoInfo, lambertMat);
+      this.mesh = new LMGL.Mesh(geoInfo, lambertMat);
       this.mat = lambertMat
     }
   }
@@ -73,7 +73,7 @@
   // 产生阴影的平面
   class CastShadow {
     constructor() {
-      const dataModel = lmgl.geometryLib.cube(2);
+      const dataModel = LMGL.geometryLib.cube(2);
       const geoInfo = {
         attribute: {
           aPosition: {
@@ -88,15 +88,15 @@
         indices: dataModel.indices
       };
 
-      const lambert = lmgl.shaderLib.lambert()
-      const lambertMat = new lmgl.Material({
+      const lambert = LMGL.shaderLib.lambert()
+      const lambertMat = new LMGL.Material({
         uniforms: {
           diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
           // lightDirction: {value: lightDirction, type:"v3"},
         }
       },lambert)
 
-      this.mesh = new lmgl.Mesh(geoInfo, lambertMat);
+      this.mesh = new LMGL.Mesh(geoInfo, lambertMat);
       this.mat = lambertMat
     }
   }
@@ -113,7 +113,7 @@
     })
 
     // 创建场景
-    var stage = new lmgl.Stage()
+    var stage = new LMGL.Stage()
     stage.init(document.querySelector("#c"), width, height)
     const camera = stage.camera
     camera.position.set(0, 10, 0)
@@ -129,32 +129,32 @@
 
     // 自定义渲染
     stage.setRenderState(false)
-    const webgl = lmgl.webgl;
+    const webgl = LMGL.webgl;
     const gl = stage.getGl()
     webgl.cullFace(gl, false)
 
     // 存储光源处的深度图
     const shadowmapTextureSize = {w: 2048, h: 2048 }
-    const renderTarget = new lmgl.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h,{
+    const renderTarget = new LMGL.RenderTarget(shadowmapTextureSize.w, shadowmapTextureSize.h,{
       depth: true
     });
 
     // 光源位置渲染的相机
-    const lightCamera = new lmgl.OrthographicCamera(-10,10,10,-10,0.1,20)//camera.clone();
-    const lightMVPCast = new lmgl.Matrix4();
-    const lightMVPPlane = new lmgl.Matrix4();
+    const lightCamera = new LMGL.OrthographicCamera(-10,10,10,-10,0.1,20)//camera.clone();
+    const lightMVPCast = new LMGL.Matrix4();
+    const lightMVPPlane = new LMGL.Matrix4();
 
     // 深度材质
-    const depth = lmgl.shaderLib.depth()
-    const depthMat = new lmgl.Material(depth,{
+    const depth = LMGL.shaderLib.depth()
+    const depthMat = new LMGL.Material(depth,{
        uniforms: {
           uLightMVP: {"type":"m4",value: null},
         }
     })
     // depthMat.depthTest = false;
 
-    const shadowMap = lmgl.shaderLib.shadowMap()
-    const shadowMapMat = new lmgl.Material({
+    const shadowMap = LMGL.shaderLib.shadowMap()
+    const shadowMapMat = new LMGL.Material({
       uniforms: {
         uLightMVP: {"type":"m4",value: null},
         uShadowMap: {type: "t", value: null},
@@ -164,8 +164,8 @@
 
     // 更新光源的相机位置和矩阵
     function updateLight(pos) {
-      lightCamera.position.copy(new lmgl.Vector3(pos.x,pos.y,pos.z))
-      lightCamera.lookAt(new lmgl.Vector3(0, 0, 0));
+      lightCamera.position.copy(new LMGL.Vector3(pos.x,pos.y,pos.z))
+      lightCamera.lookAt(new LMGL.Vector3(0, 0, 0));
       lightCamera.updateProjectionMatrix()
       lightCamera.updateMatrix()
       lightCamera.updateMatrixWorld();
@@ -198,7 +198,7 @@
 
     // 渲染阴影
     function renderShadow() {
-      camera.lookAt(new lmgl.Vector3(0, 0, 0));
+      camera.lookAt(new LMGL.Vector3(0, 0, 0));
       camera.updateProjectionMatrix()
       camera.updateMatrix()
       camera.updateMatrixWorld();
@@ -224,7 +224,7 @@
 
     let time = 0;
     const radius = 3;
-    const lightPosition = new lmgl.Vector3(0,4,-5);
+    const lightPosition = new LMGL.Vector3(0,4,-5);
     stage.addUpdate("loop",()=>{
       lightPosition.x = radius * Math.sin(time)
       lightPosition.z = radius * Math.cos(time)

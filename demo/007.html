@@ -7,8 +7,8 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
-  import * as lmgl from '../src/lmgl.js'
-  window.lmgl = lmgl;
+  import * as LMGL from '../src/LMGL.js'
+  window.LMGL = LMGL;
 
   const vertexShader = `
     precision mediump float;
@@ -45,7 +45,7 @@
     const width = window.innerWidth
     const height = window.innerHeight
 
-    stage = new lmgl.Stage();
+    stage = new LMGL.Stage();
     stage.init(document.querySelector("#c"), width, height)
     stage.camera.position.set(0, 0, 10)
     stage.camera.updateMatrix()
@@ -78,7 +78,7 @@
       uniforms: {
         uColor: {
           type: "v3",
-          value: new lmgl.Vector3(1, 0, 0)
+          value: new LMGL.Vector3(1, 0, 0)
         }
       }
     }
@@ -89,13 +89,13 @@
       uniforms: {
         uColor: {
           type: "v3",
-          value: new lmgl.Vector3(0, 1, 0)
+          value: new LMGL.Vector3(0, 1, 0)
         }
       }
     }
 
-    let mesh1 = new lmgl.Mesh(geo1, mat1);
-    let mesh2 = new lmgl.Mesh(geo2, mat2);
+    let mesh1 = new LMGL.Mesh(geo1, mat1);
+    let mesh2 = new LMGL.Mesh(geo2, mat2);
     // mesh1.material.depthTest = true;
     // mesh2.material.depthTest = true;
     stage.add(mesh1)

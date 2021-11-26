@@ -6,7 +6,7 @@
   <div class="content">
     <canvas id="c"></canvas>
   </div>
-  <script type="module">import * as lmgl from '../src/lmgl.js'
+  <script type="module">import * as LMGL from '../src/LMGL.js'
 
 let stage
 
@@ -15,15 +15,15 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
 
-  stage = new lmgl.Stage()
+  stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  //  new lmgl.Axis(100, stage)
+  //  new LMGL.Axis(100, stage)
 
-  // const cube = new lmgl.Cube();
+  // const cube = new LMGL.Cube();
 
-  const dataModel = lmgl.geometryLib.cube(2);
+  const dataModel = LMGL.geometryLib.cube(2);
   const geoInfo = {
     attribute: {
       aPosition: {
@@ -38,15 +38,15 @@ window.onload = () => {
     indices: dataModel.indices
   };
 
-  const lambert = lmgl.shaderLib.lambert()
-  const lambertMat = new lmgl.Material({
+  const lambert = LMGL.shaderLib.lambert()
+  const lambertMat = new LMGL.Material({
     uniforms: {
       diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
       lightDirction: {value: {x:0,y:0,z:1}, type:"v3"},
     }
   },lambert)
 
-  let mesh = new lmgl.Mesh(geoInfo, lambertMat);
+  let mesh = new LMGL.Mesh(geoInfo, lambertMat);
 
   stage.add(mesh)
   stage.run()

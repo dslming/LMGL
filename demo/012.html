@@ -8,7 +8,7 @@
   </div>
   <script type="module">
     // https://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
-    import * as lmgl from '../src/lmgl.js'
+    import * as LMGL from '../src/LMGL.js'
 
   let stage
 
@@ -22,15 +22,15 @@
       height = window.innerHeight
     })
 
-    stage = new lmgl.Stage()
+    stage = new LMGL.Stage()
     stage.init(document.querySelector("#c"), width, height)
     stage.camera.position.set(0, 0, 20)
 
 
     var obj;
-    const skyBox = new lmgl.meshLib.SkyBox((texture)=>{
-      const teapotModel = lmgl.geometryLib.teapot()
-      obj = new lmgl.meshLib.ReflectingObject(teapotModel,texture);
+    const skyBox = new LMGL.meshLib.SkyBox((texture)=>{
+      const teapotModel = LMGL.geometryLib.teapot()
+      obj = new LMGL.meshLib.ReflectingObject(teapotModel,texture);
       stage.add(obj.mesh);
       stage.add(skyBox.mesh)
     });

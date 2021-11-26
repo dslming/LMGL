@@ -8,11 +8,11 @@
   </div>
   <script type="module">
     // https://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
-    import * as lmgl from '../src/lmgl.js'
+    import * as LMGL from '../src/LMGL.js'
     // import SkyBox from './meshLib/SkyBox.js'
     // import Plane from './meshLib/Plane.js'
 
-    window.lmgl = lmgl;
+    window.LMGL = LMGL;
 
   let stage
 
@@ -26,16 +26,16 @@
       height = window.innerHeight
     })
 
-    stage = new lmgl.Stage()
+    stage = new LMGL.Stage()
     stage.init(document.querySelector("#c"), width, height)
     stage.camera.position.set(0, 0, 10)
 
-    const skyBox = new lmgl.meshLib.SkyBox(()=>{
+    const skyBox = new LMGL.meshLib.SkyBox(()=>{
       stage.add(skyBox.mesh)
     });
 
 
-    const model = lmgl.geometryLib.plane();
+    const model = LMGL.geometryLib.plane();
     const geo = {
       indices: model.indices,
       attribute: {
@@ -45,12 +45,12 @@
           },
       }
     };
-    const mat = new lmgl.Material(lmgl.shaderLib.lambert(),{
+    const mat = new LMGL.Material(LMGL.shaderLib.lambert(),{
       uniforms: {
         diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
       }
     });
-    let plane = new lmgl.Mesh(geo, mat);
+    let plane = new LMGL.Mesh(geo, mat);
     stage.add(plane);
     stage.addUpdate("loop",()=>{
       // skyBox.mesh && (skyBox.mesh.rotation.y += 0.001);

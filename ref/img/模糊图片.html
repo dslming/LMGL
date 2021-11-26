@@ -19,7 +19,7 @@
                 if (!arguments.length) {
                     return context;
                 }
-    
+
                 if (arguments.length === 1) {
                     context = this.__SPECTOR_Origin_EXTENSION_OffscreenGetContext(arguments[0]);
                     if (context === null) {
@@ -32,7 +32,7 @@
                         return context;
                     }
                 }
-    
+
                 var contextNames = ["webgl", "experimental-webgl", "webgl2", "experimental-webgl2"];
                 if (contextNames.indexOf(arguments[0]) !== -1) {
                     // context.canvas.setAttribute("__spector_context_type", arguments[0]);
@@ -41,7 +41,7 @@
                     document.dispatchEvent(myEvent);
                     this.id = "Offscreen";
                     window.__SPECTOR_Canvases.push(this);
-    
+
                     if (captureOnLoad) {
                         // Ensures canvas is in the dom to capture the one we are currently tracking.
                         if (false) {
@@ -50,7 +50,7 @@
                         }
                     }
                 }
-    
+
                 return context;
             }
         }
@@ -156,8 +156,8 @@ Object.defineProperty(window, '__THREE_DEVTOOLS__', {
     // https://math.hws.edu/graphicsbook/c7/s4.html
 
 
-    import * as lmgl from '../src/lmgl.js'
-    window.lmgl = lmgl;
+    import * as LMGL from '../src/LMGL.js'
+    window.LMGL = LMGL;
 
 // const vertexShader = `
 //   precision mediump float;
@@ -216,10 +216,10 @@ window.onload = () => {
   document.title = "模糊图片"
 
   // 2^n
-  const width = lmgl.MathUtils.floorPowerOfTwo( window.innerWidth)
-  const height = lmgl.MathUtils.floorPowerOfTwo(window.innerHeight)
+  const width = LMGL.MathUtils.floorPowerOfTwo( window.innerWidth)
+  const height = LMGL.MathUtils.floorPowerOfTwo(window.innerHeight)
 
-  stage = new lmgl.Stage()
+  stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 20)
 
@@ -255,7 +255,7 @@ window.onload = () => {
 
   let img = new Image();
   img.onload = function() {
-    let imageTexture = new lmgl.ImageTexture(img)
+    let imageTexture = new LMGL.ImageTexture(img)
     const mat = {
       vertexShader: vertexShader,
       fragmentShader,
@@ -274,7 +274,7 @@ window.onload = () => {
         }
       }
     }
-    let mesh = new lmgl.Mesh(geo, mat);
+    let mesh = new LMGL.Mesh(geo, mat);
      const material = mesh.material;
     const prog = material.program;
      material.setUniform(material.uniforms, prog)
@@ -283,7 +283,7 @@ window.onload = () => {
 
     // 自定义渲染
     stage.setRenderState(false)
-    const webgl = lmgl.webgl;
+    const webgl = LMGL.webgl;
     const gl = stage.getGl()
 
     stage.renderer.renderOne(geometry);

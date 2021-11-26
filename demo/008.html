@@ -27,8 +27,8 @@
     // https://math.hws.edu/graphicsbook/c7/s4.html
 
 
-    import * as lmgl from '../src/lmgl.js'
-    window.lmgl = lmgl;
+    import * as LMGL from '../src/LMGL.js'
+    window.LMGL = LMGL;
 
 const vertexShader = `
   precision mediump float;
@@ -66,7 +66,7 @@ window.onload = () => {
   const width = 512
   const height = 256
 
-  stage = new lmgl.Stage()
+  stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
 
   const center = {
@@ -97,8 +97,8 @@ window.onload = () => {
   };
 
   stage.run()
-  lmgl.loadImage("./images/house.jpg", img => {
-    let imageTexture = new lmgl.ImageTexture(img)
+  LMGL.loadImage("./images/house.jpg", img => {
+    let imageTexture = new LMGL.ImageTexture(img)
     const mat = {
       vertexShader: vertexShader,
       fragmentShader,
@@ -118,7 +118,7 @@ window.onload = () => {
       }
     }
 
-    const mesh = new lmgl.Mesh(geo, mat);
+    const mesh = new LMGL.Mesh(geo, mat);
     const material = mesh.material;
     // 深度和混合互斥
     material.blending = true;
@@ -127,7 +127,7 @@ window.onload = () => {
 
     // 自定义渲染
     stage.setRenderState(false)
-    const webgl = lmgl.webgl;
+    const webgl = LMGL.webgl;
     const gl = stage.getGl()
     stage.renderer.renderMesh(mesh);
 

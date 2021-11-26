@@ -8,7 +8,7 @@
   </div>
   <script type="module">
     // https://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
-    import * as lmgl from '../src/lmgl.js'
+    import * as LMGL from '../src/LMGL.js'
 
 
   let stage
@@ -23,8 +23,8 @@
           globalAngularVelocity: 0.005 + 0.02*Math.random(),
           color: [Math.random(),Math.random(),Math.random()]
       } );
-      new lmgl.Vector3(movingCubeData[i].localRotationAxis, movingCubeData[i].localRotationAxis).normalize();
-      new lmgl.Vector3(movingCubeData[i].globalRotationAxis, movingCubeData[i].globalRotationAxis).normalize();
+      new LMGL.Vector3(movingCubeData[i].localRotationAxis, movingCubeData[i].localRotationAxis).normalize();
+      new LMGL.Vector3(movingCubeData[i].globalRotationAxis, movingCubeData[i].globalRotationAxis).normalize();
       if (Math.random() < 0.5) {
         movingCubeData[i].globalAngularVelocity *= -1;
       }
@@ -33,7 +33,7 @@
   }
 
   function getCubeMesh(size){
-    const dataModel = lmgl.geometryLib.cube(size);
+    const dataModel = LMGL.geometryLib.cube(size);
     const geoInfo = {
       attribute: {
         aPosition: {
@@ -48,15 +48,15 @@
       indices: dataModel.indices
     };
 
-    const lambert = lmgl.shaderLib.lambert()
-    const lambertMat = new lmgl.Material({
+    const lambert = LMGL.shaderLib.lambert()
+    const lambertMat = new LMGL.Material({
       uniforms: {
         diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
         lightDirction: {value: {x:1,y:1,z:1}, type:"v3"},
       }
     },lambert)
 
-    let mesh = new lmgl.Mesh(geoInfo, lambertMat);
+    let mesh = new LMGL.Mesh(geoInfo, lambertMat);
     return mesh;
   }
   function creatCubeMesh(stage,count) {
@@ -91,7 +91,7 @@
       height = window.innerHeight
     })
 
-    stage = new lmgl.Stage()
+    stage = new LMGL.Stage()
     stage.init(document.querySelector("#c"), width, height)
     stage.camera.position.set(0, 0, 20)
     stage.setRenderState(false)
@@ -106,20 +106,20 @@
     let envMesh = null;
 
     // 创建天空盒
-    const skyBox = new lmgl.meshLib.SkyBox(texture=>{
+    const skyBox = new LMGL.meshLib.SkyBox(texture=>{
       const textureSize = {
         w: 2048,
         h: 2048
       }
       envMesh = [skyBox.mesh, ...cubes]
-      renderTarget = new lmgl.RenderTargetCube(textureSize.w, textureSize.h, {depth: true});
-      cubeCamera = new lmgl.CubeCamera(1, 1000, renderTarget)
+      renderTarget = new LMGL.RenderTargetCube(textureSize.w, textureSize.h, {depth: true});
+      cubeCamera = new LMGL.CubeCamera(1, 1000, renderTarget)
 
-      const teapotModel = lmgl.geometryLib.teapot();
-      reflectObj = new lmgl.meshLib.ReflectingObject(teapotModel, renderTarget.getTexture());
+      const teapotModel = LMGL.geometryLib.teapot();
+      reflectObj = new LMGL.meshLib.ReflectingObject(teapotModel, renderTarget.getTexture());
     });
 
-    const webgl = lmgl.webgl;
+    const webgl = LMGL.webgl;
     const gl = stage.getGl()
     webgl.cullFace(gl, false)
 

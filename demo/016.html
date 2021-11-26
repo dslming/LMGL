@@ -7,34 +7,45 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
-    import * as LMGL from '../src/LMGL.js'
-
+import * as LMGL from '../src/LMGL.js';
+window.LMGL = LMGL;
+// THREE.ACESFilmicToneMapping
+// webgl_tonemapping.html Tone Mapping
 
 const vertexShader = `
   precision mediump float;
   attribute vec3 aPosition;
 
+  attribute vec4 aColor;
+	varying vec4 vColor;
+
   uniform mat4 projectionMatrix;
   uniform mat4 modelViewMatrix;
 
+
   void main() {
    gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+    vColor = aColor;
   }
 `
 
 const fragmentShader = `
   precision mediump float;
-	uniform vec3 uColor;
+	varying vec4 vColor;
+  ${LMGL.modules.toneMapping}
 
 	void main() {
-	  gl_FragColor = vec4(uColor, 1.0);
+	  gl_FragColor = vColor;
+    vec3 color = vec3( gl_FragColor.xyz);
+    CustomToneMapping(color);
+    gl_FragColor.xyz = color;
 	}
 	`
 
 let stage
 
 window.onload = () => {
-  document.title = "拾取"
+  document.title = "色调映射"
   const width = window.innerWidth
   const height = window.innerHeight
 
@@ -42,6 +53,7 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 5)
 
+  // new LMGL.Axis(100, stage)
 
   const z = 0;
   const geo = {
@@ -53,7 +65,15 @@ window.onload = () => {
            -1., -0.5, z,
            1., -0.5, z
           ],
-          itemSize: 3,
+          itemSize: 3
+        },
+        aColor: {
+          value: [
+            1, 0., 0, 1,
+            0., 1, 0., 1,
+            0., 0., 1, 1,
+          ],
+          itemSize: 4
         }
     }
   };
@@ -62,51 +82,19 @@ window.onload = () => {
     vertexShader,
     fragmentShader,
     uniforms: {
-      uColor: {
-        type : "v3",
-        value: {x: 1,y:0,z:0}
+      toneMappingExposure: {
+        type: "f",
+        value: "1"
       }
     }
   }
 
-  function getRandomColor() {
-    return  {
-      x: Math.random(),
-      y: Math.random(),
-      z: Math.random(),
-    }
-  }
-
-  const mat1 = new LMGL.Material(matInfo);
-  const mat2 = new LMGL.Material(matInfo);
-
-  const mesh1 = new LMGL.Mesh(geo, mat1);
-  const mesh2 = new LMGL.Mesh(geo, mat2);
-
-  mesh1.name = "1"
-  mesh2.name = "2"
-
-  mat1.uniforms["uColor"].value = getRandomColor()
-  mat2.uniforms["uColor"].value = getRandomColor()
-
-  mesh1.position.y = -1;
-  mesh2.position.y = 1;
-
-  stage.add(mesh1)
-  stage.add(mesh2)
-
-  // 开启拾取
-  stage.enablePick = true;
-  stage.setClickCb(info=>{
-    if(info.length<1) return;
-    const {name} = info[0].object;
-
-    if(name === "1") {
-      mat1.uniforms["uColor"].value = getRandomColor()
-    } else if(name === "2"){
-      mat2.uniforms["uColor"].value = getRandomColor()
-    }
+  const mat = new LMGL.Material(matInfo);
+  let mesh = new LMGL.Mesh(geo, mat);
+  stage.addUpdate("loop",()=>{
+    // mesh.rotation.y += 0.01;
   })
+  stage.add(mesh)
   stage.run()
 }
 

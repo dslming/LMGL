@@ -7,7 +7,7 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
-    import * as lmgl from '../src/lmgl.js'
+    import * as LMGL from '../src/LMGL.js'
 
 const vertexShader = `
   precision mediump float;
@@ -34,11 +34,11 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
 
-  let stage = new lmgl.Stage()
+  let stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  const geoInfo = lmgl.createRing(0, 0, 1, 1.5, 50)
+  const geoInfo = LMGL.createRing(0, 0, 1, 1.5, 50)
 
   const geo = {
     indices: geoInfo.indices,
@@ -55,7 +55,7 @@ window.onload = () => {
     fragmentShader,
   }
 
-  let mesh = new lmgl.Mesh(geo, mat);
+  let mesh = new LMGL.Mesh(geo, mat);
   stage.add(mesh)
   stage.run()
 }

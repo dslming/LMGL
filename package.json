@@ -1,5 +1,5 @@
 {
-  "name": "lmgl",
+  "name": "LMGL",
   "version": "1.0.0",
   "description": "精简版的three.js",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dslming/lmgl.git"
+    "url": "git+https://github.com/dslming/LMGL.git"
   },
   "keywords": [
     "webgl"
@@ -16,7 +16,7 @@
   "author": "lm",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/dslming/lmgl/issues"
+    "url": "https://github.com/dslming/LMGL/issues"
   },
-  "homepage": "https://github.com/dslming/lmgl#readme"
+  "homepage": "https://github.com/dslming/LMGL#readme"
 }

@@ -7,7 +7,7 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
-    import * as lmgl from '../src/lmgl.js'
+    import * as LMGL from '../src/LMGL.js'
 
 
 const vertexShader = `
@@ -42,11 +42,11 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
 
-  stage = new lmgl.Stage()
+  stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 5)
 
-  // new lmgl.Axis(100, stage)
+  // new LMGL.Axis(100, stage)
 
   const z = 0;
   const geo = {
@@ -76,8 +76,8 @@ window.onload = () => {
     fragmentShader,
   }
 
-  const mat = new lmgl.Material(matInfo);
-  let mesh = new lmgl.Mesh(geo, mat);
+  const mat = new LMGL.Material(matInfo);
+  let mesh = new LMGL.Mesh(geo, mat);
   stage.addUpdate("loop",()=>{
     mesh.rotation.y += 0.01;
   })

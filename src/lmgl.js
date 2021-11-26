@@ -25,6 +25,9 @@ export * from "./core/Material.js"
 import * as shaderLib from "./shaderLib/index.js"
 export { shaderLib }
 
+import * as modules from "./modules/index.js"
+export { modules }
+
 // loader
 export * from "./loader/ImageLoader.js"
 

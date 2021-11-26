@@ -8,8 +8,8 @@
   </div>
   <script type="module">
     // https://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
-    import * as lmgl from '../src/lmgl.js'
-    window.lmgl = lmgl;
+    import * as LMGL from '../src/LMGL.js'
+    window.LMGL = LMGL;
 
     /************* shader program for the skybox ******************/
   let stage
@@ -21,8 +21,8 @@
     }
 
     async init(url, stage, pos) {
-      const img = await lmgl.loadImage(url);
-      let imageTexture = new lmgl.ImageTexture(img)
+      const img = await LMGL.loadImage(url);
+      let imageTexture = new LMGL.ImageTexture(img)
 
       // 平面
       const vsPlane = `
@@ -50,7 +50,7 @@
         }
         `
 
-      const dataModel = lmgl.geometryLib.plane(2);
+      const dataModel = LMGL.geometryLib.plane(2);
       const geoInfo = {
         attribute: {
           aPosition: {
@@ -79,8 +79,8 @@
           }
         }
       }
-      const mat = new lmgl.Material(matInfo);
-      this.mesh = new lmgl.Mesh(geoInfo, mat);
+      const mat = new LMGL.Material(matInfo);
+      this.mesh = new LMGL.Mesh(geoInfo, mat);
       this.mesh.material.imageTexture = imageTexture
       this.mesh.material.needUpdate = true;
       this.mesh.position.x = pos.x;
@@ -98,7 +98,7 @@
       height = window.innerHeight
     })
 
-    stage = new lmgl.Stage()
+    stage = new LMGL.Stage()
     stage.init(document.querySelector("#c"), width, height)
     stage.camera.position.set(0, 0, 10)
     const plane1 = new Plane("./images/colors.png", stage, {x: -3.5});

@@ -8,8 +8,8 @@
   </div>
   <script type="module">
     // https://math.hws.edu/graphicsbook/source/webgl/render-to-texture.html
-    import * as lmgl from '../src/lmgl.js'
-    window.lmgl = lmgl;
+    import * as LMGL from '../src/LMGL.js'
+    window.LMGL = LMGL;
 
   // 平面
   const vsPlane = `
@@ -95,16 +95,16 @@
           }
         }
       }
-      const mat = new lmgl.Material(matInfo);
-      this.mesh = new lmgl.Mesh(geoInfo, mat);
+      const mat = new LMGL.Material(matInfo);
+      this.mesh = new LMGL.Mesh(geoInfo, mat);
         // 深度和混合互斥
       this.mesh.material.blending = true;
       this.mesh.material.needUpdate = true;
-      this.mesh.material.blendingType = lmgl.BLENDING_TYPE.RGB_A;
-      this.mesh.material.blendRGBASrc = lmgl.BLENDING_FACTOR.ONE_MINUS_SRC_ALPHA;
-      this.mesh.material.blendRGBADst = lmgl.BLENDING_FACTOR.ONE_MINUS_SRC_ALPHA;
-      this.mesh.material.blendRGB_ASrc = lmgl.BLENDING_FACTOR.ONE;
-      this.mesh.material.blendRGB_ADst = lmgl.BLENDING_FACTOR.ONE;
+      this.mesh.material.blendingType = LMGL.BLENDING_TYPE.RGB_A;
+      this.mesh.material.blendRGBASrc = LMGL.BLENDING_FACTOR.ONE_MINUS_SRC_ALPHA;
+      this.mesh.material.blendRGBADst = LMGL.BLENDING_FACTOR.ONE_MINUS_SRC_ALPHA;
+      this.mesh.material.blendRGB_ASrc = LMGL.BLENDING_FACTOR.ONE;
+      this.mesh.material.blendRGB_ADst = LMGL.BLENDING_FACTOR.ONE;
       this.mesh.material.depthTest = false;
 
       this.createDiskData();
@@ -163,7 +163,7 @@
             x: diskCenters[i][0] + extraTranslateX,
             y: diskCenters[i][1] + extraTranslateY
           }
-          mesh.geometry.type = lmgl.GEOMETRY_TYPE.TRIANGLE_FAN
+          mesh.geometry.type = LMGL.GEOMETRY_TYPE.TRIANGLE_FAN
           stage.renderer.renderMesh(mesh);
 
           mesh.material.uniforms["color"].value = {
@@ -172,7 +172,7 @@
             z: 0,
             w: 1,
           };
-          mesh.geometry.type = lmgl.GEOMETRY_TYPE.LINE_LOOP
+          mesh.geometry.type = LMGL.GEOMETRY_TYPE.LINE_LOOP
           stage.renderer.renderMesh(mesh);
       }
 
@@ -203,7 +203,7 @@
   // 平面
   class Plane {
     constructor() {
-      const model = lmgl.geometryLib.plane(2);
+      const model = LMGL.geometryLib.plane(2);
       const geo = {
         indices: model.indices,
         attribute: {
@@ -217,7 +217,7 @@
           }
         }
       };
-      const mat = new lmgl.Material({
+      const mat = new LMGL.Material({
         vertexShader: vsPlane,
         fragmentShader: fsPlane,
         uniforms:{
@@ -226,7 +226,7 @@
       });
       mat.needUpdate = true;
 
-      this.mesh = new lmgl.Mesh(geo, mat);
+      this.mesh = new LMGL.Mesh(geo, mat);
     }
   }
 
@@ -241,13 +241,13 @@
       height = window.innerHeight
     })
 
-    stage = new lmgl.Stage()
+    stage = new LMGL.Stage()
     stage.init(document.querySelector("#c"), width, height)
     stage.camera.position.set(0, 0, 10)
 
     // 自定义渲染
     stage.setRenderState(false)
-    const webgl = lmgl.webgl;
+    const webgl = LMGL.webgl;
     const gl = stage.getGl()
 
     const disks = new Disks(stage);
@@ -257,7 +257,7 @@
       w: 512,
       h: 512
     }
-    const renderTarget = new lmgl.RenderTarget(textureSize.w, textureSize.h,{
+    const renderTarget = new LMGL.RenderTarget(textureSize.w, textureSize.h,{
       depth: false
     });
 

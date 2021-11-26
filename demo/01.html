@@ -7,7 +7,7 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
-    import * as lmgl from '../src/lmgl.js'
+    import * as LMGL from '../src/LMGL.js'
 
     const vertexShader = `
     precision mediump float;
@@ -35,7 +35,7 @@
       const height = window.innerHeight
 
       // 创建一个场景
-      stage = new lmgl.Stage();
+      stage = new LMGL.Stage();
       stage.init(document.querySelector("#c"), width, height)
       // 设置相机位置
       stage.camera.position.set(0, 0, 10)
@@ -63,12 +63,12 @@
         uniforms: {
           uColor: {
             type: "v3",
-            value: new lmgl.Vector3(1, 0, 0)
+            value: new LMGL.Vector3(1, 0, 0)
           }
         }
       }
 
-      let mesh = new lmgl.Mesh(geo, mat);
+      let mesh = new LMGL.Mesh(geo, mat);
       stage.add(mesh)
       stage.run()
     }

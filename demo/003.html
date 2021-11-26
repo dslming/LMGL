@@ -7,8 +7,8 @@
     <canvas id="c"></canvas>
   </div>
   <script type="module">
-    import * as lmgl from '../src/lmgl.js'
-    window.lmgl = lmgl;
+    import * as LMGL from '../src/LMGL.js'
+    window.LMGL = LMGL;
 let stage
 
 window.onload = () => {
@@ -16,11 +16,11 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
 
-  stage = new lmgl.Stage()
+  stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  const model = lmgl.geometryLib.plane();
+  const model = LMGL.geometryLib.plane();
   const geo = {
     indices: model.indices,
     attribute: {
@@ -34,13 +34,13 @@ window.onload = () => {
       }
     }
   };
-  const mat = new lmgl.Material(lmgl.shaderLib.lambert(),{
+  const mat = new LMGL.Material(LMGL.shaderLib.lambert(),{
     uniforms: {
       diffuseColor: {value: {x:0,y:0.5,z:0.5}, type:"v3"},
       lightDirction: {value: {x:0,y:0,z:1}, type:"v3"},
     }
   });
-  let mesh = new lmgl.Mesh(geo, mat);
+  let mesh = new LMGL.Mesh(geo, mat);
    stage.addUpdate("loop",()=>{
     mesh.rotation.y += 0.01;
   })
