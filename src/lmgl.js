@@ -73,8 +73,14 @@ export class Stage {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     this.raycaster.setFromCamera(mouse, this.camera);
     const intersections = this.raycaster.intersectObjects(this.children);
-    console.error(intersections);
+    // console.error(intersections);
+    this.clickCb && this.clickCb(intersections)
   }
+
+  setClickCb(cb) {
+    this.clickCb = cb;
+  }
+
   getGl() {
     return this.gl;
   }

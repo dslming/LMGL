@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="content">
+    <canvas id="c"></canvas>
+  </div>
+  <script type="module">
+    import * as lmgl from '../src/lmgl.js'
+
+
+const vertexShader = `
+  precision mediump float;
+  attribute vec3 aPosition;
+
+  uniform mat4 projectionMatrix;
+  uniform mat4 modelViewMatrix;
+
+  void main() {
+   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+  }
+`
+
+const fragmentShader = `
+  precision mediump float;
+	uniform vec3 uColor;
+
+	void main() {
+	  gl_FragColor = vec4(uColor, 1.0);
+	}
+	`
+
+let stage
+
+window.onload = () => {
+  document.title = "拾取"
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  stage = new lmgl.Stage()
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 5)
+
+
+  const z = 0;
+  const geo = {
+    indices: [0, 1, 2],
+    attribute: {
+      aPosition: {
+          value: [
+           0, 1, z,
+           -1., -0.5, z,
+           1., -0.5, z
+          ],
+          itemSize: 3,
+        }
+    }
+  };
+
+  const matInfo = {
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uColor: {
+        type : "v3",
+        value: {x: 1,y:0,z:0}
+      }
+    }
+  }
+
+  function getRandomColor() {
+    return  {
+      x: Math.random(),
+      y: Math.random(),
+      z: Math.random(),
+    }
+  }
+
+  const mat1 = new lmgl.Material(matInfo);
+  const mat2 = new lmgl.Material(matInfo);
+
+  const mesh1 = new lmgl.Mesh(geo, mat1);
+  const mesh2 = new lmgl.Mesh(geo, mat2);
+
+  mesh1.name = "1"
+  mesh2.name = "2"
+
+  mat1.uniforms["uColor"].value = getRandomColor()
+  mat2.uniforms["uColor"].value = getRandomColor()
+
+  mesh1.position.y = -1;
+  mesh2.position.y = 1;
+
+  stage.add(mesh1)
+  stage.add(mesh2)
+
+  // 开启拾取
+  stage.enablePick = true;
+  stage.setClickCb(info=>{
+    if(info.length<1) return;
+    const {name} = info[0].object;
+
+    if(name === "1") {
+      mat1.uniforms["uColor"].value = getRandomColor()
+    } else if(name === "2"){
+      mat2.uniforms["uColor"].value = getRandomColor()
+    }
+  })
+  stage.run()
+}
+
+  </script>
+</body>
+</html>

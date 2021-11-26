@@ -18,6 +18,7 @@ class Mesh {
     this.uuid = MathUtils.generateUUID();
     this.material = material;
     this.geometry = new Geometry(geometryInfo);
+    // VBO 集合
     this.attributeBuffer = {};
     this.matrix = new Matrix4();
     this.normalMatrix = new Matrix3();
@@ -33,7 +34,13 @@ class Mesh {
     this.scale = addProxy(this.scale, this.updateMatrix)
     this.rotation = addProxy(this.rotation, this._onRotationChange)
 
+    const gl = dao.getData("gl");
+    this.VAO = WebGLInterface.createVertexArray(gl);
+    WebGLInterface.bindVertexArray(gl, this.VAO)
     this._buildGeometry()
+    this._setAttributesBuffer()
+    WebGLInterface.bindVertexArray(gl, null)
+    this._disableVertexAttrib();
   }
 
 
@@ -69,18 +76,15 @@ class Mesh {
       this.attributeBuffer[name] = WebGLInterface.createBuffer(gl);
     }
 
+
     // 创建顶点缓冲区
     indices.length>0 && (this.indicesBuffer = WebGLInterface.createBuffer(gl));
   }
 
-  updateMatrix() {
-    this.matrix.compose(this.position, this.quaternion, this.scale);
-  }
-
   // 设置VBO
-  setAttributesBuffer() {
+  _setAttributesBuffer() {
     const { attributeBuffer, indicesBuffer, geometry } = this;
-    const {program} = this.material;
+    const { program } = this.material;
 
     const { indices, attribute } = geometry
     const gl = dao.getData("gl");
@@ -103,26 +107,41 @@ class Mesh {
     if (indices.length > 0) {
       WebGLInterface.setIndicesBuffer(gl, indicesBuffer, indices)
     }
-
-
   }
 
-  disable() {
-    const { attributeBuffer, indicesBuffer, geometry } = this;
-    const { indices, attribute } = geometry
+  _disableVertexAttrib() {
+    const { geometry } = this;
+    const { attribute } = geometry
     const keys = Object.keys(attribute)
     const { program } = this.material;
     const gl = dao.getData("gl");
 
-     for (let i = 0; i < keys.length; i++) {
-       const attribureName = keys[i];
-       const attribure = gl.getAttribLocation(program, attribureName);
-       attribure != -1 && gl.disableVertexAttribArray(attribure);
-     }
+    for (let i = 0; i < keys.length; i++) {
+      const attribureName = keys[i];
+      const attribure = WebGLInterface.getAttribLocation(gl, program, attribureName);
+      attribure != -1 && WebGLInterface.disableVertexAttribArray(gl, attribure);
+    }
+  }
+
+  updateMatrix() {
+    this.matrix.compose(this.position, this.quaternion, this.scale);
+  }
+
+  render() {
+    const gl = dao.getData("gl");
+    WebGLInterface.bindVertexArray(gl, this.VAO);
+  }
+
+  renderAfter() {
+    const gl = dao.getData("gl")
+    WebGLInterface.bindVertexArray(gl, null)
   }
 
   dispose() {
+    const { program } = this.material;
     // todo: 删除vao,vbo...
+    WebGLInterface.deleteProgram(program);
+    WebGLInterface.deleteVertexArray(this.VAO);
   }
 
   raycast(raycaster, intersects) {

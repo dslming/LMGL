@@ -3,7 +3,10 @@ import * as WebGLInterface from '../webgl/index.js'
 import { SIDE, BLENDING_TYPE, BLENDING_FACTOR } from './constants.js'
 export class Material {
   constructor(uniform, shader) {
-    const mat = Object.assign(uniform, shader);
+    let mat = Object.assign(uniform, shader || {});
+    // 深拷贝对象
+    mat = JSON.parse(JSON.stringify(mat))
+
     this.program = this._buildMaterial(mat);
     this.uniforms = mat.uniforms || {};
 
