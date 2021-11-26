@@ -181,9 +181,8 @@
 
     // 渲染深度
     function renderDepth() {
-      // stage.renderer.setRenderTarget(renderTarget);
-      // stage.renderer.clear();
-      stage.renderer.setRenderTarget(null);
+      stage.renderer.setRenderTarget(renderTarget);
+      stage.renderer.clear();
       webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h);
 
       planeMesh.material = depthMat;
@@ -227,14 +226,14 @@
     const radius = 3;
     const lightPosition = new lmgl.Vector3(0,4,-5);
     stage.addUpdate("loop",()=>{
-      // lightPosition.x = radius * Math.sin(time)
-      // lightPosition.z = radius * Math.cos(time)
-      // lightMesh.position.copy(lightPosition);
+      lightPosition.x = radius * Math.sin(time)
+      lightPosition.z = radius * Math.cos(time)
+      lightMesh.position.copy(lightPosition);
       updateLight(lightPosition)
       renderDepth()
-      // renderShadow()
+      renderShadow()
       time += 0.02;
-      // stage.renderer.renderMesh(lightMesh);
+      stage.renderer.renderMesh(lightMesh);
     })
     stage.run()
   }
