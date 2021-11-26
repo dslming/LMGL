@@ -67,6 +67,13 @@ export function setTextureNull(gl, texture, width, height) {
    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
 
+export function setTextureImage2(gl, image, width, height) {
+   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, 34843, width, height, 0, 6407, 5131, image);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+}
+
 // 渲染到cube纹理, 用于离屏渲染
 export function setTextureNullCube(gl, width, height) {
    const cubemapTargets = getCubemapTargets(gl);

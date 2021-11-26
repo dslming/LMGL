@@ -8,37 +8,40 @@
   </div>
   <script type="module">
 import * as LMGL from '../src/LMGL.js';
+import { GUI } from './libs/lil-gui.module.min.js';
 window.LMGL = LMGL;
 // THREE.ACESFilmicToneMapping
 // webgl_tonemapping.html Tone Mapping
+// HDR texture loader
+// sRGBEncoding
 
 const vertexShader = `
   precision mediump float;
   attribute vec3 aPosition;
-
-  attribute vec4 aColor;
-	varying vec4 vColor;
+  attribute vec2 aUv;
+  varying vec2 vUv;
 
   uniform mat4 projectionMatrix;
   uniform mat4 modelViewMatrix;
 
 
   void main() {
-   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-    vColor = aColor;
+    vUv = aUv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
   }
 `
 
 const fragmentShader = `
   precision mediump float;
-	varying vec4 vColor;
+  uniform sampler2D uTexture;
+  varying vec2 vUv;
+
   ${LMGL.modules.toneMapping}
 
 	void main() {
-	  gl_FragColor = vColor;
-    vec3 color = vec3( gl_FragColor.xyz);
-    CustomToneMapping(color);
-    gl_FragColor.xyz = color;
+    gl_FragColor = texture2D(uTexture, vec2(vUv.x, vUv.y));
+    gl_FragColor.xyz = ACESFilmicToneMapping(gl_FragColor.xyz);;
+    // gl_FragColor = vec4(1.);
 	}
 	`
 
@@ -55,46 +58,66 @@ window.onload = () => {
 
   // new LMGL.Axis(100, stage)
 
-  const z = 0;
-  const geo = {
-    indices: [0, 1, 2],
-    attribute: {
-      aPosition: {
-          value: [
-           0, 1, z,
-           -1., -0.5, z,
-           1., -0.5, z
-          ],
-          itemSize: 3
-        },
-        aColor: {
-          value: [
-            1, 0., 0, 1,
-            0., 1, 0., 1,
-            0., 0., 1, 1,
-          ],
-          itemSize: 4
-        }
-    }
-  };
+  const gui = new GUI();
 
-  const matInfo = {
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      toneMappingExposure: {
-        type: "f",
-        value: "1"
-      }
-    }
-  }
 
-  const mat = new LMGL.Material(matInfo);
-  let mesh = new LMGL.Mesh(geo, mat);
   stage.addUpdate("loop",()=>{
     // mesh.rotation.y += 0.01;
   })
-  stage.add(mesh)
+
+  const loader = new LMGL.RGBELoader()
+  loader.load("./images/hdr/memorial.hdr").then(imageTexture=>{
+    // console.error(res);
+    const matInfo = {
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        toneMappingExposure: {
+          type: "f",
+          value: "2"
+        },
+        uTexture: {
+          value: imageTexture.getTexture(),
+          type: "t"
+        }
+      }
+    }
+
+    const dataModel = LMGL.geometryLib.plane(2);
+    const geoInfo = {
+      attribute: {
+        aPosition: {
+          value: dataModel.position,
+          itemSize: 3
+        },
+        aNormal: {
+          value: dataModel.normal,
+          itemSize: 3
+        },
+        aUv: {
+          value: dataModel.uv,
+          itemSize: 2,
+        }
+      },
+      indices: dataModel.indices
+    };
+    const mat = new LMGL.Material(matInfo);
+    let mesh = new LMGL.Mesh(geoInfo, mat);
+
+    const params = {
+      exposure: 2
+    }
+    gui.add( params, 'exposure', 0, 4, 0.01 ).onChange(v=>{
+      // console.error(v);
+      mat.uniforms["toneMappingExposure"].value = v
+    });
+    gui.open();
+
+    stage.add(mesh)
+  }).catch(err=>{
+    console.error(err);
+  })
+
   stage.run()
 }
 

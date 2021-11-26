@@ -34,10 +34,29 @@ const BLENDING_FACTOR = {
   "DST_ALPHA": "DST_ALPHA",
   "ONE_MINUS_DST_ALPHA": "ONE_MINUS_DST_ALPHA",
 }
+
+// number
+const NUMBER_TYPE = {
+  UnsignedByteType: 1009,
+  ByteType: 1010,
+  ShortType: 1011,
+  UnsignedShortType: 1012,
+  IntType: 1013,
+  UnsignedIntType: 1014,
+  FloatType: 1015,
+  HalfFloatType: 1016,
+}
+
+const IMAGE_TYPE = {
+  RGBFormat: 1022,
+  RGBAFormat: 1023
+}
 export {
   SIDE,
   VERSION,
   GEOMETRY_TYPE,
   BLENDING_TYPE,
-  BLENDING_FACTOR
+  BLENDING_FACTOR,
+  NUMBER_TYPE,
+  IMAGE_TYPE
 }

@@ -30,6 +30,7 @@ export { modules }
 
 // loader
 export * from "./loader/ImageLoader.js"
+export * from "./loader/RGBELoader.js"
 
 // math
 import * as MathUtils from './math/MathUtils.js'
