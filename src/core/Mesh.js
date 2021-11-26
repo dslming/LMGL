@@ -130,11 +130,12 @@ class Mesh {
   render() {
     const gl = dao.getData("gl");
     WebGLInterface.bindVertexArray(gl, this.VAO);
+    // this._setAttributesBuffer()
   }
 
   renderAfter() {
     const gl = dao.getData("gl")
-    WebGLInterface.bindVertexArray(gl, null)
+    // WebGLInterface.bindVertexArray(gl, null)
   }
 
   dispose() {
