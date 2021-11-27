@@ -185,12 +185,12 @@
       stage.renderer.clear();
       webgl.setViewPort(gl, shadowmapTextureSize.w, shadowmapTextureSize.h);
 
-      planeMesh.material = depthMat;
+      planeMesh.changeMaterial(depthMat);
       planeMesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
       planeMesh.material.setUniform();
       stage.renderer.renderMesh(planeMesh,lightCamera);
 
-      castMesh.material = depthMat;
+      castMesh.changeMaterial(depthMat);
       castMesh.material.setUniform();
       castMesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
       stage.renderer.renderMesh(castMesh,lightCamera);
@@ -207,14 +207,14 @@
       stage.renderer.clear();
       webgl.setViewPort(gl, width*radio, height*radio);
 
-      planeMesh.material = shadowMapMat;
+      planeMesh.changeMaterial(shadowMapMat);
       planeMesh.material.uniforms["uLightMVP"].value = lightMVPPlane.elements;
       planeMesh.material.uniforms["diffuseColor"].value = {x:0.2,y:0.5,z:0.2}
       planeMesh.material.uniforms["uShadowMap"].value = renderTarget.getTexture();
       planeMesh.material.setUniform();
       stage.renderer.renderMesh(planeMesh);
 
-      castMesh.material = shadowMapMat;
+      castMesh.changeMaterial(shadowMapMat);
       castMesh.material.uniforms["uLightMVP"].value = lightMVPCast.elements;
       castMesh.material.uniforms["diffuseColor"].value = {x:0.8,y:0.5,z:0.5}
       castMesh.material.uniforms["uShadowMap"].value = renderTarget.getTexture();

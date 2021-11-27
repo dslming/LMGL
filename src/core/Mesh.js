@@ -43,6 +43,12 @@ class Mesh {
     this._disableVertexAttrib();
   }
 
+  changeMaterial(material) {
+    const gl = dao.getData("gl");
+    WebGLInterface.bindVertexArray(gl, this.VAO);
+    this.material = material;
+    this._setAttributesBuffer();
+   }
 
   _onRotationChange() {
     this.quaternion.setFromEuler(this.rotation, false);
