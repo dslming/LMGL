@@ -19,4 +19,12 @@ export class ImageTexture {
   getTexture() {
     return this.texture;
   }
+
+  setDataType() {
+    // texture.encoding = RGBEEncoding;
+    // texture.minFilter = NearestFilter;
+    // texture.magFilter = NearestFilter;
+    // texture.generateMipmaps = false;
+    // texture.flipY = true;
+  }
 }

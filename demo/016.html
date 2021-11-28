@@ -38,10 +38,20 @@ const fragmentShader = `
 
   ${LMGL.modules.toneMapping}
 
+  vec4 LinearTosRGB( in vec4 value ) {
+    return vec4( mix( pow( value.rgb, vec3( 0.41666 ) ) * 1.055 - vec3( 0.055 ), value.rgb * 12.92, vec3( lessThanEqual( value.rgb, vec3( 0.0031308 ) ) ) ), value.a );
+  }
+
+
+  vec4 sRGBToLinear( vec4 value ) {
+    return vec4( mix( pow( value.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), value.rgb * 0.0773993808, vec3( lessThanEqual( value.rgb, vec3( 0.04045 ) ) ) ), value.a );
+  }
+
 	void main() {
-    gl_FragColor = texture2D(uTexture, vec2(vUv.x, vUv.y));
-    gl_FragColor.xyz = ACESFilmicToneMapping(gl_FragColor.xyz);;
-    // gl_FragColor = vec4(1.);
+    vec4 texelColor = texture2D(uTexture, vUv );
+    texelColor = LinearTosRGB(texelColor);
+    gl_FragColor = texelColor;
+    gl_FragColor.xyz = ACESFilmicToneMapping(gl_FragColor.xyz);
 	}
 	`
 
@@ -67,7 +77,9 @@ window.onload = () => {
 
   const loader = new LMGL.RGBELoader()
   loader.load("./images/hdr/memorial.hdr").then(imageTexture=>{
-    // console.error(res);
+    // console.error(imageTexture);
+    const {width,height} = imageTexture;
+
     const matInfo = {
       vertexShader,
       fragmentShader,
@@ -83,7 +95,7 @@ window.onload = () => {
       }
     }
 
-    const dataModel = LMGL.geometryLib.plane(2);
+    const dataModel = LMGL.geometryLib.plane(2, 2*height/width);
     const geoInfo = {
       attribute: {
         aPosition: {
