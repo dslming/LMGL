@@ -48,7 +48,9 @@ const fragmentShader = `#version 300 es
       viewDirectionW,
       normal,
       hemisphereLight);
-	  FragColor = vec4(lightInfo.diffuse+lightInfo.specular, 1.);
+    vec3 diffuse = clamp(lightInfo.diffuse, 0., 1.);
+    vec3 specular = clamp(lightInfo.specular, 0., 1.);
+	  FragColor = vec4(diffuse + specular, 1.);
 	}
 	`
 
@@ -78,33 +80,61 @@ window.onload = () => {
     }
   };
 
+  // const matInfo = {
+  //   vertexShader,
+  //   fragmentShader,
+  //   uniforms: {
+  //     uDiffuse: {type:"v3", value: {x:0,y:1,z:0}},
+  //     HemisphereLight: {
+  //       type: "struct",
+  //       value: {
+  //         direction: {
+  //           type: "v3",
+  //           value: {x: -1,y:1,z:0},
+  //         },
+  //         skyColor: {
+  //           type: "v3",
+  //           value: {x: 1,y:0,z:0},
+  //         },
+  //         groundColor: {
+  //           type: "v3",
+  //           value: {x: 0,y:1,z:0},
+  //         },
+  //         specularColor: {
+  //           type: "v4",
+  //           value: {x: 1,y:1,z:1,w: 64},
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
     const matInfo = {
-      vertexShader,
-      fragmentShader,
-      uniforms: {
-        uDiffuse: {type:"v3", value: {x:0,y:1,z:0}},
-        HemisphereLight: {
-          type: "struct",
-          value: {
-            direction: {
-              type: "v3",
-              value: {x: -1,y:1,z:0},
-            },
-            skyColor: {
-              type: "v3",
-              value: {x: 1,y:0,z:0},
-            },
-            groundColor: {
-              type: "v3",
-              value: {x: 0,y:1,z:0},
-            },
-            specularColor: {
-              type: "v4",
-              value: {x: 1,y:1,z:1,w: 64},
-            }
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uDiffuse: {type:"v3", value: {x:1,y:1,z:1}},
+      HemisphereLight: {
+        type: "struct",
+        value: {
+          direction: {
+            type: "v3",
+            value: {x: 0,y:1,z:0},
+          },
+          skyColor: {
+            type: "v3",
+            value: {x: 1,y:1,z:1},
+          },
+          groundColor: {
+            type: "v3",
+            value: {x: 0,y:0,z:0},
+          },
+          specularColor: {
+            type: "v4",
+            value: {x: 1,y:1,z:1,w: 64},
           }
         }
       }
+    }
   }
 
   const mat = new LMGL.Material(matInfo);
