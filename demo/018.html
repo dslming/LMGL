@@ -80,53 +80,25 @@ window.onload = () => {
     }
   };
 
-  // const matInfo = {
-  //   vertexShader,
-  //   fragmentShader,
-  //   uniforms: {
-  //     uDiffuse: {type:"v3", value: {x:0,y:1,z:0}},
-  //     HemisphereLight: {
-  //       type: "struct",
-  //       value: {
-  //         direction: {
-  //           type: "v3",
-  //           value: {x: -1,y:1,z:0},
-  //         },
-  //         skyColor: {
-  //           type: "v3",
-  //           value: {x: 1,y:0,z:0},
-  //         },
-  //         groundColor: {
-  //           type: "v3",
-  //           value: {x: 0,y:1,z:0},
-  //         },
-  //         specularColor: {
-  //           type: "v4",
-  //           value: {x: 1,y:1,z:1,w: 64},
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-    const matInfo = {
+  const matInfo = {
     vertexShader,
     fragmentShader,
     uniforms: {
-      uDiffuse: {type:"v3", value: {x:1,y:1,z:1}},
+      uDiffuse: {type:"v3", value: {x:0,y:1,z:0}},
       HemisphereLight: {
         type: "struct",
         value: {
           direction: {
             type: "v3",
-            value: {x: 0,y:1,z:0},
+            value: {x: -1,y:1,z:0},
           },
           skyColor: {
             type: "v3",
-            value: {x: 1,y:1,z:1},
+            value: {x: 1,y:0,z:0},
           },
           groundColor: {
             type: "v3",
-            value: {x: 0,y:0,z:0},
+            value: {x: 0,y:1,z:0},
           },
           specularColor: {
             type: "v4",
@@ -136,6 +108,34 @@ window.onload = () => {
       }
     }
   }
+    // const matInfo = {
+    //   vertexShader,
+    //   fragmentShader,
+    //   uniforms: {
+    //     uDiffuse: {type:"v3", value: {x:1,y:1,z:1}},
+    //     HemisphereLight: {
+    //       type: "struct",
+    //       value: {
+    //         direction: {
+    //           type: "v3",
+    //           value: {x: 0,y:1,z:0},
+    //         },
+    //         skyColor: {
+    //           type: "v3",
+    //           value: {x: 1,y:1,z:1},
+    //         },
+    //         groundColor: {
+    //           type: "v3",
+    //           value: {x: 0,y:0,z:0},
+    //         },
+    //         specularColor: {
+    //           type: "v4",
+    //           value: {x: 1,y:1,z:1,w: 64},
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
   const mat = new LMGL.Material(matInfo);
   let mesh = new LMGL.Mesh(geo, mat);
