@@ -11,7 +11,6 @@ export function getMaterial() {
       uniform mat3 normalMatrix;
       uniform vec3 lightDirction;
 
-
       varying vec3 vColor;
 
       ${lambert}

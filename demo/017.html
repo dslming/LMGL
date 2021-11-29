@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="content">
+    <canvas id="c"></canvas>
+  </div>
+  <script type="module">
+    import * as LMGL from '../src/LMGL.js'
+    window.LMGL = LMGL;
+let stage
+
+window.onload = () => {
+  document.title = "绘制球"
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  stage = new LMGL.Stage()
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 10)
+
+  const model = LMGL.geometryLib.sphere(1);
+  const geo = {
+    indices: model.indices,
+    attribute: {
+      aPosition: {
+        value: model.position,
+        itemSize: 3
+      },
+      aNormal:{
+        value: model.normal,
+        itemSize: 3
+      }
+    }
+  };
+  const mat = new LMGL.Material(LMGL.shaderLib.lambert(),{
+    uniforms: {
+      diffuseColor: {value: {x:0,y:0.2,z:0.5}, type:"v3"},
+      lightDirction: {value: {x:1,y:0,z:0}, type:"v3"},
+    }
+  });
+  let mesh = new LMGL.Mesh(geo, mat);
+   stage.addUpdate("loop",()=>{
+    // mesh.rotation.y += 0.01;
+  })
+  stage.add(mesh)
+  stage.run()
+}
+
+  </script>
+</body>
+</html>

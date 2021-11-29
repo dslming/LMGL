@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="content">
+    <canvas id="c"></canvas>
+  </div>
+  <script type="module">
+    import * as LMGL from '../src/LMGL.js'
+    window.LMGL = LMGL;
+
+    const vertexShader = `
+  precision mediump float;
+  attribute vec3 aPosition;
+  attribute vec3 aNormal;
+
+	varying vec3 vNormal;
+
+  uniform mat4 projectionMatrix;
+  uniform mat4 modelViewMatrix;
+
+  void main() {
+   vNormal = aNormal;
+   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+  }
+`
+
+const fragmentShader = `
+  precision mediump float;
+	uniform vec3 uDiffuse;
+  uniform mat3 normalMatrix;
+
+	varying vec3 vNormal;
+
+  ${LMGL.modules.hemisphereLight}
+
+	void main() {
+	  gl_FragColor = vec4(uDiffuse, 1.);
+	}
+	`
+
+let stage
+
+window.onload = () => {
+  document.title = "半球光"
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  stage = new LMGL.Stage()
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 10)
+
+  const model = LMGL.geometryLib.sphere(1);
+  const geo = {
+    indices: model.indices,
+    attribute: {
+      aPosition: {
+        value: model.position,
+        itemSize: 3
+      },
+      aNormal:{
+        value: model.normal,
+        itemSize: 3
+      }
+    }
+  };
+
+    const matInfo = {
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uDiffuse: {type:"v3", value: {x:0,y:1,z:0}}
+    }
+  }
+
+  const mat = new LMGL.Material(matInfo);
+  let mesh = new LMGL.Mesh(geo, mat);
+   stage.addUpdate("loop",()=>{
+    // mesh.rotation.y += 0.01;
+  })
+  stage.add(mesh)
+  stage.run()
+}
+
+  </script>
+</body>
+</html>
