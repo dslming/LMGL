@@ -10,12 +10,12 @@
     import * as LMGL from '../src/LMGL.js'
     window.LMGL = LMGL;
 
-    const vertexShader = `
+    const vertexShader = `#version 300 es
   precision mediump float;
-  attribute vec3 aPosition;
-  attribute vec3 aNormal;
+  in vec3 aPosition;
+  in vec3 aNormal;
 
-	varying vec3 vNormal;
+	out vec3 vNormal;
 
   uniform mat4 projectionMatrix;
   uniform mat4 modelViewMatrix;
@@ -26,17 +26,20 @@
   }
 `
 
-const fragmentShader = `
+const fragmentShader = `#version 300 es
   precision mediump float;
 	uniform vec3 uDiffuse;
   uniform mat3 normalMatrix;
-
-	varying vec3 vNormal;
+	in vec3 vNormal;
+  out vec4 FragColor;
 
   ${LMGL.modules.hemisphereLight}
 
+
 	void main() {
-	  gl_FragColor = vec4(uDiffuse, 1.);
+    vec3 normal = normalize(normalMatrix * vNormal);
+    vec3 color = getHemisphereLightIrradiance(hemisphereLight, vNormal);
+	  FragColor = vec4(color, 1.);
 	}
 	`
 
@@ -51,7 +54,7 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  const model = LMGL.geometryLib.sphere(1);
+  const model = LMGL.geometryLib.sphere(2);
   const geo = {
     indices: model.indices,
     attribute: {
@@ -67,17 +70,34 @@ window.onload = () => {
   };
 
     const matInfo = {
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      uDiffuse: {type:"v3", value: {x:0,y:1,z:0}}
-    }
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        uDiffuse: {type:"v3", value: {x:0,y:1,z:0}},
+        HemisphereLight: {
+          type: "struct",
+          value: {
+            direction: {
+              type: "v3",
+              value: {x: -1,y:1,z:0},
+            },
+            skyColor: {
+              type: "v3",
+              value: {x: 1,y:0,z:0},
+            },
+            groundColor: {
+              type: "v3",
+              value: {x: 0,y:1,z:0},
+            },
+          }
+        }
+      }
   }
 
   const mat = new LMGL.Material(matInfo);
   let mesh = new LMGL.Mesh(geo, mat);
    stage.addUpdate("loop",()=>{
-    // mesh.rotation.y += 0.01;
+    // mesh.rotation.y += 0.05;
   })
   stage.add(mesh)
   stage.run()

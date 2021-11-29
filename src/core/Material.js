@@ -32,16 +32,41 @@ export class Material {
     return WebGLInterface.createProgram(gl, mat);
   }
 
+  _handleUniformStruct(structName, obj) {
+    const gl = dao.getData("gl")
+    const { program } = this
+
+    structName = structName.charAt(0).toLowerCase() + structName.slice(1);
+
+    const keys = Object.keys(obj)
+    for (let i = 0; i < keys.length; i++) {
+      const propName = keys[i];
+      const { value, type } = obj[propName]
+      const fullName = `${structName}.${propName}`
+      WebGLInterface.setUniform(gl, program, fullName, value, type, this.texture)
+    }
+  }
+
+  _handleUniform(obj) {
+    const gl = dao.getData("gl")
+    const { program } = this
+
+    const keys = Object.keys(obj)
+    for (let i = 0; i < keys.length; i++) {
+      const name = keys[i]
+      const { value, type } = obj[name]
+      if (type != "struct") {
+        WebGLInterface.setUniform(gl, program, name, value, type, this.texture)
+      } else {
+        this._handleUniformStruct(name, value);
+      }
+    }
+  }
+
   setUniform() {
     const { program, uniforms } = this
     const gl = dao.getData("gl");
     WebGLInterface.useProgram(gl, program);
-
-    const keys = Object.keys(uniforms)
-    for (let i = 0; i < keys.length; i++) {
-      const name = keys[i]
-      const { value, type } = uniforms[name]
-      WebGLInterface.setUniform(gl, program, name, value, type, this.texture)
-    }
+    this._handleUniform(uniforms);
   }
 }
