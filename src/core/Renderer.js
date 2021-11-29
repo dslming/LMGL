@@ -36,14 +36,17 @@ export default class Renderer {
     const modelViewMatrix = new Matrix4()
     modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, mesh.matrix);
     WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4", mesh.name)
-    // console.error(modelViewMatrix);
+
+    const world = new Matrix4()
+    WebGLInterface.setUniform(gl, program, "world", mesh.matrix.elements, "m4", mesh.name)
 
     mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
     WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m3", mesh.name)
 
     let _vector3 = new Vector3();
     _vector3 = _vector3.setFromMatrixPosition(camera.matrixWorld)
-    WebGLInterface.setUniform(gl, program, "cameraPosition", _vector3, "v3", mesh.name)
+    // vEyePosition/cameraPosition
+    WebGLInterface.setUniform(gl, program, "vEyePosition", _vector3, "v3", mesh.name)
 
 
     WebGLInterface.setUniform(gl, program, 'viewMatrix', camera.matrixWorldInverse.elements, "m4", mesh.name);

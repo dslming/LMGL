@@ -16,13 +16,16 @@
   in vec3 aNormal;
 
 	out vec3 vNormal;
+	out vec3 vPositionW;
 
   uniform mat4 projectionMatrix;
   uniform mat4 modelViewMatrix;
+  uniform mat4 world;
 
   void main() {
    vNormal = aNormal;
    gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+   vPositionW = vec3(world * vec4(aPosition, 1.0));
   }
 `
 
@@ -30,7 +33,9 @@ const fragmentShader = `#version 300 es
   precision mediump float;
 	uniform vec3 uDiffuse;
   uniform mat3 normalMatrix;
+  uniform vec3 vEyePosition;
 	in vec3 vNormal;
+  in vec3 vPositionW;
   out vec4 FragColor;
 
   ${LMGL.modules.hemisphereLight}
@@ -38,8 +43,12 @@ const fragmentShader = `#version 300 es
 
 	void main() {
     vec3 normal = normalize(normalMatrix * vNormal);
-    vec3 color = getHemisphereLightIrradiance(hemisphereLight, vNormal);
-	  FragColor = vec4(color, 1.);
+    vec3 viewDirectionW = normalize(vEyePosition-vPositionW);
+    LightInfo lightInfo = getHemisphereLightIrradiance(
+      viewDirectionW,
+      normal,
+      hemisphereLight);
+	  FragColor = vec4(lightInfo.diffuse+lightInfo.specular, 1.);
 	}
 	`
 
@@ -54,7 +63,7 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  const model = LMGL.geometryLib.sphere(2);
+  const model = LMGL.geometryLib.sphere(1.5);
   const geo = {
     indices: model.indices,
     attribute: {
@@ -89,6 +98,10 @@ window.onload = () => {
               type: "v3",
               value: {x: 0,y:1,z:0},
             },
+            specularColor: {
+              type: "v4",
+              value: {x: 1,y:1,z:1,w: 64},
+            }
           }
         }
       }
@@ -97,7 +110,7 @@ window.onload = () => {
   const mat = new LMGL.Material(matInfo);
   let mesh = new LMGL.Mesh(geo, mat);
    stage.addUpdate("loop",()=>{
-    // mesh.rotation.y += 0.05;
+    // mesh.rotation.y += 0.5;
   })
   stage.add(mesh)
   stage.run()
