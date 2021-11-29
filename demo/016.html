@@ -15,11 +15,11 @@ window.LMGL = LMGL;
 // HDR texture loader
 // sRGBEncoding
 
-const vertexShader = `
+const vertexShader = `#version 300 es
   precision mediump float;
-  attribute vec3 aPosition;
-  attribute vec2 aUv;
-  varying vec2 vUv;
+  in vec3 aPosition;
+  in vec2 aUv;
+  out vec2 vUv;
 
   uniform mat4 projectionMatrix;
   uniform mat4 modelViewMatrix;
@@ -31,10 +31,11 @@ const vertexShader = `
   }
 `
 
-const fragmentShader = `
+const fragmentShader = `#version 300 es
   precision mediump float;
   uniform sampler2D uTexture;
-  varying vec2 vUv;
+  in vec2 vUv;
+  out vec4 FragColor;
 
   ${LMGL.modules.toneMapping}
 
@@ -48,10 +49,10 @@ const fragmentShader = `
   }
 
 	void main() {
-    vec4 texelColor = texture2D(uTexture, vUv );
+    vec4 texelColor = texture(uTexture, vUv );
     texelColor = LinearTosRGB(texelColor);
-    gl_FragColor = texelColor;
-    gl_FragColor.xyz = ACESFilmicToneMapping(gl_FragColor.xyz);
+    FragColor = texelColor;
+    FragColor.xyz = ACESFilmicToneMapping(FragColor.xyz);
 	}
 	`
 
@@ -95,7 +96,8 @@ window.onload = () => {
       }
     }
 
-    const dataModel = LMGL.geometryLib.plane(2, 2*height/width);
+    const planeWidth = 1;
+    const dataModel = LMGL.geometryLib.plane(planeWidth, planeWidth*height/width);
     const geoInfo = {
       attribute: {
         aPosition: {

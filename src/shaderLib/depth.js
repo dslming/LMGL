@@ -3,14 +3,14 @@ import common from '../modules/common/common.glsl.js'
 
 
 export function getMaterial() {
-  const vertexShader = `
+  const vertexShader = `#version 300 es
       precision mediump float;
-      attribute vec3 aPosition;
+      in vec3 aPosition;
 
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
       uniform mat4 uLightMVP;
-      varying float vDepth;
+      out float vDepth;
 
       void main() {
       //  gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
@@ -19,9 +19,11 @@ export function getMaterial() {
       }
     `
 
-  const fragmentShader = `
+  const fragmentShader = `#version 300 es
       precision mediump float;
-      varying float vDepth;
+      in float vDepth;
+      out vec4 FragColor;
+
       vec4 pack(float depth) {
         // 使用rgba 4字节共32位来存储z值,1个字节精度为1/256
         const vec4 bitShift = vec4(1.0, 256.0, 256.0 * 256.0, 256.0 * 256.0 * 256.0);
@@ -32,15 +34,8 @@ export function getMaterial() {
         return rgbaDepth;
       }
 
-         vec4 packRGBA(float v) {
-           vec4 pack = fract(vec4(1.0, 255.0, 65025.0, 16581375.0) * v);
-           pack -= pack.yzww * vec2(1.0 / 255.0, 0.0).xxxy;
-           return pack;
-         }
-
       void main() {
-        gl_FragColor = pack(gl_FragCoord.z);
-        //  gl_FragColor = vec4(vDepth, vDepth, vDepth, 1.0);
+        FragColor = pack(gl_FragCoord.z);
       }
       `
   return { vertexShader, fragmentShader }

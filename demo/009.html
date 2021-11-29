@@ -12,11 +12,11 @@
     window.LMGL = LMGL;
 
   // 平面
-  const vsPlane = `
+  const vsPlane = `#version 300 es
     precision mediump float;
-    attribute vec3 aPosition;
-    attribute vec2 aUv;
-    varying vec2 vUv;
+    in vec3 aPosition;
+    in vec2 aUv;
+    out vec2 vUv;
     uniform mat4 projectionMatrix;
     uniform mat4 modelViewMatrix;
 
@@ -26,29 +26,31 @@
     }
   `
 
-  const fsPlane = `
+  const fsPlane = `#version 300 es
     precision mediump float;
-    uniform sampler2D texture;
-    varying vec2 vUv;
+    uniform sampler2D uTexture;
+    in vec2 vUv;
+    out vec4 FragColor;
 
     void main() {
-      gl_FragColor = texture2D(texture, vUv);;
+      FragColor = texture(uTexture, vUv);;
     }
     `
 
   // 程序纹理
-  const vsTexture = `
-      attribute vec2 a_coords;
+  const vsTexture = `#version 300 es
+      in vec2 aCoords;
       uniform vec2 translation;
       void main() {
-          gl_Position = vec4(a_coords + translation, 0, 1);
+        gl_Position = vec4(aCoords + translation, 0, 1);
       }`
 
-  const fsTexture = `
+  const fsTexture = `#version 300 es
       precision mediump float;
       uniform vec4 color;
+      out vec4 FragColor;
       void main() {
-          gl_FragColor = color;
+          FragColor = color;
       }`
 
   let stage
@@ -74,7 +76,7 @@
       const geoInfo = {
         count: 64,
         attribute: {
-          a_coords: {
+          aCoords: {
             value: diskCoords,
             itemSize: 2
           },
@@ -221,7 +223,7 @@
         vertexShader: vsPlane,
         fragmentShader: fsPlane,
         uniforms:{
-          texture: {type: "t", value: null}
+          uTexture: {type: "t", value: null}
         }
       });
       mat.needUpdate = true;
@@ -271,7 +273,7 @@
       webgl.setViewPort(gl, width*radio, height*radio)
       stage.renderer.setRenderTarget(null);
       stage.renderer.clear();
-      plane.mesh.material.uniforms["texture"].value = renderTarget.getTexture();
+      plane.mesh.material.uniforms["uTexture"].value = renderTarget.getTexture();
       stage.renderer.renderMesh(plane.mesh);
 
       plane.mesh.rotation.y += 0.01;

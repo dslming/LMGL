@@ -1,7 +1,11 @@
 #### LMGL
-只支持webgl2, 精简版的three.js
+案例: https://dslming.github.io/LMGL/show.html
 
-例子: https://dslming.github.io/LMGL/show.html
+
+- 精简版的three.js
+- 只支持webgl2
+- 使用glsl es 3.0实现案例
+
 
 todo
 obj gltf

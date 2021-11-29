@@ -10,26 +10,26 @@ export class SkyBox {
   }
 
   async init() {
-    const vertexShaderSourceSB = `
+    const vertexShaderSourceSB = `#version 300 es
         precision mediump float;
-        attribute vec3 aPosition;
+        in vec3 aPosition;
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
         uniform mat3 normalMatrix;
-        varying vec3 vUv;
+        out vec3 vUv;
 
         void main() {
           vUv = aPosition;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
         }`;
-    const fragmentShaderSourceSB = `
+    const fragmentShaderSourceSB = `#version 300 es
           precision mediump float;
-          varying vec3 v_objCoords;
           uniform samplerCube skybox;
-          varying vec3 vUv;
+          in vec3 vUv;
+          out vec4 FragColor;
 
           void main() {
-                gl_FragColor = textureCube(skybox, vUv);
+            FragColor = texture(skybox, vUv);
           }`;
 
     const urls = [

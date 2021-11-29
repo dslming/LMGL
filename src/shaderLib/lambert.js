@@ -1,17 +1,17 @@
 import lambert from '../modules/lambert/lambert.glsl.js';
 
 export function getMaterial() {
-  const vertexShader = `
+  const vertexShader = `#version 300 es
       precision mediump float;
-      attribute vec3 aPosition;
-      attribute vec3 aNormal;
+      in vec3 aPosition;
+      in vec3 aNormal;
 
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
       uniform mat3 normalMatrix;
       uniform vec3 lightDirction;
 
-      varying vec3 vColor;
+      out vec3 vColor;
 
       ${lambert}
 
@@ -23,13 +23,14 @@ export function getMaterial() {
       }
     `
 
-  const fragmentShader = `
+  const fragmentShader = `#version 300 es
       precision mediump float;
       uniform vec3 diffuseColor;
-      varying vec3 vColor;
+      out vec4 FragColor;
+      in vec3 vColor;
 
       void main() {
-        gl_FragColor = vec4(diffuseColor * vColor, 1.);
+        FragColor = vec4(diffuseColor * vColor, 1.);
       }
       `
   return { vertexShader, fragmentShader }

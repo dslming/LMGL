@@ -25,11 +25,11 @@
       let imageTexture = new LMGL.ImageTexture(img)
 
       // 平面
-      const vsPlane = `
+      const vsPlane = `#version 300 es
         precision mediump float;
-        attribute vec3 aPosition;
-        attribute vec2 aUv;
-        varying vec2 vUv;
+        in vec3 aPosition;
+        in vec2 aUv;
+        out vec2 vUv;
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
 
@@ -39,13 +39,14 @@
         }
       `
 
-      const fsPlane = `
+      const fsPlane = `#version 300 es
         precision mediump float;
         uniform sampler2D uTexture;
-        varying vec2 vUv;
+        in vec2 vUv;
+        out vec4 FragColor;
 
         void main() {
-          gl_FragColor = texture2D(uTexture, vec2(vUv.x, vUv.y));
+          FragColor = texture(uTexture, vec2(vUv.x, vUv.y));
         }
         `
 
