@@ -43,7 +43,7 @@ export class Material {
       const propName = keys[i];
       const { value, type } = obj[propName]
       const fullName = `${structName}.${propName}`
-      WebGLInterface.setUniform(gl, program, fullName, value, type, this.texture)
+      WebGLInterface.setUniform(gl, program, fullName, value, type)
     }
   }
 
@@ -51,14 +51,19 @@ export class Material {
     const gl = dao.getData("gl")
     const { program } = this
 
+    let textureId = 0;
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
       const name = keys[i]
       const { value, type } = obj[name]
       if (type != "struct") {
-        WebGLInterface.setUniform(gl, program, name, value, type, this.texture)
+        WebGLInterface.setUniform(gl, program, name, value, type, textureId)
       } else {
         this._handleUniformStruct(name, value);
+      }
+
+      if (type == "t") {
+        textureId += 1;
       }
     }
   }

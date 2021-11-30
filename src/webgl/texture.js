@@ -49,22 +49,24 @@ export function setCubeTextureImage(gl, images, texture) {
 }
 
 // 渲染到纹理, 用于离屏渲染
-export function setTextureNull(gl, texture, width, height) {
+export function setTextureNull(gl, width, height, textureId) {
+   if (textureId == undefined) {
+      textureId = 0;
+   }
   // 如果为true， 则把图片上下对称翻转坐标轴(图片本身不变)
 //   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, texture.flipY);
 
    //  gl.getExtension("OES_texture_float");
    // gl.getExtension("OES_texture_float_linear");
 
-//   activeTexture(gl)
 //   bindTexture(gl, texture)
   //With null as the last parameter, the previous method allocates memory for the texture and fills it with zeros.
    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-   // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-   // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
 
 export function setTextureImage2(gl, image, width, height) {
@@ -104,8 +106,12 @@ export function createTexture(gl) {
    return gl.createTexture();
 }
 
-export function activeTexture(gl) {
-    gl.activeTexture(gl.TEXTURE0);
+export function activeTexture(gl, textureId) {
+   if (textureId == undefined) {
+      gl.activeTexture(gl.TEXTURE0);
+   } else {
+      gl.activeTexture(gl[`TEXTURE${textureId}`]);
+   }
 }
 
 // 绑定纹理对象和纹理单元, 区分普通图像。立方体图像

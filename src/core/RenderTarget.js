@@ -10,7 +10,7 @@ export class RenderTarget {
     const gl = dao.getData("gl");
     this.texture = WebGLInterface.createTexture(gl);
     WebGLInterface.bindTexture(gl, this.texture);
-    WebGLInterface.setTextureNull(gl, this.texture, width, height)
+    WebGLInterface.setTextureNull(gl, width, height)
 
     this.framebuffer = WebGLInterface.createFramebuffer(gl);
     WebGLInterface.bindFramebuffer(gl, this.framebuffer)
@@ -25,7 +25,7 @@ export class RenderTarget {
     }
 
     //  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    // WebGLInterface.bindTexture(gl, null);
+    WebGLInterface.bindTexture(gl, null);
   }
 
   getFrameBuffer() {
