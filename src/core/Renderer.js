@@ -140,6 +140,11 @@ export default class Renderer {
     if (renderTarget) {
       renderTarget.framebuffer && gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.framebuffer);
       renderTarget.renderbuffer && gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.renderbuffer);
+
+      if (renderTarget.drawBuffers) {
+        gl.drawBuffers(renderTarget.drawBuffers);
+      }
+      // gl.drawBuffers(drawBuffers);
       this.currentRenderTarget = renderTarget;
     } else if (this.currentRenderTarget) {
       this.currentRenderTarget.framebuffer && gl.bindFramebuffer(gl.FRAMEBUFFER, null);

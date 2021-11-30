@@ -19,6 +19,7 @@ export * from "./core/ImageCubeTexture.js"
 export * from "./core/Mesh.js"
 export * from "./core/RenderTarget.js"
 export * from "./core/RenderTargetCube.js"
+export * from "./core/MultipleRenderTarget.js"
 export * from "./core/Material.js"
 
 // shader lib
