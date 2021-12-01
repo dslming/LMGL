@@ -104,6 +104,13 @@ export default class Renderer {
       gl.drawArrays(gl.LINES, 0, count);
     }
 
+    // 多采样帧缓冲区
+    if (this.currentRenderTarget && this.currentRenderTarget.isMultisample) {
+      const { width, height } = this.currentRenderTarget
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.currentRenderTarget.multiSampleFrameBuffer);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.currentRenderTarget.normalFrameBuffer);
+      gl.blitFramebuffer(0,0,width, height, 0,0,width,height,gl.COLOR_BUFFER_BIT,gl.NEAREST);
+    }
     mesh.renderAfter()
   }
 
@@ -138,12 +145,16 @@ export default class Renderer {
   setRenderTarget(renderTarget) {
     const gl = dao.getData("gl")
     if (renderTarget) {
-      renderTarget.framebuffer && gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.framebuffer);
-      renderTarget.renderbuffer && gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.renderbuffer);
-
-      if (renderTarget.drawBuffers) {
-        gl.drawBuffers(renderTarget.drawBuffers);
+      if (renderTarget.isMultisample) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.multiSampleFrameBuffer);
+      } else {
+        renderTarget.framebuffer && gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.framebuffer);
+        renderTarget.renderbuffer && gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.renderbuffer);
+        if (renderTarget.drawBuffers) {
+          gl.drawBuffers(renderTarget.drawBuffers);
+        }
       }
+
       // gl.drawBuffers(drawBuffers);
       this.currentRenderTarget = renderTarget;
     } else if (this.currentRenderTarget) {

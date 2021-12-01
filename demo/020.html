@@ -9,8 +9,7 @@
   <script type="module">
 import * as LMGL from '../src/LMGL.js'
 
-
-class Cube {
+class Triangle {
   constructor() {
     const vertexShader = `#version 300 es
       precision mediump float;
@@ -30,37 +29,42 @@ class Cube {
     const fragmentShader = `#version 300 es
       precision mediump float;
       in vec4 vColor;
-      layout(location = 0) out vec4 gColor;
-      layout(location = 1) out vec4 gNormal;
+      out vec4 FragColor;
 
       void main() {
-        gColor = vec4(1.,0.,0.,1.);;
-        gNormal = vec4(0.,1.,0.,1.);;
+        FragColor = vColor;
       }
       `
+      const z = 0;
+      const geo = {
+        indices: [0, 1, 2],
+        attribute: {
+          aPosition: {
+              value: [
+              0, 1, z,
+              -1., -0.5, z,
+              1., -0.5, z
+              ],
+              itemSize: 3
+            },
+            aColor: {
+              value: [
+                1, 0., 0, 1,
+                0., 1, 0., 1,
+                0., 0., 1, 1,
+              ],
+              itemSize: 4
+            }
+        }
+      };
 
-    const dataModel = LMGL.geometryLib.cube(2);
-    const geoInfo = {
-      attribute: {
-        aPosition: {
-          value: dataModel.position,
-          itemSize: 3
-        },
-        aNormal: {
-          value: dataModel.normal,
-          itemSize: 3
-        },
-      },
-      indices: dataModel.indices
-    };
+      const matInfo = {
+        vertexShader,
+        fragmentShader,
+      }
 
-    const matInfo = {
-      vertexShader,
-      fragmentShader,
-    }
-
-    const matNormal = new LMGL.Material(matInfo);
-    this.mesh = new LMGL.Mesh(geoInfo, matNormal);
+      const mat = new LMGL.Material(matInfo);
+      this.mesh = new LMGL.Mesh(geo, mat);
   }
 }
 
@@ -83,16 +87,13 @@ class Plane {
 
     const fs = `#version 300 es
       precision mediump float;
-      uniform sampler2D uTexture0;
-      uniform sampler2D uTexture1;
+      uniform sampler2D uTexture;
       in vec2 vUv;
       out vec4 FragColor;
 
       void main() {
-        vec4 red = texture(uTexture0, vUv);
-        vec4 green = texture(uTexture1, vUv);
-        FragColor.rgb = mix(red.xyz, green.xyz, step( 0.5, vUv.x ) );
-				FragColor.a = 1.0;
+        FragColor = texture(uTexture, vUv);
+        FragColor = vec4(1.0);
       }
       `
     const model = LMGL.geometryLib.plane(1);
@@ -114,8 +115,7 @@ class Plane {
       vertexShader: vs,
       fragmentShader: fs,
       uniforms:{
-        uTexture0: {type: "t", value: null},
-        uTexture1: {type: "t", value: null}
+        uTexture: {type: "t", value: null},
       }
     }
 
@@ -137,7 +137,7 @@ window.onload = () => {
   stage.camera.position.set(0, 0, 5)
 
   // 自定义渲染
-  stage.setRenderState(false)
+  // stage.setRenderState(false)
   const webgl = LMGL.webgl;
   const gl = stage.getGl()
 
@@ -145,33 +145,32 @@ window.onload = () => {
     w: width * ratio,
     h: height * ratio
   }
-  const mrt = new LMGL.MultipleRenderTarget(textureSize.w, textureSize.h,{
-    textureCount: 2,
-    depth: true,
-  });
-  window.mrt = mrt;
+  // const msfb = new LMGL.MultisampleFrameBuffer(textureSize.w, textureSize.h,{
+  //   textureCount: 2,
+  //   depth: true,
+  // });
 
-  const cube = new Cube().mesh;
+  const triangle = new Triangle().mesh;
   const plane = new Plane().mesh;
   const camera = new LMGL.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
-
+  stage.add(plane);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.enable(gl.CULL_FACE);
 
   stage.addUpdate("loop",()=>{
-    stage.renderer.setRenderTarget(mrt);
-    stage.renderer.clear();
-    webgl.setViewPort(gl, textureSize.w, textureSize.h);
-    stage.renderer.renderMesh(cube);
+    // stage.renderer.setRenderTarget(msfb);
+    // stage.renderer.clear();
+    // webgl.setViewPort(gl, textureSize.w, textureSize.h);
+    // stage.renderer.renderMesh(triangle);
 
-    stage.renderer.setRenderTarget(null);
-    stage.renderer.clear();
-    webgl.setViewPort(gl, width, height);
-    plane.material.uniforms["uTexture0"].value = mrt.getTexture()[0]
-    plane.material.uniforms["uTexture1"].value = mrt.getTexture()[1]
-    stage.renderer.renderMesh(plane, camera);
-
-    cube.rotation.y += 0.01;
+    // stage.renderer.setRenderTarget(null);
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.bindTexture(gl.TEXTURE_2D, msfb.getTexture());
+    // stage.renderer.clear();
+    // webgl.setViewPort(gl, width, height);
+    // plane.material.uniforms["uTexture"].value = msfb.getTexture()
+    // stage.renderer.renderMesh(triangle);
   })
-  // stage.add(mesh)
   stage.run()
 }
 

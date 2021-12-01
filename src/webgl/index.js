@@ -6,5 +6,6 @@ export * from "./frameBuffer.js"
 export * from "./renderBuffer.js"
 export * from "./check.js"
 export * from "./material.js"
+export * from "./WebglConst.js"
 
 

@@ -21,6 +21,7 @@ export * from "./core/RenderTarget.js"
 export * from "./core/RenderTargetCube.js"
 export * from "./core/MultipleRenderTarget.js"
 export * from "./core/Material.js"
+export * from "./core/MultisampleFrameBuffer.js"
 
 // shader lib
 import * as shaderLib from "./shaderLib/index.js"
