@@ -13,3 +13,6 @@ export function bindRenderbuffer(gl, renderBuffer, width, height) {
   //设置渲染缓冲对象作为深度附件
   //  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
 }
+
+// 将像素块从读取的帧缓冲区复制到绘制帧缓冲区
+	// _gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, mask, _gl.NEAREST);
