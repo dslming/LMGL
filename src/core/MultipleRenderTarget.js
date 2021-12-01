@@ -20,8 +20,13 @@ export class MultipleRenderTarget {
       for (let i = 0; i < opations.textureCount; i++) {
         this.texture[i] = WebGLInterface.createTexture(gl);
         WebGLInterface.bindTexture(gl, this.texture[i]);
-        WebGLInterface.setTextureNull(gl, this.texture[i], width, height);
-        this.drawBuffers[i] = gl.COLOR_ATTACHMENT0 + i;
+        WebGLInterface.setTextureNull(gl, width, height, i);
+        WebGLInterface.activeTexture(gl, i);
+        WebGLInterface.bindTexture(gl, this.texture[i]);
+
+        const name = gl.COLOR_ATTACHMENT0 + i;
+        this.drawBuffers[i] = name;
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, name, gl.TEXTURE_2D, this.texture[i], 0);
       }
     }
 

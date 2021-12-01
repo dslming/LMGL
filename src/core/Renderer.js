@@ -31,31 +31,31 @@ export default class Renderer {
     // camera.updateMatrix()
     camera.updateMatrixWorld();
 
-    WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4", mesh.name)
+    WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4")
 
     const modelViewMatrix = new Matrix4()
     modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, mesh.matrix);
-    WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4", mesh.name)
+    WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4")
 
     const world = new Matrix4()
-    WebGLInterface.setUniform(gl, program, "world", mesh.matrix.elements, "m4", mesh.name)
+    WebGLInterface.setUniform(gl, program, "world", mesh.matrix.elements, "m4")
 
     mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
-    WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m3", mesh.name)
+    WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m3")
 
     let _vector3 = new Vector3();
     _vector3 = _vector3.setFromMatrixPosition(camera.matrixWorld)
     // vEyePosition/cameraPosition
-    WebGLInterface.setUniform(gl, program, "vEyePosition", _vector3, "v3", mesh.name)
+    WebGLInterface.setUniform(gl, program, "vEyePosition", _vector3, "v3")
 
 
-    WebGLInterface.setUniform(gl, program, 'viewMatrix', camera.matrixWorldInverse.elements, "m4", mesh.name);
+    WebGLInterface.setUniform(gl, program, 'viewMatrix', camera.matrixWorldInverse.elements, "m4");
 
     let _tempMat3 = new Matrix3();
     _tempMat3.setFromMatrix4(camera.matrixWorldInverse).invert();
-    WebGLInterface.setUniform(gl, program, 'inverseViewTransform', _tempMat3.elements, "m3", mesh.name);
+    WebGLInterface.setUniform(gl, program, 'inverseViewTransform', _tempMat3.elements, "m3");
 
-    WebGLInterface.setUniform(gl, program, 'modelMatrix', camera.matrix.elements, "m4", mesh.name);
+    WebGLInterface.setUniform(gl, program, 'modelMatrix', camera.matrix.elements, "m4");
   }
 
   // 根据材质设置webgl状态

@@ -1,22 +1,20 @@
 import error from './ErrorCount.js'
-import { bindCubeTexture, bindTexture } from './texture.js';
+import { bindCubeTexture, bindTexture, activeTexture } from './texture.js';
 
-const moduleName = "uniform"
-export function setUniform(gl, program, name, value, type, meshName) {
+// const moduleName = "uniform"
+export function setUniform(gl, program, name, value, type, textureId) {
+  if (textureId == undefined) {
+    textureId = 0;
+  }
   if (value == null) {
     return;
   }
 
-  const subName = `${name}_${meshName}`
+  // const subName = `${name}_${meshName}`
   // 变量地址
   const addr = gl.getUniformLocation(program, name);
-  if (addr == null && meshName != "" && meshName != undefined) {
-    error.catchError({
-      moduleName: moduleName,
-      subName: subName,
-      info: "不存在...",
-    });
-    return;
+  if (addr == null){
+    return
   }
 
   switch (type) {
@@ -45,8 +43,9 @@ export function setUniform(gl, program, name, value, type, meshName) {
       break
 
     case "t":
+      activeTexture(gl, textureId)
       bindTexture(gl, value)
-      gl.uniform1i(addr, 0);
+      gl.uniform1i(addr, textureId);
       break
 
     case "tcube":
@@ -60,7 +59,7 @@ export function setUniform(gl, program, name, value, type, meshName) {
   }
 
   // 错误只关心mesh有名称的
-  meshName != "" && meshName != undefined && error.clear(moduleName, subName);
+  // meshName != "" && meshName != undefined && error.clear(moduleName, subName);
 }
 
 export function getUniformLocation(gl, program, name) {
