@@ -12,3 +12,13 @@ export function addProxy(proxyObj, setCb, getCb) {
     }
   });
 }
+
+
+export function getName() {
+  const gl = lm.getGl();
+  for (let i in gl) {
+    if (gl[i] == 32849) {
+      console.error(i)
+    }
+  }
+}

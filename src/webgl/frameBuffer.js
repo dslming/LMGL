@@ -19,3 +19,6 @@ export function bindFramebuffer(gl, framebuffer) {
     throw "Some WebGL error occurred while trying to create framebuffer.";
   }
 }
+
+
+	// const maxSamples = isWebGL2 ? gl.getParameter(gl.MAX_SAMPLES) : 0;

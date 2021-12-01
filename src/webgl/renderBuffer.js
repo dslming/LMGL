@@ -8,6 +8,7 @@ export function bindRenderbuffer(gl, renderBuffer, width, height) {
   gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
   if (renderBuffer) {
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+    // gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 2, gl.DEPTH_COMPONENT16, width, height);
   }
 
   //设置渲染缓冲对象作为深度附件
