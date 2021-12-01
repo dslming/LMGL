@@ -11,6 +11,8 @@ https://www.khronos.org/registry/webgl/specs/1.0/#5.10
 webgl lib: https://gitee.com/changjiuxiong/cool.js/tree/sprite/
 https://github.com/greggman/twgl.js
 https://github.com/oframe/ogl/blob/master/src/core/Renderer.js
+https://github.com/ics-creative/web3d-maniacs/
+https://github.com/yiwenl/alfrid
 
 #### 教程
 [webgl 教程](https://math.hws.edu/graphicsbook/c7/s4.html)

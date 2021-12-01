@@ -147,6 +147,7 @@ export default class Renderer {
     if (renderTarget) {
       if (renderTarget.isMultisample) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.multiSampleFrameBuffer);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.renderBufferDepth);
       } else {
         renderTarget.framebuffer && gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget.framebuffer);
         renderTarget.renderbuffer && gl.bindRenderbuffer(gl.RENDERBUFFER, renderTarget.renderbuffer);
@@ -161,6 +162,7 @@ export default class Renderer {
       this.currentRenderTarget.framebuffer && gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       this.currentRenderTarget.renderbuffer && gl.bindRenderbuffer(gl.RENDERBUFFER, null);
       this.currentRenderTarget = null;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     } else {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }

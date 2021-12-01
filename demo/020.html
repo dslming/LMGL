@@ -8,65 +8,40 @@
   </div>
   <script type="module">
 import * as LMGL from '../src/LMGL.js'
+import { GUI } from './libs/lil-gui.module.min.js';
+  // https://github.com/ics-creative/web3d-maniacs/
+  const gui = new GUI();
 
-class Triangle {
+
+class Cube {
   constructor() {
-    const vertexShader = `#version 300 es
-      precision mediump float;
-      in vec3 aPosition;
-      in vec4 aColor;
-      out vec4 vColor;
 
-      uniform mat4 projectionMatrix;
-      uniform mat4 modelViewMatrix;
+    const dataModel = LMGL.geometryLib.cube(2);
+    const geoInfo = {
+      attribute: {
+        aPosition: {
+          value: dataModel.position,
+          itemSize: 3
+        },
+        aNormal: {
+          value: dataModel.normal,
+          itemSize: 3
+        },
+      },
+      indices: dataModel.indices
+    };
 
-      void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-      vColor = aColor;
+    const lambert = LMGL.shaderLib.lambert()
+    const lambertMat = new LMGL.Material({
+      uniforms: {
+        diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
+        lightDirction: {value: {x:0,y:0,z:1}, type:"v3"},
       }
-    `
-
-    const fragmentShader = `#version 300 es
-      precision mediump float;
-      in vec4 vColor;
-      out vec4 FragColor;
-
-      void main() {
-        FragColor = vColor;
-      }
-      `
-      const z = 0;
-      const geo = {
-        indices: [0, 1, 2],
-        attribute: {
-          aPosition: {
-              value: [
-              0, 1, z,
-              -1., -0.5, z,
-              1., -0.5, z
-              ],
-              itemSize: 3
-            },
-            aColor: {
-              value: [
-                1, 0., 0, 1,
-                0., 1, 0., 1,
-                0., 0., 1, 1,
-              ],
-              itemSize: 4
-            }
-        }
-      };
-
-      const matInfo = {
-        vertexShader,
-        fragmentShader,
-      }
-
-      const mat = new LMGL.Material(matInfo);
-      this.mesh = new LMGL.Mesh(geo, mat);
+    },lambert)
+    this.mesh = new LMGL.Mesh(geoInfo, lambertMat);
   }
 }
+
 
 class Plane {
   constructor() {
@@ -86,6 +61,7 @@ class Plane {
     `
 
     const fs = `#version 300 es
+      #define SPILT_NUM 16.0
       precision mediump float;
       uniform sampler2D uTexture;
       in vec2 vUv;
@@ -93,7 +69,7 @@ class Plane {
 
       void main() {
         FragColor = texture(uTexture, vUv);
-        FragColor = vec4(1.0);
+        FragColor.rgb = floor(FragColor.rgb * SPILT_NUM) / SPILT_NUM;
       }
       `
     const model = LMGL.geometryLib.plane(1);
@@ -137,39 +113,51 @@ window.onload = () => {
   stage.camera.position.set(0, 0, 5)
 
   // 自定义渲染
-  // stage.setRenderState(false)
+  stage.setRenderState(false)
   const webgl = LMGL.webgl;
   const gl = stage.getGl()
 
   const textureSize = {
-    w: width * ratio,
-    h: height * ratio
+    w: width,
+    h: height
   }
-  // const msfb = new LMGL.MultisampleFrameBuffer(textureSize.w, textureSize.h,{
-  //   textureCount: 2,
-  //   depth: true,
-  // });
+  const msfb = new LMGL.MultisampleFrameBuffer(textureSize.w, textureSize.h,{
+    numSample: 8,
+    depth: true,
+  });
 
-  const triangle = new Triangle().mesh;
+  const target = new LMGL.RenderTarget(textureSize.w, textureSize.h,{
+    depth: true,
+  });
+
+  const cube = new Cube().mesh;
   const plane = new Plane().mesh;
   const camera = new LMGL.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
-  stage.add(plane);
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.enable(gl.CULL_FACE);
+  const params={
+    multiSamle:true
+  }
+    gui.add( params, 'multiSamle',).onChange(v=>{});
+    gui.open();
 
+    let ttt = null;
   stage.addUpdate("loop",()=>{
-    // stage.renderer.setRenderTarget(msfb);
-    // stage.renderer.clear();
-    // webgl.setViewPort(gl, textureSize.w, textureSize.h);
-    // stage.renderer.renderMesh(triangle);
+    if(params.multiSamle){
+      ttt = msfb;
+    }else {
+      ttt = target;
+    }
+    stage.renderer.setRenderTarget(ttt);
+    stage.renderer.clear();
+    webgl.setViewPort(gl, textureSize.w, textureSize.h);
+    stage.renderer.renderMesh(cube);
 
-    // stage.renderer.setRenderTarget(null);
-    // gl.activeTexture(gl.TEXTURE0);
-    // gl.bindTexture(gl.TEXTURE_2D, msfb.getTexture());
-    // stage.renderer.clear();
-    // webgl.setViewPort(gl, width, height);
-    // plane.material.uniforms["uTexture"].value = msfb.getTexture()
-    // stage.renderer.renderMesh(triangle);
+    stage.renderer.setRenderTarget(null);
+    stage.renderer.clear();
+    webgl.setViewPort(gl, width*ratio, height*ratio);
+    plane.material.uniforms["uTexture"].value = ttt.getTexture()
+    stage.renderer.renderMesh(plane, camera);
+
+    cube.rotation.y += 0.01;
   })
   stage.run()
 }

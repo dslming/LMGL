@@ -22,6 +22,9 @@ export class MultisampleFrameBuffer {
     this._numSample = opations.numSample || 4;
     this.isMultisample = true;
 
+    const maxSamples = gl.getParameter(gl.MAX_SAMPLES);
+    console.log('MAX_SAMPLES: ', maxSamples);
+    this._numSample = Math.min(this._numSample, maxSamples);
     // this.frameBuffer = WebGLInterface.createFramebuffer(gl);
     // this.frameBufferColor = WebGLInterface.createFramebuffer(gl);
 
@@ -56,26 +59,31 @@ export class MultisampleFrameBuffer {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.multiSampleFrameBuffer);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this.multiSampleRenderBuffer);
 
-    // if (this.useDepth) {
-    //   this.renderBufferDepth = WebGLInterface.createRenderbuffer(gl)
-    //   gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderBufferDepth);
-    //   gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._numSample, gl.DEPTH_COMPONENT16, this.width, this.height)
-    // }
+    if (this.useDepth) {
+      this.renderBufferDepth = WebGLInterface.createRenderbuffer(gl)
+      gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderBufferDepth);
+      gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._numSample, gl.DEPTH_COMPONENT16, this.width, this.height)
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderBufferDepth);
+    }
 
     // texture
-    this.texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    // gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA8, this.width, this.height);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this.texelType, null);
+    this.texture = WebGLInterface.createTexture(gl);
+    WebGLInterface.activeTexture(gl)
+     WebGLInterface.bindTexture(gl, this.texture);
+     WebGLInterface.setTextureNull(gl, width, height)
+    // this.texture = gl.createTexture();
+    // gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA8, this.width, this.height);
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, this.texelType, null);
 
     // normal render buffer
     this.normalFrameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.normalFrameBuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
 
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    // gl.bindTexture(gl.TEXTURE_2D, null);
+    // gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
   _createTexture(gl, mInternalformat, mTexelType, mFormat, forceNearest = false) {
