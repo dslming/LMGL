@@ -54,9 +54,9 @@ import * as webgl from './webgl/index.js'
 export { webgl }
 
 export class Stage {
-  constructor() {
+  constructor(cb) {
     window.lm = this
-
+    this.failCallback = cb;
     this.enablePick = false;
     this.children = []
     this.gl = null
@@ -111,6 +111,12 @@ export class Stage {
   init(...param) {
     this.renderer = new Renderer(...param)
     this.gl = this.renderer.getContext()
+    if (!this.gl) {
+      this.failCallback && this.failCallback({
+        errorCode: 0,
+        desc: "不支持webgl2"
+      });
+    }
     this.camera = new PerspectiveCamera(75, param[1] / param[2], 1, 1000)
 
     this.control = new MyOrbitControls(this.camera, param[0])

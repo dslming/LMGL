@@ -3,6 +3,7 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+  <div class="fail"><div class="txt-content">不支持webgl2, 请使用chrome</div></div>
   <div class="content">
     <canvas id="c"></canvas>
   </div>
@@ -108,7 +109,9 @@ window.onload = () => {
   const height = window.innerHeight
   const ratio = window.devicePixelRatio;
 
-  stage = new LMGL.Stage()
+  stage = new LMGL.Stage((info)=>{
+    document.querySelector(".fail").style.display = "flex"
+  })
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 5)
 
