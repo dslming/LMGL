@@ -3,11 +3,9 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <div class="fail"><div class="content">不支持webgl2, 请使用chrome</div></div>
+  <webgl-component></webgl-component>
+  <script src="./webgl_component.js"></script>
 
-  <div class="content">
-    <canvas id="c"></canvas>
-  </div>
   <script type="module">
     import * as LMGL from '../src/LMGL.js'
 
@@ -89,9 +87,7 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
 
-   stage = new LMGL.Stage((info)=>{
-    document.querySelector(".fail").style.display = "flex"
-  })
+   stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 5)
 

@@ -116,6 +116,8 @@ export class Stage {
         errorCode: 0,
         desc: "不支持webgl2"
       });
+      const fail = document.querySelector(".fail")
+      fail && (fail.style.display = "flex")
     }
     this.camera = new PerspectiveCamera(75, param[1] / param[2], 1, 1000)
 
