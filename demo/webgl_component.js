@@ -6,7 +6,7 @@ class ComponentTemplate extends HTMLElement {
     container.innerHTML = `
         <div class="fail">
           <div class="text">
-            不支持webgl2, 请使用chrome</div>
+            不支持webgl2, 请更换平台或者浏览器</div>
           </div>
         <canvas id="c"></canvas>
       `

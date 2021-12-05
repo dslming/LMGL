@@ -32,7 +32,6 @@
 const fragmentShader = `#version 300 es
   precision mediump float;
 	uniform vec3 uDiffuse;
-  // uniform mat3 normalMatrix;
   uniform vec3 vEyePosition;
   uniform mat4 world;
 
@@ -41,6 +40,7 @@ const fragmentShader = `#version 300 es
   out vec4 FragColor;
 
   ${LMGL.modules.pointLight}
+  uniform PointLight pointLight;
 
 
 	void main() {

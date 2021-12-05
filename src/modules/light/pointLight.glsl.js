@@ -37,9 +37,10 @@ struct GeometricContext {
 struct LightingInfo {
   vec3 diffuse;
   vec3 specular;
+  float distance;
 };
 
-uniform PointLight pointLight;
+
 
 float getDistanceAttenuation(
   const in float lightDistance,
@@ -68,28 +69,17 @@ LightingInfo computeLighting(
     float attenuation = 1.0;
 
     vec3 direction = lightData.xyz-vPositionW;
-    attenuation = max(0., 1.0-length(direction)/range);
+    result.distance = length(direction);
     lightVectorW = normalize(direction);
+    attenuation = max(0., 1.0-length(direction)/range);
+    float lightDistance = length(direction);
     float ndl = max(0., dot(vNormal, lightVectorW));
-    result.diffuse = ndl*diffuseColor*attenuation;
+    result.diffuse = saturate(ndl) * diffuseColor * attenuation;
+
     vec3 angleW = normalize(viewDirectionW+lightVectorW);
     float specComp = max(0., dot(vNormal, angleW));
     specComp = pow(specComp, max(1., glossiness));
     result.specular = specComp*specularColor*attenuation;
     return result;
 }
-
-// void getPointLightInfo(
-//   const in PointLight pointLight,
-//   const in GeometricContext geometry,
-//   out IncidentLight light
-// ) {
-//   vec3 lVector = pointLight.position - geometry.position;
-//   light.direction = normalize( lVector );
-//   float lightDistance = length( lVector );
-//   light.color = pointLight.color;
-//   light.color *= getDistanceAttenuation( lightDistance, pointLight.distance, pointLight.decay );
-//   light.visible = ( light.color != vec3( 0.0 ) );
-// }
-
 `

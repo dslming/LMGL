@@ -47,6 +47,38 @@ export class Material {
     }
   }
 
+  // 参考例子022.html
+  // eg: name=pointLights, content=pointLights.value
+  // uniforms = {
+  //   pointLights: {
+  //     type: "array",
+  //     value: (2)[{…}, {…}]
+  //   }
+  // }
+  _handleUniformArray(name, content) {
+    const gl = dao.getData("gl")
+    const { program } = this
+
+    const array = content;
+    for (let i = 0; i < array.length; i++) {
+      let baseName = `${name}[${i}]`;
+      const item = array[i];
+      if (item.type == "struct") {
+        const keys = Object.keys(item.value)
+        for (let j = 0; j < keys.length; j++) {
+          const key = keys[j];
+          const properties = item.value[key]
+          const { value, type } = properties;
+          const addrName = baseName + `.${key}`
+          WebGLInterface.setUniform(gl, program, addrName, value, type)
+        }
+      } else {
+        const addrName = baseName
+        WebGLInterface.setUniform(gl, program, addrName, item.value, item.type)
+      }
+    }
+  }
+
   _handleUniform(obj) {
     const gl = dao.getData("gl")
     const { program } = this
@@ -56,10 +88,12 @@ export class Material {
     for (let i = 0; i < keys.length; i++) {
       const name = keys[i]
       const { value, type } = obj[name]
-      if (type != "struct") {
-        WebGLInterface.setUniform(gl, program, name, value, type, textureId)
-      } else {
+     if (type == "struct") {
         this._handleUniformStruct(name, value);
+      } else if (type == "array") {
+       this._handleUniformArray(name, value);
+      } else {
+        WebGLInterface.setUniform(gl, program, name, value, type, textureId)
       }
 
       if (type == "t") {
