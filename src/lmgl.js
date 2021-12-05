@@ -1,6 +1,7 @@
 // camera
 import { PerspectiveCamera } from './camera/PerspectiveCamera.js'
 import MyOrbitControls from './camera-control/MyOrbitControls.js'
+import { CameraControl } from './camera-control/CameraControl.js'
 export * from "./camera/CubeCamera.js"
 export * from "./camera/PerspectiveCamera.js"
 export * from "./camera/OrthographicCamera.js"
@@ -121,6 +122,9 @@ export class Stage {
     }
     this.camera = new PerspectiveCamera(75, param[1] / param[2], 1, 1000)
 
+    // this.control = new CameraControl({
+    //   distance: this.camera.position.z,
+    // }, this.camera, param[0])
     this.control = new MyOrbitControls(this.camera, param[0])
 
     dao.setData({ name: "gl", data: this.gl })

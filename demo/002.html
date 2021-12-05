@@ -35,48 +35,48 @@ class Triangle {
         FragColor = vColor;
       }
       `
-      const z = 0;
-      const r = 2;
-      const RAD = Math.PI / 180;
-      const t1 = 90 * RAD;
-      const t2 = t1 + 120 * RAD;
-      const t3 = t2 + 120 * RAD;
+    const z = 0;
+    const r = 2;
+    const RAD = Math.PI / 180;
+    const t1 = 90 * RAD;
+    const t2 = t1 + 120 * RAD;
+    const t3 = t2 + 120 * RAD;
 
-      const geo = {
-        indices: [0, 1, 2],
-        attribute: {
-          aPosition: {
-              value: [
-                r * Math.cos(t1),
-                r * Math.sin(t1),
-                z,
-                r * Math.cos(t2),
-                r * Math.sin(t2),
-                z,
-                r * Math.cos(t3),
-                r * Math.sin(t3),
-                z
-              ],
-              itemSize: 3
-            },
-            aColor: {
-              value: [
-                1, 0., 0, 1,
-                0., 1, 0., 1,
-                0., 0., 1, 1,
-              ],
-              itemSize: 4
-            }
-        }
-      };
-
-      const matInfo = {
-        vertexShader,
-        fragmentShader,
+    const geo = {
+      indices: [0, 1, 2],
+      attribute: {
+        aPosition: {
+            value: [
+              r * Math.cos(t1),
+              r * Math.sin(t1),
+              z,
+              r * Math.cos(t2),
+              r * Math.sin(t2),
+              z,
+              r * Math.cos(t3),
+              r * Math.sin(t3),
+              z
+            ],
+            itemSize: 3
+          },
+          aColor: {
+            value: [
+              1, 0., 0, 1,
+              0., 1, 0., 1,
+              0., 0., 1, 1,
+            ],
+            itemSize: 4
+          }
       }
+    };
 
-      const mat = new LMGL.Material(matInfo);
-      this.mesh = new LMGL.Mesh(geo, mat);
+    const matInfo = {
+      vertexShader,
+      fragmentShader,
+    }
+
+    const mat = new LMGL.Material(matInfo);
+    this.mesh = new LMGL.Mesh(geo, mat);
   }
 }
 
@@ -87,7 +87,7 @@ window.onload = () => {
   const width = window.innerWidth
   const height = window.innerHeight
 
-   stage = new LMGL.Stage()
+  stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 5)
 

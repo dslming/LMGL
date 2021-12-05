@@ -1,3 +1,5 @@
+web 组件库 https://polymer-library.polymer-project.org/3.0/docs/first-element/step-2
+
 dx10 教程: https://www.rastertek.com/tutdx10.html
 opengl https://ogldev.org/
 

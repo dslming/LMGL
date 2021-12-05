@@ -17,10 +17,13 @@ struct LightInfo {
 
 uniform HemisphereLight hemisphereLight;
 
+// bbl.js computeHemisphericLighting
+// three.js getHemisphereLightIrradiance
 LightInfo getHemisphereLightIrradiance(
   vec3 viewDirectionW,
   vec3 normal,
-  HemisphereLight hemiLight) {
+  HemisphereLight hemiLight
+  ) {
 
   LightInfo result;
   float glossiness = hemisphereLight.specularColor.a;

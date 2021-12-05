@@ -22,3 +22,8 @@ export function getName() {
     }
   }
 }
+
+
+export function zTween(_val, _target, _ratio) {
+  return Math.abs(_target - _val) < 0.00001 ? _target : _val + (_target - _val) * Math.min(_ratio, 1);
+}

@@ -6,9 +6,9 @@ export function getMaterial() {
       in vec3 aPosition;
       in vec3 aNormal;
 
+      uniform mat4 world;
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
-      uniform mat3 normalMatrix;
       uniform vec3 lightDirction;
 
       out vec3 vColor;
@@ -16,10 +16,11 @@ export function getMaterial() {
       ${lambert}
 
       void main() {
-       gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-       vec3 normal = normalize(normalMatrix * aNormal);
-       vColor = lambert(normal, lightDirction);
-       vColor += 0.5;
+        mat3 normalWorld = mat3(world);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+        vec3 normal = normalize(normalWorld * aNormal);
+        vColor = lambert(normal, lightDirction);
+        vColor += 0.5;
       }
     `
 

@@ -18,7 +18,7 @@ window.onload = () => {
 
   stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.position.set(0, 0, 10)
+  stage.camera.position.set(0, 0, 5)
 
   const model = LMGL.geometryLib.sphere(1);
   const geo = {
@@ -34,6 +34,7 @@ window.onload = () => {
       }
     }
   };
+
   const mat = new LMGL.Material(LMGL.shaderLib.lambert(),{
     uniforms: {
       diffuseColor: {value: {x:0,y:0.2,z:0.5}, type:"v3"},
@@ -41,10 +42,19 @@ window.onload = () => {
     }
   });
   let mesh = new LMGL.Mesh(geo, mat);
-   stage.addUpdate("loop",()=>{
-    // mesh.rotation.y += 0.01;
+
+
+  stage.addUpdate("loop",()=>{
   })
+
   stage.add(mesh)
+
+  // 添加坐标轴
+  const axis = new LMGL.meshLib.Axis(100)
+  stage.add(axis.meshX)
+  stage.add(axis.meshY)
+  stage.add(axis.meshZ)
+
   stage.run()
 }
 

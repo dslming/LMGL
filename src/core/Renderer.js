@@ -24,12 +24,12 @@ export default class Renderer {
     const gl = dao.getData("gl")
     camera = camera || dao.getData("camera")
 
+    camera.updateMatrix()
+    camera.updateMatrixWorld();
     camera.updateProjectionMatrix()
     // camera.updateWorldMatrix()
-    camera.updateMatrix()
     // camera.updateProjectionMatrix()
     // camera.updateMatrix()
-    camera.updateMatrixWorld();
 
     WebGLInterface.setUniform(gl, program, "projectionMatrix", camera.projectionMatrix.elements, "m4")
 
@@ -37,9 +37,11 @@ export default class Renderer {
     modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, mesh.matrix);
     WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4")
 
-    const world = new Matrix4()
+    // const world = new Matrix4()
+    WebGLInterface.setUniform(gl, program, "world", mesh.matrix.elements, "m4")
     WebGLInterface.setUniform(gl, program, "world", mesh.matrix.elements, "m4")
 
+    // 法线: world -> eye
     mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
     WebGLInterface.setUniform(gl, program, "normalMatrix", mesh.normalMatrix.elements, "m3")
 
@@ -138,7 +140,7 @@ export default class Renderer {
 
   clear() {
      const gl = dao.getData("gl")
-     gl.clearColor(0, 0, 0, 1.0);
+     gl.clearColor(0.2, 0.19, 0.3, 1.0);
      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   }
 

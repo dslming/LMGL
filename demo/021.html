@@ -40,27 +40,24 @@ const fragmentShader = `#version 300 es
   in vec3 vPositionW;
   out vec4 FragColor;
 
-  ${LMGL.modules.hemisphereLight}
+  ${LMGL.modules.pointLight}
 
 
 	void main() {
     mat3 normalWorld = mat3(world);
     vec3 normal = normalize(normalWorld * vNormal);
     vec3 viewDirectionW = normalize(vEyePosition-vPositionW);
-    LightInfo lightInfo = getHemisphereLightIrradiance(
-      viewDirectionW,
-      normal,
-      hemisphereLight);
-    vec3 diffuse = clamp(lightInfo.diffuse, 0., 1.);
-    vec3 specular = clamp(lightInfo.specular, 0., 1.);
-	  FragColor = vec4(diffuse + specular, 1.);
+    LightingInfo lightingInfo = computeLighting(viewDirectionW, normal, pointLight);
+    vec3 diffuse = clamp(lightingInfo.diffuse, 0., 1.);
+    vec3 specular = clamp(lightingInfo.specular, 0., 1.);
+	  FragColor = vec4(specular + diffuse, 1.);
 	}
 	`
 
 let stage
 
 window.onload = () => {
-  document.title = "半球光"
+  document.title = "点光源"
   const width = window.innerWidth
   const height = window.innerHeight
 
@@ -68,7 +65,7 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 10)
 
-  const model = LMGL.geometryLib.sphere(1.5);
+  const model = LMGL.geometryLib.sphere(2);
   const geo = {
     indices: model.indices,
     attribute: {
@@ -87,72 +84,45 @@ window.onload = () => {
     vertexShader,
     fragmentShader,
     uniforms: {
-      uDiffuse: {type:"v3", value: {x:0,y:1,z:0}},
-      HemisphereLight: {
+      PointLight: {
         type: "struct",
         value: {
-          direction: {
+          position: {
             type: "v3",
-            value: {x: -1,y:1,z:0},
+            value: {x: 0,y:5,z:0},
           },
-          skyColor: {
+          diffuseColor: {
             type: "v3",
             value: {x: 1,y:0,z:0},
           },
-          groundColor: {
+          specularColor: {
             type: "v3",
             value: {x: 0,y:1,z:0},
           },
-          specularColor: {
-            type: "v4",
-            value: {x: 1,y:1,z:1,w: 64},
+          distance: {
+            type: "f",
+            value: Number.MAX_VALUE,
           }
         }
       }
     }
   }
-    // const matInfo = {
-    //   vertexShader,
-    //   fragmentShader,
-    //   uniforms: {
-    //     uDiffuse: {type:"v3", value: {x:1,y:1,z:1}},
-    //     HemisphereLight: {
-    //       type: "struct",
-    //       value: {
-    //         direction: {
-    //           type: "v3",
-    //           value: {x: 0,y:1,z:0},
-    //         },
-    //         skyColor: {
-    //           type: "v3",
-    //           value: {x: 1,y:1,z:1},
-    //         },
-    //         groundColor: {
-    //           type: "v3",
-    //           value: {x: 0,y:0,z:0},
-    //         },
-    //         specularColor: {
-    //           type: "v4",
-    //           value: {x: 1,y:1,z:1,w: 64},
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
 
   const mat = new LMGL.Material(matInfo);
   let mesh = new LMGL.Mesh(geo, mat);
-   stage.addUpdate("loop",()=>{
+  mesh.position.z = 0;
+  stage.addUpdate("loop",()=>{
     // mesh.rotation.y += 0.5;
   })
   stage.add(mesh)
-  stage.run()
 
   // 添加坐标轴
   const axis = new LMGL.meshLib.Axis(100)
   stage.add(axis.meshX)
   stage.add(axis.meshY)
   stage.add(axis.meshZ)
+
+  stage.run()
 }
 
   </script>
