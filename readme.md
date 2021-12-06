@@ -27,7 +27,10 @@
 - [ ] obj
 - [ ] gltf
 
-##### 材质
+##### 材质(光照模型)
+- MeshLambertMaterial
+- MeshPhongMaterial
+- MeshToonMaterial
 - [x] 反射
 - [ ] 折射
 - [ ] 法线贴图

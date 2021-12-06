@@ -42,17 +42,6 @@ struct LightingInfo {
 
 
 
-float getDistanceAttenuation(
-  const in float lightDistance,
-  const in float cutoffDistance,
-  const in float decayExponent
-  ) {
-  if ( cutoffDistance > 0.0 && decayExponent > 0.0 ) {
-    return pow( saturate( - lightDistance / cutoffDistance + 1.0 ), decayExponent );
-  }
-  return 1.0;
-}
-
 LightingInfo computeLighting(
   vec3 viewDirectionW,
   vec3 vNormal,

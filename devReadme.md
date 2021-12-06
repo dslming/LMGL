@@ -33,3 +33,16 @@ http://media.tojicode.com/webgl-samples/depth-texture.html
 
 todo:
 - 视锥剔除 https://www.cnblogs.com/linuxheik/articles/10882474.html
+
+
+#### three.js shaderlib
+- lights_pars_begin.glsl 灯光的定义
+- lights_fragment_begin.glsl 热插拔灯光模板
+- lights_fragment_end.glsl 热插拔灯光模板
+
+
+irradiance 辐照度
+IncidentLight 入射光
+
+RE_Direct 渲染方程-直接光照
+RE_IndirectDiffuse 渲染方程-间接光照
