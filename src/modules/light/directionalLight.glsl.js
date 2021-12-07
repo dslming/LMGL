@@ -1,6 +1,8 @@
 // phong 光照模型
 
-export function getLightInfo(lightCount) {
+export function getLight(lightCount) {
+  if (lightCount == 0) return "";
+
   return `
   // three.js
   struct DirectionalLight {

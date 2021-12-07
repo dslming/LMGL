@@ -7,56 +7,8 @@
   <script src="./webgl_component.js"></script>
 
   <script type="module">
-    import * as LMGL from '../src/LMGL.js'
-    window.LMGL = LMGL;
-
-
-    const vertexShader = `#version 300 es
-  precision mediump float;
-  in vec3 aPosition;
-  in vec3 aNormal;
-
-	out vec3 vNormal;
-	out vec3 vPositionW;
-
-  uniform mat4 projectionMatrix;
-  uniform mat4 modelViewMatrix;
-  uniform mat4 world;
-
-  void main() {
-   vNormal = aNormal;
-   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-   vPositionW = vec3(world * vec4(aPosition, 1.0));
-  }
-`
-
-const fragmentShader = `#version 300 es
-  precision mediump float;
-	uniform vec3 uDiffuse;
-  // uniform mat3 normalMatrix;
-  uniform vec3 vEyePosition;
-  uniform mat4 world;
-
-	in vec3 vNormal;
-  in vec3 vPositionW;
-  out vec4 FragColor;
-
-  ${LMGL.modules.hemisphereLight}
-
-
-	void main() {
-    mat3 normalWorld = mat3(world);
-    vec3 normal = normalize(normalWorld * vNormal);
-    vec3 viewDirectionW = normalize(vEyePosition-vPositionW);
-    LightInfo lightInfo = getHemisphereLightIrradiance(
-      viewDirectionW,
-      normal,
-      hemisphereLight);
-    vec3 diffuse = clamp(lightInfo.diffuse, 0., 1.);
-    vec3 specular = clamp(lightInfo.specular, 0., 1.);
-	  FragColor = vec4(diffuse + specular, 1.);
-	}
-	`
+import * as LMGL from '../src/LMGL.js'
+window.LMGL = LMGL;
 
 let stage
 
@@ -84,64 +36,37 @@ window.onload = () => {
     }
   };
 
-  const matInfo = {
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      uDiffuse: {type:"v3", value: {x:0,y:1,z:0}},
-      HemisphereLight: {
-        type: "struct",
-        value: {
-          direction: {
-            type: "v3",
-            value: {x: -1,y:1,z:0},
-          },
-          skyColor: {
-            type: "v3",
-            value: {x: 1,y:0,z:0},
-          },
-          groundColor: {
-            type: "v3",
-            value: {x: 0,y:1,z:0},
-          },
-          specularColor: {
-            type: "v4",
-            value: {x: 1,y:1,z:1,w: 64},
+  const lightInfo = {
+    hemisphereLights: {
+      type: "array",
+       value: [
+        {
+          type: "struct",
+          value: {
+            directionWorld: {
+              type: "v3",
+              value: {x: -1,y:1,z:0},
+            },
+            skyColor: {
+              type: "v3",
+              value: {x: 1,y:0,z:0},
+            },
+            groundColor: {
+              type: "v3",
+              value: {x: 0,y:1,z:0},
+            },
+            specularColor: {
+              type: "v4",
+              value: {x: 1,y:1,z:1,w: 64},
+            }
           }
         }
-      }
+      ]
     }
-  }
-    // const matInfo = {
-    //   vertexShader,
-    //   fragmentShader,
-    //   uniforms: {
-    //     uDiffuse: {type:"v3", value: {x:1,y:1,z:1}},
-    //     HemisphereLight: {
-    //       type: "struct",
-    //       value: {
-    //         direction: {
-    //           type: "v3",
-    //           value: {x: 0,y:1,z:0},
-    //         },
-    //         skyColor: {
-    //           type: "v3",
-    //           value: {x: 1,y:1,z:1},
-    //         },
-    //         groundColor: {
-    //           type: "v3",
-    //           value: {x: 0,y:0,z:0},
-    //         },
-    //         specularColor: {
-    //           type: "v4",
-    //           value: {x: 1,y:1,z:1,w: 64},
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+  };
 
-  const mat = new LMGL.Material(matInfo);
+  const shader = LMGL.shaderLib.phong(lightInfo);
+  const mat = new LMGL.Material(shader);
   let mesh = new LMGL.Mesh(geo, mat);
    stage.addUpdate("loop",()=>{
     // mesh.rotation.y += 0.5;

@@ -1,6 +1,7 @@
 import lightDefine from '../modules/light/lightDefine.glsl.js'
-import { getLightInfo } from '../modules/light/directionalLight.glsl.js';
-import lambert from '../modules/lambert/lambert.glsl.js';
+import { getLight as directionLight} from '../modules/light/directionalLight.glsl.js';
+import { getLight as hemisphereLight } from '../modules/light/hemisphereLight.glsl.js';
+
 import { pauseLight } from './pauseLight.js';
 
 /**
@@ -11,7 +12,10 @@ import { pauseLight } from './pauseLight.js';
  * @returns
  */
 export function getMaterial(lightInfo) {
-  const { directionLightCount } = pauseLight(lightInfo);
+  const {
+    directionLightCount,
+    hemisphereLightsCount,
+  } = pauseLight(lightInfo);
 
   const vertexShader = `#version 300 es
       precision mediump float;
@@ -35,6 +39,7 @@ export function getMaterial(lightInfo) {
   const fragmentShader = `#version 300 es
       precision mediump float;
       #define NUM_DIR_LIGHTS ${directionLightCount}
+      #define NUM_HEMI_LIGHTS ${hemisphereLightsCount}
 
       uniform mat4 world;
       uniform vec3 diffuseColor;
@@ -46,8 +51,9 @@ export function getMaterial(lightInfo) {
       in vec3 vNormal;
 
       ${lightDefine}
+      ${directionLight(directionLightCount)}
+      ${hemisphereLight(hemisphereLightsCount)}
 
-      ${getLightInfo(directionLightCount)}
 
       void main() {
         mat3 normalMatrix = mat3(world);
@@ -66,6 +72,15 @@ export function getMaterial(lightInfo) {
           lightingInfo = computeLighting(geometry, directionalLights[i]);
           diffuseBase += lightingInfo.diffuse;
           specularBase += lightingInfo.specular;
+        }
+        #endif
+
+        // 半球光
+        #if ( NUM_HEMI_LIGHTS > 0 )
+        for (int i = 0; i < NUM_HEMI_LIGHTS; i++) {
+          lightingInfo = computeHemisphericLighting(geometry, hemisphereLights[i]);
+          diffuseBase += clamp(lightingInfo.diffuse, 0., 1.);
+          specularBase += clamp(lightingInfo.specular, 0., 1.);
         }
         #endif
 

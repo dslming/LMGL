@@ -1,43 +1,38 @@
 // HemisphereLight three.js
 // computeHemisphericLighting babylong.js
+export function getLight(lightCount) {
+  if (lightCount == 0) return "";
 
-export default `
-
+  return `
 struct HemisphereLight {
-  vec3 direction;
+  vec3 directionWorld;
   vec3 skyColor;
   vec3 groundColor;
   vec4 specularColor;
 };
 
-struct LightInfo {
-  vec3 diffuse;
-  vec3 specular;
-};
+ uniform HemisphereLight hemisphereLights[${lightCount}];
 
-uniform HemisphereLight hemisphereLight;
-
-// bbl.js computeHemisphericLighting
-// three.js getHemisphereLightIrradiance
-LightInfo getHemisphereLightIrradiance(
-  vec3 viewDirectionW,
-  vec3 normal,
-  HemisphereLight hemiLight
+  LightingInfo computeHemisphericLighting(
+    GeometricContext geometry,
+    HemisphereLight light
   ) {
+    LightingInfo result;
 
-  LightInfo result;
-  float glossiness = hemisphereLight.specularColor.a;
+    vec3 N = geometry.normalWorld;
+    vec3 L = light.directionWorld;
+    float dotNL = dot(L, N);
+    float hemiDiffuseWeight = 0.5 * dotNL + 0.5;
 
-  float dotNL = dot(normal, hemiLight.direction);
-  float hemiDiffuseWeight = 0.5 * dotNL + 0.5;
+    vec3 diffuse = mix(light.groundColor, light.skyColor, hemiDiffuseWeight);
+    result.diffuse = diffuse;
 
-  vec3 diffuse = mix(hemiLight.groundColor, hemiLight.skyColor, hemiDiffuseWeight);
-  result.diffuse = diffuse;
-
-  vec3 angleW = normalize(viewDirectionW + hemiLight.direction.xyz);
-  float specComp = max(0., dot(normal, angleW));
-  specComp = pow(specComp, max(1., glossiness));
-  result.specular = specComp * hemiLight.specularColor.xyz;
-  return result;
+    float glossiness = light.specularColor.w;
+    vec3 angleW = normalize(geometry.viewDirWorld + light.directionWorld);
+    float specComp = max(0., dot(N, angleW));
+    specComp = pow(specComp, max(1., glossiness));
+    result.specular = specComp * light.specularColor.xyz;
+    return result;
+  }
+  `
 }
-`
