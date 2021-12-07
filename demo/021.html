@@ -10,49 +10,34 @@
     import * as LMGL from '../src/LMGL.js'
     window.LMGL = LMGL;
 
-    const vertexShader = `#version 300 es
-  precision mediump float;
-  in vec3 aPosition;
-  in vec3 aNormal;
-
-	out vec3 vNormal;
-	out vec3 vPositionW;
-
-  uniform mat4 projectionMatrix;
-  uniform mat4 modelViewMatrix;
-  uniform mat4 world;
-
-  void main() {
-   vNormal = aNormal;
-   gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-   vPositionW = vec3(world * vec4(aPosition, 1.0));
+const lightInfo = {
+  pointLights: {
+    type: "array",
+    value: [
+      {
+        type: "struct",
+        value: {
+          position: {
+            type: "v3",
+            value: {x: 0,y:5,z:0},
+          },
+          diffuseColor: {
+            type: "v3",
+            value: {x: 1,y:0,z:0},
+          },
+          specularColor: {
+            type: "v4",
+            value: {x: 1,y:1,z:1, w: 100},
+          },
+          distance: {
+            type: "f",
+            value: Number.MAX_VALUE,
+          }
+        }
+      }
+    ]
   }
-`
-
-const fragmentShader = `#version 300 es
-  precision mediump float;
-	uniform vec3 uDiffuse;
-  uniform vec3 vEyePosition;
-  uniform mat4 world;
-
-	in vec3 vNormal;
-  in vec3 vPositionW;
-  out vec4 FragColor;
-
-  ${LMGL.modules.pointLight}
-  uniform PointLight pointLight;
-
-
-	void main() {
-    mat3 normalWorld = mat3(world);
-    vec3 normal = normalize(normalWorld * vNormal);
-    vec3 viewDirectionW = normalize(vEyePosition-vPositionW);
-    LightingInfo lightingInfo = computeLighting(viewDirectionW, normal, pointLight);
-    vec3 diffuse = clamp(lightingInfo.diffuse, 0., 1.);
-    vec3 specular = clamp(lightingInfo.specular, 0., 1.);
-	  FragColor = vec4(specular + diffuse, 1.);
-	}
-	`
+};
 
 let stage
 
@@ -63,9 +48,9 @@ window.onload = () => {
 
   stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.position.set(0, 0, 10)
+  stage.camera.position.set(0, 0, 5)
 
-  const model = LMGL.geometryLib.sphere(2);
+  const model = LMGL.geometryLib.sphere(1);
   const geo = {
     indices: model.indices,
     attribute: {
@@ -80,35 +65,8 @@ window.onload = () => {
     }
   };
 
-  const matInfo = {
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      PointLight: {
-        type: "struct",
-        value: {
-          position: {
-            type: "v3",
-            value: {x: 0,y:5,z:0},
-          },
-          diffuseColor: {
-            type: "v3",
-            value: {x: 1,y:0,z:0},
-          },
-          specularColor: {
-            type: "v3",
-            value: {x: 0,y:1,z:0},
-          },
-          distance: {
-            type: "f",
-            value: Number.MAX_VALUE,
-          }
-        }
-      }
-    }
-  }
-
-  const mat = new LMGL.Material(matInfo);
+  const shader = LMGL.shaderLib.phong(lightInfo);
+  const mat = new LMGL.Material(shader);
   let mesh = new LMGL.Mesh(geo, mat);
   mesh.position.z = 0;
   stage.addUpdate("loop",()=>{

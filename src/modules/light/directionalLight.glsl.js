@@ -1,4 +1,3 @@
-// phong 光照模型
 
 export function getLight(lightCount) {
   if (lightCount == 0) return "";
@@ -13,7 +12,7 @@ export function getLight(lightCount) {
 
   uniform DirectionalLight directionalLights[${lightCount}];
 
-  LightingInfo computeLighting(
+  LightingInfo computeDirectionalLighting(
     GeometricContext geometry,
     DirectionalLight light
   ) {

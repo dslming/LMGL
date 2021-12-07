@@ -1,5 +1,5 @@
 import { Vector3 } from '../math/Vector3.js';
-export function getGeometry(radius = 1, widthSegments = 32, heightSegments = 32, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI) {
+export function getGeometry(radius = 1, widthSegments = 64, heightSegments = 64, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI) {
   widthSegments = Math.max(3, Math.floor(widthSegments));
   heightSegments = Math.max(2, Math.floor(heightSegments));
 

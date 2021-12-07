@@ -1,6 +1,7 @@
 import lightDefine from '../modules/light/lightDefine.glsl.js'
-import { getLight as directionLight} from '../modules/light/directionalLight.glsl.js';
+import { getLight as directionalLight } from '../modules/light/directionalLight.glsl.js';
 import { getLight as hemisphereLight } from '../modules/light/hemisphereLight.glsl.js';
+import { getLight as pointLight } from '../modules/light/pointLight.glsl.js';
 
 import { pauseLight } from './pauseLight.js';
 
@@ -13,8 +14,9 @@ import { pauseLight } from './pauseLight.js';
  */
 export function getMaterial(lightInfo) {
   const {
-    directionLightCount,
+    directionalLightCount,
     hemisphereLightsCount,
+    pointLightCount,
   } = pauseLight(lightInfo);
 
   const vertexShader = `#version 300 es
@@ -38,8 +40,9 @@ export function getMaterial(lightInfo) {
 
   const fragmentShader = `#version 300 es
       precision mediump float;
-      #define NUM_DIR_LIGHTS ${directionLightCount}
+      #define NUM_DIR_LIGHTS ${directionalLightCount}
       #define NUM_HEMI_LIGHTS ${hemisphereLightsCount}
+      #define NUM_POINT_LIGHTS ${pointLightCount}
 
       uniform mat4 world;
       uniform vec3 diffuseColor;
@@ -51,15 +54,17 @@ export function getMaterial(lightInfo) {
       in vec3 vNormal;
 
       ${lightDefine}
-      ${directionLight(directionLightCount)}
+      ${directionalLight(directionalLightCount)}
       ${hemisphereLight(hemisphereLightsCount)}
+      ${pointLight(pointLightCount)}
 
 
       void main() {
+        float faceDirection = gl_FrontFacing ? 1.0 : -1.0;
         mat3 normalMatrix = mat3(world);
         GeometricContext geometry;
         geometry.positionWorld = vPositionWorld;
-        geometry.normalWorld = normalize(normalMatrix * vNormal);
+        geometry.normalWorld = normalize(normalMatrix * vNormal) * faceDirection;
         geometry.viewDirWorld = normalize(vEyePosition - vPositionWorld);
 
         LightingInfo lightingInfo;
@@ -69,7 +74,7 @@ export function getMaterial(lightInfo) {
         // 方向光
         #if ( NUM_DIR_LIGHTS > 0 )
         for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
-          lightingInfo = computeLighting(geometry, directionalLights[i]);
+          lightingInfo = computeDirectionalLighting(geometry, directionalLights[i]);
           diffuseBase += lightingInfo.diffuse;
           specularBase += lightingInfo.specular;
         }
@@ -79,6 +84,15 @@ export function getMaterial(lightInfo) {
         #if ( NUM_HEMI_LIGHTS > 0 )
         for (int i = 0; i < NUM_HEMI_LIGHTS; i++) {
           lightingInfo = computeHemisphericLighting(geometry, hemisphereLights[i]);
+          diffuseBase += clamp(lightingInfo.diffuse, 0., 1.);
+          specularBase += clamp(lightingInfo.specular, 0., 1.);
+        }
+        #endif
+
+        // 点球源
+        #if ( NUM_POINT_LIGHTS > 0 )
+        for (int i = 0; i < NUM_POINT_LIGHTS; i++) {
+          lightingInfo = computePointLighting(geometry, pointLights[i]);
           diffuseBase += clamp(lightingInfo.diffuse, 0., 1.);
           specularBase += clamp(lightingInfo.specular, 0., 1.);
         }
