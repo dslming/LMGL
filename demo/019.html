@@ -164,7 +164,7 @@ window.onload = () => {
 
     stage.renderer.setRenderTarget(null);
     stage.renderer.clear();
-    webgl.setViewPort(gl, width, height);
+    webgl.setViewPort(gl, textureSize.w, textureSize.h);
     plane.material.uniforms["uTexture0"].value = mrt.getTexture()[0]
     plane.material.uniforms["uTexture1"].value = mrt.getTexture()[1]
     stage.renderer.renderMesh(plane, camera);
