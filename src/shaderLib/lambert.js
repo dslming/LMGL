@@ -1,5 +1,10 @@
 import lambert from '../modules/lambert/lambert.glsl.js';
 
+/**
+ * 漫反射材质
+ * 只支持1个方向光
+ * @returns
+ */
 export function getMaterial() {
   const vertexShader = `#version 300 es
       precision mediump float;

@@ -11,31 +11,27 @@ import * as LMGL from '../src/LMGL.js'
 window.LMGL = LMGL;
 
 const lightInfo = {
-  ambientLightColor:{
-    type:"v3",
-    value: {x:0,y:0,z:0}
-  },
   directionalLights: {
     type: "array",
     value: [
       {
-        name: "DirectionalLight",
         type: "struct",
         value: {
-          direction: {
+          directionWorld: {
             type: "v3",
             value: {x: 1,y:0,z:0},
           },
           diffuseColor: {
             type: "v3",
-            value: {x: 1,y:0,z:0},
+            value: {x: 0,y:0,z:1},
           },
           specularColor: {
             type: "v4",
-            value: {x: 1,y:0,z:0,w:10},
+            value: {x: 1,y:1,z:1,w:100},
           },
         }
-      }]
+      }
+    ]
   }
 };
 let stage
@@ -47,9 +43,9 @@ window.onload = () => {
 
   stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.position.set(0, 0, 10)
+  stage.camera.position.set(0, 0, 5)
 
-  const model = LMGL.geometryLib.sphere(1.5);
+  const model = LMGL.geometryLib.sphere(1);
   const geo = {
     indices: model.indices,
     attribute: {
@@ -64,14 +60,9 @@ window.onload = () => {
     }
   };
 
-  const shader = LMGL.shaderLib.phong(1);
-  const matInfo = {
-    vertexShader:shader.vertexShader,
-    fragmentShader:shader.fragmentShader,
-    uniforms: lightInfo
-  }
+  const shader = LMGL.shaderLib.phong(lightInfo);
 
-  const mat = new LMGL.Material(matInfo);
+  const mat = new LMGL.Material(shader);
   let mesh = new LMGL.Mesh(geo, mat);
    stage.addUpdate("loop",()=>{
     // mesh.rotation.y += 0.5;
