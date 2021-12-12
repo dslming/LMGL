@@ -22,10 +22,11 @@
 
     <script>
        const categoryNames = [
-          'basic'
+          'basic',
+          'middle',
         ];
 
-
+        // basic
         const demoMap = {
           // 几何体
           "三角形": "002",
@@ -39,14 +40,14 @@
           "渲染到纹理": "009",
           "环境反射": "012",
           "动态阴影": "014",
-          "色调映射": "016",
+          // "色调映射": "016",
 
           // 灯光---------------
-          "方向光 + lambert": "017",
-          "方向光 + phong": "023",
-          "半球光 + phong": "018",
-          "点光源 + phong": "021",
-          "多个点光源 + phong": "022",
+          "方向光+lambert": "017",
+          "方向光+phong": "023",
+          "半球光+phong": "018",
+          "点光源+phong": "021",
+          "多点光源+phong": "022",
 
           // 光照模型
           // lambert
@@ -60,10 +61,17 @@
           // "深度测试": "007",
         }
 
+        // middle
+        const demoMapMiddle = {
+          "brdf": "024",
+        }
+
         const exampleNames = {
-          basic: []
+          basic: [],
+          middle: [],
         };
         exampleNames.basic = Object.keys(demoMap);
+        exampleNames.middle = Object.keys(demoMapMiddle);
 
         const content = document.getElementById('content');
         const viewer = document.getElementById('viewer');
@@ -72,25 +80,26 @@
         const expandButton = document.getElementById('expandButton');
 
 
-        function createViewByName(viewer, name) {
+        function createViewByName(demoMap, viewer, name) {
           viewer.src = "./demo/"+demoMap[name]+".html";
         }
 
-        const openExample = exampleName => {
-          createViewByName(viewer, exampleName)
+        const openExample = (exampleName,demoMap) => {
+          createViewByName(demoMap, viewer, exampleName)
 
           window.location.hash = exampleName;
           viewer.focus();
           panel.classList.remove('open');
         };
 
-        categoryNames.forEach(categoryName => {
+        function create(demoMap,name) {
+          const categoryName = exampleNames[name];
           const span = document.createElement('span');
-          span.innerText = categoryName;
+          span.innerText = name;
           content.appendChild(span);
           const ul = document.createElement('ul');
           content.appendChild(ul);
-          exampleNames[categoryName].forEach((name,index) => {
+          categoryName.forEach((name,index) => {
             const li = document.createElement('li');
             const a = document.createElement('a');
             a.innerText = `${demoMap[name]} ${name}`;
@@ -102,13 +111,15 @@
                 return;
               }
               event.preventDefault();
-              openExample(name);
+              openExample(name, demoMap);
             });
             li.appendChild(a);
             ul.appendChild(li);
           });
-        });
+        }
 
+        create(demoMap, "basic");
+        create(demoMapMiddle, "middle");
         const onClickForOpen = event => {
           event.preventDefault();
           panel.classList.toggle('open');
@@ -117,25 +128,9 @@
         expandButton.addEventListener('click', onClickForOpen);
         panelScrim.addEventListener('click', onClickForOpen);
 
-        // 第一个例子
-        createViewByName(viewer, exampleNames.basic[0])
+        // 最后一个例子
+        createViewByName(demoMapMiddle, viewer, exampleNames.middle[exampleNames.middle.length-1])
 
-        // iOS iframe auto-resize workaround
-        if (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) {
-          viewer.style.width = getComputedStyle(viewer).width;
-          viewer.style.height = getComputedStyle(viewer).height;
-          viewer.setAttribute('scrolling', 'no');
-        }
-
-        if (window.location.hash !== '') {
-          const hash = window.location.hash.substring(1);
-          for (const categoryName of categoryNames) {
-            if (exampleNames[categoryName].includes(hash)) {
-              openExample(hash);
-              break;
-            }
-          }
-        }
 
     </script>
   </body>
