@@ -79,6 +79,66 @@ export class Material {
     }
   }
 
+  _handleUniformBlock(name, content) {
+    const gl = dao.getData("gl")
+    const { program } = this
+    const ubi = gl.getUniformBlockIndex(program, name);
+    const ubb = 0;
+    gl.uniformBlockBinding(program, ubi, ubb);
+    const ubo = gl.createBuffer();
+    gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
+
+    const keys = Object.keys(content);
+    let len = 0;
+    let offset = [0];
+    for (let i = 0; i < keys.length; i++) {
+      const propName = keys[i];
+      const { type } = content[propName]
+      if (type == "f") {
+        len += 16;
+      }
+      if (type == "v2") {
+        len += 2*16;
+      }
+      if (type == "v3") {
+        len += 3*16;
+      }
+      if (type == "v4") {
+        len += 4*16;
+      }
+      offset.push(len);
+      // WebGLInterface.setUniform(gl, program, fullName, value, type)
+    }
+    const result = new Float32Array(len);
+    for (let i = 0; i < keys.length; i++) {
+      const propName = keys[i];
+      const { value, type } = content[propName]
+       if (type == "f") {
+         result.set([value.x], offset[i])
+       }
+       if (type == "v2") {
+         result.set([value.x, value.y], offset[i])
+       }
+       if (type == "v3") {
+        result.set([value.x, value.y, value.z], offset[i])
+       }
+       if (type == "v4") {
+         result.set([value.x, value.y, value.z, value.w], offset[i])
+       }
+      // WebGLInterface.setUniform(gl, program, fullName, value, type)
+    }
+    gl.bufferData(gl.UNIFORM_BUFFER, result, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+    gl.bindBufferBase(gl.UNIFORM_BUFFER, ubb, ubo);
+    //  let first_length = first.length,
+    //    result = new Float32Array(first_length + second.length);
+    //  result.set(first);
+    //  result.set(second, first_length);
+
+    // gl.bufferData(gl.UNIFORM_BUFFER, Float32Concat(mvp_matrix, model_matrix), gl.DYNAMIC_DRAW);
+    // gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
+  }
   _handleUniform(obj) {
     const gl = dao.getData("gl")
     const { program } = this
@@ -92,7 +152,9 @@ export class Material {
         this._handleUniformStruct(name, value);
       } else if (type == "array") {
        this._handleUniformArray(name, value);
-      } else {
+     } else if (type == "block") {
+       this._handleUniformBlock(name, value);
+     }else {
         WebGLInterface.setUniform(gl, program, name, value, type, textureId)
       }
 

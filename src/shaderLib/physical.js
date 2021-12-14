@@ -38,7 +38,7 @@ export function getMaterial() {
       #define maxEps(x) max(x, Epsilon)
       #define saturateEps(x) clamp(x, Epsilon, 1.0)
 
-      uniform vec4 vEyePosition;
+      uniform vec3 vEyePosition;
       uniform vec3 vAmbientColor;
       uniform vec4 vCameraInfos;
 
@@ -55,8 +55,7 @@ export function getMaterial() {
         vec3 vLightGround;
         vec4 shadowsInfo;
         vec2 depthValues;
-      }
-      light0;
+      } light0;
       in vec3 vPositionW;
       in vec3 vNormalW;
       out vec4 FragColor;
@@ -229,10 +228,11 @@ export function getMaterial() {
 
         vec3 diffuseBase = vec3(0., 0., 0.);
         vec3 specularBase = vec3(0., 0., 0.);
-        preLightingInfo preInfo;
-        lightingInfo info;
-        float shadow = 1.;
-        preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
+        // preLightingInfo preInfo;
+        // lightingInfo info;
+        // float shadow = 1.;
+        // preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
+        FragColor = light0.vLightData;
       }
       `
   return {

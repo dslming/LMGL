@@ -48,7 +48,7 @@ export default class Renderer {
     let _vector3 = new Vector3();
     _vector3 = _vector3.setFromMatrixPosition(camera.matrixWorld)
     // vEyePosition/cameraPosition
-    WebGLInterface.setUniform(gl, program, "vEyePosition", _vector3, "v3")
+    WebGLInterface.setUniform(gl, program, "vEyePosition", _vector3, "v3");
 
 
     WebGLInterface.setUniform(gl, program, 'viewMatrix', camera.matrixWorldInverse.elements, "m4");
