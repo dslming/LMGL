@@ -351,7 +351,7 @@ export function getMaterial(texture) {
       visibility: { type: "f", value: 1 },
       vLightingIntensity: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
       vAlbedoColor: { type: "v4", value: { x: 1, y: 0.6, z: 0.3, w: 1 } },
-      vReflectivityColor: { type: "v4", value: { x: 0, y: 1, z: 1, w: 1 } },
+      vReflectivityColor: { type: "v4", value: { x: 1, y: 0.555, z: 1, w: 1 } },
       vMetallicReflectanceFactors: { type: "v4", value: { x: 0.04, y: 0.04, z: 0.04, w: 1 } },
       vEmissiveColor: { type: "v3", value: { x: 0., y: 0., z: 0.} },
       Light0: {
