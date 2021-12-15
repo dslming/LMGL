@@ -27,6 +27,7 @@ export function getMaterial() {
 
   const fragmentShader = `#version 300 es
       precision mediump float;
+      layout(std140, column_major) uniform;
       const float PI = 3.1415926535897932384626433832795;
       const float HALF_MIN = 5.96046448e-08;
       const float LinearEncodePowerApprox = 2.2;
@@ -56,6 +57,7 @@ export function getMaterial() {
         vec4 shadowsInfo;
         vec2 depthValues;
       } light0;
+
       in vec3 vPositionW;
       in vec3 vNormalW;
       out vec4 FragColor;
@@ -72,7 +74,8 @@ export function getMaterial() {
       }
       vec3 getBRDFLookup(float NdotV, float perceptualRoughness) {
           vec2 UV = vec2(NdotV, perceptualRoughness);
-          vec4 brdfLookup = texture(environmentBrdfSampler, UV);
+          // vec4 brdfLookup = texture(environmentBrdfSampler, UV);
+          vec4 brdfLookup = vec4(0.);
           return brdfLookup.rgb;
       }
 
@@ -181,6 +184,9 @@ export function getMaterial() {
           return result;
       }
 
+      uniform Material {
+        uniform vec4 aaaa;
+      };
       void main() {
         vec3 viewDirectionW = normalize(vEyePosition.xyz-vPositionW);
         vec3 normalW = normalize(vNormalW);
@@ -232,7 +238,8 @@ export function getMaterial() {
         // lightingInfo info;
         // float shadow = 1.;
         // preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
-        FragColor = light0.vLightData;
+        FragColor = light0.vLightSpecular;
+        // FragColor = aaaa;
       }
       `
   return {
@@ -245,6 +252,23 @@ export function getMaterial() {
       ambientLightColor:{type:"v3",value:{x:1,y:0,z:0}},
       roughness:{type:"f",value: 1},
       opacity:{type:"f",value: 1},
+      Light0:{
+        type:"block",
+        value:{
+          vLightData:{type:"v4",value:{x:1,y:0,z:0,w:1}},
+          vLightDiffuse:{type:"v4",value:{x:0,y:1,z:0,w:1}},
+          vLightSpecular:{type:"v4",value:{x:1,y:1,z:0,w:1}},
+          // vLightGround:{type:"v3",value:{x:1,y:0,z:0}},
+          // shadowsInfo:{type:"v4",value:{x:1,y:0,z:0,w:0}},
+          // depthValues:{type:"v2",value:{x:1,y:0}},
+        }
+      },
+      // Material:{
+      //   type:"block",
+      //   value:{
+      //     aaaa:{type:"v4",value:{x:1,y:0,z:0,w:1}},
+      //   }
+      // }
     }
   }
 }

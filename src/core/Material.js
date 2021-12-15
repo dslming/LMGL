@@ -9,7 +9,8 @@ export class Material {
       //  mat = JSON.parse(JSON.stringify(mat))
     }
 
-
+    this.uniformBlockIndex = 0;
+    this.uniformBlockCatch = new Map();
     this.program = this._buildMaterial(mat);
     this.uniforms = mat.uniforms || {};
 
@@ -79,13 +80,26 @@ export class Material {
     }
   }
 
+  _getUniformBlockCatch(name) {
+    const gl = dao.getData("gl")
+    if (!this.uniformBlockCatch.has(name)) {
+      const ubb = this.uniformBlockIndex;
+      const ubo = gl.createBuffer();
+      this.uniformBlockCatch.set(name, {
+        ubb,
+        ubo
+      });
+      this.uniformBlockIndex += 1;
+    }
+    return this.uniformBlockCatch.get(name)
+  }
+
   _handleUniformBlock(name, content) {
     const gl = dao.getData("gl")
     const { program } = this
     const ubi = gl.getUniformBlockIndex(program, name);
-    const ubb = 0;
+    const { ubb, ubo } = this._getUniformBlockCatch(name)
     gl.uniformBlockBinding(program, ubi, ubb);
-    const ubo = gl.createBuffer();
     gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
 
     const keys = Object.keys(content);
@@ -95,19 +109,18 @@ export class Material {
       const propName = keys[i];
       const { type } = content[propName]
       if (type == "f") {
-        len += 16;
+        len += 1;
       }
       if (type == "v2") {
-        len += 2*16;
+        len += 2*1;
       }
       if (type == "v3") {
-        len += 3*16;
+        len += 3*1;
       }
       if (type == "v4") {
-        len += 4*16;
+        len += 4*1;
       }
       offset.push(len);
-      // WebGLInterface.setUniform(gl, program, fullName, value, type)
     }
     const result = new Float32Array(len);
     for (let i = 0; i < keys.length; i++) {
@@ -125,19 +138,10 @@ export class Material {
        if (type == "v4") {
          result.set([value.x, value.y, value.z, value.w], offset[i])
        }
-      // WebGLInterface.setUniform(gl, program, fullName, value, type)
     }
     gl.bufferData(gl.UNIFORM_BUFFER, result, gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.UNIFORM_BUFFER, null);
     gl.bindBufferBase(gl.UNIFORM_BUFFER, ubb, ubo);
-    //  let first_length = first.length,
-    //    result = new Float32Array(first_length + second.length);
-    //  result.set(first);
-    //  result.set(second, first_length);
-
-    // gl.bufferData(gl.UNIFORM_BUFFER, Float32Concat(mvp_matrix, model_matrix), gl.DYNAMIC_DRAW);
-    // gl.bindBuffer(gl.UNIFORM_BUFFER, null);
-
   }
   _handleUniform(obj) {
     const gl = dao.getData("gl")
