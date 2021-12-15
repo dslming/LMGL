@@ -10,7 +10,7 @@
     import * as LMGL from '../src/LMGL.js'
 
 class MyMesh {
-  constructor() {
+  constructor(imageTexture) {
     const model = LMGL.geometryLib.sphere(1);
     const geo = {
       indices: model.indices,
@@ -26,14 +26,16 @@ class MyMesh {
       }
     };
 
-    const mat = new LMGL.Material(LMGL.shaderLib.physical());
+    const mat = new LMGL.Material(LMGL.shaderLib.physical(imageTexture.getTexture()));
     this.mesh = new LMGL.Mesh(geo, mat);
   }
 }
 
 let stage
 
-window.onload = () => {
+window.onload = async () => {
+
+
   document.title = "brdf"
   const width = window.innerWidth
   const height = window.innerHeight
@@ -42,7 +44,9 @@ window.onload = () => {
   stage.init(document.querySelector("#c"), width, height)
   stage.camera.position.set(0, 0, 5)
 
-  stage.add(new MyMesh().mesh)
+   const img = await LMGL.loadImage("./images/a.png");
+  let imageTexture = new LMGL.ImageTexture(img)
+  stage.add(new MyMesh(imageTexture).mesh)
   stage.run()
 }
 

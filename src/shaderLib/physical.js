@@ -3,7 +3,7 @@ import tool from "./tool.glsl.js"
  * 物理材质
  * @returns
  */
-export function getMaterial() {
+export function getMaterial(texture) {
   const vertexShader = `#version 300 es
       precision mediump float;
       in vec3 aPosition;
@@ -48,6 +48,9 @@ export function getMaterial() {
       uniform vec4 vMetallicReflectanceFactors;
       uniform vec4 vReflectivityColor;
       uniform sampler2D environmentBrdfSampler;
+      uniform vec4 vLightingIntensity;
+      uniform vec3 vEmissiveColor;
+      uniform float visibility;
 
       uniform Light0 {
         vec4 vLightData;
@@ -66,6 +69,7 @@ export function getMaterial() {
       #define RECIPROCAL_PI 0.31830988618
       #define MINIMUMVARIANCE 0.0005
       ${tool}
+
       float convertRoughnessToAverageSlope(float roughness) {
           return square(roughness)+MINIMUMVARIANCE;
       }
@@ -74,10 +78,15 @@ export function getMaterial() {
       }
       vec3 getBRDFLookup(float NdotV, float perceptualRoughness) {
           vec2 UV = vec2(NdotV, perceptualRoughness);
-          // vec4 brdfLookup = texture(environmentBrdfSampler, UV);
-          vec4 brdfLookup = vec4(0.);
+          vec4 brdfLookup = texture(environmentBrdfSampler, UV);
+          // vec4 brdfLookup = vec4(0.);
           return brdfLookup.rgb;
       }
+
+      struct lightingInfo {
+          vec3 diffuse;
+          vec3 specular;
+      };
 
       struct ambientOcclusionOutParams {
         vec3 ambientOcclusionColor;
@@ -184,6 +193,51 @@ export function getMaterial() {
           return result;
       }
 
+      float smithVisibility_GGXCorrelated(float NdotL, float NdotV, float alphaG) {
+          float a2 = alphaG*alphaG;
+          float GGXV = NdotL*sqrt(NdotV*(NdotV-a2*NdotV)+a2);
+          float GGXL = NdotV*sqrt(NdotL*(NdotL-a2*NdotL)+a2);
+          return 0.5/(GGXV+GGXL);
+      }
+
+      float normalDistributionFunction_TrowbridgeReitzGGX(float NdotH, float alphaG) {
+          float a2 = square(alphaG);
+          float d = NdotH*NdotH*(a2-1.0)+1.0;
+          return a2/(PI*d*d);
+      }
+
+      vec3 fresnelSchlickGGX(float VdotH, vec3 reflectance0, vec3 reflectance90) {
+          return reflectance0+(reflectance90-reflectance0)*pow5(1.0-VdotH);
+      }
+      float fresnelSchlickGGX(float VdotH, float reflectance0, float reflectance90) {
+          return reflectance0+(reflectance90-reflectance0)*pow5(1.0-VdotH);
+      }
+
+      vec3 computeHemisphericDiffuseLighting(preLightingInfo info, vec3 lightColor, vec3 groundColor) {
+        return mix(groundColor, lightColor, info.NdotL);
+      }
+
+      vec3 computeSpecularLighting(preLightingInfo info, vec3 N, vec3 reflectance0, vec3 reflectance90, float geometricRoughnessFactor, vec3 lightColor) {
+        float NdotH = saturateEps(dot(N, info.H));
+        float roughness = max(info.roughness, geometricRoughnessFactor);
+        float alphaG = convertRoughnessToAverageSlope(roughness);
+        vec3 fresnel = fresnelSchlickGGX(info.VdotH, reflectance0, reflectance90);
+        float distribution = normalDistributionFunction_TrowbridgeReitzGGX(NdotH, alphaG);
+        float smithVisibility = smithVisibility_GGXCorrelated(info.NdotL, info.NdotV, alphaG);
+        vec3 specTerm = fresnel*distribution*smithVisibility;
+        return specTerm*info.attenuation*info.NdotL*lightColor;
+      }
+
+      #define FRESNEL_MAXIMUM_ON_ROUGH 0.25
+      vec3 getEnergyConservationFactor(const vec3 specularEnvironmentR0, const vec3 environmentBrdf) {
+          return 1.0+specularEnvironmentR0*(1.0/environmentBrdf.y-1.0);
+      }
+
+      vec4 applyImageProcessing(vec4 result) {
+          result.rgb = toGammaSpace(result.rgb);
+          result.rgb = saturate(result.rgb);
+          return result;
+      }
       uniform Material {
         uniform vec4 aaaa;
       };
@@ -234,11 +288,53 @@ export function getMaterial() {
 
         vec3 diffuseBase = vec3(0., 0., 0.);
         vec3 specularBase = vec3(0., 0., 0.);
-        // preLightingInfo preInfo;
-        // lightingInfo info;
-        // float shadow = 1.;
-        // preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
+        preLightingInfo preInfo;
+        lightingInfo info;
+        float shadow = 1.;
+        preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
         FragColor = light0.vLightSpecular;
+
+        preInfo.NdotV = NdotV;
+        preInfo.attenuation = 1.0;
+        preInfo.roughness = roughness;
+        info.diffuse = computeHemisphericDiffuseLighting(preInfo, light0.vLightDiffuse.rgb, light0.vLightGround);
+        info.specular = computeSpecularLighting(
+          preInfo,
+          normalW,
+          clearcoatOut.specularEnvironmentR0,
+          specularEnvironmentR90,
+          AARoughnessFactors.x,
+          light0.vLightDiffuse.rgb);
+
+        shadow = 1.;
+        diffuseBase += info.diffuse*shadow;
+        specularBase += info.specular*shadow;
+
+        vec3 energyConservationFactor = getEnergyConservationFactor(clearcoatOut.specularEnvironmentR0, environmentBrdf);
+        vec3 finalSpecular = specularBase;
+        finalSpecular = max(finalSpecular, 0.0);
+        vec3 finalSpecularScaled = finalSpecular*vLightingIntensity.x*vLightingIntensity.w;
+        finalSpecularScaled *= energyConservationFactor;
+        vec3 finalDiffuse = diffuseBase;
+        finalDiffuse *= surfaceAlbedo.rgb;
+        finalDiffuse = max(finalDiffuse, 0.0);
+        finalDiffuse *= vLightingIntensity.x;
+        vec3 finalAmbient = vAmbientColor;
+        finalAmbient *= surfaceAlbedo.rgb;
+        vec3 finalEmissive = vEmissiveColor;
+        finalEmissive *= vLightingIntensity.y;
+        vec3 ambientOcclusionForDirectDiffuse = aoOut.ambientOcclusionColor;
+        finalAmbient *= aoOut.ambientOcclusionColor;
+        finalDiffuse *= ambientOcclusionForDirectDiffuse;
+        vec4 finalColor = vec4(
+        finalAmbient +
+        finalDiffuse +
+        finalSpecularScaled +
+        finalEmissive, alpha);
+        finalColor = max(finalColor, 0.0);
+        finalColor = applyImageProcessing(finalColor);
+        finalColor.a *= visibility;
+        FragColor = finalColor;
         // FragColor = aaaa;
       }
       `
@@ -246,29 +342,33 @@ export function getMaterial() {
     vertexShader,
     fragmentShader,
     uniforms: {
-      diffuse:{type:"v3",value:{x:1,y:0,z:0}},
-      emissive:{type:"v3",value:{x:0,y:0,z:0}},
-      emissive:{type:"v3",value:{x:0,y:0,z:0}},
-      ambientLightColor:{type:"v3",value:{x:1,y:0,z:0}},
-      roughness:{type:"f",value: 1},
-      opacity:{type:"f",value: 1},
-      Light0:{
-        type:"block",
-        value:{
-          vLightData:{type:"v4",value:{x:1,y:0,z:0,w:1}},
-          vLightDiffuse:{type:"v4",value:{x:0,y:1,z:0,w:1}},
-          vLightSpecular:{type:"v4",value:{x:1,y:1,z:0,w:1}},
-          // vLightGround:{type:"v3",value:{x:1,y:0,z:0}},
-          // shadowsInfo:{type:"v4",value:{x:1,y:0,z:0,w:0}},
-          // depthValues:{type:"v2",value:{x:1,y:0}},
+      diffuse: { type: "v3", value: { x: 1, y: 0, z: 0 } },
+      emissive: { type: "v3", value: { x: 0, y: 0, z: 0 } },
+      emissive: { type: "v3", value: { x: 0, y: 0, z: 0 } },
+      ambientLightColor: { type: "v3", value: { x: 1, y: 0, z: 0 } },
+      roughness: { type: "f", value: 1 },
+      opacity: { type: "f", value: 1 },
+      visibility: { type: "f", value: 1 },
+      vLightingIntensity: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
+      vAlbedoColor: { type: "v4", value: { x: 1, y: 0.6, z: 0.3, w: 1 } },
+      vReflectivityColor: { type: "v4", value: { x: 0, y: 1, z: 1, w: 1 } },
+      vMetallicReflectanceFactors: { type: "v4", value: { x: 0.04, y: 0.04, z: 0.04, w: 1 } },
+      vEmissiveColor: { type: "v3", value: { x: 0., y: 0., z: 0.} },
+      Light0: {
+        type: "block",
+        value: {
+          vLightData: { type: "v4", value: { x: 0, y: 1, z: 0, w: 1 } },
+          vLightDiffuse: { type: "v4", value: { x: 1, y: 1, z: 1, w: 0 } },
+          vLightSpecular: { type: "v4", value: { x: 1, y: 1, z: 1, w: 0 } },
+          vLightGround: { type: "v3", value: { x: 0, y: 0, z: 0 } },
+          shadowsInfo: { type: "v4", value: { x: 0, y: 0, z: 0, w: 0 } },
+          depthValues: { type: "v2", value: { x: 0, y: 0 } },
         }
       },
-      // Material:{
-      //   type:"block",
-      //   value:{
-      //     aaaa:{type:"v4",value:{x:1,y:0,z:0,w:1}},
-      //   }
-      // }
+      environmentBrdfSampler: {
+        value: texture,
+        type: "t"
+      }
     }
   }
 }
