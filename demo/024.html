@@ -8,6 +8,9 @@
 
   <script type="module">
     import * as LMGL from '../src/LMGL.js'
+    import { GUI } from './libs/lil-gui.module.min.js';
+
+    const gui = new GUI();
 
 class MyMesh {
   constructor(imageTexture) {
@@ -33,6 +36,7 @@ class MyMesh {
       baseColor: new LMGL.Vector3(1.0, 0.766, 0.336)
     });
     const mat = new LMGL.Material(shader);
+    this.shader = shader;
     this.mesh = new LMGL.Mesh(geo, mat);
   }
 }
@@ -53,9 +57,33 @@ window.onload = async () => {
 
    const img = await LMGL.loadImage("./images/a.png");
   let imageTexture = new LMGL.ImageTexture(img);
-  const mesh = new MyMesh(imageTexture).mesh;
-  window.mesh = mesh;
-  stage.add(mesh)
+  const obj = new MyMesh(imageTexture);
+
+  const matParam = obj.mesh.material.param;
+  const params={
+    ior: matParam.ior,
+    metallic: matParam.metallic,
+    roughness: matParam.roughness,
+    baseColor: [ matParam.baseColor.x,matParam.baseColor.y,matParam.baseColor.z ]
+  }
+  gui.add( params, 'ior',0, 5).onChange(v=>{
+    obj.mesh.material.param.ior = v;
+  });
+  gui.add( params, 'metallic',0, 1).onChange(v=>{
+    obj.mesh.material.param.metallic = v;
+  });
+  gui.add( params, 'roughness',0, 1).onChange(v=>{
+    obj.mesh.material.param.roughness = v;
+  });
+
+  gui.addColor( params, 'baseColor',).onChange(v=>{
+    obj.mesh.material.param.baseColor.x = v[0]
+    obj.mesh.material.param.baseColor.y = v[1]
+    obj.mesh.material.param.baseColor.z = v[2]
+  });
+  gui.open();
+
+  stage.add(obj.mesh)
   stage.run()
 }
 

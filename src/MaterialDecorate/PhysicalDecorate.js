@@ -15,6 +15,7 @@ export default class PhysicalDecorate {
        set: (obj, prop, value)=> {
         obj[prop] = value;
         this.updataUniform();
+        return true;
        }
     });
   }
