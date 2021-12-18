@@ -1,12 +1,16 @@
 import dao from './Dao.js'
 import * as WebGLInterface from '../webgl/index.js'
-import { SIDE, BLENDING_TYPE, BLENDING_FACTOR } from './constants.js'
+import { SIDE, BLENDING_TYPE, BLENDING_FACTOR } from './constants.js';
+import PhysicalDecorate from '../MaterialDecorate/PhysicalDecorate.js'
 export class Material {
   constructor(uniform, shader) {
     let mat = Object.assign(uniform, shader || {});
     if (!uniform.uniforms) {
       // 深拷贝对象
       //  mat = JSON.parse(JSON.stringify(mat))
+    }
+    if (mat.type === "physical") {
+      new PhysicalDecorate(mat.uniforms, this, mat.param);
     }
 
     this.uniformBlockIndex = 0;

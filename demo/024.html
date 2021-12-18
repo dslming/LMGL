@@ -26,7 +26,13 @@ class MyMesh {
       }
     };
 
-    const mat = new LMGL.Material(LMGL.shaderLib.physical(imageTexture.getTexture()));
+    const shader = LMGL.shaderLib.physical({
+      texture: imageTexture.getTexture(),
+      roughness: 0.5,
+      metallic: 0,
+      baseColor: new LMGL.Vector3(1.0, 0.766, 0.336)
+    });
+    const mat = new LMGL.Material(shader);
     this.mesh = new LMGL.Mesh(geo, mat);
   }
 }
@@ -42,11 +48,14 @@ window.onload = async () => {
 
   stage = new LMGL.Stage()
   stage.init(document.querySelector("#c"), width, height)
+  stage.camera.near = 2;
   stage.camera.position.set(0, 0, 5)
 
    const img = await LMGL.loadImage("./images/a.png");
-  let imageTexture = new LMGL.ImageTexture(img)
-  stage.add(new MyMesh(imageTexture).mesh)
+  let imageTexture = new LMGL.ImageTexture(img);
+  const mesh = new MyMesh(imageTexture).mesh;
+  window.mesh = mesh;
+  stage.add(mesh)
   stage.run()
 }
 

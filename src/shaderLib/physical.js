@@ -3,7 +3,24 @@ import tool from "./tool.glsl.js"
  * 物理材质
  * @returns
  */
-export function getMaterial(texture) {
+export function getMaterial(_param) {
+  const param = {
+     ior: 1.5,
+     metallic: 1,
+     roughness: 1,
+     baseColor: { x: 1, y: 1, z: 1 },
+     texture: _param.texture
+   };
+   _param.ior !== undefined && (param.ior = _param.ior);
+   _param.metallic !== undefined && (param.metallic = _param.metallic);
+   _param.roughness !== undefined && (param.roughness = _param.roughness);
+
+  if (_param.baseColor !== undefined) {
+     param.baseColor.x = _param.baseColor.x;
+     param.baseColor.y = _param.baseColor.y;
+     param.baseColor.z = _param.baseColor.z;
+   }
+
   const vertexShader = `#version 300 es
       precision mediump float;
       in vec3 aPosition;
@@ -49,7 +66,7 @@ export function getMaterial(texture) {
       uniform vec4 vReflectivityColor;
       uniform sampler2D environmentBrdfSampler;
       uniform vec4 vLightingIntensity;
-      uniform vec3 vEmissiveColor;
+      uniform vec3 vColor;
       uniform float visibility;
 
       uniform Light0 {
@@ -321,8 +338,8 @@ export function getMaterial(texture) {
         finalDiffuse *= vLightingIntensity.x;
         vec3 finalAmbient = vAmbientColor;
         finalAmbient *= surfaceAlbedo.rgb;
-        vec3 finalEmissive = vEmissiveColor;
-        finalEmissive *= vLightingIntensity.y;
+        vec3 final = vColor;
+        final *= vLightingIntensity.y;
         vec3 ambientOcclusionForDirectDiffuse = aoOut.ambientOcclusionColor;
         finalAmbient *= aoOut.ambientOcclusionColor;
         finalDiffuse *= ambientOcclusionForDirectDiffuse;
@@ -330,7 +347,7 @@ export function getMaterial(texture) {
         finalAmbient +
         finalDiffuse +
         finalSpecularScaled +
-        finalEmissive, alpha);
+        final, alpha);
         finalColor = max(finalColor, 0.0);
         finalColor = applyImageProcessing(finalColor);
         finalColor.a *= visibility;
@@ -339,24 +356,24 @@ export function getMaterial(texture) {
       }
       `
   return {
+    param,
     vertexShader,
     fragmentShader,
+    type: "physical",
     uniforms: {
-      diffuse: { type: "v3", value: { x: 1, y: 0, z: 0 } },
-      emissive: { type: "v3", value: { x: 0, y: 0, z: 0 } },
-      emissive: { type: "v3", value: { x: 0, y: 0, z: 0 } },
-      ambientLightColor: { type: "v3", value: { x: 1, y: 0, z: 0 } },
       roughness: { type: "f", value: 1 },
       opacity: { type: "f", value: 1 },
       visibility: { type: "f", value: 1 },
       vLightingIntensity: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
       // 漫反射颜色
-      vAlbedoColor: { type: "v4", value: { x: 1, y: 0, z: 0, w: 1 } },
+      vAlbedoColor: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
 
+      // 复合属性
       vReflectivityColor: { type: "v4", value: { x: 1, y: 0.555, z: 1, w: 1 } },
 
+      // 自动计算
       vMetallicReflectanceFactors: { type: "v4", value: { x: 0.04, y: 0.04, z: 0.04, w: 1 } },
-      vEmissiveColor: { type: "v3", value: { x: 0., y: 0., z: 0.} },
+      vColor: { type: "v3", value: { x: 0., y: 0., z: 0.} },
       Light0: {
         type: "block",
         value: {
@@ -369,7 +386,7 @@ export function getMaterial(texture) {
         }
       },
       environmentBrdfSampler: {
-        value: texture,
+        value: param.texture,
         type: "t"
       }
     }
