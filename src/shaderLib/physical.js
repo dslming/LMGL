@@ -1,6 +1,6 @@
 import tool from "./tool.glsl.js"
 /**
- * 物理材质
+ * 物理材质,METALLIC WORKFLOW
  * @returns
  */
 export function getMaterial(_param) {
@@ -368,7 +368,7 @@ export function getMaterial(_param) {
       // 漫反射颜色
       vAlbedoColor: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
 
-      // 复合属性
+      // 复合属性,x:metallic, y:roughness
       vReflectivityColor: { type: "v4", value: { x: 1, y: 0.555, z: 1, w: 1 } },
 
       // 自动计算
