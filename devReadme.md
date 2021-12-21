@@ -17,6 +17,7 @@ https://github.com/ics-creative/web3d-maniacs/
 https://github.com/yiwenl/alfrid
 https://github.com/tsherif/webgl2examples
 https://tsherif.github.io/picogl.js/
+https://github.com/cedricpinson/osgjs
 
 #### 教程
 [webgl 教程](https://math.hws.edu/graphicsbook/c7/s4.html)

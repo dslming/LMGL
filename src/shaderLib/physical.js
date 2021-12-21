@@ -142,11 +142,13 @@ export function getMaterial(_param) {
         const in vec4 metallicReflectanceFactors,
         out reflectivityOutParams outParams
       ) {
-          float microSurface = vReflectivityColor.a;
           vec3 surfaceReflectivityColor = vReflectivityColor.rgb;
+          // r: 金属度, g:粗糙度
           vec2 metallicRoughness = surfaceReflectivityColor.rg;
-          microSurface = 1.0-metallicRoughness.g;
+          float microSurface = 1.0-metallicRoughness.g;
           vec3 baseColor = surfaceAlbedo;
+
+          // 金属反射系数
           vec3 metallicF0 = metallicReflectanceFactors.rgb;
           outParams.surfaceAlbedo = mix(baseColor.rgb*(1.0-metallicF0), vec3(0., 0., 0.), metallicRoughness.r);
           surfaceReflectivityColor = mix(metallicF0, baseColor, metallicRoughness.r);
@@ -273,6 +275,8 @@ export function getMaterial(_param) {
         vec3 baseColor = surfaceAlbedo;
         reflectivityOutParams reflectivityOut;
         vec4 metallicReflectanceFactors = vMetallicReflectanceFactors;
+
+        // 反射率块
         reflectivityBlock(
           vReflectivityColor,
           surfaceAlbedo,
@@ -371,7 +375,7 @@ export function getMaterial(_param) {
       // 复合属性,x:metallic, y:roughness
       vReflectivityColor: { type: "v4", value: { x: 1, y: 0.555, z: 1, w: 1 } },
 
-      // 自动计算
+      // 自动计算,f0
       vMetallicReflectanceFactors: { type: "v4", value: { x: 0.04, y: 0.04, z: 0.04, w: 1 } },
       vColor: { type: "v3", value: { x: 0., y: 0., z: 0.} },
       Light0: {
