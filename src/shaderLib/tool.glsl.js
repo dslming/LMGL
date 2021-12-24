@@ -33,6 +33,8 @@ float pow5(float value) {
     float sq = value*value;
     return sq*sq*value;
 }
+
+// 获取亮度
 float getLuminance(vec3 color) {
     return clamp(dot(color, LuminanceEncodeApprox), 0., 1.);
 }

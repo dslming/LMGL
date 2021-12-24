@@ -87,12 +87,12 @@ export function getMaterial(_param) {
       #define MINIMUMVARIANCE 0.0005
       ${tool}
 
+      // 将粗糙度转换为平均斜率
       float convertRoughnessToAverageSlope(float roughness) {
-          return square(roughness)+MINIMUMVARIANCE;
+          return square(roughness) + MINIMUMVARIANCE;
       }
-      vec2 getAARoughnessFactors(vec3 normalVector) {
-          return vec2(0.);
-      }
+
+      // 环境BRDF
       vec3 getBRDFLookup(float NdotV, float perceptualRoughness) {
           vec2 UV = vec2(NdotV, perceptualRoughness);
           vec4 brdfLookup = texture(environmentBrdfSampler, UV);
@@ -108,27 +108,27 @@ export function getMaterial(_param) {
       struct ambientOcclusionOutParams {
         vec3 ambientOcclusionColor;
       };
-      void ambientOcclusionBlock(
-        out ambientOcclusionOutParams outParams
-      ) {
-        vec3 ambientOcclusionColor = vec3(1., 1., 1.);
-        outParams.ambientOcclusionColor = ambientOcclusionColor;
-      }
+      // void ambientOcclusionBlock(
+      //   out ambientOcclusionOutParams outParams
+      // ) {
+      //   vec3 ambientOcclusionColor = vec3(1., 1., 1.);
+      //   outParams.ambientOcclusionColor = ambientOcclusionColor;
+      // }
 
-      struct albedoOpacityOutParams {
-        vec3 surfaceAlbedo;
-        float alpha;
-      };
+      // struct albedoOpacityOutParams {
+      //   vec3 surfaceAlbedo;
+      //   float alpha;
+      // };
 
-      void albedoOpacityBlock(
-       const in vec4 vAlbedoColor,
-       out albedoOpacityOutParams outParams
-      ) {
-        vec3 surfaceAlbedo = vAlbedoColor.rgb;
-        float alpha = vAlbedoColor.a;
-        outParams.surfaceAlbedo = surfaceAlbedo;
-        outParams.alpha = alpha;
-      }
+      // void albedoOpacityBlock(
+      //  const in vec4 vAlbedoColor,
+      //  out albedoOpacityOutParams outParams
+      // ) {
+      //   vec3 surfaceAlbedo = vAlbedoColor.rgb;
+      //   float alpha = vAlbedoColor.a;
+      //   outParams.surfaceAlbedo = surfaceAlbedo;
+      //   outParams.alpha = alpha;
+      // }
 
       struct reflectivityOutParams {
         float microSurface;
@@ -136,6 +136,10 @@ export function getMaterial(_param) {
         vec3 surfaceReflectivityColor;
         vec3 surfaceAlbedo;
       };
+
+      /**
+        * @param vReflectivityColor,  r: 金属度, g:粗糙度
+        */
       void reflectivityBlock(
         const in vec4 vReflectivityColor,
         const in vec3 surfaceAlbedo,
@@ -154,6 +158,7 @@ export function getMaterial(_param) {
           surfaceReflectivityColor = mix(metallicF0, baseColor, metallicRoughness.r);
           microSurface = saturate(microSurface);
           float roughness = 1.-microSurface;
+
           outParams.microSurface = microSurface;
           outParams.roughness = roughness;
           outParams.surfaceReflectivityColor = surfaceReflectivityColor;
@@ -264,13 +269,17 @@ export function getMaterial(_param) {
         vec3 viewDirectionW = normalize(vEyePosition.xyz-vPositionW);
         vec3 normalW = normalize(vNormalW);
         vec3 geometricNormalW = normalW;
-        albedoOpacityOutParams albedoOpacityOut;
-        albedoOpacityBlock(vAlbedoColor, albedoOpacityOut);
 
-        vec3 surfaceAlbedo = albedoOpacityOut.surfaceAlbedo;
-        float alpha = albedoOpacityOut.alpha;
+        // albedoOpacityOutParams albedoOpacityOut;
+        // albedoOpacityBlock(vAlbedoColor, albedoOpacityOut);
+
+        vec3 surfaceAlbedo = vAlbedoColor.rgb;
+        float alpha = vAlbedoColor.w;
+        // float alpha = albedoOpacityOut.alpha;
         ambientOcclusionOutParams aoOut;
-        ambientOcclusionBlock(aoOut);
+        aoOut.ambientOcclusionColor = vec3(1.);
+        // ambientOcclusionBlock(aoOut);
+
 
         vec3 baseColor = surfaceAlbedo;
         reflectivityOutParams reflectivityOut;
@@ -284,27 +293,34 @@ export function getMaterial(_param) {
           reflectivityOut
         );
 
+        // FragColor = vec4(vec3(reflectivityOut.surfaceReflectivityColor), 1.0);
+        // return;
+
         float microSurface = reflectivityOut.microSurface;
         float roughness = reflectivityOut.roughness;
-        surfaceAlbedo = reflectivityOut.surfaceAlbedo;
+        // surfaceAlbedo = reflectivityOut.surfaceAlbedo;
+
         float NdotVUnclamped = dot(normalW, viewDirectionW);
         float NdotV = absEps(NdotVUnclamped);
         float alphaG = convertRoughnessToAverageSlope(roughness);
 
-        vec2 AARoughnessFactors = getAARoughnessFactors(normalW.xyz);
+        vec2 AARoughnessFactors = vec2(0.);
         vec3 environmentBrdf = getBRDFLookup(NdotV, roughness);
-        float ambientMonochrome = getLuminance(aoOut.ambientOcclusionColor);
-        float seo = environmentRadianceOcclusion(ambientMonochrome, NdotVUnclamped);
+
+        // float ambientMonochrome = getLuminance(aoOut.ambientOcclusionColor);
+        // seo = 1
+        // float seo = environmentRadianceOcclusion(ambientMonochrome, NdotVUnclamped);
         float reflectance = max(max(reflectivityOut.surfaceReflectivityColor.r, reflectivityOut.surfaceReflectivityColor.g), reflectivityOut.surfaceReflectivityColor.b);
         vec3 specularEnvironmentR0 = reflectivityOut.surfaceReflectivityColor.rgb;
         vec3 specularEnvironmentR90 = vec3(metallicReflectanceFactors.a);
 
-        clearcoatOutParams clearcoatOut;
-        clearcoatOut.specularEnvironmentR0 = specularEnvironmentR0;
-        vec3 specularEnvironmentReflectance = getReflectanceFromBRDFLookup(clearcoatOut.specularEnvironmentR0, specularEnvironmentR90, environmentBrdf);
-        specularEnvironmentReflectance *= seo;
-        subSurfaceOutParams subSurfaceOut;
-        subSurfaceOut.specularEnvironmentReflectance = specularEnvironmentReflectance;
+        // clearcoatOutParams clearcoatOut;
+        // clearcoatOut.specularEnvironmentR0 = specularEnvironmentR0;
+        // vec3 specularEnvironmentReflectance = getReflectanceFromBRDFLookup(clearcoatOut.specularEnvironmentR0, specularEnvironmentR90, environmentBrdf);
+
+        // specularEnvironmentReflectance *= seo;
+        // subSurfaceOutParams subSurfaceOut;
+        // subSurfaceOut.specularEnvironmentReflectance = specularEnvironmentReflectance;
 
 
         vec3 diffuseBase = vec3(0., 0., 0.);
@@ -322,7 +338,7 @@ export function getMaterial(_param) {
         info.specular = computeSpecularLighting(
           preInfo,
           normalW,
-          clearcoatOut.specularEnvironmentR0,
+          specularEnvironmentR0,
           specularEnvironmentR90,
           AARoughnessFactors.x,
           light0.vLightDiffuse.rgb);
@@ -331,7 +347,7 @@ export function getMaterial(_param) {
         diffuseBase += info.diffuse*shadow;
         specularBase += info.specular*shadow;
 
-        vec3 energyConservationFactor = getEnergyConservationFactor(clearcoatOut.specularEnvironmentR0, environmentBrdf);
+        vec3 energyConservationFactor = getEnergyConservationFactor(specularEnvironmentR0, environmentBrdf);
         vec3 finalSpecular = specularBase;
         finalSpecular = max(finalSpecular, 0.0);
         vec3 finalSpecularScaled = finalSpecular*vLightingIntensity.x*vLightingIntensity.w;
