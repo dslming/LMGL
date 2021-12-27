@@ -76,10 +76,6 @@ export function getMaterial(_param) {
         vec2 depthValues;
       } light0;
 
-      uniform Mate123 {
-        float  a;
-      } a;
-
       in vec3 vPositionW;
       in vec3 vNormalW;
       out vec4 FragColor;
