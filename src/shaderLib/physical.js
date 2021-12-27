@@ -66,8 +66,6 @@ export function getMaterial(_param) {
       uniform vec4 vReflectivityColor;
       uniform sampler2D environmentBrdfSampler;
       uniform vec4 vLightingIntensity;
-      uniform vec3 vColor;
-      uniform float visibility;
 
       uniform Light0 {
         vec4 vLightData;
@@ -77,6 +75,10 @@ export function getMaterial(_param) {
         vec4 shadowsInfo;
         vec2 depthValues;
       } light0;
+
+      uniform Mate123 {
+        float  a;
+      } a;
 
       in vec3 vPositionW;
       in vec3 vNormalW;
@@ -105,36 +107,9 @@ export function getMaterial(_param) {
           vec3 specular;
       };
 
-      struct ambientOcclusionOutParams {
-        vec3 ambientOcclusionColor;
-      };
-      // void ambientOcclusionBlock(
-      //   out ambientOcclusionOutParams outParams
-      // ) {
-      //   vec3 ambientOcclusionColor = vec3(1., 1., 1.);
-      //   outParams.ambientOcclusionColor = ambientOcclusionColor;
-      // }
-
-      // struct albedoOpacityOutParams {
-      //   vec3 surfaceAlbedo;
-      //   float alpha;
-      // };
-
-      // void albedoOpacityBlock(
-      //  const in vec4 vAlbedoColor,
-      //  out albedoOpacityOutParams outParams
-      // ) {
-      //   vec3 surfaceAlbedo = vAlbedoColor.rgb;
-      //   float alpha = vAlbedoColor.a;
-      //   outParams.surfaceAlbedo = surfaceAlbedo;
-      //   outParams.alpha = alpha;
-      // }
-
       struct reflectivityOutParams {
-        float microSurface;
         float roughness;
         vec3 surfaceReflectivityColor;
-        vec3 surfaceAlbedo;
       };
 
       /**
@@ -142,53 +117,23 @@ export function getMaterial(_param) {
         */
       void reflectivityBlock(
         const in vec4 vReflectivityColor,
-        const in vec3 surfaceAlbedo,
+        const in vec3 baseColor,
         const in vec4 metallicReflectanceFactors,
         out reflectivityOutParams outParams
       ) {
           vec3 surfaceReflectivityColor = vReflectivityColor.rgb;
           // r: 金属度, g:粗糙度
           vec2 metallicRoughness = surfaceReflectivityColor.rg;
-          float microSurface = 1.0-metallicRoughness.g;
-          vec3 baseColor = surfaceAlbedo;
 
           // 金属反射系数
           vec3 metallicF0 = metallicReflectanceFactors.rgb;
-          outParams.surfaceAlbedo = mix(baseColor.rgb*(1.0-metallicF0), vec3(0., 0., 0.), metallicRoughness.r);
-          surfaceReflectivityColor = mix(metallicF0, baseColor, metallicRoughness.r);
-          microSurface = saturate(microSurface);
-          float roughness = 1.-microSurface;
 
-          outParams.microSurface = microSurface;
-          outParams.roughness = roughness;
+          // 计算法向入射的反射率； 如果介电（如塑料）使用 F0 = 0.04，如果它是金属，使用反照率颜色作为 F0（金属工作流程）
+          surfaceReflectivityColor = mix(metallicF0, baseColor, metallicRoughness.r);
+
+          outParams.roughness = metallicRoughness.g;
           outParams.surfaceReflectivityColor = surfaceReflectivityColor;
       }
-
-      float environmentRadianceOcclusion(float ambientOcclusion, float NdotVUnclamped) {
-        float temp = NdotVUnclamped+ambientOcclusion;
-        return saturate(square(temp)-1.0+ambientOcclusion);
-      }
-
-      vec3 getReflectanceFromBRDFLookup(
-        const vec3 specularEnvironmentR0,
-        const vec3 specularEnvironmentR90,
-        const vec3 environmentBrdf) {
-          vec3 reflectance = (specularEnvironmentR90-specularEnvironmentR0)*environmentBrdf.x+specularEnvironmentR0*environmentBrdf.y;
-          return reflectance;
-      }
-
-      struct clearcoatOutParams {
-          vec3 specularEnvironmentR0;
-          float conservationFactor;
-          vec3 clearCoatNormalW;
-          vec2 clearCoatAARoughnessFactors;
-          float clearCoatIntensity;
-          float clearCoatRoughness;
-          vec3 energyConservationFactorClearCoat;
-      };
-      struct subSurfaceOutParams {
-        vec3 specularEnvironmentReflectance;
-      };
 
       struct preLightingInfo {
         vec3 lightOffset;
@@ -203,6 +148,7 @@ export function getMaterial(_param) {
         float VdotH;
         float roughness;
     };
+
       preLightingInfo computeHemisphericPreLightingInfo(
         vec4 lightData,
         vec3 V,
@@ -217,6 +163,9 @@ export function getMaterial(_param) {
           return result;
       }
 
+      // GGX Mask/Shadowing Isotropic
+      // Heitz http://jcgt.org/published/0003/02/03/paper.pdf
+      // https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf
       float smithVisibility_GGXCorrelated(float NdotL, float NdotV, float alphaG) {
           float a2 = alphaG*alphaG;
           float GGXV = NdotL*sqrt(NdotV*(NdotV-a2*NdotV)+a2);
@@ -224,6 +173,8 @@ export function getMaterial(_param) {
           return 0.5/(GGXV+GGXL);
       }
 
+      // Trowbridge-Reitz (GGX)
+      // Generalised Trowbridge-Reitz with gamma power=2.0
       float normalDistributionFunction_TrowbridgeReitzGGX(float NdotH, float alphaG) {
           float a2 = square(alphaG);
           float d = NdotH*NdotH*(a2-1.0)+1.0;
@@ -252,6 +203,8 @@ export function getMaterial(_param) {
         return specTerm*info.attenuation*info.NdotL*lightColor;
       }
 
+      // http://www.jcgt.org/published/0008/01/03/
+      // http://advances.realtimerendering.com/s2018/Siggraph%202018%20HDRP%20talk_with%20notes.pdf
       #define FRESNEL_MAXIMUM_ON_ROUGH 0.25
       vec3 getEnergyConservationFactor(const vec3 specularEnvironmentR0, const vec3 environmentBrdf) {
           return 1.0+specularEnvironmentR0*(1.0/environmentBrdf.y-1.0);
@@ -262,43 +215,28 @@ export function getMaterial(_param) {
           result.rgb = saturate(result.rgb);
           return result;
       }
-      uniform Material {
-        uniform vec4 aaaa;
-      };
+
       void main() {
         vec3 viewDirectionW = normalize(vEyePosition.xyz-vPositionW);
         vec3 normalW = normalize(vNormalW);
         vec3 geometricNormalW = normalW;
 
-        // albedoOpacityOutParams albedoOpacityOut;
-        // albedoOpacityBlock(vAlbedoColor, albedoOpacityOut);
-
-        vec3 surfaceAlbedo = vAlbedoColor.rgb;
         float alpha = vAlbedoColor.w;
-        // float alpha = albedoOpacityOut.alpha;
-        ambientOcclusionOutParams aoOut;
-        aoOut.ambientOcclusionColor = vec3(1.);
-        // ambientOcclusionBlock(aoOut);
-
-
-        vec3 baseColor = surfaceAlbedo;
+        vec3 baseColor = vAlbedoColor.rgb;
         reflectivityOutParams reflectivityOut;
-        vec4 metallicReflectanceFactors = vMetallicReflectanceFactors;
 
         // 反射率块
         reflectivityBlock(
           vReflectivityColor,
-          surfaceAlbedo,
-          metallicReflectanceFactors,
+          baseColor,
+          vMetallicReflectanceFactors,
           reflectivityOut
         );
 
-        // FragColor = vec4(vec3(reflectivityOut.surfaceReflectivityColor), 1.0);
+        // FragColor = vec4(vec3(reflectivityOut.surfaceAlbedo), 1.0);
         // return;
 
-        float microSurface = reflectivityOut.microSurface;
         float roughness = reflectivityOut.roughness;
-        // surfaceAlbedo = reflectivityOut.surfaceAlbedo;
 
         float NdotVUnclamped = dot(normalW, viewDirectionW);
         float NdotV = absEps(NdotVUnclamped);
@@ -307,33 +245,16 @@ export function getMaterial(_param) {
         vec2 AARoughnessFactors = vec2(0.);
         vec3 environmentBrdf = getBRDFLookup(NdotV, roughness);
 
-        // float ambientMonochrome = getLuminance(aoOut.ambientOcclusionColor);
-        // seo = 1
-        // float seo = environmentRadianceOcclusion(ambientMonochrome, NdotVUnclamped);
-        float reflectance = max(max(reflectivityOut.surfaceReflectivityColor.r, reflectivityOut.surfaceReflectivityColor.g), reflectivityOut.surfaceReflectivityColor.b);
         vec3 specularEnvironmentR0 = reflectivityOut.surfaceReflectivityColor.rgb;
-        vec3 specularEnvironmentR90 = vec3(metallicReflectanceFactors.a);
+        vec3 specularEnvironmentR90 = vec3(vMetallicReflectanceFactors.a);
 
-        // clearcoatOutParams clearcoatOut;
-        // clearcoatOut.specularEnvironmentR0 = specularEnvironmentR0;
-        // vec3 specularEnvironmentReflectance = getReflectanceFromBRDFLookup(clearcoatOut.specularEnvironmentR0, specularEnvironmentR90, environmentBrdf);
-
-        // specularEnvironmentReflectance *= seo;
-        // subSurfaceOutParams subSurfaceOut;
-        // subSurfaceOut.specularEnvironmentReflectance = specularEnvironmentReflectance;
-
-
-        vec3 diffuseBase = vec3(0., 0., 0.);
-        vec3 specularBase = vec3(0., 0., 0.);
         preLightingInfo preInfo;
-        lightingInfo info;
-        float shadow = 1.;
         preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
-        FragColor = light0.vLightSpecular;
-
         preInfo.NdotV = NdotV;
         preInfo.attenuation = 1.0;
         preInfo.roughness = roughness;
+
+        lightingInfo info;
         info.diffuse = computeHemisphericDiffuseLighting(preInfo, light0.vLightDiffuse.rgb, light0.vLightGround);
         info.specular = computeSpecularLighting(
           preInfo,
@@ -343,36 +264,35 @@ export function getMaterial(_param) {
           AARoughnessFactors.x,
           light0.vLightDiffuse.rgb);
 
-        shadow = 1.;
-        diffuseBase += info.diffuse*shadow;
-        specularBase += info.specular*shadow;
+        vec3 diffuseBase = vec3(0., 0., 0.);
+        vec3 specularBase = vec3(0., 0., 0.);
+        diffuseBase += info.diffuse;
+        specularBase += info.specular;
 
         vec3 energyConservationFactor = getEnergyConservationFactor(specularEnvironmentR0, environmentBrdf);
         vec3 finalSpecular = specularBase;
         finalSpecular = max(finalSpecular, 0.0);
-        vec3 finalSpecularScaled = finalSpecular*vLightingIntensity.x*vLightingIntensity.w;
+        vec3 finalSpecularScaled = finalSpecular*vLightingIntensity.x * vLightingIntensity.w;
         finalSpecularScaled *= energyConservationFactor;
+
         vec3 finalDiffuse = diffuseBase;
-        finalDiffuse *= surfaceAlbedo.rgb;
+        finalDiffuse *= baseColor.rgb;
         finalDiffuse = max(finalDiffuse, 0.0);
         finalDiffuse *= vLightingIntensity.x;
+
         vec3 finalAmbient = vAmbientColor;
-        finalAmbient *= surfaceAlbedo.rgb;
-        vec3 final = vColor;
-        final *= vLightingIntensity.y;
-        vec3 ambientOcclusionForDirectDiffuse = aoOut.ambientOcclusionColor;
-        finalAmbient *= aoOut.ambientOcclusionColor;
-        finalDiffuse *= ambientOcclusionForDirectDiffuse;
+        finalAmbient *= baseColor.rgb;
+
         vec4 finalColor = vec4(
-        finalAmbient +
-        finalDiffuse +
-        finalSpecularScaled +
-        final, alpha);
+          finalAmbient+
+          finalDiffuse +
+          finalSpecularScaled,
+          alpha
+        );
+
         finalColor = max(finalColor, 0.0);
         finalColor = applyImageProcessing(finalColor);
-        finalColor.a *= visibility;
         FragColor = finalColor;
-        // FragColor = aaaa;
       }
       `
   return {
@@ -381,19 +301,15 @@ export function getMaterial(_param) {
     fragmentShader,
     type: "physical",
     uniforms: {
-      roughness: { type: "f", value: 1 },
-      opacity: { type: "f", value: 1 },
-      visibility: { type: "f", value: 1 },
       vLightingIntensity: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
       // 漫反射颜色
       vAlbedoColor: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
-
       // 复合属性,x:metallic, y:roughness
       vReflectivityColor: { type: "v4", value: { x: 1, y: 0.555, z: 1, w: 1 } },
-
       // 自动计算,f0
       vMetallicReflectanceFactors: { type: "v4", value: { x: 0.04, y: 0.04, z: 0.04, w: 1 } },
-      vColor: { type: "v3", value: { x: 0., y: 0., z: 0.} },
+      // 环境颜色
+      vAmbientColor: { type: "v3", value: { x: 0, y: 0, z: 0 } },
       Light0: {
         type: "block",
         value: {
