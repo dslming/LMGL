@@ -72,8 +72,6 @@ export function getMaterial(_param) {
         vec4 vLightDiffuse;
         vec4 vLightSpecular;
         vec3 vLightGround;
-        vec4 shadowsInfo;
-        vec2 depthValues;
       } light0;
 
       in vec3 vPositionW;
@@ -90,12 +88,10 @@ export function getMaterial(_param) {
           return square(roughness) + MINIMUMVARIANCE;
       }
 
-      // 环境BRDF
-      vec3 getBRDFLookup(float NdotV, float perceptualRoughness) {
-          vec2 UV = vec2(NdotV, perceptualRoughness);
-          vec4 brdfLookup = texture(environmentBrdfSampler, UV);
-          // vec4 brdfLookup = vec4(0.);
-          return brdfLookup.rgb;
+      // Crytek: Moving to the Next Generation - The Rendering Technology of Ryse [GDC14]
+      float roughness_remap(float roughness)
+      {
+        return pow(1.0 - (1.0 - roughness) * 0.7, 6.0);
       }
 
       struct lightingInfo {
@@ -105,10 +101,14 @@ export function getMaterial(_param) {
 
       struct reflectivityOutParams {
         float roughness;
+        // specular
         vec3 surfaceReflectivityColor;
+        // diffuse
+        vec3 surfaceAlbedo;
       };
 
       /**
+        * 计算反射后的漫反射和高光反射
         * @param vReflectivityColor,  r: 金属度, g:粗糙度
         */
       void reflectivityBlock(
@@ -117,18 +117,20 @@ export function getMaterial(_param) {
         const in vec4 metallicReflectanceFactors,
         out reflectivityOutParams outParams
       ) {
-          vec3 surfaceReflectivityColor = vReflectivityColor.rgb;
-          // r: 金属度, g:粗糙度
-          vec2 metallicRoughness = surfaceReflectivityColor.rg;
+          float metallic = vReflectivityColor.r;
+          float roughness = vReflectivityColor.g;
+          outParams.roughness = roughness;
 
-          // 金属反射系数
+          // specular 反射系数
           vec3 metallicF0 = metallicReflectanceFactors.rgb;
+          outParams.surfaceReflectivityColor = mix(metallicF0, baseColor, metallic);
 
-          // 计算法向入射的反射率； 如果介电（如塑料）使用 F0 = 0.04，如果它是金属，使用反照率颜色作为 F0（金属工作流程）
-          surfaceReflectivityColor = mix(metallicF0, baseColor, metallicRoughness.r);
-
-          outParams.roughness = metallicRoughness.g;
-          outParams.surfaceReflectivityColor = surfaceReflectivityColor;
+          // Following Frostbite Remapping,
+          // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf page 115
+          // vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + baseColor * metallic;
+          // where 0.16 * reflectance * reflectance remaps the reflectance to allow storage in 8 bit texture
+          outParams.surfaceAlbedo = baseColor.rgb * (1.0 - metallic);
+          // outParams.surfaceAlbedo = mix(baseColor.rgb * (1.0 - metallicF0), vec3(0., 0., 0.), metallic);
       }
 
       struct preLightingInfo {
@@ -171,32 +173,38 @@ export function getMaterial(_param) {
 
       // Trowbridge-Reitz (GGX)
       // Generalised Trowbridge-Reitz with gamma power=2.0
+      // Beckmann: The scattering of electromagnetic waves from rough surfaces [Beckmann63]
       float normalDistributionFunction_TrowbridgeReitzGGX(float NdotH, float alphaG) {
           float a2 = square(alphaG);
           float d = NdotH*NdotH*(a2-1.0)+1.0;
           return a2/(PI*d*d);
       }
 
+      // Schlick Approximation: An Inexpensive BRDF Model for Physically-based Rendering [Schlick94]
       vec3 fresnelSchlickGGX(float VdotH, vec3 reflectance0, vec3 reflectance90) {
           return reflectance0+(reflectance90-reflectance0)*pow5(1.0-VdotH);
       }
       float fresnelSchlickGGX(float VdotH, float reflectance0, float reflectance90) {
-          return reflectance0+(reflectance90-reflectance0)*pow5(1.0-VdotH);
+        return reflectance0+(reflectance90-reflectance0)*pow5(1.0-VdotH);
       }
 
+      // 半球光的 diffuse
       vec3 computeHemisphericDiffuseLighting(preLightingInfo info, vec3 lightColor, vec3 groundColor) {
         return mix(groundColor, lightColor, info.NdotL);
       }
 
-      vec3 computeSpecularLighting(preLightingInfo info, vec3 N, vec3 reflectance0, vec3 reflectance90, float geometricRoughnessFactor, vec3 lightColor) {
+      // Specular
+      vec3 computeSpecularLighting(preLightingInfo info, vec3 N, vec3 reflectance0, vec3 reflectance90, vec3 lightColor) {
         float NdotH = saturateEps(dot(N, info.H));
-        float roughness = max(info.roughness, geometricRoughnessFactor);
+        float roughness = info.roughness;
         float alphaG = convertRoughnessToAverageSlope(roughness);
+        // float alphaG = roughness_remap(roughness);
         vec3 fresnel = fresnelSchlickGGX(info.VdotH, reflectance0, reflectance90);
         float distribution = normalDistributionFunction_TrowbridgeReitzGGX(NdotH, alphaG);
         float smithVisibility = smithVisibility_GGXCorrelated(info.NdotL, info.NdotV, alphaG);
         vec3 specTerm = fresnel*distribution*smithVisibility;
-        return specTerm*info.attenuation*info.NdotL*lightColor;
+        vec3 irradiance = info.NdotL * lightColor * info.attenuation;
+        return irradiance * specTerm;
       }
 
       // http://www.jcgt.org/published/0008/01/03/
@@ -215,13 +223,11 @@ export function getMaterial(_param) {
       void main() {
         vec3 viewDirectionW = normalize(vEyePosition.xyz-vPositionW);
         vec3 normalW = normalize(vNormalW);
-        vec3 geometricNormalW = normalW;
 
         float alpha = vAlbedoColor.w;
         vec3 baseColor = vAlbedoColor.rgb;
         reflectivityOutParams reflectivityOut;
 
-        // 反射率块
         reflectivityBlock(
           vReflectivityColor,
           baseColor,
@@ -229,20 +235,16 @@ export function getMaterial(_param) {
           reflectivityOut
         );
 
-        // FragColor = vec4(vec3(reflectivityOut.surfaceAlbedo), 1.0);
-        // return;
-
         float roughness = reflectivityOut.roughness;
+        vec3 surfaceAlbedo = reflectivityOut.surfaceAlbedo;
+        vec3 specularEnvironmentR0 = reflectivityOut.surfaceReflectivityColor.rgb;
+        vec3 specularEnvironmentR90 = vec3(vMetallicReflectanceFactors.a);
 
         float NdotVUnclamped = dot(normalW, viewDirectionW);
         float NdotV = absEps(NdotVUnclamped);
-        float alphaG = convertRoughnessToAverageSlope(roughness);
 
-        vec2 AARoughnessFactors = vec2(0.);
-        vec3 environmentBrdf = getBRDFLookup(NdotV, roughness);
-
-        vec3 specularEnvironmentR0 = reflectivityOut.surfaceReflectivityColor.rgb;
-        vec3 specularEnvironmentR90 = vec3(vMetallicReflectanceFactors.a);
+        vec3 diffuseBase = vec3(0., 0., 0.);
+        vec3 specularBase = vec3(0., 0., 0.);
 
         preLightingInfo preInfo;
         preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
@@ -257,27 +259,22 @@ export function getMaterial(_param) {
           normalW,
           specularEnvironmentR0,
           specularEnvironmentR90,
-          AARoughnessFactors.x,
-          light0.vLightDiffuse.rgb);
-
-        vec3 diffuseBase = vec3(0., 0., 0.);
-        vec3 specularBase = vec3(0., 0., 0.);
+          light0.vLightDiffuse.rgb
+        );
         diffuseBase += info.diffuse;
         specularBase += info.specular;
 
-        vec3 energyConservationFactor = getEnergyConservationFactor(specularEnvironmentR0, environmentBrdf);
         vec3 finalSpecular = specularBase;
         finalSpecular = max(finalSpecular, 0.0);
         vec3 finalSpecularScaled = finalSpecular*vLightingIntensity.x * vLightingIntensity.w;
-        finalSpecularScaled *= energyConservationFactor;
 
         vec3 finalDiffuse = diffuseBase;
-        finalDiffuse *= baseColor.rgb;
+        finalDiffuse *= surfaceAlbedo.rgb;
         finalDiffuse = max(finalDiffuse, 0.0);
         finalDiffuse *= vLightingIntensity.x;
 
         vec3 finalAmbient = vAmbientColor;
-        finalAmbient *= baseColor.rgb;
+        finalAmbient *= surfaceAlbedo.rgb;
 
         vec4 finalColor = vec4(
           finalAmbient+
@@ -302,19 +299,18 @@ export function getMaterial(_param) {
       vAlbedoColor: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
       // 复合属性,x:metallic, y:roughness
       vReflectivityColor: { type: "v4", value: { x: 1, y: 0.555, z: 1, w: 1 } },
-      // 自动计算,f0
+      // 自动计算,(f0,f0,f0,f90)
       vMetallicReflectanceFactors: { type: "v4", value: { x: 0.04, y: 0.04, z: 0.04, w: 1 } },
       // 环境颜色
       vAmbientColor: { type: "v3", value: { x: 0, y: 0, z: 0 } },
       Light0: {
         type: "block",
         value: {
+          // 灯光的位置
           vLightData: { type: "v4", value: { x: 0, y: 1, z: 0, w: 1 } },
           vLightDiffuse: { type: "v4", value: { x: 1, y: 1, z: 1, w: 0 } },
           vLightSpecular: { type: "v4", value: { x: 1, y: 1, z: 1, w: 0 } },
           vLightGround: { type: "v3", value: { x: 0, y: 0, z: 0 } },
-          shadowsInfo: { type: "v4", value: { x: 0, y: 0, z: 0, w: 0 } },
-          depthValues: { type: "v2", value: { x: 0, y: 0 } },
         }
       },
       environmentBrdfSampler: {
