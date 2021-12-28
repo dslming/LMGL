@@ -15,16 +15,14 @@ import dao from './core/Dao.js'
 import Renderer from './core/Renderer.js'
 import { Raycaster } from './core/Raycaster.js'
 export * from "./core/constants.js"
+export * from "./core/ImageTexture.js"
+export * from "./core/ImageCubeTexture.js"
 export * from "./core/Mesh.js"
 export * from "./core/RenderTarget.js"
 export * from "./core/RenderTargetCube.js"
 export * from "./core/MultipleRenderTarget.js"
 export * from "./core/Material.js"
 export * from "./core/MultisampleFrameBuffer.js"
-
-// texture
-export * from "./core/ImageTexture.js"
-export * from "./core/ImageCubeTexture.js"
 
 // shader lib
 import * as shaderLib from "./shaderLib/index.js"
@@ -36,7 +34,6 @@ export { modules }
 // loader
 export * from "./loader/ImageLoader.js"
 export * from "./loader/RGBELoader.js"
-export * from "./loader/DDSLoader.js"
 
 // math
 import * as MathUtils from './math/MathUtils.js'
