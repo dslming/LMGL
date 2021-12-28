@@ -120,7 +120,7 @@ export class Stage {
       const fail = document.querySelector(".fail")
       fail && (fail.style.display = "flex")
     }
-    this.camera = new PerspectiveCamera(75, param[1] / param[2], 1, 1000)
+    this.camera = new PerspectiveCamera(45, param[1] / param[2], 0.01, 5000)
 
     // this.control = new CameraControl({
     //   distance: this.camera.position.z,
