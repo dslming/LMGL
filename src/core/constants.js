@@ -51,6 +51,11 @@ const IMAGE_TYPE = {
   RGBFormat: 1022,
   RGBAFormat: 1023
 }
+
+const FILTER = {
+  LinearFilter: 1006
+}
+
 export {
   SIDE,
   VERSION,
@@ -58,5 +63,6 @@ export {
   BLENDING_TYPE,
   BLENDING_FACTOR,
   NUMBER_TYPE,
-  IMAGE_TYPE
+  IMAGE_TYPE,
+  FILTER
 }

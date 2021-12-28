@@ -49,8 +49,9 @@ export function setUniform(gl, program, name, value, type, textureId) {
       break
 
     case "tcube":
+      activeTexture(gl, textureId)
       bindCubeTexture(gl, value)
-      gl.uniform1i(addr, 0);
+      gl.uniform1i(addr, textureId);
       break
 
     default:

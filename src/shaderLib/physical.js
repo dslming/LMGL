@@ -1,24 +1,27 @@
 import tool from "./tool.glsl.js"
+import reflection from '../modules/pbr/reflection.glsl.js'
+
 /**
  * 物理材质,METALLIC WORKFLOW
  * @returns
  */
 export function getMaterial(_param) {
   const param = {
-     ior: 1.5,
-     metallic: 1,
-     roughness: 1,
-     baseColor: { x: 1, y: 1, z: 1 },
-     texture: _param.texture
+    ior: 1.5,
+    metallic: 1,
+    roughness: 1,
+    baseColor: { x: 1, y: 1, z: 1 },
+    environmentBrdfSampler: _param.environmentBrdfSampler,
+    reflectionSampler: _param.reflectionSampler,
    };
    _param.ior !== undefined && (param.ior = _param.ior);
    _param.metallic !== undefined && (param.metallic = _param.metallic);
    _param.roughness !== undefined && (param.roughness = _param.roughness);
 
   if (_param.baseColor !== undefined) {
-     param.baseColor.x = _param.baseColor.x;
-     param.baseColor.y = _param.baseColor.y;
-     param.baseColor.z = _param.baseColor.z;
+    param.baseColor.x = _param.baseColor.x;
+    param.baseColor.y = _param.baseColor.y;
+    param.baseColor.z = _param.baseColor.z;
    }
 
   const vertexShader = `#version 300 es
@@ -27,11 +30,42 @@ export function getMaterial(_param) {
       in vec3 aNormal;
       out vec3 vNormalW;
       out vec3 vPositionW;
+      out vec3 vEnvironmentIrradiance;
 
       uniform mat4 world;
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
       uniform vec3 lightDirction;
+
+      uniform mat4 reflectionMatrix;
+      uniform vec3 vSphericalL00;
+      uniform vec3 vSphericalL1_1;
+      uniform vec3 vSphericalL10;
+      uniform vec3 vSphericalL11;
+      uniform vec3 vSphericalL2_2;
+      uniform vec3 vSphericalL2_1;
+      uniform vec3 vSphericalL20;
+      uniform vec3 vSphericalL21;
+      uniform vec3 vSphericalL22;
+
+      // Please note the the coefficient have been prescaled.
+      //
+      // This uses the theory from both Sloan and Ramamoothi:
+      //   https://www.ppsloan.org/publications/SHJCGT.pdf
+      //   http://www-graphics.stanford.edu/papers/envmap/
+      // The only difference is the integration of the reconstruction coefficients direcly
+      // into the vectors as well as the 1 / pi multiplication to simulate a lambertian diffuse.
+      vec3 computeEnvironmentIrradiance(vec3 normal) {
+        return vSphericalL00
+        +vSphericalL1_1*(normal.y)
+        +vSphericalL10*(normal.z)
+        +vSphericalL11*(normal.x)
+        +vSphericalL2_2*(normal.y*normal.x)
+        +vSphericalL2_1*(normal.y*normal.z)
+        +vSphericalL20*((3.0*normal.z*normal.z)-1.0)
+        +vSphericalL21*(normal.z*normal.x)
+        +vSphericalL22*(normal.x*normal.x-(normal.y*normal.y));
+      }
 
       void main() {
         mat3 normalWorld = mat3(world);
@@ -39,6 +73,9 @@ export function getMaterial(_param) {
         vNormalW = normalize(normalWorld * aNormal);
         vec4 worldPos = world * vec4(aPosition, 1.0);
         vPositionW = vec3(worldPos);
+
+        vec3 reflectionVector = vec3(reflectionMatrix * vec4(vNormalW, 0)).xyz;
+        vEnvironmentIrradiance = computeEnvironmentIrradiance(reflectionVector);
       }
     `
 
@@ -64,7 +101,6 @@ export function getMaterial(_param) {
       uniform vec4 vAlbedoColor;
       uniform vec4 vMetallicReflectanceFactors;
       uniform vec4 vReflectivityColor;
-      uniform sampler2D environmentBrdfSampler;
       uniform vec4 vLightingIntensity;
 
       uniform Light0 {
@@ -76,12 +112,14 @@ export function getMaterial(_param) {
 
       in vec3 vPositionW;
       in vec3 vNormalW;
+      in vec3 vEnvironmentIrradiance;
       out vec4 FragColor;
 
       #define RECIPROCAL_PI2 0.15915494
       #define RECIPROCAL_PI 0.31830988618
       #define MINIMUMVARIANCE 0.0005
       ${tool}
+
 
       // 将粗糙度转换为平均斜率
       float convertRoughnessToAverageSlope(float roughness) {
@@ -219,6 +257,7 @@ export function getMaterial(_param) {
           result.rgb = saturate(result.rgb);
           return result;
       }
+      ${reflection}
 
       void main() {
         vec3 viewDirectionW = normalize(vEyePosition.xyz-vPositionW);
@@ -243,8 +282,22 @@ export function getMaterial(_param) {
         float NdotVUnclamped = dot(normalW, viewDirectionW);
         float NdotV = absEps(NdotVUnclamped);
 
+
         vec3 diffuseBase = vec3(0., 0., 0.);
         vec3 specularBase = vec3(0., 0., 0.);
+
+        vec4 metallicReflectanceFactors = vMetallicReflectanceFactors;
+        vec3 a = aaa(
+          roughness,
+          NdotV,
+          NdotVUnclamped,
+          vPositionW,
+          normalW,
+          vEnvironmentIrradiance,
+          reflectivityOut,
+          surfaceAlbedo,
+          metallicReflectanceFactors
+        );
 
         preLightingInfo preInfo;
         preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
@@ -277,9 +330,11 @@ export function getMaterial(_param) {
         finalAmbient *= surfaceAlbedo.rgb;
 
         vec4 finalColor = vec4(
+          a+
           finalAmbient+
           finalDiffuse +
-          finalSpecularScaled,
+          finalSpecularScaled
+          ,
           alpha
         );
 
@@ -294,15 +349,18 @@ export function getMaterial(_param) {
     fragmentShader,
     type: "physical",
     uniforms: {
+      vReflectionColor: { type: "v3", value: { x: 1, y: 1,z:1 } },
+      vReflectionInfos: { type: "v2", value: { x: 1, y: 0 } },
       vLightingIntensity: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
       // 漫反射颜色
       vAlbedoColor: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
       // 复合属性,x:metallic, y:roughness
-      vReflectivityColor: { type: "v4", value: { x: 1, y: 0.555, z: 1, w: 1 } },
+      vReflectivityColor: { type: "v4", value: { x: 0, y: 0.0, z: 0.04, w: 1 } },
       // 自动计算,(f0,f0,f0,f90)
       vMetallicReflectanceFactors: { type: "v4", value: { x: 0.04, y: 0.04, z: 0.04, w: 1 } },
       // 环境颜色
       vAmbientColor: { type: "v3", value: { x: 0, y: 0, z: 0 } },
+      vReflectionMicrosurfaceInfos: { type: "v3", value: { x: 128, y: 0.8, z: 0 } },
       Light0: {
         type: "block",
         value: {
@@ -314,9 +372,26 @@ export function getMaterial(_param) {
         }
       },
       environmentBrdfSampler: {
-        value: param.texture,
+        value: param.environmentBrdfSampler,
         type: "t"
-      }
+      },
+      reflectionSampler: {
+        value: param.reflectionSampler,
+        type: "tcube"
+      },
+      reflectionMatrix: {
+        value: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        type: "m4",
+      },
+      vSphericalL00: {type: "v3", value: { x: 0.5444, y:  0.4836, z: 0.6262 }},
+      vSphericalL1_1: {type: "v3", value: { x: 0.3098, y: 0.3471, z: 0.6107 }},
+      vSphericalL10: {type: "v3", value: {x: 0.0979, y: 0.0495,  z: 0.0295 }},
+      vSphericalL11: {type: "v3", value: {x: 0.0868, y: 0.1087,  z: 0.1687 }},
+      vSphericalL2_2: {type: "v3", value: {x: 0.0154, y: 0.0403,  z: 0.1151 }},
+      vSphericalL2_1: {type: "v3", value: {x: 0.0442, y: 0.0330,  z: 0.0402 }},
+      vSphericalL20: {type: "v3", value:  {x: 0.0062, y: -0.0018, z:  -0.0101 }},
+      vSphericalL21: {type: "v3", value: {x: 0.0408, y: 0.0495,  z: 0.0934 }},
+      vSphericalL22: {type: "v3", value: {x: 0.0093, y: -0.0337, z:  -0.1483 }},
     }
   }
 }
