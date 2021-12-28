@@ -202,7 +202,7 @@ export function getMaterial(_param) {
         vec3 fresnel = fresnelSchlickGGX(info.VdotH, reflectance0, reflectance90);
         float distribution = normalDistributionFunction_TrowbridgeReitzGGX(NdotH, alphaG);
         float smithVisibility = smithVisibility_GGXCorrelated(info.NdotL, info.NdotV, alphaG);
-        vec3 specTerm = fresnel*distribution*smithVisibility;
+        vec3 specTerm = fresnel * distribution * smithVisibility;
         vec3 irradiance = info.NdotL * lightColor * info.attenuation;
         return irradiance * specTerm;
       }
