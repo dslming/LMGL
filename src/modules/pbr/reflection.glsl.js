@@ -179,6 +179,7 @@ vec3 aaa(
   finalRadianceScaled *= energyConservationFactor;
 
   return finalRadianceScaled + finalIrradiance;
+  // return finalIrradiance + finalRadianceScaled;
 }
 `
 

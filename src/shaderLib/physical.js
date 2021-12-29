@@ -120,6 +120,20 @@ export function getMaterial(_param) {
       #define MINIMUMVARIANCE 0.0005
       ${tool}
 
+      struct albedoOpacityOutParams {
+        vec3 surfaceAlbedo;
+        float alpha;
+      };
+      void albedoOpacityBlock(
+        const in vec4 vAlbedoColor,
+        out albedoOpacityOutParams outParams
+      ) {
+        vec3 surfaceAlbedo = vAlbedoColor.rgb;
+        float alpha = vAlbedoColor.a;
+        #define CUSTOM_FRAGMENT_UPDATE_ALBEDO
+        outParams.surfaceAlbedo = surfaceAlbedo;
+        outParams.alpha = alpha;
+      }
 
       // 将粗糙度转换为平均斜率
       float convertRoughnessToAverageSlope(float roughness) {
@@ -264,18 +278,24 @@ export function getMaterial(_param) {
         vec3 normalW = normalize(vNormalW);
 
         float alpha = vAlbedoColor.w;
-        vec3 baseColor = vAlbedoColor.rgb;
-        reflectivityOutParams reflectivityOut;
 
+
+
+        albedoOpacityOutParams albedoOpacityOut;
+        albedoOpacityBlock(vAlbedoColor, albedoOpacityOut);
+
+        vec3 surfaceAlbedo = albedoOpacityOut.surfaceAlbedo;
+        vec3 baseColor = surfaceAlbedo;
+
+        reflectivityOutParams reflectivityOut;
         reflectivityBlock(
           vReflectivityColor,
           baseColor,
           vMetallicReflectanceFactors,
           reflectivityOut
         );
-
+        surfaceAlbedo = reflectivityOut.surfaceAlbedo;
         float roughness = reflectivityOut.roughness;
-        vec3 surfaceAlbedo = reflectivityOut.surfaceAlbedo;
         vec3 specularEnvironmentR0 = reflectivityOut.surfaceReflectivityColor.rgb;
         vec3 specularEnvironmentR90 = vec3(vMetallicReflectanceFactors.a);
 
@@ -301,6 +321,9 @@ export function getMaterial(_param) {
         );
         #endif
 
+
+
+        #ifdef USE_LIGTH
         preLightingInfo preInfo;
         preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
         preInfo.NdotV = NdotV;
@@ -318,6 +341,8 @@ export function getMaterial(_param) {
         );
         diffuseBase += info.diffuse;
         specularBase += info.specular;
+        #endif
+
 
         vec3 finalSpecular = specularBase;
         finalSpecular = max(finalSpecular, 0.0);
@@ -340,7 +365,7 @@ export function getMaterial(_param) {
         );
 
         #ifdef USE_ENV_MAP
-        finalColor.rgb+=a;
+        finalColor.rgb += a;
         #endif
         finalColor = max(finalColor, 0.0);
         finalColor = applyImageProcessing(finalColor);
@@ -357,9 +382,9 @@ export function getMaterial(_param) {
       vReflectionInfos: { type: "v2", value: { x: 1, y: 0 } },
       vLightingIntensity: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
       // 漫反射颜色
-      vAlbedoColor: { type: "v4", value: { x: 1, y: 1, z: 1, w: 1 } },
+      vAlbedoColor: { type: "v4", value: { x: 1, y: 0.766, z: 0.336, w: 1 } },
       // 复合属性,x:metallic, y:roughness
-      vReflectivityColor: { type: "v4", value: { x: 0, y: 0.0, z: 0.04, w: 1 } },
+      vReflectivityColor: { type: "v4", value: { x: 0., y: 0.0, z: 0.04, w: 1 } },
       // 自动计算,(f0,f0,f0,f90)
       vMetallicReflectanceFactors: { type: "v4", value: { x: 0.04, y: 0.04, z: 0.04, w: 1 } },
       // 环境颜色

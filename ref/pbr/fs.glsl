@@ -635,6 +635,7 @@ void main(void) {
     #define CUSTOM_FRAGMENT_MAIN_BEGIN
     vec3 viewDirectionW = normalize(vEyePosition.xyz-vPositionW);
     vec3 normalW = normalize(vNormalW);
+
     vec3 geometricNormalW = normalW;
     vec2 uvOffset = vec2(0.0, 0.0);
     albedoOpacityOutParams albedoOpacityOut;
@@ -660,9 +661,11 @@ void main(void) {
     surfaceAlbedo = reflectivityOut.surfaceAlbedo;
     float NdotVUnclamped = dot(normalW, viewDirectionW);
     float NdotV = absEps(NdotVUnclamped);
+
     float alphaG = convertRoughnessToAverageSlope(roughness);
     vec2 AARoughnessFactors = getAARoughnessFactors(normalW.xyz);
     vec3 environmentBrdf = getBRDFLookup(NdotV, roughness);
+
     float ambientMonochrome = getLuminance(aoOut.ambientOcclusionColor);
     float seo = environmentRadianceOcclusion(ambientMonochrome, NdotVUnclamped);
     reflectionOutParams reflectionOut;
@@ -691,7 +694,6 @@ void main(void) {
     finalRadiance *= subSurfaceOut.specularEnvironmentReflectance;
     vec3 finalRadianceScaled = finalRadiance*vLightingIntensity.z;
     finalRadianceScaled *= energyConservationFactor;
-
     vec3 finalDiffuse = diffuseBase;
     finalDiffuse *= surfaceAlbedo.rgb;
     finalDiffuse = max(finalDiffuse, 0.0);

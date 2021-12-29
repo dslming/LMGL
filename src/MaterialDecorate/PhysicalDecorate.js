@@ -30,10 +30,10 @@ export default class PhysicalDecorate {
     const f0 = Math.pow((ior - 1) / (ior + 1), 2);
     const metallicF90 = 1;
 
-    this.uniforms.vReflectivityColor.value.x = metallic;
-    this.uniforms.vReflectivityColor.value.y = roughness;
-    this.uniforms.vReflectivityColor.value.z = 1;
-    this.uniforms.vReflectivityColor.value.w = 1;
+    // this.uniforms.vReflectivityColor.value.x = metallic;
+    // this.uniforms.vReflectivityColor.value.y = roughness;
+    // this.uniforms.vReflectivityColor.value.z = 1;
+    // this.uniforms.vReflectivityColor.value.w = 1;
 
 
     this.uniforms.vMetallicReflectanceFactors.value.x = f0;
