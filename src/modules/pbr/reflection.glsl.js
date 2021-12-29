@@ -1,6 +1,6 @@
-export default `
+const code = `
 #define sampleReflectionLod(s, c, l) textureLod(s, c, l)
-
+#define USE_ENV_MAP
 uniform mat4 reflectionMatrix;
 uniform vec3 vReflectionMicrosurfaceInfos;
 uniform vec2 vReflectionInfos;
@@ -181,3 +181,11 @@ vec3 aaa(
   return finalRadianceScaled + finalIrradiance;
 }
 `
+
+export default function get(envMap) {
+  if (envMap) {
+    return code;
+  } else {
+    return "";
+  }
+}

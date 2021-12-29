@@ -257,7 +257,7 @@ export function getMaterial(_param) {
           result.rgb = saturate(result.rgb);
           return result;
       }
-      ${reflection}
+      ${reflection(param.reflectionSampler)}
 
       void main() {
         vec3 viewDirectionW = normalize(vEyePosition.xyz-vPositionW);
@@ -287,6 +287,7 @@ export function getMaterial(_param) {
         vec3 specularBase = vec3(0., 0., 0.);
 
         vec4 metallicReflectanceFactors = vMetallicReflectanceFactors;
+        #ifdef USE_ENV_MAP
         vec3 a = aaa(
           roughness,
           NdotV,
@@ -298,6 +299,7 @@ export function getMaterial(_param) {
           surfaceAlbedo,
           metallicReflectanceFactors
         );
+        #endif
 
         preLightingInfo preInfo;
         preInfo = computeHemisphericPreLightingInfo(light0.vLightData, viewDirectionW, normalW);
@@ -330,7 +332,6 @@ export function getMaterial(_param) {
         finalAmbient *= surfaceAlbedo.rgb;
 
         vec4 finalColor = vec4(
-          a+
           finalAmbient+
           finalDiffuse +
           finalSpecularScaled
@@ -338,6 +339,9 @@ export function getMaterial(_param) {
           alpha
         );
 
+        #ifdef USE_ENV_MAP
+        finalColor.rgb+=a;
+        #endif
         finalColor = max(finalColor, 0.0);
         finalColor = applyImageProcessing(finalColor);
         FragColor = finalColor;
