@@ -8,12 +8,12 @@ export class Axis {
     const geoZ = this.getGeoX(size);
 
     geoY.attribute.aPosition.value = [
-      0, -1 * size, 0,
+      0, 0, 0,
       0, 1 * size, 0,
     ]
 
     geoZ.attribute.aPosition.value = [
-      0, 0, -1 * size,
+      0, 0, 0,
       0, 0, 1 * size,
     ]
 
@@ -67,7 +67,7 @@ export class Axis {
       attribute: {
         aPosition: {
           value: [
-            -1 * size, 0, 0,
+            0, 0, 0,
             1 * size, 0, 0,
           ],
           itemSize: 3

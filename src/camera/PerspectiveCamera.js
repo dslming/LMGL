@@ -1,5 +1,6 @@
 import { Camera } from './Camera.js';
 import * as MathUtils from '../math/MathUtils.js';
+import dao from '../core/Dao.js';
 
 class PerspectiveCamera extends Camera {
 
@@ -198,7 +199,11 @@ class PerspectiveCamera extends Camera {
     const skew = this.filmOffset;
     if (skew !== 0) left += near * skew / this.getFilmWidth();
 
-    this.projectionMatrix.makePerspective(left, left + width, top, top - height, near, this.far);
+    if (dao.getData("config").useRightHandedSystem === true) {
+      this.projectionMatrix.makePerspectiveRH(left, left + width, top, top - height, near, this.far);
+    } else {
+      this.projectionMatrix.makePerspectiveLH(left, left + width, top, top - height, near, this.far);
+    }
 
     this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
 
@@ -224,6 +229,15 @@ class PerspectiveCamera extends Camera {
 
     return data;
 
+  }
+
+  getViewMatrix() {
+    return this.matrixWorldInverse;
+  }
+
+  getProjectionMatrix() {
+    this.updateProjectionMatrix();
+    return this.projectionMatrix;
   }
 
 }

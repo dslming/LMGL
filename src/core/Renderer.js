@@ -26,7 +26,8 @@ export default class Renderer {
 
     camera.updateMatrix()
     camera.updateMatrixWorld();
-    camera.updateProjectionMatrix()
+    camera.updateProjectionMatrix();
+    mesh.updateMatrix();
     // camera.updateWorldMatrix()
     // camera.updateProjectionMatrix()
     // camera.updateMatrix()
@@ -38,7 +39,6 @@ export default class Renderer {
     WebGLInterface.setUniform(gl, program, "modelViewMatrix", modelViewMatrix.elements, "m4")
 
     // const world = new Matrix4()
-    WebGLInterface.setUniform(gl, program, "world", mesh.matrix.elements, "m4")
     WebGLInterface.setUniform(gl, program, "world", mesh.matrix.elements, "m4")
 
     // 法线: world -> eye

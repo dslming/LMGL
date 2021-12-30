@@ -51,10 +51,16 @@ window.onload = async () => {
   const width = window.innerWidth
   const height = window.innerHeight
 
-  stage = new LMGL.Stage()
+  stage = new LMGL.Stage((err)=>{
+    console.error(err);
+  },{
+    useRightHandedSystem: false,
+  })
   stage.init(document.querySelector("#c"), width, height)
-  stage.camera.near = 2;
-  stage.camera.position.set(5, 0, 0)
+  stage.camera.fov = 45;
+  stage.camera.near = 1;
+  stage.camera.far = 10000;
+  stage.camera.position.set(0, 0, 10)
 
   const urls = [
     "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_X.png",
@@ -72,6 +78,7 @@ window.onload = async () => {
 
   const obj = new MyMesh(cubeMap, map );
   stage.add(obj.mesh)
+  window.mesh = obj.mesh;
 
   const matParam = obj.mesh.material.param;
   const params={
@@ -98,6 +105,11 @@ window.onload = async () => {
   });
   gui.open();
 
+    // 添加坐标轴
+  const axis = new LMGL.meshLib.Axis(100)
+  stage.add(axis.meshX)
+  stage.add(axis.meshY)
+  stage.add(axis.meshZ)
   stage.run()
 }
 

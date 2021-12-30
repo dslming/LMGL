@@ -2,6 +2,8 @@ import { Vector3 } from "../math/Vector3.js"
 import { Vector2 } from "../math/Vector2.js"
 import { Spherical } from '../math/Spherical.js'
 import { Quaternion } from '../math/Quaternion.js'
+import dao from '../core/Dao.js';
+
 
 /**
  * 鼠标左键, 旋转控制
@@ -101,7 +103,11 @@ export class Rotation {
    * @param {*} angle
    */
   rotateLeft(angle) {
-    this.sphericalDelta.theta -= angle;
+    if (dao.getData("config").useRightHandedSystem === true) {
+      this.sphericalDelta.theta -= angle;
+    } else {
+      this.sphericalDelta.theta += angle;
+    }
   }
 
   /**

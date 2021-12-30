@@ -55,7 +55,14 @@ import * as webgl from './webgl/index.js'
 export { webgl }
 
 export class Stage {
-  constructor(cb) {
+  constructor(cb, config) {
+    if (config === undefined) {
+      config = {}
+    }
+    if (config.useRightHandedSystem === undefined) {
+      config.useRightHandedSystem = true;
+    }
+
     window.lm = this
     this.failCallback = cb;
     this.enablePick = false;
@@ -68,7 +75,10 @@ export class Stage {
     this.renderFlag = true;
     this.resize = this.resize.bind(this)
 
-    this.raycaster = new Raycaster()
+    this.raycaster = new Raycaster();
+
+    dao.setData({ name: "config", data: config })
+
   }
 
   // 拾取
