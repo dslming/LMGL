@@ -1,0 +1,33 @@
+{
+  "name": "three_stage",
+  "version": "1.0.2",
+  "description": "three.js 基本场景搭建。",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack-dev-server --config webpack.dev.js --progress"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dslming/three_stage.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dslming/three_stage/issues"
+  },
+  "homepage": "https://github.com/dslming/three_stage#readme",
+  "dependencies": {
+    "dat.gui": "^0.7.7",
+    "html-webpack-plugin": "^4.5.0",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.0.2",
+    "webpack": "^4.41.4",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.11.0",
+    "webpackbar": "^5.0.0-3"
+  },
+  "devDependencies": {
+    "awesome-typescript-loader": "^5.2.1",
+    "tslib": "^2.3.1"
+  }
+}

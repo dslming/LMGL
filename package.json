@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/dslming/LMGL/issues"
   },
-  "homepage": "https://github.com/dslming/LMGL#readme"
+  "homepage": "https://github.com/dslming/LMGL#readme",
+  "devDependencies": {
+    "typescript": "^4.4.2",
+    "tslib": "^2.3.1"
+  }
 }

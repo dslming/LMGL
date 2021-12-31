@@ -49,3 +49,8 @@ IncidentLight 入射光
 
 RE_Direct 渲染方程-直接光照
 RE_IndirectDiffuse 渲染方程-间接光照
+
+
+#### 命名规则
+- 文件夹名称大驼峰命名
+- 文件名小驼峰命名
