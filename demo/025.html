@@ -31,7 +31,7 @@ class MyMesh {
 
     const shader = LMGL.shaderLib.physical({
       environmentBrdfSampler: map.getTexture(),
-      reflectionSampler: cubeMap.getTexture(),
+      reflectionSampler: cubeMap,//cubeMap.getTexture(),
       roughness: 0.0,
       metallic: 0.2,
       baseColor: new LMGL.Vector3(1.0, 0.766, 0.336)
@@ -62,21 +62,26 @@ window.onload = async () => {
   stage.camera.far = 10000;
   stage.camera.position.set(0, 0, 10)
 
-  const urls = [
-    "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_X.png",
-    "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_X.png",
-    "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Y.png",
-    "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Y.png",
-    "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Z.png",
-    "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Z.png"
-  ];
-  const images = await LMGL.loadCubeImages(urls)
-  let cubeMap = new LMGL.ImageCubeTexture(images)
+  const loader = new LMGL.DDSLoader()
+  let a = await loader.load("./images/environment.dds")
+  console.error(a);
+  window.a = a;
+
+  // const urls = [
+  //   "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_X.png",
+  //   "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_X.png",
+  //   "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Y.png",
+  //   "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Y.png",
+  //   "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Z.png",
+  //   "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Z.png"
+  // ];
+  // const images = await LMGL.loadCubeImages(urls)
+  // let cubeMap = new LMGL.ImageCubeTexture(images)
 
   const img = await LMGL.loadImage("./images/a.png");
   let map = new LMGL.ImageTexture(img);
 
-  const obj = new MyMesh(cubeMap, map );
+  const obj = new MyMesh(a._webGLTexture, map );
   stage.add(obj.mesh)
   window.mesh = obj.mesh;
 

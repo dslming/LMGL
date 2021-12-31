@@ -14,6 +14,7 @@ export { geometryLib }
 import dao from './core/Dao.js'
 import Renderer from './core/Renderer.js'
 import { Raycaster } from './core/Raycaster.js'
+import Engine from './core/engine.js'
 export * from "./core/constants.js"
 export * from "./core/ImageTexture.js"
 export * from "./core/ImageCubeTexture.js"
@@ -34,6 +35,7 @@ export { modules }
 // loader
 export * from "./loader/ImageLoader.js"
 export * from "./loader/RGBELoader.js"
+export * from "./loader/DDSLoader.js"
 
 // math
 import * as MathUtils from './math/MathUtils.js'
@@ -130,7 +132,9 @@ export class Stage {
       const fail = document.querySelector(".fail")
       fail && (fail.style.display = "flex")
     }
-    this.camera = new PerspectiveCamera(45, param[1] / param[2], 0.01, 5000)
+    this.camera = new PerspectiveCamera(45, param[1] / param[2], 0.01, 5000);
+
+    this.engine = new Engine(this.gl);
 
     // this.control = new CameraControl({
     //   distance: this.camera.position.z,
@@ -138,6 +142,8 @@ export class Stage {
     this.control = new MyOrbitControls(this.camera, param[0])
 
     dao.setData({ name: "gl", data: this.gl })
+    dao.setData({ name: "engine", data: this.engine })
+
     dao.setData({ name: "camera", data: this.camera })
 
     const dom = param[0];

@@ -370,7 +370,7 @@ export function getMaterial(_param) {
         finalColor = max(finalColor, 0.0);
         finalColor = applyImageProcessing(finalColor);
         FragColor = finalColor;
-        FragColor=vec4(vNormalW, 1.0);
+        // FragColor=vec4(vNormalW, 1.0);
       }
       `
   return {
