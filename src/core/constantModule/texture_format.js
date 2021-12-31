@@ -1,0 +1,28 @@
+export class Constants {}
+
+/** ALPHA */
+Constants.TEXTUREFORMAT_ALPHA = 0;
+/** LUMINANCE */
+Constants.TEXTUREFORMAT_LUMINANCE = 1;
+/** LUMINANCE_ALPHA */
+Constants.TEXTUREFORMAT_LUMINANCE_ALPHA = 2;
+/** RGB */
+Constants.TEXTUREFORMAT_RGB = 4;
+/** RGBA */
+Constants.TEXTUREFORMAT_RGBA = 5;
+/** RED */
+Constants.TEXTUREFORMAT_RED = 6;
+/** RED (2nd reference) */
+Constants.TEXTUREFORMAT_R = 6;
+/** RG */
+Constants.TEXTUREFORMAT_RG = 7;
+/** RED_INTEGER */
+Constants.TEXTUREFORMAT_RED_INTEGER = 8;
+/** RED_INTEGER (2nd reference) */
+Constants.TEXTUREFORMAT_R_INTEGER = 8;
+/** RG_INTEGER */
+Constants.TEXTUREFORMAT_RG_INTEGER = 9;
+/** RGB_INTEGER */
+Constants.TEXTUREFORMAT_RGB_INTEGER = 10;
+/** RGBA_INTEGER */
+Constants.TEXTUREFORMAT_RGBA_INTEGER = 11;
