@@ -1997,6 +1997,11 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
         //     this._sceneUbo.updateMatrix("view", this._viewMatrix);
         //     this._sceneUbo.update();
         // }
+        if (this._sceneUbo.useUbo) {
+            this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
+            this._sceneUbo.updateMatrix("view", this._viewMatrix);
+            this._sceneUbo.update();
+        }
     }
 
     /**

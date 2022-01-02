@@ -15,8 +15,6 @@ export * from "./Maths/index";
 export * from "./Meshes/index";
 export * from "./node";
 export * from "./Rendering/index";
-export * from "./scene";
-export * from "./Scene/sceneComponent";
 export * from "./States/index";
 export * from "./Misc/index";
 export * from "./types";

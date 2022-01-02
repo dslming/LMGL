@@ -1928,7 +1928,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         // }
 
         // Draw
-        // this._processRendering(this, subMesh, effect, fillMode, batch, hardwareInstancedRendering, this._onBeforeDraw, this._effectiveMaterial);
+        this._processRendering(this, subMesh, effect, fillMode, batch, hardwareInstancedRendering, this._onBeforeDraw, this._effectiveMaterial);
 
         // Unbind
         this._effectiveMaterial.unbind();
@@ -1943,11 +1943,11 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         return this;
     }
 
-    // private _onBeforeDraw(isInstance: boolean, world: Matrix, effectiveMaterial?: Material): void {
-    //     if (isInstance && effectiveMaterial) {
-    //         effectiveMaterial.bindOnlyWorldMatrix(world);
-    //     }
-    // }
+    private _onBeforeDraw(isInstance: boolean, world: Matrix, effectiveMaterial?: Material): void {
+        if (isInstance && effectiveMaterial) {
+            effectiveMaterial.bindOnlyWorldMatrix(world);
+        }
+    }
 
     /**
      *   Renormalize the mesh and patch it up if there are no weights
