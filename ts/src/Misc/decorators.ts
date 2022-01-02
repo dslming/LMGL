@@ -4,6 +4,7 @@ import { Quaternion, Vector2, Vector3, Matrix } from "../Maths/math.vector";
 import { _DevTools } from './devTools';
 // import { IAnimatable } from '../Animations/animatable.interface';
 import { Color4, Color3 } from '../Maths/math.color';
+import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
 
 declare type Scene = import("../Scene/scene").Scene;
 declare type Camera = import("../Cameras/camera").Camera;
@@ -215,9 +216,9 @@ export function serializeAsCameraReference(sourceName?: string) {
  */
 export class SerializationHelper {
     /** @hidden */
-    // public static _ImageProcessingConfigurationParser = (sourceProperty: any): ImageProcessingConfiguration => {
-    //     throw _DevTools.WarnImport("ImageProcessingConfiguration");
-    // }
+    public static _ImageProcessingConfigurationParser = (sourceProperty: any): ImageProcessingConfiguration => {
+        throw _DevTools.WarnImport("ImageProcessingConfiguration");
+    }
 
     /** @hidden */
     public static _FresnelParametersParser = (sourceProperty: any): FresnelParameters => {

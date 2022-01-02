@@ -536,7 +536,7 @@ export class ThinEngine {
     // Shader processor
     this._shaderProcessor = new WebGL2ShaderProcessor();
     this._creationOptions = options;
-    console.log(`Babylon.js v${ThinEngine.Version} - ${this.description}`);
+    console.log(`lmgl2 base Babylon.js v${ThinEngine.Version} - ${this.description}`);
   }
 
   /**------------------------------------------ document ----------------------------------------------------------- */

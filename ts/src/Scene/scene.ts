@@ -56,6 +56,7 @@ import { Plane } from '../Maths/math.plane';
 import { Frustum } from '../Maths/math.frustum';
 import { UniqueIdGenerator } from '../Misc/uniqueIdGenerator';
 import { FileTools, LoadFileError, RequestFileError, ReadFileError } from '../Misc/fileTools';
+import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -195,7 +196,7 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
     }
 
     /** @hidden */
-    // protected _imageProcessingConfiguration: ImageProcessingConfiguration;
+    protected _imageProcessingConfiguration: ImageProcessingConfiguration;
     /**
      * Default image processing configuration used either in the rendering
      * Forward main pass or through the imageProcessingPostProcess if present.
@@ -204,9 +205,9 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
      *
      * No setter as we it is a shared configuration, you can set the values instead.
      */
-    // public get imageProcessingConfiguration(): ImageProcessingConfiguration {
-    //     return this._imageProcessingConfiguration;
-    // }
+    public get imageProcessingConfiguration(): ImageProcessingConfiguration {
+        return this._imageProcessingConfiguration;
+    }
 
     private _forceWireframe = false;
     /**
