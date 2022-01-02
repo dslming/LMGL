@@ -9,7 +9,7 @@ module.exports = {
     filename: "build.js",
     path: path.join(__dirname, "./dist")
   },
-  devtool: "source-map",
+  // devtool: "source-map",
   module: "commonjs",
   devServer: {
     port: 9999,
@@ -27,11 +27,17 @@ module.exports = {
     })
   ],
   module: {
-    rules: [{
-      test: /\.tsx?$/,
-      use: 'awesome-typescript-loader',
-      exclude: /node_modules/
-    }]
+    rules: [
+      {
+        test: /\.tsx?$/,
+          use: [{
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true
+            }
+          }]
+      }
+    ]
   },
    resolve: {
      extensions: ['.tsx', '.ts', '.js']
