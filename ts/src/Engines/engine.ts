@@ -1184,26 +1184,26 @@ export class Engine extends ThinEngine {
     }
 
     public _renderLoop(): void {
-        // if (!this._contextWasLost) {
-        //     var shouldRender = true;
-        //     if (!this.renderEvenInBackground && this._windowIsBackground) {
-        //         shouldRender = false;
-        //     }
+        if (!this._contextWasLost) {
+            var shouldRender = true;
+            // if (!this.renderEvenInBackground && this._windowIsBackground) {
+            //     shouldRender = false;
+            // }
 
-        //     if (shouldRender) {
-        //         // Start new frame
-        //         this.beginFrame();
+            if (shouldRender) {
+                // Start new frame
+                this.beginFrame();
 
-        //         // Child canvases
-        //         if (!this._renderViews()) {
-        //             // Main frame
-        //             this._renderFrame();
-        //         }
+                // Child canvases
+                if (!this._renderViews()) {
+                    // Main frame
+                    this._renderFrame();
+                }
 
-        //         // Present
-        //         this.endFrame();
-        //     }
-        // }
+                // Present
+                this.endFrame();
+            }
+        }
 
         if (this._activeRenderLoops.length > 0) {
             // Register new frame

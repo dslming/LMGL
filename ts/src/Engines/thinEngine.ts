@@ -264,7 +264,7 @@ export class ThinEngine {
    * Gets or sets a boolean indicating if back faces must be culled (true by default)
    */
   public cullBackFaces = true;
-
+    public _contextWasLost = false;
 
   /** --------------------------------- program ---------------------------------- */
    protected _setProgram(program: WebGLProgram): void {
@@ -542,26 +542,26 @@ export class ThinEngine {
   /**------------------------------------------ document ----------------------------------------------------------- */
    /** @hidden */
     public _renderLoop(): void {
-        // if (!this._contextWasLost) {
-        //     var shouldRender = true;
-        //     if (!this.renderEvenInBackground && this._windowIsBackground) {
-        //         shouldRender = false;
-        //     }
+        if (!this._contextWasLost) {
+            var shouldRender = true;
+            // if (!this.renderEvenInBackground && this._windowIsBackground) {
+            //     shouldRender = false;
+            // }
 
-        //     if (shouldRender) {
-        //         // Start new frame
-        //         this.beginFrame();
+            if (shouldRender) {
+                // Start new frame
+                this.beginFrame();
 
-        //         for (var index = 0; index < this._activeRenderLoops.length; index++) {
-        //             var renderFunction = this._activeRenderLoops[index];
+                for (var index = 0; index < this._activeRenderLoops.length; index++) {
+                    var renderFunction = this._activeRenderLoops[index];
 
-        //             renderFunction();
-        //         }
+                    renderFunction();
+                }
 
-        //         // Present
-        //         this.endFrame();
-        //     }
-        // }
+                // Present
+                this.endFrame();
+            }
+        }
 
         if (this._activeRenderLoops.length > 0) {
             this._frameHandler = this._queueNewFrame(this._boundRenderFunction, this.getHostWindow());
