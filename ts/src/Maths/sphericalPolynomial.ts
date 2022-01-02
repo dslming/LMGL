@@ -1,6 +1,6 @@
-import { Vector3 } from "./math.vector
+import { Vector3 } from "./math.vector";
 import { Nullable } from "../types";
-import { Color3 } from './math.color
+import { Color3 } from './math.color';
 
 // https://dickyjim.wordpress.com/2013/09/04/spherical-harmonics-for-beginners/
 // http://silviojemma.com/public/papers/lighting/spherical-harmonic-lighting.pdf

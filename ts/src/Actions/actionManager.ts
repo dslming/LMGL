@@ -8,7 +8,7 @@ import { Action, IAction } from "./action";
 import { DoNothingAction } from "./directActions";
 
 import { EngineStore } from "../Engines/engineStore";
-import { IActionEvent } from "./actionEvent
+import { IActionEvent } from "./actionEvent"
 import { Logger } from "../Misc/logger";
 import { DeepCopier } from "../Misc/deepCopier";
 import { _TypeStore } from "../Misc/typeStore";

@@ -2,7 +2,7 @@ import { serialize, SerializationHelper } from "../../Misc/decorators";
 import { Observable } from "../../Misc/observable";
 import { Nullable } from "../../types";
 import { Matrix, TmpVectors, Vector3 } from "../../Maths/math.vector";
-import { BaseTexture } from "./baseTexture
+import { BaseTexture } from "./baseTexture";
 import { Constants } from "../../Engines/constants";
 import { _TypeStore } from '../../Misc/typeStore';
 import { _DevTools } from '../../Misc/devTools';
@@ -14,9 +14,9 @@ import { InstantiationTools } from '../../Misc/instantiationTools';
 import { StringTools } from '../../Misc/stringTools';
 import { CopyTools } from '../../Misc/copyTools';
 
-declare type CubeTexture = import("./cubeTexture
+declare type CubeTexture = import("./cubeTexture").CubeTexture;
 // declare type MirrorTexture = import("../../Materials/Textures/mirrorTexture").MirrorTexture;
-declare type RenderTargetTexture = import("./renderTargetTexture
+declare type RenderTargetTexture = import("./renderTargetTexture").RenderTargetTexture;
 declare type Scene = import("../../Scene/scene").Scene;
 
 /**

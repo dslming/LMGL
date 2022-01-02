@@ -1,5 +1,5 @@
 import { Observable } from "../Misc/observable";
-import { Gamepad } from "./gamepad
+import { Gamepad } from "./gamepad";
 /**
  * Defines supported buttons for XBox360 compatible gamepads
  */

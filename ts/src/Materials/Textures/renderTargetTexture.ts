@@ -6,11 +6,11 @@ import { Camera } from "../../Cameras/camera";
 import { Scene } from "../../Scene/scene";
 import { Matrix, Vector3 } from "../../Maths/math.vector";
 import { Color4 } from '../../Maths/math.color';
-import { RenderTargetCreationOptions } from "./renderTargetCreationOptions
+import { RenderTargetCreationOptions } from "./renderTargetCreationOptions";
 import { AbstractMesh } from "../../Meshes/abstractMesh";
 import { SubMesh } from "../../Meshes/subMesh";
-import { InternalTexture } from "./internalTexture
-import { Texture } from "./texture
+import { InternalTexture } from "./internalTexture";
+import { Texture } from "./texture";
 // import { PostProcessManager } from "../../PostProcesses/postProcessManager";
 // import { PostProcess } from "../../PostProcesses/postProcess";
 import { RenderingManager } from "../../Rendering/renderingManager";

@@ -35,6 +35,7 @@ import { Path3D } from '../Maths/math.path';
 import { Plane } from '../Maths/math.plane';
 import { TransformNode } from './transformNode';
 import { CanvasGenerator } from '../Misc/canvasGenerator';
+import { LinesMesh } from "./linesMesh";
 // import { ICreateCapsuleOptions } from './Builders/capsuleBuilder';
 
 // declare type LinesMesh = import("./linesMesh").LinesMesh;
@@ -3597,9 +3598,9 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
      * @param instance is an instance of an existing LineMesh object to be updated with the passed `points` parameter (https://doc.babylonjs.com/how_to/How_to_dynamically_morph_a_mesh#lines-and-dashedlines).
      * @returns a new Mesh
      */
-    // public static CreateLines(name: string, points: Vector3[], scene: Nullable<Scene> = null, updatable: boolean = false, instance: Nullable<LinesMesh> = null): LinesMesh {
-    //     throw _DevTools.WarnImport("MeshBuilder");
-    // }
+    public static CreateLines(name: string, points: Vector3[], scene: Nullable<Scene> = null, updatable: boolean = false, instance: Nullable<LinesMesh> = null): LinesMesh {
+        throw _DevTools.WarnImport("MeshBuilder");
+    }
 
     /**
      * Creates a dashed line mesh. Please consider using the same method from the MeshBuilder class instead
@@ -3613,9 +3614,60 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
      * @param instance is an instance of an existing LineMesh object to be updated with the passed `points` parameter (https://doc.babylonjs.com/how_to/How_to_dynamically_morph_a_mesh#lines-and-dashedlines)
      * @returns a new Mesh
      */
-    // public static CreateDashedLines(name: string, points: Vector3[], dashSize: number, gapSize: number, dashNb: number, scene: Nullable<Scene> = null, updatable?: boolean, instance?: LinesMesh): LinesMesh {
-    //     throw _DevTools.WarnImport("MeshBuilder");
-    // }
+    public static CreateDashedLines(name: string, points: Vector3[], dashSize: number, gapSize: number, dashNb: number, scene: Nullable<Scene> = null, updatable?: boolean, instance?: LinesMesh): LinesMesh {
+        throw _DevTools.WarnImport("MeshBuilder");
+    }
+
+     /** @hidden */
+    public _processRendering(renderingMesh: AbstractMesh, subMesh: SubMesh, effect: Effect, fillMode: number, batch: _InstancesBatch, hardwareInstancedRendering: boolean,
+        onBeforeDraw: (isInstance: boolean, world: Matrix, effectiveMaterial?: Material) => void, effectiveMaterial?: Material): Mesh {
+        var scene = this.getScene();
+        var engine = scene.getEngine();
+
+        if (hardwareInstancedRendering && subMesh.getRenderingMesh().hasThinInstances) {
+            this._renderWithThinInstances(subMesh, fillMode, effect, engine);
+            return this;
+        }
+
+        if (hardwareInstancedRendering) {
+            this._renderWithInstances(subMesh, fillMode, batch, effect, engine);
+        } else {
+            let instanceCount = 0;
+            if (batch.renderSelf[subMesh._id]) {
+                // Draw
+                if (onBeforeDraw) {
+                    onBeforeDraw(false, renderingMesh._effectiveMesh.getWorldMatrix(), effectiveMaterial);
+                }
+                instanceCount++;
+
+                this._draw(subMesh, fillMode, this._instanceDataStorage.overridenInstanceCount);
+            }
+
+            let visibleInstancesForSubMesh = batch.visibleInstances[subMesh._id];
+
+            if (visibleInstancesForSubMesh) {
+                let visibleInstanceCount = visibleInstancesForSubMesh.length;
+                instanceCount += visibleInstanceCount;
+
+                // Stats
+                for (var instanceIndex = 0; instanceIndex < visibleInstanceCount; instanceIndex++) {
+                    var instance = visibleInstancesForSubMesh[instanceIndex];
+
+                    // World
+                    var world = instance.getWorldMatrix();
+                    if (onBeforeDraw) {
+                        onBeforeDraw(true, world, effectiveMaterial);
+                    }
+                    // Draw
+                    this._draw(subMesh, fillMode);
+                }
+            }
+
+            // Stats
+            scene._activeIndices.addCount(subMesh.indexCount * instanceCount, false);
+        }
+        return this;
+    }
 
     /**
      * Creates a polygon mesh.Please consider using the same method from the MeshBuilder class instead

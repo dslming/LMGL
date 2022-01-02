@@ -4,7 +4,7 @@ import { Constants } from "../Engines/constants";
 import { InternalTexture, InternalTextureSource } from "../Materials/Textures/internalTexture";
 import { Nullable } from "../types";
 import { Logger } from "./logger"
-import { CubeMapToSphericalPolynomialTools } from "./HighDynamicRange/cubemapToSphericalPolynomial
+import { CubeMapToSphericalPolynomialTools } from "./HighDynamicRange/cubemapToSphericalPolynomial";
 import { Scene } from '../Scene/scene';
 import { BaseTexture } from '../Materials/Textures/baseTexture';
 

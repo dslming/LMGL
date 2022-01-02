@@ -1,11 +1,11 @@
 import { Nullable, FloatArray, IndicesArray } from "../types";
 import { Matrix, Vector3, Vector2, Vector4 } from "../Maths/math.vector";
-import { VertexBuffer } from "./buffer
+import { VertexBuffer } from "./buffer";
 import { _DevTools } from '../Misc/devTools';
 import { Color4, Color3 } from '../Maths/math.color';
 import { Logger } from '../Misc/logger';
 
-declare type Geometry = import("./geometrytry;
+declare type Geometry = import("./geometry").Geometry;
 declare type Mesh = import("../Meshes/mesh").Mesh;
 
 // import { ICreateCapsuleOptions } from "./Builders/capsuleBuilder";

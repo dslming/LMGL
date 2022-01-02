@@ -1,7 +1,7 @@
 import { SmartArrayNoDuplicate } from "../../Misc/smartArray";
 import { Vector3 } from "../../Maths/math.vector";
-import { Ray } from "../ray
-import { BoundingBox } from "../boundingBox
+import { Ray } from "../ray";
+import { BoundingBox } from "../boundingBox";
 import { Plane } from '../../Maths/math.plane';
 
 /**

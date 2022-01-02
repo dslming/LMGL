@@ -540,7 +540,55 @@ export class ThinEngine {
   }
 
   /**------------------------------------------ document ----------------------------------------------------------- */
-   /**
+   /** @hidden */
+    public _renderLoop(): void {
+        // if (!this._contextWasLost) {
+        //     var shouldRender = true;
+        //     if (!this.renderEvenInBackground && this._windowIsBackground) {
+        //         shouldRender = false;
+        //     }
+
+        //     if (shouldRender) {
+        //         // Start new frame
+        //         this.beginFrame();
+
+        //         for (var index = 0; index < this._activeRenderLoops.length; index++) {
+        //             var renderFunction = this._activeRenderLoops[index];
+
+        //             renderFunction();
+        //         }
+
+        //         // Present
+        //         this.endFrame();
+        //     }
+        // }
+
+        if (this._activeRenderLoops.length > 0) {
+            this._frameHandler = this._queueNewFrame(this._boundRenderFunction, this.getHostWindow());
+        } else {
+            this._renderingQueueLaunched = false;
+        }
+    }
+
+  /**
+     * Register and execute a render loop. The engine can have more than one render function
+     * @param renderFunction defines the function to continuously execute
+     */
+    public runRenderLoop(renderFunction: () => void): void {
+        if (this._activeRenderLoops.indexOf(renderFunction) !== -1) {
+            return;
+        }
+
+        this._activeRenderLoops.push(renderFunction);
+
+        if (!this._renderingQueueLaunched) {
+            this._renderingQueueLaunched = true;
+            this._boundRenderFunction = this._renderLoop.bind(this);
+            this._frameHandler = this._queueNewFrame(this._boundRenderFunction, this.getHostWindow());
+        }
+    }
+
+  /**
      * Gets the HTML canvas attached with the current webGL context
      * @returns a HTML canvas
      */

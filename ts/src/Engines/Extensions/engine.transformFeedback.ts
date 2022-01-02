@@ -1,5 +1,5 @@
 import { Nullable } from "../../types";
-import { Engine } from "../../Engines/engine";
+import { Engine } from "../engine";
 import { DataBuffer } from '../../Meshes/dataBuffer';
 
 /** @hidden */

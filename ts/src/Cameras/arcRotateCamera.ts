@@ -11,9 +11,9 @@ import { BouncingBehavior } from "../Behaviors/Cameras/bouncingBehavior";
 import { FramingBehavior } from "../Behaviors/Cameras/framingBehavior";
 import { Camera } from "./camera";
 import { TargetCamera } from "./targetCamera";
-import { ArcRotateCameraPointersInput } from "./Inputs/arcRotateCameraPointersInput
-import { ArcRotateCameraKeyboardMoveInput } from "./Inputs/arcRotateCameraKeyboardMoveInput
-import { ArcRotateCameraMouseWheelInput } from "./Inputs/arcRotateCameraMouseWheelInput
+import { ArcRotateCameraPointersInput } from "./Inputs/arcRotateCameraPointersInput"
+import { ArcRotateCameraKeyboardMoveInput } from "./Inputs/arcRotateCameraKeyboardMoveInput"
+import { ArcRotateCameraMouseWheelInput } from "./Inputs/arcRotateCameraMouseWheelInput"
 import { ArcRotateCameraInputsManager } from "../Cameras/arcRotateCameraInputsManager";
 import { Epsilon } from "../Maths/math.constants";
 import { Tools } from "../Misc/tools";

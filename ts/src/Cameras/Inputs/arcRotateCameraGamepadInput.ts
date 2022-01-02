@@ -1,8 +1,8 @@
 import { Nullable } from "../../types";
 import { serialize } from "../../Misc/decorators";
 import { Observer } from "../../Misc/observable";
-import { ArcRotateCamera } from "../arcRotateCamera
-import { ICameraInput, CameraInputTypes } from "../cameraInputsManager
+import { ArcRotateCamera } from "../arcRotateCamera";
+import { ICameraInput, CameraInputTypes } from "../cameraInputsManager";
 import { Gamepad } from "../../Gamepads/gamepad";
 /**
  * Manage the gamepad inputs to control an arc rotate camera.

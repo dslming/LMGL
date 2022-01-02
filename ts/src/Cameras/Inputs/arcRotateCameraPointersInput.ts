@@ -1,8 +1,8 @@
 import { Nullable } from "../../types";
 import { serialize } from "../../Misc/decorators";
-import { ArcRotateCamera } from "../arcRotateCamera
-import { CameraInputTypes } from "../cameraInputsManager
-import { BaseCameraPointersInput } from "./BaseCameraPointersInput
+import { ArcRotateCamera } from "../arcRotateCamera";
+import { CameraInputTypes } from "../cameraInputsManager";
+import { BaseCameraPointersInput } from "./BaseCameraPointersInput";
 import { PointerTouch } from "../../Events/pointerEvents";
 
 /**

@@ -3,7 +3,7 @@ import { Scene } from "../../Scene/scene";
 import { Vector3 } from "../../Maths/math.vector";
 import { SubMesh } from "../../Meshes/subMesh";
 import { AbstractMesh } from "../../Meshes/abstractMesh";
-import { Ray } from "../ray
+import { Ray } from "../ray";
 import { SceneComponentConstants } from "../../Scene/sceneComponent";
 
 import { Octree } from "./octree";

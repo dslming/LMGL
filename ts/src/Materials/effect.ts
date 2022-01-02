@@ -12,9 +12,9 @@ import { ThinEngine } from '../Engines/thinEngine';
 import { IEffectFallbacks } from './iEffectFallbacks';
 
 declare type Engine = import("../Engines/engine").Engine;
-declare type InternalTexture = import("./Textures/internalTextureTexture;
-declare type ThinTexture = import("./Textures/thinTextureure;
-declare type RenderTargetTexture = import("./Textures/renderTargetTexturergetTexture;
+declare type InternalTexture = import("./Textures/internalTexture").InternalTexture;
+declare type ThinTexture = import("./Textures/thinTexture").ThinTexture;
+declare type RenderTargetTexture = import("./Textures/renderTargetTexture").RenderTargetTexture;
 // declare type PostProcess = import("../PostProcesses/postProcess").PostProcess;
 
 /**

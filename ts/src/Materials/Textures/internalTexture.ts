@@ -3,7 +3,7 @@ import { Nullable, int } from "../../types";
 import { _DevTools } from '../../Misc/devTools';
 
 declare type ThinEngine = import("../../Engines/thinEngine").ThinEngine;
-declare type BaseTexture = import("./baseTexture
+declare type BaseTexture = import("./baseTexture").BaseTexture;
 declare type SphericalPolynomial = import("../../Maths/sphericalPolynomial").SphericalPolynomial;
 
 /**

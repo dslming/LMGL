@@ -2,8 +2,8 @@ import { Nullable } from "../../types";
 import { serialize } from "../../Misc/decorators";
 import { Observer } from "../../Misc/observable";
 import { Scene } from "../../Scene/scene";
-import { ArcRotateCamera } from "../arcRotateCamera
-import { ICameraInput, CameraInputTypes } from "../cameraInputsManager
+import { ArcRotateCamera } from "../arcRotateCamera";
+import { ICameraInput, CameraInputTypes } from "../cameraInputsManager";
 import { Engine } from "../../Engines/engine";
 import { KeyboardInfo, KeyboardEventTypes } from "../../Events/keyboardEvents";
 import { Tools } from '../../Misc/tools';

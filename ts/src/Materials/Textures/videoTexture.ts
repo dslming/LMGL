@@ -3,7 +3,7 @@ import { Tools } from "../../Misc/tools";
 import { Logger } from "../../Misc/logger";
 import { Nullable } from "../../types";
 import { Scene } from "../../Scene/scene";
-import { Texture } from "./texture
+import { Texture } from "./texture";
 
 import "../../Engines/Extensions/engine.videoTexture";
 import "../../Engines/Extensions/engine.dynamicTexture";

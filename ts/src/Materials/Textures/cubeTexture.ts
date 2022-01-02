@@ -3,8 +3,8 @@ import { Tools } from "../../Misc/tools";
 import { Nullable } from "../../types";
 import { Scene } from "../../Scene/scene";
 import { Matrix, Vector3 } from "../../Maths/math.vector";
-import { BaseTexture } from "./baseTexture
-import { Texture } from "./texture
+import { BaseTexture } from "./baseTexture";
+import { Texture } from "./texture";
 import { Constants } from "../../Engines/constants";
 import { _TypeStore } from '../../Misc/typeStore';
 import { ThinEngine } from '../../Engines/thinEngine';

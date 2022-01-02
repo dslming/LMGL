@@ -7,10 +7,10 @@ import { IDisposable} from '../Scene/iScene'
 import { Quaternion, Matrix, Vector3, TmpVectors, Vector2 } from "../Maths/math.vector";
 import { Engine } from "../Engines/engine";
 import { Node } from "../node";
-import { VertexBuffer } from "./buffer
-import { VertexData, IGetSetVerticesData } from "./mesh.vertexData
-import { TransformNode } from "./transformNode
-import { SubMesh } from "./subMesh
+import { VertexBuffer } from "./buffer";
+import { VertexData, IGetSetVerticesData } from "./mesh.vertexData";
+import { TransformNode } from "./transformNode";
+import { SubMesh } from "./subMesh";
 import { PickingInfo } from "../Collisions/pickingInfo";
 import { IntersectionInfo } from "../Collisions/intersectionInfo";
 import { ICullable, BoundingInfo } from "../Culling/boundingInfo";

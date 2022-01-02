@@ -3,9 +3,9 @@ import { Scene } from "../Scene/scene";
 import { Vector3, Vector2 } from "../Maths/math.vector";
 import { Color4 } from "../Maths/math.color";
 import { Engine } from "../Engines/engine";
-import { IGetSetVerticesData, VertexData } from "./mesh.vertexData
-import { VertexBuffer } from "./buffer
-import { SubMesh } from "./subMesh
+import { IGetSetVerticesData, VertexData } from "./mesh.vertexData";
+import { VertexBuffer } from "./buffer";
+import { SubMesh } from "./subMesh";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { Effect } from "../Materials/effect";
 import { SceneLoaderFlags } from "../Loading/sceneLoaderFlags";

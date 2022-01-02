@@ -12,8 +12,8 @@ import { Geometry } from "../Meshes/geometry";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { UniformBuffer } from "./uniformBuffer";
 import { Effect } from "./effect";
-import { BaseTexture } from "./Textures/baseTexture
-import { RenderTargetTexture } from "./Textures/renderTargetTexture
+import { BaseTexture } from "./Textures/baseTexture";
+import { RenderTargetTexture } from "./Textures/renderTargetTexture";
 import { MaterialDefines } from "./materialDefines";
 import { Constants } from "../Engines/constants";
 import { Logger } from "../Misc/logger";

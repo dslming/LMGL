@@ -7,7 +7,7 @@ import { AbstractMesh } from "../../Meshes/abstractMesh";
 import { Ray } from "../../Culling/ray";
 // import { EngineStore } from "../../Engines/engineStore";
 
-import { Gamepad } from "../gamepad
+import { Gamepad } from "../gamepad";
 // import { WebVRFreeCamera, PoseControlled, DevicePose } from "../../Cameras/VR/webVRCamera";
 import { TargetCamera } from "../../Cameras/targetCamera";
 

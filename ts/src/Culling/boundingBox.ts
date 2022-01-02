@@ -1,7 +1,7 @@
 import { DeepImmutable } from "../types";
 import { ArrayTools } from "../Misc/arrayTools";
 import { Matrix, Vector3 } from "../Maths/math.vector";
-import { BoundingSphere } from "./boundingSphere
+import { BoundingSphere } from "./boundingSphere";
 
 import { ICullable } from "./boundingInfo";
 import { Epsilon } from '../Maths/math.constants';

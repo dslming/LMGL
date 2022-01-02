@@ -1,8 +1,8 @@
 import { Nullable } from "../../types";
 import { serialize } from "../../Misc/decorators";
 import { Observable, Observer } from "../../Misc/observable";
-import { Camera } from "../camera
-import { ICameraInput } from "../cameraInputsManager
+import { Camera } from "../camera";
+import { ICameraInput } from "../cameraInputsManager";
 import { PointerInfo, PointerEventTypes } from "../../Events/pointerEvents";
 import { Tools } from "../../Misc/tools";
 

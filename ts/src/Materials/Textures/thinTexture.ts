@@ -1,5 +1,5 @@
 import { Nullable } from "../../types";
-import { InternalTexture } from "./internalTexture
+import { InternalTexture } from "./internalTexture";
 import { Constants } from "../../Engines/constants";
 
 import { ISize, Size } from '../../Maths/math.size';

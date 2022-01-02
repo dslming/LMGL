@@ -2,7 +2,7 @@ import { SmartArray, SmartArrayNoDuplicate } from "../../Misc/smartArray";
 import { Vector3 } from "../../Maths/math.vector";
 import { SubMesh } from "../../Meshes/subMesh";
 import { AbstractMesh } from "../../Meshes/abstractMesh";
-import { Ray } from "../ray
+import { Ray } from "../ray";
 import { OctreeBlock } from "./octreeBlock";
 import { Plane } from '../../Maths/math.plane';
 

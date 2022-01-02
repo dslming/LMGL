@@ -1,4 +1,4 @@
-import { Behavior } from "../behavior
+import { Behavior } from "../behavior"
 import { Camera } from "../../Cameras/camera";
 import { ArcRotateCamera } from "../../Cameras/arcRotateCamera";
 // import { ExponentialEase, EasingFunction } from "../../Animations/easing";

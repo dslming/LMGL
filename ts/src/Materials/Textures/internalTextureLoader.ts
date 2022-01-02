@@ -1,5 +1,5 @@
 import { Nullable } from "../../types";
-import { InternalTexture } from "./internalTexture
+import { InternalTexture } from "./internalTexture";
 
 /**
  * This represents the required contract to create a new type of texture loader.
