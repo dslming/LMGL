@@ -1,0 +1,2 @@
+const fnMap = [];
+export { fnMap };
