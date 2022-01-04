@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack-dev-server --config webpack.dev.js --progress",
-    "build": "webpack --config webpack.build.js --progress"
+    "build-dev": "webpack --config webpack.build.js --env=development --progress",
+    "build-pro": "webpack --config webpack.build.js --env=production --progress"
   },
   "repository": {
     "type": "git",
@@ -17,7 +18,10 @@
     "url": "https://github.com/dslming/three_stage/issues"
   },
   "homepage": "https://github.com/dslming/three_stage#readme",
-  "dependencies": {
+  "devDependencies": {
+    "fork-ts-checker-webpack-plugin": "^6.5.0",
+    "tslib": "^2.3.1",
+    "ts-loader": "^7.0.5",
     "dat.gui": "^0.7.7",
     "html-webpack-plugin": "^4.5.0",
     "typescript": "^4.0.2",
@@ -25,9 +29,5 @@
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.11.0",
     "webpackbar": "^5.0.0-3"
-  },
-  "devDependencies": {
-    "fork-ts-checker-webpack-plugin": "^6.5.0",
-    "tslib": "^2.3.1"
   }
 }
