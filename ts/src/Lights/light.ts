@@ -553,7 +553,7 @@ export abstract class Light extends Node {
         // }
 
         // Animations
-        this.getScene().stopAnimation(this);
+        // this.getScene().stopAnimation(this);
 
         // Remove from meshes
         for (var mesh of this.getScene().meshes) {

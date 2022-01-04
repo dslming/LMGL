@@ -847,7 +847,7 @@ export class Camera extends Node {
         }
 
         // Animations
-        this.getScene().stopAnimation(this);
+        // this.getScene().stopAnimation(this);
 
         // Remove from scene
         this.getScene().removeCamera(this);

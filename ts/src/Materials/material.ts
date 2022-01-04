@@ -1360,7 +1360,7 @@ export class Material {
     public dispose(forceDisposeEffect?: boolean, forceDisposeTextures?: boolean, notBoundToMesh?: boolean): void {
         const scene = this.getScene();
         // Animations
-        scene.stopAnimation(this);
+        // scene.stopAnimation(this);
         scene.freeProcessedMaterials();
 
         // Remove from scene

@@ -657,9 +657,9 @@ export class BaseTexture extends ThinTexture {
     public dispose(): void {
         if (this._scene) {
             // Animations
-            if (this._scene.stopAnimation) {
-                this._scene.stopAnimation(this);
-            }
+            // if (this._scene.stopAnimation) {
+            //     this._scene.stopAnimation(this);
+            // }
 
             // Remove from scene
             this._scene._removePendingData(this);

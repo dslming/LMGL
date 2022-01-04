@@ -3,21 +3,13 @@ import { Nullable } from "../types";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { TransformNode } from "../Meshes/transformNode";
 import { Geometry } from "../Meshes/geometry";
-// import { Skeleton } from "./Bones/skeleton";
-// import { MorphTargetManager } from "./Morph/morphTargetManager";
 import { AssetContainer } from "../assetContainer";
-// import { IParticleSystem } from "./Particles/IParticleSystem";
-// import { AnimationGroup } from "./Animations/animationGroup";
 import { BaseTexture } from "../Materials/Textures/baseTexture";
 import { Material } from "../Materials/material";
-// import { MultiMaterial } from "./Materials/multiMaterial";
 import { AbstractActionManager } from "../Actions/abstractActionManager";
 import { Camera } from "../Cameras/camera";
 import { Light } from "../Lights/light";
 import { Node } from "../node";
-
-// declare type Animation = import("./Animations/animation").Animation;
-// declare type PostProcess = import("./PostProcesses/postProcess").PostProcess;
 
 /**
  * Defines how the parser contract is defined.
@@ -128,35 +120,6 @@ export abstract class AbstractScene {
     public meshes = new Array<AbstractMesh>();
 
     /**
-     * The list of skeletons added to the scene
-     * @see https://doc.babylonjs.com/how_to/how_to_use_bones_and_skeletons
-     */
-    // public skeletons = new Array<Skeleton>();
-
-    /**
-    * All of the particle systems added to this scene
-    * @see https://doc.babylonjs.com/babylon101/particles
-    */
-    // public particleSystems = new Array<IParticleSystem>();
-
-    /**
-     * Gets a list of Animations associated with the scene
-     */
-    public animations: Animation[] = [];
-
-    /**
-    * All of the animation groups added to this scene
-    * @see https://doc.babylonjs.com/how_to/group
-    */
-    // public animationGroups = new Array<AnimationGroup>();
-
-    /**
-    * All of the multi-materials added to this scene
-    * @see https://doc.babylonjs.com/how_to/multi_materials
-    */
-    // public multiMaterials = new Array<MultiMaterial>();
-
-    /**
     * All of the materials added to this scene
     * In the context of a Scene, it is not supposed to be modified manually.
     * Any addition or removal should be done using the addMaterial and removeMaterial Scene methods.
@@ -209,11 +172,6 @@ export abstract class AbstractScene {
     public set environmentTexture(value: Nullable<BaseTexture>) {
         this._environmentTexture = value;
     }
-
-    /**
-     * The list of postprocesses added to the scene
-     */
-    // public postProcesses = new Array<PostProcess>();
 
     /**
      * @returns all meshes, lights, cameras, transformNodes and bones

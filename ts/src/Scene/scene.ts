@@ -2,7 +2,6 @@ import { AbstractScene } from "./abstractScene"
 import { IClipPlanesHolder } from '../Misc/interfaces/iClipPlanesHolder';
 import { Nullable } from "../types";
 import { Tools } from "../Misc/tools";
-// import { IAnimatable } from '../Animations/animatable.interface';
 import { PrecisionDate } from "../Misc/precisionDate";
 import { Observable, Observer } from "../Misc/observable";
 import { SmartArrayNoDuplicate, SmartArray, ISmartArrayLike } from "../Misc/smartArray";
@@ -19,33 +18,43 @@ import {
     SceneOptions,
     IMatrixMethod,
     IMatrixProperty,
+    IInteractionProperty,
 } from './iScene'
-// import { IParticleSystem } from "../Particles/IParticleSystem";
-// import { Bone } from "../Bones/bone";
-// import { Skeleton } from "../Bones/skeleton";
-// import { MorphTargetManager } from "../Morph/morphTargetManager";
 import { Camera } from "../Cameras/camera";
 import { BaseTexture } from "../Materials/Textures/baseTexture";
 import { Texture } from "../Materials/Textures/texture";
 import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
 import { Material } from "../Materials/material";
-// import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
 import { Effect } from "../Materials/effect";
 import { UniformBuffer } from "../Materials/uniformBuffer";
-// import { MultiMaterial } from "./Materials/multiMaterial";
 import { Light } from "../Lights/light";
 import { PickingInfo } from "../Collisions/pickingInfo";
 import { ICollisionCoordinator } from "../Collisions/collisionCoordinator";
 import { PointerEventTypes, PointerInfoPre, PointerInfo } from "../Events/pointerEvents";
 import { KeyboardInfoPre, KeyboardInfo } from "../Events/keyboardEvents";
 import { ActionEvent } from "../Actions/actionEvent";
-// import { PostProcessManager } from "./PostProcesses/postProcessManager";
-// import { IOfflineProvider } from "./Offline/IOfflineProvider";
 import { RenderingGroupInfo, RenderingManager, IRenderingManagerAutoClearSetup } from "../Rendering/renderingManager";
-import { ISceneComponent, ISceneSerializableComponent, Stage, SimpleStageAction, RenderTargetsStageAction, RenderTargetStageAction, MeshStageAction, EvaluateSubMeshStageAction, PreActiveMeshStageAction, CameraStageAction, RenderingGroupStageAction, RenderingMeshStageAction, PointerMoveStageAction, PointerUpDownStageAction, CameraStageFrameBufferAction } from "./sceneComponent";
+
+import {
+    ISceneComponent,
+    ISceneSerializableComponent,
+    Stage,
+    SimpleStageAction,
+    RenderTargetsStageAction,
+    RenderTargetStageAction,
+    MeshStageAction,
+    EvaluateSubMeshStageAction,
+    PreActiveMeshStageAction,
+    CameraStageAction,
+    RenderingGroupStageAction,
+    RenderingMeshStageAction,
+    PointerMoveStageAction,
+    PointerUpDownStageAction,
+    CameraStageFrameBufferAction
+} from "./sceneComponent";
+
 import { Engine } from "../Engines/engine";
 import { Node } from "../node";
-// import { MorphTarget } from "./Morph/morphTarget";
 import { Constants } from "../Engines/constants";
 import { DomManagement } from "../Misc/domManagement";
 import { Logger } from "../Misc/logger";
@@ -72,9 +81,11 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
  * @see https://doc.babylonjs.com/features/scene
  */
 export class Scene extends AbstractScene implements
-    IMatrixProperty,
     IClipPlanesHolder,
-    IMatrixMethod {
+    IMatrixProperty,
+    IMatrixMethod,
+    IInteractionProperty
+{
     /** The fog is deactivated */
     public static readonly FOGMODE_NONE = 0;
     /** The fog density is following an exponential function */
@@ -1585,9 +1596,9 @@ export class Scene extends AbstractScene implements
      * Gets the total number of active bones rendered per frame
      * @returns the total number of active bones rendered per frame
      */
-    public getActiveBones(): number {
-        return this._activeBones.current;
-    }
+    // public getActiveBones(): number {
+    //     return this._activeBones.current;
+    // }
 
     /**
      * Gets the performance counter for active bones
@@ -2215,71 +2226,6 @@ export class Scene extends AbstractScene implements
     }
 
     /**
-     * Remove a particle system for the list of scene's particle systems
-     * @param toRemove defines the particle system to remove
-     * @returns the index where the particle system was in the particle system list
-     */
-    // public removeParticleSystem(toRemove: IParticleSystem): number {
-    //     var index = this.particleSystems.indexOf(toRemove);
-    //     if (index !== -1) {
-    //         this.particleSystems.splice(index, 1);
-    //     }
-    //     return index;
-    // }
-
-    /**
-     * Remove a animation for the list of scene's animations
-     * @param toRemove defines the animation to remove
-     * @returns the index where the animation was in the animation list
-     */
-    // public removeAnimation(toRemove: Animation): number {
-    //     var index = this.animations.indexOf(toRemove);
-    //     if (index !== -1) {
-    //         this.animations.splice(index, 1);
-    //     }
-    //     return index;
-    // }
-
-    /**
-     * Will stop the animation of the given target
-     * @param target - the target
-     * @param animationName - the name of the animation to stop (all animations will be stopped if both this and targetMask are empty)
-     * @param targetMask - a function that determines if the animation should be stopped based on its target (all animations will be stopped if both this and animationName are empty)
-     */
-    public stopAnimation(target: any, animationName?: string, targetMask?: (target: any) => boolean): void {
-        // Do nothing as code will be provided by animation component
-    }
-
-    /**
-     * Removes the given animation group from this scene.
-     * @param toRemove The animation group to remove
-     * @returns The index of the removed animation group
-     */
-    // public removeAnimationGroup(toRemove: AnimationGroup): number {
-    //     var index = this.animationGroups.indexOf(toRemove);
-    //     if (index !== -1) {
-    //         this.animationGroups.splice(index, 1);
-    //     }
-    //     return index;
-    // }
-
-    /**
-     * Removes the given multi-material from this scene.
-     * @param toRemove The multi-material to remove
-     * @returns The index of the removed multi-material
-     */
-    // public removeMultiMaterial(toRemove: MultiMaterial): number {
-    //     var index = this.multiMaterials.indexOf(toRemove);
-    //     if (index !== -1) {
-    //         this.multiMaterials.splice(index, 1);
-    //     }
-
-    //     this.onMultiMaterialRemovedObservable.notifyObservers(toRemove);
-
-    //     return index;
-    // }
-
-    /**
      * Removes the given material from this scene.
      * @param toRemove The material to remove
      * @returns The index of the removed material
@@ -2381,63 +2327,6 @@ export class Scene extends AbstractScene implements
             newCamera._addToSceneRootNodes();
         }
     }
-
-    /**
-     * Adds the given skeleton to this scene
-     * @param newSkeleton The skeleton to add
-     */
-    // public addSkeleton(newSkeleton: Skeleton): void {
-    //     if (this._blockEntityCollection) {
-    //         return;
-    //     }
-    //     this.skeletons.push(newSkeleton);
-    //     this.onNewSkeletonAddedObservable.notifyObservers(newSkeleton);
-    // }
-
-    /**
-     * Adds the given particle system to this scene
-     * @param newParticleSystem The particle system to add
-     */
-    // public addParticleSystem(newParticleSystem: IParticleSystem): void {
-    //     if (this._blockEntityCollection) {
-    //         return;
-    //     }
-    //     this.particleSystems.push(newParticleSystem);
-    // }
-
-    /**
-     * Adds the given animation to this scene
-     * @param newAnimation The animation to add
-     */
-    // public addAnimation(newAnimation: Animation): void {
-    //     if (this._blockEntityCollection) {
-    //         return;
-    //     }
-    //     this.animations.push(newAnimation);
-    // }
-
-    /**
-     * Adds the given animation group to this scene.
-     * @param newAnimationGroup The animation group to add
-     */
-    // public addAnimationGroup(newAnimationGroup: AnimationGroup): void {
-    //     if (this._blockEntityCollection) {
-    //         return;
-    //     }
-    //     this.animationGroups.push(newAnimationGroup);
-    // }
-
-    /**
-     * Adds the given multi-material to this scene
-     * @param newMultiMaterial The multi-material to add
-     */
-    // public addMultiMaterial(newMultiMaterial: MultiMaterial): void {
-    //     if (this._blockEntityCollection) {
-    //         return;
-    //     }
-    //     this.multiMaterials.push(newMultiMaterial);
-    //     this.onNewMultiMaterialAddedObservable.notifyObservers(newMultiMaterial);
-    // }
 
     /**
      * Adds the given material to this scene

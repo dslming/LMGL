@@ -1,3 +1,6 @@
+import { Observable } from "../Misc/observable";
+import { KeyboardInfoPre, KeyboardInfo } from "../Events/keyboardEvents";
+import { PointerEventTypes, PointerInfoPre, PointerInfo } from "../Events/pointerEvents";
 import { Matrix } from "../Maths";
 
 export interface IDisposable {
@@ -42,4 +45,14 @@ export interface IMatrixProperty{
     _viewMatrix: Matrix;
     _projectionMatrix: Matrix;
     _transformMatrix: Matrix;
+}
+
+export interface IInteractionMethod{
+
+}
+
+export interface IInteractionProperty{
+    onKeyboardObservable: Observable<KeyboardInfo>;
+    onPointerObservable: Observable<PointerInfo>;
+
 }
