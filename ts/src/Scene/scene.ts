@@ -1,5 +1,4 @@
 import { AbstractScene } from "./abstractScene"
-import { IClipPlanesHolder } from '../Misc/interfaces/iClipPlanesHolder';
 import { Nullable } from "../types";
 import { Tools } from "../Misc/tools";
 import { PrecisionDate } from "../Misc/precisionDate";
@@ -71,6 +70,11 @@ import { Frustum } from '../Maths/math.frustum';
 import { UniqueIdGenerator } from '../Misc/uniqueIdGenerator';
 import { FileTools, LoadFileError, RequestFileError, ReadFileError } from '../Misc/fileTools';
 import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
+import { applyMixins } from '../Misc/tools'
+import { aaa } from "./aaa";
+import { SceneMatrix } from "./scene.matrix";
+import { SceneClipPlane } from "./scene.clipPlane";
+import { InputManagerApp } from "./scene.inputManagerApp";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -80,12 +84,7 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
  * Represents a scene to be rendered by the engine.
  * @see https://doc.babylonjs.com/features/scene
  */
-export class Scene extends AbstractScene implements
-    IClipPlanesHolder,
-    IMatrixProperty,
-    IMatrixMethod,
-    IInteractionProperty
-{
+export class Scene extends AbstractScene {
     /** The fog is deactivated */
     public static readonly FOGMODE_NONE = 0;
     /** The fog density is following an exponential function */
@@ -127,8 +126,6 @@ export class Scene extends AbstractScene implements
 
     // Members
 
-    /** @hidden */
-    public _inputManager:InputManager = new InputManager(this);
 
     /** Define this parameter if you are using multiple cameras and you want to specify which one should be used for pointer position */
     public cameraToUseForPointers: Nullable<Camera> = null;
@@ -272,35 +269,7 @@ export class Scene extends AbstractScene implements
         return this._forcePointsCloud;
     }
 
-    /**
-     * Gets or sets the active clipplane 1
-     */
-    public clipPlane: Nullable<Plane>;
 
-    /**
-     * Gets or sets the active clipplane 2
-     */
-    public clipPlane2: Nullable<Plane>;
-
-    /**
-     * Gets or sets the active clipplane 3
-     */
-    public clipPlane3: Nullable<Plane>;
-
-    /**
-     * Gets or sets the active clipplane 4
-     */
-    public clipPlane4: Nullable<Plane>;
-
-    /**
-     * Gets or sets the active clipplane 5
-     */
-    public clipPlane5: Nullable<Plane>;
-
-    /**
-     * Gets or sets the active clipplane 6
-     */
-    public clipPlane6: Nullable<Plane>;
 
     /**
      * Gets or sets a boolean indicating if animations are enabled
@@ -695,12 +664,7 @@ export class Scene extends AbstractScene implements
      */
     public onPointerObservable = new Observable<PointerInfo>();
 
-    /**
-     * Gets the pointer coordinates without any translation (ie. straight out of the pointer event)
-     */
-    public get unTranslatedPointer(): Vector2 {
-        return this._inputManager.unTranslatedPointer;
-    }
+
 
     /**
      * Gets or sets the distance in pixel that you have to move to prevent some events. Default is 10 pixels
@@ -1242,6 +1206,46 @@ export class Scene extends AbstractScene implements
     }
 
     /**
+   * Sets the current transform matrix
+   * @param viewL defines the View matrix to use
+   * @param projectionL defines the Projection matrix to use
+   * @param viewR defines the right View matrix to use (if provided)
+   * @param projectionR defines the right Projection matrix to use (if provided)
+   */
+    public setTransformMatrix(viewL: Matrix, projectionL: Matrix, viewR?: Matrix, projectionR?: Matrix): void {
+        if (this._viewUpdateFlag === viewL.updateFlag && this._projectionUpdateFlag === projectionL.updateFlag) {
+            return;
+        }
+
+        this._viewUpdateFlag = viewL.updateFlag;
+        this._projectionUpdateFlag = projectionL.updateFlag;
+        this._viewMatrix = viewL;
+        this._projectionMatrix = projectionL;
+
+        this._viewMatrix.multiplyToRef(this._projectionMatrix, this._transformMatrix);
+
+        // Update frustum
+        if (!this._frustumPlanes) {
+            this._frustumPlanes = Frustum.GetPlanes(this._transformMatrix);
+        } else {
+            Frustum.GetPlanesToRef(this._transformMatrix, this._frustumPlanes);
+        }
+
+        // if (this._multiviewSceneUbo && this._multiviewSceneUbo.useUbo) {
+        //     this._updateMultiviewUbo(viewR, projectionR);
+        // } else if (this._sceneUbo.useUbo) {
+        //     this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
+        //     this._sceneUbo.updateMatrix("view", this._viewMatrix);
+        //     this._sceneUbo.update();
+        // }
+        if (this._sceneUbo.useUbo) {
+            this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
+            this._sceneUbo.updateMatrix("view", this._viewMatrix);
+            this._sceneUbo.update();
+        }
+    }
+
+    /**
      * @hidden
      * Gets a component from the scene.
      * @param name defines the name of the component to retrieve
@@ -1472,34 +1476,7 @@ export class Scene extends AbstractScene implements
         this.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
     }
 
-    /**
-     * Gets the mesh that is currently under the pointer
-     */
-    public get meshUnderPointer(): Nullable<AbstractMesh> {
-        return this._inputManager.meshUnderPointer;
-    }
 
-    /**
-     * Gets or sets the current on-screen X position of the pointer
-     */
-    public get pointerX(): number {
-        return this._inputManager.pointerX;
-    }
-
-    public set pointerX(value: number) {
-        this._inputManager.pointerX = value;
-    }
-
-    /**
-     * Gets or sets the current on-screen Y position of the pointer
-     */
-    public get pointerY(): number {
-        return this._inputManager.pointerY;
-    }
-
-    public set pointerY(value: number) {
-        this._inputManager.pointerY = value;
-    }
 
     /**
      * Gets the cached material (ie. the latest rendered one)
@@ -1651,66 +1628,6 @@ export class Scene extends AbstractScene implements
         this._sceneUbo.addUniform("view", 16);
     }
 
-    /**
-     * Use this method to simulate a pointer move on a mesh
-     * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
-     * @param pickResult pickingInfo of the object wished to simulate pointer event on
-     * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
-     * @returns the current scene
-     */
-    public simulatePointerMove(pickResult: PickingInfo, pointerEventInit?: PointerEventInit): Scene {
-        this._inputManager.simulatePointerMove(pickResult, pointerEventInit);
-        return this;
-    }
-
-    /**
-     * Use this method to simulate a pointer down on a mesh
-     * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
-     * @param pickResult pickingInfo of the object wished to simulate pointer event on
-     * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
-     * @returns the current scene
-     */
-    public simulatePointerDown(pickResult: PickingInfo, pointerEventInit?: PointerEventInit): Scene {
-        this._inputManager.simulatePointerDown(pickResult, pointerEventInit);
-        return this;
-    }
-
-    /**
-     * Use this method to simulate a pointer up on a mesh
-     * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
-     * @param pickResult pickingInfo of the object wished to simulate pointer event on
-     * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
-     * @param doubleTap indicates that the pointer up event should be considered as part of a double click (false by default)
-     * @returns the current scene
-     */
-    public simulatePointerUp(pickResult: PickingInfo, pointerEventInit?: PointerEventInit, doubleTap?: boolean): Scene {
-        this._inputManager.simulatePointerUp(pickResult, pointerEventInit, doubleTap);
-        return this;
-    }
-
-    /**
-     * Gets a boolean indicating if the current pointer event is captured (meaning that the scene has already handled the pointer down)
-     * @param pointerId defines the pointer id to use in a multi-touch scenario (0 by default)
-     * @returns true if the pointer was captured
-     */
-    public isPointerCaptured(pointerId = 0): boolean {
-        return this._inputManager.isPointerCaptured(pointerId);
-    }
-
-    /**
-    * Attach events to the canvas (To handle actionManagers triggers and raise onPointerMove, onPointerDown and onPointerUp
-    * @param attachUp defines if you want to attach events to pointerup
-    * @param attachDown defines if you want to attach events to pointerdown
-    * @param attachMove defines if you want to attach events to pointermove
-    */
-    public attachControl(attachUp = true, attachDown = true, attachMove = true): void {
-        this._inputManager.attachControl(attachUp, attachDown, attachMove);
-    }
-
-    /** Detaches all event handlers*/
-    public detachControl() {
-        this._inputManager.detachControl();
-    }
 
     /**
      * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
@@ -1958,67 +1875,7 @@ export class Scene extends AbstractScene implements
         this._animationTimeLast = PrecisionDate.Now;
     }
 
-    // Matrix
-    /**
-     * Gets the current view matrix
-     * @returns a Matrix
-     */
-    public getViewMatrix(): Matrix {
-        return this._viewMatrix;
-    }
-    /**
-     * Gets the current projection matrix
-     * @returns a Matrix
-     */
-    public getProjectionMatrix(): Matrix {
-        return this._projectionMatrix;
-    }
-    /**
-     * Gets the current transform matrix
-     * @returns a Matrix made of View * Projection
-     */
-    public getTransformMatrix(): Matrix {
-        return this._transformMatrix;
-    }
-    /**
-     * Sets the current transform matrix
-     * @param viewL defines the View matrix to use
-     * @param projectionL defines the Projection matrix to use
-     * @param viewR defines the right View matrix to use (if provided)
-     * @param projectionR defines the right Projection matrix to use (if provided)
-     */
-    public setTransformMatrix(viewL: Matrix, projectionL: Matrix, viewR?: Matrix, projectionR?: Matrix): void {
-        if (this._viewUpdateFlag === viewL.updateFlag && this._projectionUpdateFlag === projectionL.updateFlag) {
-            return;
-        }
 
-        this._viewUpdateFlag = viewL.updateFlag;
-        this._projectionUpdateFlag = projectionL.updateFlag;
-        this._viewMatrix = viewL;
-        this._projectionMatrix = projectionL;
-
-        this._viewMatrix.multiplyToRef(this._projectionMatrix, this._transformMatrix);
-
-        // Update frustum
-        if (!this._frustumPlanes) {
-            this._frustumPlanes = Frustum.GetPlanes(this._transformMatrix);
-        } else {
-            Frustum.GetPlanesToRef(this._transformMatrix, this._frustumPlanes);
-        }
-
-        // if (this._multiviewSceneUbo && this._multiviewSceneUbo.useUbo) {
-        //     this._updateMultiviewUbo(viewR, projectionR);
-        // } else if (this._sceneUbo.useUbo) {
-        //     this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
-        //     this._sceneUbo.updateMatrix("view", this._viewMatrix);
-        //     this._sceneUbo.update();
-        // }
-        if (this._sceneUbo.useUbo) {
-            this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
-            this._sceneUbo.updateMatrix("view", this._viewMatrix);
-            this._sceneUbo.update();
-        }
-    }
 
     /**
      * Gets the uniform buffer used to store scene data
@@ -4290,22 +4147,7 @@ export class Scene extends AbstractScene implements
         throw _DevTools.WarnImport("Ray");
     }
 
-    /**
-     * Force the value of meshUnderPointer
-     * @param mesh defines the mesh to use
-     * @param pointerId optional pointer id when using more than one pointer
-     */
-    public setPointerOverMesh(mesh: Nullable<AbstractMesh>, pointerId?: number): void {
-        this._inputManager.setPointerOverMesh(mesh, pointerId);
-    }
 
-    /**
-     * Gets the mesh under the pointer
-     * @returns a Mesh or null if no mesh is under the pointer
-     */
-    public getPointerOverMesh(): Nullable<AbstractMesh> {
-        return this._inputManager.getPointerOverMesh();
-    }
 
     // Misc.
     /** @hidden */
@@ -4556,3 +4398,33 @@ export class Scene extends AbstractScene implements
         });
     }
 }
+
+applyMixins(Scene, [
+    aaa,
+    SceneMatrix,
+    SceneClipPlane,
+    InputManagerApp
+])
+
+declare module "./scene" {
+    export interface Scene {
+        getViewMatrix(): Matrix;
+        getProjectionMatrix(): Matrix;
+        getTransformMatrix(): Matrix;
+
+        clipPlane: Nullable<Plane>;
+        clipPlane2: Nullable<Plane>;
+        clipPlane3: Nullable<Plane>;
+        clipPlane4: Nullable<Plane>;
+        clipPlane5: Nullable<Plane>;
+        clipPlane6: Nullable<Plane>;
+
+        detachControl(): void;
+        attachControl(): void;
+        setPointerOverMesh(mesh: Nullable<AbstractMesh>, pointerId?: number): void;
+        pointerX: number;
+        pointerY: number;
+        meshUnderPointer: Nullable<AbstractMesh>;
+    }
+}
+

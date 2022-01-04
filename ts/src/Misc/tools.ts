@@ -1302,3 +1302,28 @@ EngineStore.FallbackTexture =
 
 // Register promise fallback for IE
 PromisePolyfill.Apply();
+
+/**
+ * 实现多继承
+ * @param derivedConstructor
+ * @param baseConstructors
+ * @example
+ * ```js
+ * applyMixins(Employee, [Person, Animal])
+ * ```
+ */
+export function applyMixins(derivedConstructor: any, baseConstructors: any[]) {
+    baseConstructors.forEach(baseConstructor => {
+        Object.getOwnPropertyNames(baseConstructor.prototype)
+            .forEach(name => {
+                Object.defineProperty(derivedConstructor.prototype,
+                    name,
+                    (Object as any).
+                        getOwnPropertyDescriptor(
+                            baseConstructor.prototype,
+                            name
+                        )
+                );
+            });
+    });
+}
