@@ -1,6 +1,7 @@
 const path = require('path')
 const WebpackBar = require('webpackbar')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const forkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
 module.exports = {
   mode: "development",
@@ -24,7 +25,8 @@ module.exports = {
       filename: "index.html",
       template: "./index.html",
       inject: true
-    })
+    }),
+    new forkTsCheckerWebpackPlugin()
   ],
   module: {
     rules: [

@@ -14,7 +14,12 @@ import { TransformNode } from "../Meshes/transformNode";
 import { SubMesh } from "../Meshes/subMesh";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { Mesh } from "../Meshes/mesh";
-import { IDisposable,SceneOptions} from './iScene'
+import {
+    IDisposable,
+    SceneOptions,
+    IMatrixMethod,
+    IMatrixProperty,
+} from './iScene'
 // import { IParticleSystem } from "../Particles/IParticleSystem";
 // import { Bone } from "../Bones/bone";
 // import { Skeleton } from "../Bones/skeleton";
@@ -66,7 +71,10 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
  * Represents a scene to be rendered by the engine.
  * @see https://doc.babylonjs.com/features/scene
  */
-export class Scene extends AbstractScene implements IClipPlanesHolder {
+export class Scene extends AbstractScene implements
+    IMatrixProperty,
+    IClipPlanesHolder,
+    IMatrixMethod {
     /** The fog is deactivated */
     public static readonly FOGMODE_NONE = 0;
     /** The fog density is following an exponential function */
@@ -1142,14 +1150,15 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
     /** @hidden */
     public _activeAnimatables = new Array<Animatable>();
 
-    private _transformMatrix = Matrix.Zero();
     private _sceneUbo: UniformBuffer;
 
-    /** @hidden */
+    /** ------------------------------- IMatrixProperty ----------------------- */
     public _viewMatrix: Matrix;
-    private _projectionMatrix: Matrix;
-    /** @hidden */
+    public _projectionMatrix: Matrix;
+    public _transformMatrix = Matrix.Zero();
+
     public _forcedViewPosition: Nullable<Vector3>;
+
 
     /** @hidden */
     public _frustumPlanes: Plane[];
@@ -1939,7 +1948,6 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
     }
 
     // Matrix
-
     /**
      * Gets the current view matrix
      * @returns a Matrix
@@ -1947,7 +1955,6 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
     public getViewMatrix(): Matrix {
         return this._viewMatrix;
     }
-
     /**
      * Gets the current projection matrix
      * @returns a Matrix
@@ -1955,7 +1962,6 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
     public getProjectionMatrix(): Matrix {
         return this._projectionMatrix;
     }
-
     /**
      * Gets the current transform matrix
      * @returns a Matrix made of View * Projection
@@ -1963,7 +1969,6 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
     public getTransformMatrix(): Matrix {
         return this._transformMatrix;
     }
-
     /**
      * Sets the current transform matrix
      * @param viewL defines the View matrix to use
@@ -2227,13 +2232,13 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
      * @param toRemove defines the animation to remove
      * @returns the index where the animation was in the animation list
      */
-    public removeAnimation(toRemove: Animation): number {
-        var index = this.animations.indexOf(toRemove);
-        if (index !== -1) {
-            this.animations.splice(index, 1);
-        }
-        return index;
-    }
+    // public removeAnimation(toRemove: Animation): number {
+    //     var index = this.animations.indexOf(toRemove);
+    //     if (index !== -1) {
+    //         this.animations.splice(index, 1);
+    //     }
+    //     return index;
+    // }
 
     /**
      * Will stop the animation of the given target
@@ -3104,131 +3109,6 @@ export class Scene extends AbstractScene implements IClipPlanesHolder {
         return null;
     }
 
-    /**
-     * Gets a skeleton using a given id (if many are found, this function will pick the last one)
-     * @param id defines the id to search for
-     * @return the found skeleton or null if not found at all.
-     */
-    // public getLastSkeletonByID(id: string): Nullable<Skeleton> {
-    //     for (var index = this.skeletons.length - 1; index >= 0; index--) {
-    //         if (this.skeletons[index].id === id) {
-    //             return this.skeletons[index];
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-    /**
-     * Gets a skeleton using a given auto generated unique id
-     * @param  uniqueId defines the unique id to search for
-     * @return the found skeleton or null if not found at all.
-     */
-    // public getSkeletonByUniqueId(uniqueId: number): Nullable<Skeleton> {
-    //     for (var index = 0; index < this.skeletons.length; index++) {
-    //         if (this.skeletons[index].uniqueId === uniqueId) {
-    //             return this.skeletons[index];
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-    /**
-     * Gets a skeleton using a given id (if many are found, this function will pick the first one)
-     * @param id defines the id to search for
-     * @return the found skeleton or null if not found at all.
-     */
-    // public getSkeletonById(id: string): Nullable<Skeleton> {
-    //     for (var index = 0; index < this.skeletons.length; index++) {
-    //         if (this.skeletons[index].id === id) {
-    //             return this.skeletons[index];
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-    /**
-     * Gets a skeleton using a given name
-     * @param name defines the name to search for
-     * @return the found skeleton or null if not found at all.
-     */
-    // public getSkeletonByName(name: string): Nullable<Skeleton> {
-    //     for (var index = 0; index < this.skeletons.length; index++) {
-    //         if (this.skeletons[index].name === name) {
-    //             return this.skeletons[index];
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-    /**
-     * Gets a morph target manager  using a given id (if many are found, this function will pick the last one)
-     * @param id defines the id to search for
-     * @return the found morph target manager or null if not found at all.
-     */
-    // public getMorphTargetManagerById(id: number): Nullable<MorphTargetManager> {
-    //     for (var index = 0; index < this.morphTargetManagers.length; index++) {
-    //         if (this.morphTargetManagers[index].uniqueId === id) {
-    //             return this.morphTargetManagers[index];
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-    /**
-     * Gets a morph target using a given id (if many are found, this function will pick the first one)
-     * @param id defines the id to search for
-     * @return the found morph target or null if not found at all.
-     */
-    // public getMorphTargetById(id: string): Nullable<MorphTarget> {
-    //     for (let managerIndex = 0; managerIndex < this.morphTargetManagers.length; ++managerIndex) {
-    //         const morphTargetManager = this.morphTargetManagers[managerIndex];
-    //         for (let index = 0; index < morphTargetManager.numTargets; ++index) {
-    //             const target = morphTargetManager.getTarget(index);
-    //             if (target.id === id) {
-    //                 return target;
-    //             }
-    //         }
-    //     }
-    //     return null;
-    // }
-
-    /**
-     * Gets a morph target using a given name (if many are found, this function will pick the first one)
-     * @param name defines the name to search for
-     * @return the found morph target or null if not found at all.
-     */
-    // public getMorphTargetByName(name: string): Nullable<MorphTarget> {
-    //     for (let managerIndex = 0; managerIndex < this.morphTargetManagers.length; ++managerIndex) {
-    //         const morphTargetManager = this.morphTargetManagers[managerIndex];
-    //         for (let index = 0; index < morphTargetManager.numTargets; ++index) {
-    //             const target = morphTargetManager.getTarget(index);
-    //             if (target.name === name) {
-    //                 return target;
-    //             }
-    //         }
-    //     }
-    //     return null;
-    // }
-
-    /**
-     * Gets a post process using a given name (if many are found, this function will pick the first one)
-     * @param name defines the name to search for
-     * @return the found post process or null if not found at all.
-     */
-    // public getPostProcessByName(name: string): Nullable<PostProcess> {
-    //     for (let postProcessIndex = 0; postProcessIndex < this.postProcesses.length; ++postProcessIndex) {
-    //         const postProcess = this.postProcesses[postProcessIndex];
-    //         if (postProcess.name === name) {
-    //             return postProcess;
-    //         }
-    //     }
-    //     return null;
-    // }
 
     /**
      * Gets a boolean indicating if the given mesh is active

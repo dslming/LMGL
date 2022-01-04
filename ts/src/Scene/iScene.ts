@@ -1,3 +1,5 @@
+import { Matrix } from "../Maths";
+
 export interface IDisposable {
     /**
      * Releases all held resources
@@ -27,4 +29,17 @@ export interface SceneOptions {
 
     /** Defines if the creation of the scene should impact the engine (Eg. UtilityLayer's scene) */
     virtual?: boolean;
+}
+
+export interface IMatrixMethod{
+    getViewMatrix(): Matrix;
+    getProjectionMatrix(): Matrix;
+    getTransformMatrix(): Matrix;
+    setTransformMatrix(viewL: Matrix, projectionL: Matrix, viewR?: Matrix, projectionR?: Matrix): void;
+}
+
+export interface IMatrixProperty{
+    _viewMatrix: Matrix;
+    _projectionMatrix: Matrix;
+    _transformMatrix: Matrix;
 }

@@ -27,6 +27,7 @@
     "webpackbar": "^5.0.0-3"
   },
   "devDependencies": {
+    "fork-ts-checker-webpack-plugin": "^6.5.0",
     "tslib": "^2.3.1"
   }
 }

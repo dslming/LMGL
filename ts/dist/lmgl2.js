@@ -63673,13 +63673,13 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
      * @param toRemove defines the animation to remove
      * @returns the index where the animation was in the animation list
      */
-    removeAnimation(toRemove) {
-        var index = this.animations.indexOf(toRemove);
-        if (index !== -1) {
-            this.animations.splice(index, 1);
-        }
-        return index;
-    }
+    // public removeAnimation(toRemove: Animation): number {
+    //     var index = this.animations.indexOf(toRemove);
+    //     if (index !== -1) {
+    //         this.animations.splice(index, 1);
+    //     }
+    //     return index;
+    // }
     /**
      * Will stop the animation of the given target
      * @param target - the target
@@ -64431,119 +64431,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         }
         return null;
     }
-    /**
-     * Gets a skeleton using a given id (if many are found, this function will pick the last one)
-     * @param id defines the id to search for
-     * @return the found skeleton or null if not found at all.
-     */
-    // public getLastSkeletonByID(id: string): Nullable<Skeleton> {
-    //     for (var index = this.skeletons.length - 1; index >= 0; index--) {
-    //         if (this.skeletons[index].id === id) {
-    //             return this.skeletons[index];
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a skeleton using a given auto generated unique id
-     * @param  uniqueId defines the unique id to search for
-     * @return the found skeleton or null if not found at all.
-     */
-    // public getSkeletonByUniqueId(uniqueId: number): Nullable<Skeleton> {
-    //     for (var index = 0; index < this.skeletons.length; index++) {
-    //         if (this.skeletons[index].uniqueId === uniqueId) {
-    //             return this.skeletons[index];
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a skeleton using a given id (if many are found, this function will pick the first one)
-     * @param id defines the id to search for
-     * @return the found skeleton or null if not found at all.
-     */
-    // public getSkeletonById(id: string): Nullable<Skeleton> {
-    //     for (var index = 0; index < this.skeletons.length; index++) {
-    //         if (this.skeletons[index].id === id) {
-    //             return this.skeletons[index];
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a skeleton using a given name
-     * @param name defines the name to search for
-     * @return the found skeleton or null if not found at all.
-     */
-    // public getSkeletonByName(name: string): Nullable<Skeleton> {
-    //     for (var index = 0; index < this.skeletons.length; index++) {
-    //         if (this.skeletons[index].name === name) {
-    //             return this.skeletons[index];
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a morph target manager  using a given id (if many are found, this function will pick the last one)
-     * @param id defines the id to search for
-     * @return the found morph target manager or null if not found at all.
-     */
-    // public getMorphTargetManagerById(id: number): Nullable<MorphTargetManager> {
-    //     for (var index = 0; index < this.morphTargetManagers.length; index++) {
-    //         if (this.morphTargetManagers[index].uniqueId === id) {
-    //             return this.morphTargetManagers[index];
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a morph target using a given id (if many are found, this function will pick the first one)
-     * @param id defines the id to search for
-     * @return the found morph target or null if not found at all.
-     */
-    // public getMorphTargetById(id: string): Nullable<MorphTarget> {
-    //     for (let managerIndex = 0; managerIndex < this.morphTargetManagers.length; ++managerIndex) {
-    //         const morphTargetManager = this.morphTargetManagers[managerIndex];
-    //         for (let index = 0; index < morphTargetManager.numTargets; ++index) {
-    //             const target = morphTargetManager.getTarget(index);
-    //             if (target.id === id) {
-    //                 return target;
-    //             }
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a morph target using a given name (if many are found, this function will pick the first one)
-     * @param name defines the name to search for
-     * @return the found morph target or null if not found at all.
-     */
-    // public getMorphTargetByName(name: string): Nullable<MorphTarget> {
-    //     for (let managerIndex = 0; managerIndex < this.morphTargetManagers.length; ++managerIndex) {
-    //         const morphTargetManager = this.morphTargetManagers[managerIndex];
-    //         for (let index = 0; index < morphTargetManager.numTargets; ++index) {
-    //             const target = morphTargetManager.getTarget(index);
-    //             if (target.name === name) {
-    //                 return target;
-    //             }
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a post process using a given name (if many are found, this function will pick the first one)
-     * @param name defines the name to search for
-     * @return the found post process or null if not found at all.
-     */
-    // public getPostProcessByName(name: string): Nullable<PostProcess> {
-    //     for (let postProcessIndex = 0; postProcessIndex < this.postProcesses.length; ++postProcessIndex) {
-    //         const postProcess = this.postProcesses[postProcessIndex];
-    //         if (postProcess.name === name) {
-    //             return postProcess;
-    //         }
-    //     }
-    //     return null;
-    // }
     /**
      * Gets a boolean indicating if the given mesh is active
      * @param mesh defines the mesh to look for
