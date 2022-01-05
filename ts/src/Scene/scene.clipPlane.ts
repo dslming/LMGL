@@ -3,6 +3,17 @@ import { Nullable } from "../types";
 import { IClipPlanesHolder } from '../Misc/interfaces/iClipPlanesHolder';
 
 export class SceneClipPlane implements IClipPlanesHolder {
+  constructor() { }
+
+  /** @hidden */
+  public _frustumPlanes: Plane[];
+  /**
+   * Gets the list of frustum planes (built from the active camera)
+   */
+  public get frustumPlanes(): Plane[] {
+    return this._frustumPlanes;
+  }
+
   /**
      * Gets or sets the active clipplane 1
      */

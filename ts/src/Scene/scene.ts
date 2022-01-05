@@ -74,7 +74,7 @@ import { applyMixins } from '../Misc/tools'
 import { aaa } from "./aaa";
 import { SceneMatrix } from "./scene.matrix";
 import { SceneClipPlane } from "./scene.clipPlane";
-import { InputManagerApp } from "./scene.inputManagerApp";
+import { SceneInputManagerApp } from "./scene.inputManagerApp";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -85,6 +85,11 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
  * @see https://doc.babylonjs.com/features/scene
  */
 export class Scene extends AbstractScene {
+    private SceneClipPlane = new SceneClipPlane();
+
+    public sceneInputManagerApp = new SceneInputManagerApp(this);
+
+
     /** The fog is deactivated */
     public static readonly FOGMODE_NONE = 0;
     /** The fog density is following an exponential function */
@@ -1096,8 +1101,7 @@ export class Scene extends AbstractScene {
     private _executeWhenReadyTimeoutId = -1;
     private _intermediateRendering = false;
 
-    private _viewUpdateFlag = -1;
-    private _projectionUpdateFlag = -1;
+
 
     /** @hidden */
     public _toBeDisposed = new Array<Nullable<IDisposable>>(256);
@@ -1125,24 +1129,15 @@ export class Scene extends AbstractScene {
     /** @hidden */
     public _activeAnimatables = new Array<Animatable>();
 
-    private _sceneUbo: UniformBuffer;
+    // private _sceneUbo: UniformBuffer;
 
     /** ------------------------------- IMatrixProperty ----------------------- */
-    public _viewMatrix: Matrix;
-    public _projectionMatrix: Matrix;
-    public _transformMatrix = Matrix.Zero();
+    // public _viewMatrix: Matrix;
+    // public _projectionMatrix: Matrix;
+    // public _transformMatrix = Matrix.Zero();
 
     public _forcedViewPosition: Nullable<Vector3>;
 
-
-    /** @hidden */
-    public _frustumPlanes: Plane[];
-    /**
-     * Gets the list of frustum planes (built from the active camera)
-     */
-    public get frustumPlanes(): Plane[] {
-        return this._frustumPlanes;
-    }
 
     /**
      * Gets or sets a boolean indicating if lights must be sorted by priority (off by default)
@@ -1205,45 +1200,7 @@ export class Scene extends AbstractScene {
         }
     }
 
-    /**
-   * Sets the current transform matrix
-   * @param viewL defines the View matrix to use
-   * @param projectionL defines the Projection matrix to use
-   * @param viewR defines the right View matrix to use (if provided)
-   * @param projectionR defines the right Projection matrix to use (if provided)
-   */
-    public setTransformMatrix(viewL: Matrix, projectionL: Matrix, viewR?: Matrix, projectionR?: Matrix): void {
-        if (this._viewUpdateFlag === viewL.updateFlag && this._projectionUpdateFlag === projectionL.updateFlag) {
-            return;
-        }
 
-        this._viewUpdateFlag = viewL.updateFlag;
-        this._projectionUpdateFlag = projectionL.updateFlag;
-        this._viewMatrix = viewL;
-        this._projectionMatrix = projectionL;
-
-        this._viewMatrix.multiplyToRef(this._projectionMatrix, this._transformMatrix);
-
-        // Update frustum
-        if (!this._frustumPlanes) {
-            this._frustumPlanes = Frustum.GetPlanes(this._transformMatrix);
-        } else {
-            Frustum.GetPlanesToRef(this._transformMatrix, this._frustumPlanes);
-        }
-
-        // if (this._multiviewSceneUbo && this._multiviewSceneUbo.useUbo) {
-        //     this._updateMultiviewUbo(viewR, projectionR);
-        // } else if (this._sceneUbo.useUbo) {
-        //     this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
-        //     this._sceneUbo.updateMatrix("view", this._viewMatrix);
-        //     this._sceneUbo.update();
-        // }
-        if (this._sceneUbo.useUbo) {
-            this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
-            this._sceneUbo.updateMatrix("view", this._viewMatrix);
-            this._sceneUbo.update();
-        }
-    }
 
     /**
      * @hidden
@@ -1371,6 +1328,8 @@ export class Scene extends AbstractScene {
      */
     private geometriesByUniqueId: Nullable<{ [uniqueId: string]: number | undefined }> = null;
 
+    private sceneMatrix: SceneMatrix;
+
     /**
      * Creates a new Scene
      * @param engine defines the engine to use to render this scene
@@ -1378,6 +1337,8 @@ export class Scene extends AbstractScene {
      */
     constructor(engine: Engine, options?: SceneOptions) {
         super();
+
+        this.sceneMatrix = new SceneMatrix(this.SceneClipPlane._frustumPlanes, engine);
 
         const fullOptions = {
             useGeometryUniqueIdsMap: true,
@@ -1402,11 +1363,11 @@ export class Scene extends AbstractScene {
         // }
 
         if (DomManagement.IsWindowObjectExist()) {
-            this.attachControl();
+            this.sceneInputManagerApp.attachControl();
         }
 
         // Uniform Buffer
-        this._createUbo();
+        this.sceneMatrix._createUbo();
 
         // Default Image processing definition
         // if (ImageProcessingConfiguration) {
@@ -1622,11 +1583,6 @@ export class Scene extends AbstractScene {
         this._renderId++;
     }
 
-    private _createUbo(): void {
-        this._sceneUbo = new UniformBuffer(this._engine, undefined, true);
-        this._sceneUbo.addUniform("viewProjection", 16);
-        this._sceneUbo.addUniform("view", 16);
-    }
 
 
     /**
@@ -1877,14 +1833,7 @@ export class Scene extends AbstractScene {
 
 
 
-    /**
-     * Gets the uniform buffer used to store scene data
-     * @returns a UniformBuffer
-     */
-    public getSceneUniformBuffer(): UniformBuffer {
-        // return this._multiviewSceneUbo ? this._multiviewSceneUbo : this._sceneUbo;
-      return this._sceneUbo;
-    }
+
 
     /**
      * Gets an unique (relatively to the current scene) Id
@@ -2925,7 +2874,7 @@ export class Scene extends AbstractScene {
     }
 
     private _evaluateSubMesh(subMesh: SubMesh, mesh: AbstractMesh, initialMesh: AbstractMesh): void {
-        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this._frustumPlanes)) {
+        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.SceneClipPlane._frustumPlanes)) {
             for (let step of this._evaluateSubMeshStage) {
                 step.action(mesh, subMesh);
             }
@@ -3064,8 +3013,8 @@ export class Scene extends AbstractScene {
                 return;
             }
 
-            if (!this._frustumPlanes) {
-                this.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix());
+            if (!this.SceneClipPlane._frustumPlanes) {
+                this.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix());
             }
 
             this._evaluateActiveMeshes();
@@ -3179,7 +3128,7 @@ export class Scene extends AbstractScene {
 
             mesh._preActivate();
 
-            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this._frustumPlanes))) {
+            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.SceneClipPlane._frustumPlanes))) {
                 this._activeMeshes.push(mesh);
                 this.activeCamera._activeMeshes.push(mesh);
 
@@ -3262,7 +3211,7 @@ export class Scene extends AbstractScene {
         if (!this.activeCamera) {
             return;
         }
-        this.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(force));
+        this.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(force));
     }
 
     private _bindFrameBuffer() {
@@ -4399,15 +4348,11 @@ export class Scene extends AbstractScene {
     }
 }
 
-applyMixins(Scene, [
-    aaa,
-    SceneMatrix,
-    SceneClipPlane,
-    InputManagerApp
-])
-
 declare module "./scene" {
     export interface Scene {
+        _viewMatrix: Matrix;
+        _projectionMatrix: Matrix;
+        _transformMatrix: Matrix;
         getViewMatrix(): Matrix;
         getProjectionMatrix(): Matrix;
         getTransformMatrix(): Matrix;

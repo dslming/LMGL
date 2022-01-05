@@ -5,9 +5,13 @@ import { Nullable } from "../types";
 import { Scene } from "./scene";
 import { InputManager } from "./scene.inputManager";
 
-export class InputManagerApp {
-  /** @hidden */
-  public _inputManager: InputManager = new InputManager(this as any);
+export class SceneInputManagerApp {
+  public inputManager: InputManager;
+
+  constructor(scene:Scene) {
+    this.inputManager = new InputManager(scene);
+  }
+
 
   /**
      * Use this method to simulate a pointer move on a mesh
@@ -17,7 +21,7 @@ export class InputManagerApp {
      * @returns the current scene
      */
   public simulatePointerMove(pickResult: PickingInfo, pointerEventInit?: PointerEventInit): Scene {
-    this._inputManager.simulatePointerMove(pickResult, pointerEventInit);
+    this.inputManager.simulatePointerMove(pickResult, pointerEventInit);
     return this as any;
   }
 
@@ -29,7 +33,7 @@ export class InputManagerApp {
    * @returns the current scene
    */
   public simulatePointerDown(pickResult: PickingInfo, pointerEventInit?: PointerEventInit): Scene {
-    this._inputManager.simulatePointerDown(pickResult, pointerEventInit);
+    this.inputManager.simulatePointerDown(pickResult, pointerEventInit);
     return this as any;
   }
 
@@ -42,7 +46,7 @@ export class InputManagerApp {
    * @returns the current scene
    */
   public simulatePointerUp(pickResult: PickingInfo, pointerEventInit?: PointerEventInit, doubleTap?: boolean): Scene {
-    this._inputManager.simulatePointerUp(pickResult, pointerEventInit, doubleTap);
+    this.inputManager.simulatePointerUp(pickResult, pointerEventInit, doubleTap);
     return this as any;
   }
 
@@ -52,7 +56,7 @@ export class InputManagerApp {
    * @returns true if the pointer was captured
    */
   public isPointerCaptured(pointerId = 0): boolean {
-    return this._inputManager.isPointerCaptured(pointerId);
+    return this.inputManager.isPointerCaptured(pointerId);
   }
 
   /**
@@ -62,12 +66,12 @@ export class InputManagerApp {
   * @param attachMove defines if you want to attach events to pointermove
   */
   public attachControl(attachUp = true, attachDown = true, attachMove = true): void {
-    this._inputManager.attachControl(attachUp, attachDown, attachMove);
+    this.inputManager.attachControl(attachUp, attachDown, attachMove);
   }
 
   /** Detaches all event handlers*/
   public detachControl() {
-    this._inputManager.detachControl();
+    this.inputManager.detachControl();
   }
 
   /**
@@ -76,7 +80,7 @@ export class InputManagerApp {
      * @param pointerId optional pointer id when using more than one pointer
      */
   public setPointerOverMesh(mesh: Nullable<AbstractMesh>, pointerId?: number): void {
-    this._inputManager.setPointerOverMesh(mesh, pointerId);
+    this.inputManager.setPointerOverMesh(mesh, pointerId);
   }
 
   /**
@@ -84,42 +88,42 @@ export class InputManagerApp {
    * @returns a Mesh or null if no mesh is under the pointer
    */
   public getPointerOverMesh(): Nullable<AbstractMesh> {
-    return this._inputManager.getPointerOverMesh();
+    return this.inputManager.getPointerOverMesh();
   }
 
   /**
  * Gets the pointer coordinates without any translation (ie. straight out of the pointer event)
  */
   public get unTranslatedPointer(): Vector2 {
-    return this._inputManager.unTranslatedPointer;
+    return this.inputManager.unTranslatedPointer;
   }
 
   /**
     * Gets the mesh that is currently under the pointer
     */
   public get meshUnderPointer(): Nullable<AbstractMesh> {
-    return this._inputManager.meshUnderPointer;
+    return this.inputManager.meshUnderPointer;
   }
 
   /**
    * Gets or sets the current on-screen X position of the pointer
    */
   public get pointerX(): number {
-    return this._inputManager.pointerX;
+    return this.inputManager.pointerX;
   }
 
   public set pointerX(value: number) {
-    this._inputManager.pointerX = value;
+    this.inputManager.pointerX = value;
   }
 
   /**
    * Gets or sets the current on-screen Y position of the pointer
    */
   public get pointerY(): number {
-    return this._inputManager.pointerY;
+    return this.inputManager.pointerY;
   }
 
   public set pointerY(value: number) {
-    this._inputManager.pointerY = value;
+    this.inputManager.pointerY = value;
   }
 }
