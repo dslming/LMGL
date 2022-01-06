@@ -1523,10 +1523,6 @@ export class Scene extends AbstractScene {
         this._animationTimeLast = PrecisionDate.Now;
     }
 
-
-
-
-
     /**
      * Gets an unique (relatively to the current scene) Id
      * @returns an unique number for the scene
@@ -1535,8 +1531,6 @@ export class Scene extends AbstractScene {
         return UniqueIdGenerator.UniqueId;
     }
 
-
-
     /**
      * Adds the given action manager to this scene
      * @param newActionManager The action manager to add
@@ -1544,8 +1538,6 @@ export class Scene extends AbstractScene {
     public addActionManager(newActionManager: AbstractActionManager): void {
         this.actionManagers.push(newActionManager);
     }
-
-
 
     /**
      * Switch active camera
@@ -1599,174 +1591,6 @@ export class Scene extends AbstractScene {
 
         return null;
     }
-
-    /**
-     * get an animation group using its name
-     * @param name defines the material's name
-     * @return the animation group or null if none found.
-     */
-    // public getAnimationGroupByName(name: string): Nullable<AnimationGroup> {
-    //     for (var index = 0; index < this.animationGroups.length; index++) {
-    //         if (this.animationGroups[index].name === name) {
-    //             return this.animationGroups[index];
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-    /**
-     * Get a material using its unique id
-     * @param uniqueId defines the material's unique id
-     * @return the material or null if none found.
-     */
-    public getMaterialByUniqueID(uniqueId: number): Nullable<Material> {
-        for (var index = 0; index < this.materials.length; index++) {
-            if (this.materials[index].uniqueId === uniqueId) {
-                return this.materials[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * get a material using its id
-     * @param id defines the material's ID
-     * @return the material or null if none found.
-     */
-    public getMaterialByID(id: string): Nullable<Material> {
-        for (var index = 0; index < this.materials.length; index++) {
-            if (this.materials[index].id === id) {
-                return this.materials[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a the last added material using a given id
-     * @param id defines the material's ID
-     * @return the last material with the given id or null if none found.
-     */
-    public getLastMaterialByID(id: string): Nullable<Material> {
-        for (var index = this.materials.length - 1; index >= 0; index--) {
-            if (this.materials[index].id === id) {
-                return this.materials[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a material using its name
-     * @param name defines the material's name
-     * @return the material or null if none found.
-     */
-    public getMaterialByName(name: string): Nullable<Material> {
-        for (var index = 0; index < this.materials.length; index++) {
-            if (this.materials[index].name === name) {
-                return this.materials[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Get a texture using its unique id
-     * @param uniqueId defines the texture's unique id
-     * @return the texture or null if none found.
-     */
-    public getTextureByUniqueID(uniqueId: number): Nullable<BaseTexture> {
-        for (var index = 0; index < this.textures.length; index++) {
-            if (this.textures[index].uniqueId === uniqueId) {
-                return this.textures[index];
-            }
-        }
-
-        return null;
-    }
-
-
-
-    /**
-     * Gets a camera using its unique id
-     * @param uniqueId defines the unique id to look for
-     * @returns the camera or null if not found
-     */
-    public getCameraByUniqueID(uniqueId: number): Nullable<Camera> {
-        for (var index = 0; index < this.cameras.length; index++) {
-            if (this.cameras[index].uniqueId === uniqueId) {
-                return this.cameras[index];
-            }
-        }
-
-        return null;
-    }
-
-
-
-    /**
-     * Gets a bone using its id
-     * @param id defines the bone's id
-     * @return the bone or null if not found
-     */
-    // public getBoneByID(id: string): Nullable<Bone> {
-    //     for (var skeletonIndex = 0; skeletonIndex < this.skeletons.length; skeletonIndex++) {
-    //         var skeleton = this.skeletons[skeletonIndex];
-    //         for (var boneIndex = 0; boneIndex < skeleton.bones.length; boneIndex++) {
-    //             if (skeleton.bones[boneIndex].id === id) {
-    //                 return skeleton.bones[boneIndex];
-    //             }
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-    /**
-    * Gets a bone using its id
-    * @param name defines the bone's name
-    * @return the bone or null if not found
-    */
-    // public getBoneByName(name: string): Nullable<Bone> {
-    //     for (var skeletonIndex = 0; skeletonIndex < this.skeletons.length; skeletonIndex++) {
-    //         var skeleton = this.skeletons[skeletonIndex];
-    //         for (var boneIndex = 0; boneIndex < skeleton.bones.length; boneIndex++) {
-    //             if (skeleton.bones[boneIndex].name === name) {
-    //                 return skeleton.bones[boneIndex];
-    //             }
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-
-
-
-
-    /**
-     * Gets a particle system by id
-     * @param id defines the particle system id
-     * @return the corresponding system or null if none found
-     */
-    // public getParticleSystemByID(id: string): Nullable<IParticleSystem> {
-    //     for (var index = 0; index < this.particleSystems.length; index++) {
-    //         if (this.particleSystems[index].id === id) {
-    //             return this.particleSystems[index];
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-
-
-
 
     /**
      * Return a unique id as a string which can serve as an identifier for the scene

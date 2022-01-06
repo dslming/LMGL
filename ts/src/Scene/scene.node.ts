@@ -750,4 +750,96 @@ export class SceneNode {
     public isActiveMesh(mesh: AbstractMesh): boolean {
         return (this.scene._activeMeshes.indexOf(mesh) !== -1);
     }
+
+    /**
+     * Get a material using its unique id
+     * @param uniqueId defines the material's unique id
+     * @return the material or null if none found.
+     */
+    public getMaterialByUniqueID(uniqueId: number): Nullable<Material> {
+        for (var index = 0; index < this.scene.materials.length; index++) {
+            if (this.scene.materials[index].uniqueId === uniqueId) {
+                return this.scene.materials[index];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * get a material using its id
+     * @param id defines the material's ID
+     * @return the material or null if none found.
+     */
+    public getMaterialByID(id: string): Nullable<Material> {
+        for (var index = 0; index < this.scene.materials.length; index++) {
+            if (this.scene.materials[index].id === id) {
+                return this.scene.materials[index];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets a the last added material using a given id
+     * @param id defines the material's ID
+     * @return the last material with the given id or null if none found.
+     */
+    public getLastMaterialByID(id: string): Nullable<Material> {
+        for (var index = this.scene.materials.length - 1; index >= 0; index--) {
+            if (this.scene.materials[index].id === id) {
+                return this.scene.materials[index];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets a material using its name
+     * @param name defines the material's name
+     * @return the material or null if none found.
+     */
+    public getMaterialByName(name: string): Nullable<Material> {
+        for (var index = 0; index < this.scene.materials.length; index++) {
+            if (this.scene.materials[index].name === name) {
+                return this.scene.materials[index];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get a texture using its unique id
+     * @param uniqueId defines the texture's unique id
+     * @return the texture or null if none found.
+     */
+    public getTextureByUniqueID(uniqueId: number): Nullable<BaseTexture> {
+        for (var index = 0; index < this.scene.textures.length; index++) {
+            if (this.scene.textures[index].uniqueId === uniqueId) {
+                return this.scene.textures[index];
+            }
+        }
+
+        return null;
+    }
+
+
+
+    /**
+     * Gets a camera using its unique id
+     * @param uniqueId defines the unique id to look for
+     * @returns the camera or null if not found
+     */
+    public getCameraByUniqueID(uniqueId: number): Nullable<Camera> {
+        for (var index = 0; index < this.scene.cameras.length; index++) {
+            if (this.scene.cameras[index].uniqueId === uniqueId) {
+                return this.scene.cameras[index];
+            }
+        }
+
+        return null;
+    }
 }

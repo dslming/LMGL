@@ -664,7 +664,7 @@ export class Material {
         this._scene = scene || EngineStore.LastCreatedScene;
 
         this.id = name || Tools.RandomId();
-        while (this._scene.getMaterialByID(this.id)) {
+        while (this._scene.sceneNode.getMaterialByID(this.id)) {
             this.id = name + " " + idSubscript++;
         }
 
