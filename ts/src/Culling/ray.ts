@@ -9,7 +9,7 @@ import { BoundingSphere } from "./boundingSphere";
 import { Scene } from "../Scene/scene";
 import { Camera } from "../Cameras/camera";
 import { Plane } from "../Maths/math.plane";
-
+import { ScenePick} from '../Scene/scene.pick'
 declare type Mesh = import("../Meshes/mesh").Mesh;
 
 /**
@@ -573,8 +573,8 @@ export class Ray {
  */
 export type TrianglePickingPredicate = (p0: Vector3, p1: Vector3, p2: Vector3, ray: Ray) => boolean;
 
-declare module "../Scene/scene" {
-    export interface Scene {
+declare module "../Scene/scene.pick" {
+    export interface ScenePick {
         /** @hidden */
         _tempPickingRay: Nullable<Ray>;
 
@@ -595,7 +595,7 @@ declare module "../Scene/scene" {
     }
 }
 
-Scene.prototype.createPickingRay = function (x: number, y: number, world: Matrix, camera: Nullable<Camera>, cameraViewSpace = false): Ray {
+ScenePick.prototype.createPickingRay = function (x: number, y: number, world: Matrix, camera: Nullable<Camera>, cameraViewSpace = false): Ray {
     let result = Ray.Zero();
 
     this.createPickingRayToRef(x, y, world, result, camera, cameraViewSpace);
@@ -603,15 +603,15 @@ Scene.prototype.createPickingRay = function (x: number, y: number, world: Matrix
     return result;
 };
 
-Scene.prototype.createPickingRayToRef = function (x: number, y: number, world: Matrix, result: Ray, camera: Nullable<Camera>, cameraViewSpace = false): Scene {
-    var engine = this.getEngine();
+ScenePick.prototype.createPickingRayToRef = function (x: number, y: number, world: Matrix, result: Ray, camera: Nullable<Camera>, cameraViewSpace = false): Scene {
+    var engine = this.scene.getEngine();
 
     if (!camera) {
-        if (!this.activeCamera) {
-            return this;
+        if (!this.scene.activeCamera) {
+            return this.scene;
         }
 
-        camera = this.activeCamera;
+        camera = this.scene.activeCamera;
     }
 
     var cameraViewport = camera.viewport;
@@ -622,10 +622,10 @@ Scene.prototype.createPickingRayToRef = function (x: number, y: number, world: M
     y = y / engine.getHardwareScalingLevel() - (engine.getRenderHeight() - viewport.y - viewport.height);
 
     result.update(x, y, viewport.width, viewport.height, world ? world : Matrix.IdentityReadOnly, cameraViewSpace ? Matrix.IdentityReadOnly : camera.getViewMatrix(), camera.getProjectionMatrix());
-    return this;
+    return this.scene;
 };
 
-Scene.prototype.createPickingRayInCameraSpace = function (x: number, y: number, camera?: Camera): Ray {
+ScenePick.prototype.createPickingRayInCameraSpace = function (x: number, y: number, camera?: Camera): Ray {
     let result = Ray.Zero();
 
     this.createPickingRayInCameraSpaceToRef(x, y, result, camera);
@@ -633,19 +633,19 @@ Scene.prototype.createPickingRayInCameraSpace = function (x: number, y: number, 
     return result;
 };
 
-Scene.prototype.createPickingRayInCameraSpaceToRef = function (x: number, y: number, result: Ray, camera?: Camera): Scene {
+ScenePick.prototype.createPickingRayInCameraSpaceToRef = function (x: number, y: number, result: Ray, camera?: Camera): Scene {
     if (!PickingInfo) {
-        return this;
+        return this.scene;
     }
 
-    var engine = this.getEngine();
+    var engine = this.scene.getEngine();
 
     if (!camera) {
-        if (!this.activeCamera) {
+        if (!this.scene.activeCamera) {
             throw new Error("Active camera not set");
         }
 
-        camera = this.activeCamera;
+        camera = this.scene.activeCamera;
     }
 
     var cameraViewport = camera.viewport;
@@ -656,10 +656,10 @@ Scene.prototype.createPickingRayInCameraSpaceToRef = function (x: number, y: num
     x = x / engine.getHardwareScalingLevel() - viewport.x;
     y = y / engine.getHardwareScalingLevel() - (engine.getRenderHeight() - viewport.y - viewport.height);
     result.update(x, y, viewport.width, viewport.height, identity, identity, camera.getProjectionMatrix());
-    return this;
+    return this.scene;
 };
 
-Scene.prototype._internalPickForMesh = function (pickingInfo: Nullable<PickingInfo>, rayFunction: (world: Matrix) => Ray, mesh: AbstractMesh, world: Matrix, fastCheck?: boolean, onlyBoundingInfo?: boolean, trianglePredicate?: TrianglePickingPredicate, skipBoundingInfo?: boolean) {
+ScenePick.prototype._internalPickForMesh = function (pickingInfo: Nullable<PickingInfo>, rayFunction: (world: Matrix) => Ray, mesh: AbstractMesh, world: Matrix, fastCheck?: boolean, onlyBoundingInfo?: boolean, trianglePredicate?: TrianglePickingPredicate, skipBoundingInfo?: boolean) {
     let ray = rayFunction(world);
 
     let result = mesh.intersects(ray, fastCheck, trianglePredicate, onlyBoundingInfo, world, skipBoundingInfo);
@@ -674,15 +674,15 @@ Scene.prototype._internalPickForMesh = function (pickingInfo: Nullable<PickingIn
     return result;
 };
 
-Scene.prototype._internalPick = function (rayFunction: (world: Matrix) => Ray, predicate?: (mesh: AbstractMesh) => boolean, fastCheck?: boolean, onlyBoundingInfo?: boolean, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo> {
+ScenePick.prototype._internalPick = function (rayFunction: (world: Matrix) => Ray, predicate?: (mesh: AbstractMesh) => boolean, fastCheck?: boolean, onlyBoundingInfo?: boolean, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo> {
     if (!PickingInfo) {
         return null;
     }
 
     let pickingInfo = null;
 
-    for (let meshIndex = 0; meshIndex < this.meshes.length; meshIndex++) {
-        let mesh = this.meshes[meshIndex];
+    for (let meshIndex = 0; meshIndex < this.scene.meshes.length; meshIndex++) {
+        let mesh = this.scene.meshes[meshIndex];
 
         if (predicate) {
             if (!predicate(mesh)) {
@@ -710,14 +710,14 @@ Scene.prototype._internalPick = function (rayFunction: (world: Matrix) => Ray, p
     return pickingInfo || new PickingInfo();
 };
 
-Scene.prototype._internalMultiPick = function (rayFunction: (world: Matrix) => Ray, predicate?: (mesh: AbstractMesh) => boolean, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo[]> {
+ScenePick.prototype._internalMultiPick = function (rayFunction: (world: Matrix) => Ray, predicate?: (mesh: AbstractMesh) => boolean, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo[]> {
     if (!PickingInfo) {
         return null;
     }
     let pickingInfos = new Array<PickingInfo>();
 
-    for (let meshIndex = 0; meshIndex < this.meshes.length; meshIndex++) {
-        let mesh = this.meshes[meshIndex];
+    for (let meshIndex = 0; meshIndex < this.scene.meshes.length; meshIndex++) {
+        let mesh = this.scene.meshes[meshIndex];
 
         if (predicate) {
             if (!predicate(mesh)) {
@@ -741,7 +741,7 @@ Scene.prototype._internalMultiPick = function (rayFunction: (world: Matrix) => R
     return pickingInfos;
 };
 
-Scene.prototype.pickWithBoundingInfo = function (x: number, y: number, predicate?: (mesh: AbstractMesh) => boolean, fastCheck?: boolean, camera?: Nullable<Camera>): Nullable<PickingInfo> {
+ScenePick.prototype.pickWithBoundingInfo = function (x: number, y: number, predicate?: (mesh: AbstractMesh) => boolean, fastCheck?: boolean, camera?: Nullable<Camera>): Nullable<PickingInfo> {
     if (!PickingInfo) {
         return null;
     }
@@ -764,7 +764,7 @@ Scene.prototype.pickWithBoundingInfo = function (x: number, y: number, predicate
     return result;
 };
 
-Scene.prototype.pick = function (x: number, y: number, predicate?: (mesh: AbstractMesh) => boolean, fastCheck?: boolean, camera?: Nullable<Camera>, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo> {
+ScenePick.prototype.pick = function (x: number, y: number, predicate?: (mesh: AbstractMesh) => boolean, fastCheck?: boolean, camera?: Nullable<Camera>, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo> {
     if (!PickingInfo) {
         return null;
     }
@@ -788,7 +788,7 @@ Scene.prototype.pick = function (x: number, y: number, predicate?: (mesh: Abstra
     return result;
 };
 
-Scene.prototype.pickWithRay = function (ray: Ray, predicate?: (mesh: AbstractMesh) => boolean, fastCheck?: boolean, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo> {
+ScenePick.prototype.pickWithRay = function (ray: Ray, predicate?: (mesh: AbstractMesh) => boolean, fastCheck?: boolean, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo> {
     var result = this._internalPick(
         (world) => {
             if (!this._pickWithRayInverseMatrix) {
@@ -814,11 +814,11 @@ Scene.prototype.pickWithRay = function (ray: Ray, predicate?: (mesh: AbstractMes
     return result;
 };
 
-Scene.prototype.multiPick = function (x: number, y: number, predicate?: (mesh: AbstractMesh) => boolean, camera?: Camera, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo[]> {
+ScenePick.prototype.multiPick = function (x: number, y: number, predicate?: (mesh: AbstractMesh) => boolean, camera?: Camera, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo[]> {
     return this._internalMultiPick((world) => this.createPickingRay(x, y, world, camera || null), predicate, trianglePredicate);
 };
 
-Scene.prototype.multiPickWithRay = function (ray: Ray, predicate: (mesh: AbstractMesh) => boolean, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo[]> {
+ScenePick.prototype.multiPickWithRay = function (ray: Ray, predicate: (mesh: AbstractMesh) => boolean, trianglePredicate?: TrianglePickingPredicate): Nullable<PickingInfo[]> {
     return this._internalMultiPick(
         (world) => {
             if (!this._pickWithRayInverseMatrix) {

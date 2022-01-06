@@ -233,7 +233,7 @@ export class InputManager {
         let scene = this._scene;
         if (pointerInfo.pickInfo && !pointerInfo.pickInfo._pickingUnavailable) {
             if (!pointerInfo.pickInfo.ray) {
-                pointerInfo.pickInfo.ray = scene.createPickingRay(pointerInfo.event.offsetX, pointerInfo.event.offsetY, Matrix.Identity(), scene.activeCamera);
+                pointerInfo.pickInfo.ray = scene.scenePick.createPickingRay(pointerInfo.event.offsetX, pointerInfo.event.offsetY, Matrix.Identity(), scene.activeCamera);
             }
         }
     }
@@ -306,7 +306,7 @@ export class InputManager {
 
                 if (actionManager.hasSpecificTrigger(Constants.ACTION_OnLongPressTrigger)) {
                     window.setTimeout(() => {
-                        var pickResult = scene.pick(
+                        var pickResult = scene.scenePick.pick(
                             this._unTranslatedPointerX,
                             this._unTranslatedPointerY,
                             (mesh: AbstractMesh): boolean => <boolean>(mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.actionManager && mesh.actionManager.hasSpecificTrigger(Constants.ACTION_OnLongPressTrigger) && mesh == this._pickedDownMesh),
@@ -480,7 +480,7 @@ export class InputManager {
 
         this._initActionManager = (act: Nullable<AbstractActionManager>, clickInfo: _ClickInfo): Nullable<AbstractActionManager> => {
             if (!this._meshPickProceed) {
-                let pickResult = scene.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerDownPredicate, false, scene.cameraToUseForPointers);
+                let pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerDownPredicate, false, scene.cameraToUseForPointers);
                 this._currentPickResult = pickResult;
                 if (pickResult) {
                     act = pickResult.hit && pickResult.pickedMesh ? pickResult.pickedMesh._getActionManagerForTrigger() : null;
@@ -641,7 +641,7 @@ export class InputManager {
             }
 
             // Meshes
-            var pickResult = scene.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerMovePredicate, false, scene.cameraToUseForPointers);
+            var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerMovePredicate, false, scene.cameraToUseForPointers);
 
             this._processPointerMove(pickResult, evt);
         };
@@ -686,7 +686,7 @@ export class InputManager {
 
             // Meshes
             this._pickedDownMesh = null;
-            var pickResult = scene.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerDownPredicate, false, scene.cameraToUseForPointers);
+            var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerDownPredicate, false, scene.cameraToUseForPointers);
 
             this._processPointerDown(pickResult, evt);
         };

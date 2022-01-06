@@ -393,7 +393,7 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
             }
         }
 
-        var pickResult = PointerDragBehavior._planeScene.pickWithRay(ray, (m) => { return m == this._dragPlane; });
+        var pickResult = PointerDragBehavior._planeScene.scenePick.pickWithRay(ray, (m) => { return m == this._dragPlane; });
         if (pickResult && pickResult.hit && pickResult.pickedMesh && pickResult.pickedPoint) {
             return pickResult.pickedPoint;
         } else {
