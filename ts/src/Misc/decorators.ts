@@ -393,7 +393,7 @@ export class SerializationHelper {
                         break;
                     case 11:    // Camera reference
                         if (scene) {
-                            dest[property] = scene.getCameraByID(sourceProperty);
+                            dest[property] = scene.sceneNode.getCameraByID(sourceProperty);
                         }
                     case 12:    // Matrix
                         dest[property] = Matrix.FromArray(sourceProperty);

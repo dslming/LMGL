@@ -1545,17 +1545,7 @@ export class Scene extends AbstractScene {
         this.actionManagers.push(newActionManager);
     }
 
-    /**
-     * Adds the given texture to this scene.
-     * @param newTexture The texture to add
-     */
-    public addTexture(newTexture: BaseTexture): void {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        this.textures.push(newTexture);
-        this.sceneEventTrigger.onNewTextureAddedObservable.notifyObservers(newTexture);
-    }
+
 
     /**
      * Switch active camera
@@ -1584,7 +1574,7 @@ export class Scene extends AbstractScene {
      * @return the new active camera or null if none found.
      */
     public setActiveCameraByID(id: string): Nullable<Camera> {
-        var camera = this.getCameraByID(id);
+        var camera = this.sceneNode.getCameraByID(id);
 
         if (camera) {
             this.activeCamera = camera;
@@ -1700,20 +1690,7 @@ export class Scene extends AbstractScene {
         return null;
     }
 
-    /**
-     * Gets a camera using its id
-     * @param id defines the id to look for
-     * @returns the camera or null if not found
-     */
-    public getCameraByID(id: string): Nullable<Camera> {
-        for (var index = 0; index < this.cameras.length; index++) {
-            if (this.cameras[index].id === id) {
-                return this.cameras[index];
-            }
-        }
 
-        return null;
-    }
 
     /**
      * Gets a camera using its unique id

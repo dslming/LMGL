@@ -8,7 +8,7 @@ import { AbstractMesh } from "../Meshes/abstractMesh";
 import { Geometry } from "../Meshes/geometry";
 import { TransformNode } from "../Meshes/transformNode";
 import { Nullable } from "../types";
-
+import { Node } from '../node'
 export class SceneNode {
   scene: Scene;
    /** @hidden */
@@ -297,6 +297,18 @@ export class SceneNode {
         }
     }
 
+        /**
+     * Adds the given texture to this scene.
+     * @param newTexture The texture to add
+     */
+    public addTexture(newTexture: BaseTexture): void {
+        if (this._blockEntityCollection) {
+            return;
+        }
+        this.scene.textures.push(newTexture);
+        this.scene.sceneEventTrigger.onNewTextureAddedObservable.notifyObservers(newTexture);
+    }
+
     /**
      * Adds the given material to this scene.scene
      * @param newMaterial The material to add
@@ -498,12 +510,19 @@ export class SceneNode {
         return null;
     }
 
+    a(a: Node) {
+
+    }
     /**
      * Gets a the last added node (Mesh, Camera, Light) using a given id
      * @param id defines the id to search for
      * @return the found node or null if not found at all
      */
     public getLastEntryByID(id: string): Nullable<Node> {
+        if (this.scene.lights[0]) {
+            this.a(<Node>this.scene.lights[0]);
+        }
+
         var index: number;
         for (index = this.scene.meshes.length - 1; index >= 0; index--) {
             if (this.scene.meshes[index].id === id) {
@@ -589,6 +608,21 @@ export class SceneNode {
         for (var index = 0; index < this.scene.lights.length; index++) {
             if (this.scene.lights[index].uniqueId === uniqueId) {
                 return this.scene.lights[index];
+            }
+        }
+
+        return null;
+    }
+
+     /**
+     * Gets a camera using its id
+     * @param id defines the id to look for
+     * @returns the camera or null if not found
+     */
+    public getCameraByID(id: string): Nullable<Camera> {
+        for (var index = 0; index < this.scene.cameras.length; index++) {
+            if (this.scene.cameras[index].id === id) {
+                return this.scene.cameras[index];
             }
         }
 

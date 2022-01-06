@@ -229,7 +229,7 @@ export class AssetContainer extends AbstractScene {
         //     this.scene.addActionManager(o);
         // });
         this.textures.forEach((o) => {
-            this.scene.addTexture(o);
+            this.scene.sceneNode.addTexture(o);
         });
         // this.reflectionProbes.forEach((o) => {
         //     this.scene.addReflectionProbe(o);
