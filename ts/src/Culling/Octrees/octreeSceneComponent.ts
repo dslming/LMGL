@@ -153,7 +153,7 @@ export class OctreeSceneComponent {
      * Registers the component in a given scene
      */
     public register(): void {
-        this.scene.onMeshRemovedObservable.add((mesh: AbstractMesh) => {
+        this.scene.sceneEventTrigger.onMeshRemovedObservable.add((mesh: AbstractMesh) => {
             const sceneOctree = this.scene.selectionOctree;
             if (sceneOctree !== undefined && sceneOctree !== null) {
                 var index = sceneOctree.dynamicContent.indexOf(mesh);
@@ -164,7 +164,7 @@ export class OctreeSceneComponent {
             }
         });
 
-        this.scene.onMeshImportedObservable.add((mesh: AbstractMesh) => {
+        this.scene.sceneEventTrigger.onMeshImportedObservable.add((mesh: AbstractMesh) => {
             const sceneOctree = this.scene.selectionOctree;
             if (sceneOctree !== undefined && sceneOctree !== null) {
                 sceneOctree.addMesh(mesh);

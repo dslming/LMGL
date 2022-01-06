@@ -76,6 +76,7 @@ import { ISceneClipPlane, SceneClipPlane } from "./scene.clipPlane";
 import { ISceneInputManagerApp, SceneInputManagerApp } from "./scene.inputManagerApp";
 import { iSceneCatch, SceneCatch } from "./scene.catch";
 import { SceneFile } from "./scene.file";
+import { SceneEventTrigger } from "./scene.eventTrigger";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -88,8 +89,10 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
 export class Scene extends AbstractScene {
     public sceneFile = new SceneFile()
     public sceneClipPlane = new SceneClipPlane();
-    public sceneCatch = new SceneCatch();
+    public sceneCatch = new SceneCatch(this);
     public sceneInputManagerApp = new SceneInputManagerApp(this);
+    public sceneEventTrigger = new SceneEventTrigger(this);
+
 
 
     /** The fog is deactivated */
@@ -353,280 +356,6 @@ export class Scene extends AbstractScene {
     public disableOfflineSupportExceptionRules = new Array<RegExp>();
 
     /**
-    * An event triggered when the scene is disposed.
-    */
-    public onDisposeObservable = new Observable<Scene>();
-
-    private _onDisposeObserver: Nullable<Observer<Scene>> = null;
-    /** Sets a function to be executed when this scene is disposed. */
-    public set onDispose(callback: () => void) {
-        if (this._onDisposeObserver) {
-            this.onDisposeObservable.remove(this._onDisposeObserver);
-        }
-        this._onDisposeObserver = this.onDisposeObservable.add(callback);
-    }
-
-    /**
-    * An event triggered before rendering the scene (right after animations and physics)
-    */
-    public onBeforeRenderObservable = new Observable<Scene>();
-
-    private _onBeforeRenderObserver: Nullable<Observer<Scene>> = null;
-    /** Sets a function to be executed before rendering this scene */
-    public set beforeRender(callback: Nullable<() => void>) {
-        if (this._onBeforeRenderObserver) {
-            this.onBeforeRenderObservable.remove(this._onBeforeRenderObserver);
-        }
-        if (callback) {
-            this._onBeforeRenderObserver = this.onBeforeRenderObservable.add(callback);
-        }
-    }
-
-    /**
-    * An event triggered after rendering the scene
-    */
-    public onAfterRenderObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered after rendering the scene for an active camera (When scene.render is called this will be called after each camera)
-    */
-    public onAfterRenderCameraObservable = new Observable<Camera>();
-
-    private _onAfterRenderObserver: Nullable<Observer<Scene>> = null;
-    /** Sets a function to be executed after rendering this scene */
-    public set afterRender(callback: Nullable<() => void>) {
-        if (this._onAfterRenderObserver) {
-            this.onAfterRenderObservable.remove(this._onAfterRenderObserver);
-        }
-
-        if (callback) {
-            this._onAfterRenderObserver = this.onAfterRenderObservable.add(callback);
-        }
-    }
-
-    /**
-    * An event triggered before animating the scene
-    */
-    public onBeforeAnimationsObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered after animations processing
-    */
-    public onAfterAnimationsObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered before draw calls are ready to be sent
-    */
-    public onBeforeDrawPhaseObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered after draw calls have been sent
-    */
-    public onAfterDrawPhaseObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered when the scene is ready
-    */
-    public onReadyObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered before rendering a camera
-    */
-    public onBeforeCameraRenderObservable = new Observable<Camera>();
-
-    private _onBeforeCameraRenderObserver: Nullable<Observer<Camera>> = null;
-    /** Sets a function to be executed before rendering a camera*/
-    public set beforeCameraRender(callback: () => void) {
-        if (this._onBeforeCameraRenderObserver) {
-            this.onBeforeCameraRenderObservable.remove(this._onBeforeCameraRenderObserver);
-        }
-
-        this._onBeforeCameraRenderObserver = this.onBeforeCameraRenderObservable.add(callback);
-    }
-
-    /**
-    * An event triggered after rendering a camera
-    */
-    public onAfterCameraRenderObservable = new Observable<Camera>();
-
-    private _onAfterCameraRenderObserver: Nullable<Observer<Camera>> = null;
-    /** Sets a function to be executed after rendering a camera*/
-    public set afterCameraRender(callback: () => void) {
-        if (this._onAfterCameraRenderObserver) {
-            this.onAfterCameraRenderObservable.remove(this._onAfterCameraRenderObserver);
-        }
-        this._onAfterCameraRenderObserver = this.onAfterCameraRenderObservable.add(callback);
-    }
-
-    /**
-    * An event triggered when active meshes evaluation is about to start
-    */
-    public onBeforeActiveMeshesEvaluationObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered when active meshes evaluation is done
-    */
-    public onAfterActiveMeshesEvaluationObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered when particles rendering is about to start
-    * Note: This event can be trigger more than once per frame (because particles can be rendered by render target textures as well)
-    */
-    public onBeforeParticlesRenderingObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered when particles rendering is done
-    * Note: This event can be trigger more than once per frame (because particles can be rendered by render target textures as well)
-    */
-    public onAfterParticlesRenderingObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered when SceneLoader.Append or SceneLoader.Load or SceneLoader.ImportMesh were successfully executed
-    */
-    public onDataLoadedObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered when a camera is created
-    */
-    public onNewCameraAddedObservable = new Observable<Camera>();
-
-    /**
-    * An event triggered when a camera is removed
-    */
-    public onCameraRemovedObservable = new Observable<Camera>();
-
-    /**
-    * An event triggered when a light is created
-    */
-    public onNewLightAddedObservable = new Observable<Light>();
-
-    /**
-    * An event triggered when a light is removed
-    */
-    public onLightRemovedObservable = new Observable<Light>();
-
-    /**
-    * An event triggered when a geometry is created
-    */
-    public onNewGeometryAddedObservable = new Observable<Geometry>();
-
-    /**
-    * An event triggered when a geometry is removed
-    */
-    public onGeometryRemovedObservable = new Observable<Geometry>();
-
-    /**
-    * An event triggered when a transform node is created
-    */
-    public onNewTransformNodeAddedObservable = new Observable<TransformNode>();
-
-    /**
-    * An event triggered when a transform node is removed
-    */
-    public onTransformNodeRemovedObservable = new Observable<TransformNode>();
-
-    /**
-    * An event triggered when a mesh is created
-    */
-    public onNewMeshAddedObservable = new Observable<AbstractMesh>();
-
-    /**
-    * An event triggered when a mesh is removed
-    */
-    public onMeshRemovedObservable = new Observable<AbstractMesh>();
-
-    /**
-     * An event triggered when a skeleton is created
-     */
-    // public onNewSkeletonAddedObservable = new Observable<Skeleton>();
-
-    /**
-    * An event triggered when a skeleton is removed
-    */
-    // public onSkeletonRemovedObservable = new Observable<Skeleton>();
-
-    /**
-    * An event triggered when a material is created
-    */
-    public onNewMaterialAddedObservable = new Observable<Material>();
-
-    /**
-    * An event triggered when a multi material is created
-    */
-  //  public onNewMultiMaterialAddedObservable = new Observable<MultiMaterial>();
-
-    /**
-    * An event triggered when a material is removed
-    */
-    public onMaterialRemovedObservable = new Observable<Material>();
-
-    /**
-    * An event triggered when a multi material is removed
-    */
-    // public onMultiMaterialRemovedObservable = new Observable<MultiMaterial>();
-
-    /**
-    * An event triggered when a texture is created
-    */
-    public onNewTextureAddedObservable = new Observable<BaseTexture>();
-
-    /**
-    * An event triggered when a texture is removed
-    */
-    public onTextureRemovedObservable = new Observable<BaseTexture>();
-
-    /**
-    * An event triggered when render targets are about to be rendered
-    * Can happen multiple times per frame.
-    */
-    public onBeforeRenderTargetsRenderObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered when render targets were rendered.
-    * Can happen multiple times per frame.
-    */
-    public onAfterRenderTargetsRenderObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered before calculating deterministic simulation step
-    */
-    public onBeforeStepObservable = new Observable<Scene>();
-
-    /**
-    * An event triggered after calculating deterministic simulation step
-    */
-    public onAfterStepObservable = new Observable<Scene>();
-
-    /**
-     * An event triggered when the activeCamera property is updated
-     */
-    public onActiveCameraChanged = new Observable<Scene>();
-
-    /**
-     * This Observable will be triggered before rendering each renderingGroup of each rendered camera.
-     * The RenderinGroupInfo class contains all the information about the context in which the observable is called
-     * If you wish to register an Observer only for a given set of renderingGroup, use the mask with a combination of the renderingGroup index elevated to the power of two (1 for renderingGroup 0, 2 for renderingrOup1, 4 for 2 and 8 for 3)
-     */
-    public onBeforeRenderingGroupObservable = new Observable<RenderingGroupInfo>();
-
-    /**
-     * This Observable will be triggered after rendering each renderingGroup of each rendered camera.
-     * The RenderinGroupInfo class contains all the information about the context in which the observable is called
-     * If you wish to register an Observer only for a given set of renderingGroup, use the mask with a combination of the renderingGroup index elevated to the power of two (1 for renderingGroup 0, 2 for renderingrOup1, 4 for 2 and 8 for 3)
-     */
-    public onAfterRenderingGroupObservable = new Observable<RenderingGroupInfo>();
-
-    /**
-     * This Observable will when a mesh has been imported into the scene.
-     */
-    public onMeshImportedObservable = new Observable<AbstractMesh>();
-
-    /**
-     * This Observable will when an animation file has been imported into the scene.
-     */
-    public onAnimationFileImportedObservable = new Observable<Scene>();
-
-    /**
      * Gets or sets a user defined funtion to select LOD from a mesh and a camera.
      * By default this function is undefined and Babylon.js will select LOD based on distance to camera
      */
@@ -660,16 +389,7 @@ export class Scene extends AbstractScene {
     /** Callback called when a pointer pick is detected */
     public onPointerPick: (evt: PointerEvent, pickInfo: PickingInfo) => void;
 
-    /**
-     * This observable event is triggered when any ponter event is triggered. It is registered during Scene.attachControl() and it is called BEFORE the 3D engine process anything (mesh/sprite picking for instance).
-     * You have the possibility to skip the process and the call to onPointerObservable by setting PointerInfoPre.skipOnPointerObservable to true
-     */
-    public onPrePointerObservable = new Observable<PointerInfoPre>();
 
-    /**
-     * Observable event triggered each time an input event is received from the rendering canvas
-     */
-    public onPointerObservable = new Observable<PointerInfo>();
 
 
 
@@ -719,18 +439,7 @@ export class Scene extends AbstractScene {
     /** @hidden */
     public _mirroredCameraPosition: Nullable<Vector3>;
 
-    // Keyboard
 
-    /**
-     * This observable event is triggered when any keyboard event si raised and registered during Scene.attachControl()
-     * You have the possibility to skip the process and the call to onKeyboardObservable by setting KeyboardInfoPre.skipOnPointerObservable to true
-     */
-    public onPreKeyboardObservable = new Observable<KeyboardInfoPre>();
-
-    /**
-     * Observable event triggered each time an keyboard event is received from the hosting window
-     */
-    public onKeyboardObservable = new Observable<KeyboardInfo>();
 
     // Coordinates system
 
@@ -900,7 +609,7 @@ export class Scene extends AbstractScene {
         }
 
         this._activeCamera = value;
-        this.onActiveCameraChanged.notifyObservers(this);
+        this.sceneEventTrigger.onActiveCameraChanged.notifyObservers(this);
     }
 
     private _defaultMaterial: Material;
@@ -1670,46 +1379,15 @@ export class Scene extends AbstractScene {
         this._cachedVisibility = null;
     }
 
-    /**
-     * Registers a function to be called before every frame render
-     * @param func defines the function to register
-     */
-    public registerBeforeRender(func: () => void): void {
-        this.onBeforeRenderObservable.add(func);
-    }
-
-    /**
-     * Unregisters a function called before every frame render
-     * @param func defines the function to unregister
-     */
-    public unregisterBeforeRender(func: () => void): void {
-        this.onBeforeRenderObservable.removeCallback(func);
-    }
-
-    /**
-     * Registers a function to be called after every frame render
-     * @param func defines the function to register
-     */
-    public registerAfterRender(func: () => void): void {
-        this.onAfterRenderObservable.add(func);
-    }
-
-    /**
-     * Unregisters a function called after every frame render
-     * @param func defines the function to unregister
-     */
-    public unregisterAfterRender(func: () => void): void {
-        this.onAfterRenderObservable.removeCallback(func);
-    }
 
     private _executeOnceBeforeRender(func: () => void): void {
         let execFunc = () => {
             func();
             setTimeout(() => {
-                this.unregisterBeforeRender(execFunc);
+                this.sceneEventTrigger.unregisterBeforeRender(execFunc);
             });
         };
-        this.registerBeforeRender(execFunc);
+        this.sceneEventTrigger.registerBeforeRender(execFunc);
     }
 
     /**
@@ -1744,7 +1422,7 @@ export class Scene extends AbstractScene {
         }
 
         if (wasLoading && !this.isLoading) {
-            this.onDataLoadedObservable.notifyObservers(this);
+            this.sceneEventTrigger.onDataLoadedObservable.notifyObservers(this);
         }
     }
 
@@ -1768,7 +1446,7 @@ export class Scene extends AbstractScene {
      * @param {Function} func - the function to be executed
      */
     public executeWhenReady(func: () => void): void {
-        this.onReadyObservable.add(func);
+        this.sceneEventTrigger.onReadyObservable.add(func);
 
         if (this._executeWhenReadyTimeoutId !== -1) {
             return;
@@ -1796,15 +1474,15 @@ export class Scene extends AbstractScene {
         this._registerTransientComponents();
 
         if (this.isReady()) {
-            this.onReadyObservable.notifyObservers(this);
+            this.sceneEventTrigger.onReadyObservable.notifyObservers(this);
 
-            this.onReadyObservable.clear();
+            this.sceneEventTrigger.onReadyObservable.clear();
             this._executeWhenReadyTimeoutId = -1;
             return;
         }
 
         if (this._isDisposed) {
-            this.onReadyObservable.clear();
+            this.sceneEventTrigger.onReadyObservable.clear();
             this._executeWhenReadyTimeoutId = -1;
             return;
         }
@@ -1859,7 +1537,7 @@ export class Scene extends AbstractScene {
             newMesh._addToSceneRootNodes();
         }
 
-        this.onNewMeshAddedObservable.notifyObservers(newMesh);
+        this.sceneEventTrigger.onNewMeshAddedObservable.notifyObservers(newMesh);
 
         if (recursive) {
             newMesh.getChildMeshes().forEach((m) => {
@@ -1886,7 +1564,7 @@ export class Scene extends AbstractScene {
             }
         }
 
-        this.onMeshRemovedObservable.notifyObservers(toRemove);
+        this.sceneEventTrigger.onMeshRemovedObservable.notifyObservers(toRemove);
         if (recursive) {
             toRemove.getChildMeshes().forEach((m) => {
                 this.removeMesh(m);
@@ -1910,7 +1588,7 @@ export class Scene extends AbstractScene {
             newTransformNode._addToSceneRootNodes();
         }
 
-        this.onNewTransformNodeAddedObservable.notifyObservers(newTransformNode);
+        this.sceneEventTrigger.onNewTransformNodeAddedObservable.notifyObservers(newTransformNode);
     }
 
     /**
@@ -1934,7 +1612,7 @@ export class Scene extends AbstractScene {
             }
         }
 
-        this.onTransformNodeRemovedObservable.notifyObservers(toRemove);
+        this.sceneEventTrigger.onTransformNodeRemovedObservable.notifyObservers(toRemove);
 
         return index;
     }
@@ -1991,7 +1669,7 @@ export class Scene extends AbstractScene {
                 toRemove._removeFromSceneRootNodes();
             }
         }
-        this.onLightRemovedObservable.notifyObservers(toRemove);
+        this.sceneEventTrigger.onLightRemovedObservable.notifyObservers(toRemove);
         return index;
     }
 
@@ -2025,7 +1703,7 @@ export class Scene extends AbstractScene {
                 this.activeCamera = null;
             }
         }
-        this.onCameraRemovedObservable.notifyObservers(toRemove);
+        this.sceneEventTrigger.onCameraRemovedObservable.notifyObservers(toRemove);
         return index;
     }
 
@@ -2047,7 +1725,7 @@ export class Scene extends AbstractScene {
             this.materials.pop();
         }
 
-        this.onMaterialRemovedObservable.notifyObservers(toRemove);
+        this.sceneEventTrigger.onMaterialRemovedObservable.notifyObservers(toRemove);
 
         return index;
     }
@@ -2075,7 +1753,7 @@ export class Scene extends AbstractScene {
         if (index !== -1) {
             this.textures.splice(index, 1);
         }
-        this.onTextureRemovedObservable.notifyObservers(toRemove);
+        this.sceneEventTrigger.onTextureRemovedObservable.notifyObservers(toRemove);
 
         return index;
     }
@@ -2103,7 +1781,7 @@ export class Scene extends AbstractScene {
             }
         }
 
-        this.onNewLightAddedObservable.notifyObservers(newLight);
+        this.sceneEventTrigger.onNewLightAddedObservable.notifyObservers(newLight);
     }
 
     /**
@@ -2125,7 +1803,7 @@ export class Scene extends AbstractScene {
         }
 
         this.cameras.push(newCamera);
-        this.onNewCameraAddedObservable.notifyObservers(newCamera);
+        this.sceneEventTrigger.onNewCameraAddedObservable.notifyObservers(newCamera);
 
         if (!newCamera.parent) {
             newCamera._addToSceneRootNodes();
@@ -2143,7 +1821,7 @@ export class Scene extends AbstractScene {
 
         newMaterial._indexInSceneMaterialArray = this.materials.length;
         this.materials.push(newMaterial);
-        this.onNewMaterialAddedObservable.notifyObservers(newMaterial);
+        this.sceneEventTrigger.onNewMaterialAddedObservable.notifyObservers(newMaterial);
     }
 
     /**
@@ -2190,7 +1868,7 @@ export class Scene extends AbstractScene {
             return;
         }
         this.textures.push(newTexture);
-        this.onNewTextureAddedObservable.notifyObservers(newTexture);
+        this.sceneEventTrigger.onNewTextureAddedObservable.notifyObservers(newTexture);
     }
 
     /**
@@ -2523,7 +2201,7 @@ export class Scene extends AbstractScene {
 
         this.addGeometry(geometry);
 
-        this.onNewGeometryAddedObservable.notifyObservers(geometry);
+        this.sceneEventTrigger.onNewGeometryAddedObservable.notifyObservers(geometry);
 
         return true;
     }
@@ -2561,7 +2239,7 @@ export class Scene extends AbstractScene {
 
         this.geometries.pop();
 
-        this.onGeometryRemovedObservable.notifyObservers(geometry);
+        this.sceneEventTrigger.onGeometryRemovedObservable.notifyObservers(geometry);
         return true;
     }
 
@@ -3073,7 +2751,7 @@ export class Scene extends AbstractScene {
             return;
         }
 
-        this.onBeforeActiveMeshesEvaluationObservable.notifyObservers(this);
+        this.sceneEventTrigger.onBeforeActiveMeshesEvaluationObservable.notifyObservers(this);
 
         this.activeCamera._activeMeshes.reset();
         this._activeMeshes.reset();
@@ -3154,7 +2832,7 @@ export class Scene extends AbstractScene {
             }
         }
 
-        this.onAfterActiveMeshesEvaluationObservable.notifyObservers(this);
+        this.sceneEventTrigger.onAfterActiveMeshesEvaluationObservable.notifyObservers(this);
 
         // Particle systems
         // if (this.particlesEnabled) {
@@ -3260,7 +2938,7 @@ export class Scene extends AbstractScene {
             this.updateTransformMatrix();
         }
 
-        this.onBeforeCameraRenderObservable.notifyObservers(this.activeCamera);
+        this.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.activeCamera);
 
         // Meshes
         this._evaluateActiveMeshes();
@@ -3273,7 +2951,7 @@ export class Scene extends AbstractScene {
         // }
 
         // Render targets
-        this.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
+        this.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
 
         if (camera.customRenderTargets && camera.customRenderTargets.length > 0) {
             this._renderTargets.concatWithNoDuplicate(camera.customRenderTargets);
@@ -3325,7 +3003,7 @@ export class Scene extends AbstractScene {
             this._bindFrameBuffer();
         }
 
-        this.onAfterRenderTargetsRenderObservable.notifyObservers(this);
+        this.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this);
 
         // Prepare Frame
         // if (this.postProcessManager && !camera._multiviewTexture && !this.prePass) {
@@ -3338,9 +3016,9 @@ export class Scene extends AbstractScene {
         }
 
         // Render
-        this.onBeforeDrawPhaseObservable.notifyObservers(this);
+        this.sceneEventTrigger.onBeforeDrawPhaseObservable.notifyObservers(this);
         this._renderingManager.render(null, null, true, true);
-        this.onAfterDrawPhaseObservable.notifyObservers(this);
+        this.sceneEventTrigger.onAfterDrawPhaseObservable.notifyObservers(this);
 
         // After Camera Draw
         for (let step of this._afterCameraDrawStage) {
@@ -3357,13 +3035,13 @@ export class Scene extends AbstractScene {
         // Reset some special arrays
         this._renderTargets.reset();
 
-        this.onAfterCameraRenderObservable.notifyObservers(this.activeCamera);
+        this.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(this.activeCamera);
     }
 
     private _processSubCameras(camera: Camera): void {
         if (camera.cameraRigMode === Camera.RIG_MODE_NONE || (camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1 && this.getEngine().getCaps().multiview)) {
             this._renderForCamera(camera);
-            this.onAfterRenderCameraObservable.notifyObservers(camera);
+            this.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
             return;
         }
 
@@ -3377,7 +3055,7 @@ export class Scene extends AbstractScene {
         // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
         this._activeCamera = camera;
         this.sceneMatrix.setTransformMatrix(this._activeCamera.getViewMatrix(), this._activeCamera.getProjectionMatrix());
-        this.onAfterRenderCameraObservable.notifyObservers(camera);
+        this.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
     }
 
     private _checkIntersections(): void {
@@ -3459,19 +3137,19 @@ export class Scene extends AbstractScene {
             internalSteps = Math.min(internalSteps, maxSubSteps);
 
             while (deltaTime > 0 && stepsTaken < internalSteps) {
-                this.onBeforeStepObservable.notifyObservers(this);
+                this.sceneEventTrigger.onBeforeStepObservable.notifyObservers(this);
 
                 // Animations
                 this._animationRatio = defaultFrameTime * defaultFPS;
                 this._animate();
-                this.onAfterAnimationsObservable.notifyObservers(this);
+                this.sceneEventTrigger.onAfterAnimationsObservable.notifyObservers(this);
 
                 // Physics
                 if (this.physicsEnabled) {
                     this._advancePhysicsEngineStep(defaultFrameTime);
                 }
 
-                this.onAfterStepObservable.notifyObservers(this);
+                this.sceneEventTrigger.onAfterStepObservable.notifyObservers(this);
                 this._currentStepId++;
 
                 stepsTaken++;
@@ -3487,7 +3165,7 @@ export class Scene extends AbstractScene {
             var deltaTime = this.useConstantAnimationDeltaTime ? 16 : Math.max(Scene.MinDeltaTime, Math.min(this._engine.getDeltaTime(), Scene.MaxDeltaTime));
             this._animationRatio = deltaTime * (60.0 / 1000.0);
             this._animate();
-            this.onAfterAnimationsObservable.notifyObservers(this);
+            this.sceneEventTrigger.onAfterAnimationsObservable.notifyObservers(this);
 
             // Physics
             if (this.physicsEnabled) {
@@ -3506,7 +3184,7 @@ export class Scene extends AbstractScene {
             return;
         }
 
-        if (this.onReadyObservable.hasObservers() && this._executeWhenReadyTimeoutId === -1) {
+        if (this.sceneEventTrigger.onReadyObservable.hasObservers() && this._executeWhenReadyTimeoutId === -1) {
             this._checkIsReady();
         }
 
@@ -3522,7 +3200,7 @@ export class Scene extends AbstractScene {
         this._meshesForIntersections.reset();
         this.resetCachedMaterial();
 
-        this.onBeforeAnimationsObservable.notifyObservers(this);
+        this.sceneEventTrigger.onBeforeAnimationsObservable.notifyObservers(this);
 
         // Actions
         if (this.actionManager) {
@@ -3564,10 +3242,10 @@ export class Scene extends AbstractScene {
         }
 
         // Before render
-        this.onBeforeRenderObservable.notifyObservers(this);
+        this.sceneEventTrigger.onBeforeRenderObservable.notifyObservers(this);
 
         // Customs render targets
-        this.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
+        this.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
         var engine = this.getEngine();
         var currentActiveCamera = this.activeCamera;
         if (this.renderTargetsEnabled) {
@@ -3603,7 +3281,7 @@ export class Scene extends AbstractScene {
         if (this._activeCamera && this._activeCamera.cameraRigMode !== Camera.RIG_MODE_CUSTOM && !this.prePass) {
             this._bindFrameBuffer();
         }
-        this.onAfterRenderTargetsRenderObservable.notifyObservers(this);
+        this.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this);
 
         for (let step of this._beforeClearStage) {
             step.action();
@@ -3648,11 +3326,11 @@ export class Scene extends AbstractScene {
         }
 
         // After render
-        if (this.afterRender) {
-            this.afterRender();
+        if (this.sceneEventTrigger.afterRender) {
+            this.sceneEventTrigger.afterRender();
         }
 
-        this.onAfterRenderObservable.notifyObservers(this);
+        this.sceneEventTrigger.onAfterRenderObservable.notifyObservers(this);
 
         // Cleaning
         if (this._toBeDisposed.length) {
@@ -3699,8 +3377,8 @@ export class Scene extends AbstractScene {
      * Releases all held ressources
      */
     public dispose(): void {
-        this.beforeRender = null;
-        this.afterRender = null;
+        this.sceneEventTrigger.beforeRender = null;
+        this.sceneEventTrigger.afterRender = null;
 
         if (EngineStore._LastCreatedScene === this) {
             EngineStore._LastCreatedScene = null;
@@ -3761,54 +3439,7 @@ export class Scene extends AbstractScene {
 
         this.sceneFile.dispose()
 
-        // Events
-        this.onDisposeObservable.notifyObservers(this);
-
-        this.onDisposeObservable.clear();
-        this.onBeforeRenderObservable.clear();
-        this.onAfterRenderObservable.clear();
-        this.onBeforeRenderTargetsRenderObservable.clear();
-        this.onAfterRenderTargetsRenderObservable.clear();
-        this.onAfterStepObservable.clear();
-        this.onBeforeStepObservable.clear();
-        this.onBeforeActiveMeshesEvaluationObservable.clear();
-        this.onAfterActiveMeshesEvaluationObservable.clear();
-        this.onBeforeParticlesRenderingObservable.clear();
-        this.onAfterParticlesRenderingObservable.clear();
-        this.onBeforeDrawPhaseObservable.clear();
-        this.onAfterDrawPhaseObservable.clear();
-        this.onBeforeAnimationsObservable.clear();
-        this.onAfterAnimationsObservable.clear();
-        this.onDataLoadedObservable.clear();
-        this.onBeforeRenderingGroupObservable.clear();
-        this.onAfterRenderingGroupObservable.clear();
-        this.onMeshImportedObservable.clear();
-        this.onBeforeCameraRenderObservable.clear();
-        this.onAfterCameraRenderObservable.clear();
-        this.onReadyObservable.clear();
-        this.onNewCameraAddedObservable.clear();
-        this.onCameraRemovedObservable.clear();
-        this.onNewLightAddedObservable.clear();
-        this.onLightRemovedObservable.clear();
-        this.onNewGeometryAddedObservable.clear();
-        this.onGeometryRemovedObservable.clear();
-        this.onNewTransformNodeAddedObservable.clear();
-        this.onTransformNodeRemovedObservable.clear();
-        this.onNewMeshAddedObservable.clear();
-        this.onMeshRemovedObservable.clear();
-        // this.onNewSkeletonAddedObservable.clear();
-        // this.onSkeletonRemovedObservable.clear();
-        // this.onNewMaterialAddedObservable.clear();
-        // this.onNewMultiMaterialAddedObservable.clear();
-        this.onMaterialRemovedObservable.clear();
-        // this.onMultiMaterialRemovedObservable.clear();
-        this.onNewTextureAddedObservable.clear();
-        this.onTextureRemovedObservable.clear();
-        this.onPrePointerObservable.clear();
-        this.onPointerObservable.clear();
-        this.onPreKeyboardObservable.clear();
-        this.onKeyboardObservable.clear();
-        this.onActiveCameraChanged.clear();
+        this.sceneEventTrigger.dispose();
 
         this.detachControl();
 
@@ -3899,41 +3530,7 @@ export class Scene extends AbstractScene {
         return this._isDisposed;
     }
 
-    /**
-     * Call this function to reduce memory footprint of the scene.
-     * Vertex buffers will not store CPU data anymore (this will prevent picking, collisions or physics to work correctly)
-     */
-    public clearCachedVertexData(): void {
-        for (var meshIndex = 0; meshIndex < this.meshes.length; meshIndex++) {
-            var mesh = this.meshes[meshIndex];
-            var geometry = (<Mesh>mesh).geometry;
 
-            if (geometry) {
-                geometry._indices = [];
-
-                for (var vbName in geometry._vertexBuffers) {
-                    if (!geometry._vertexBuffers.hasOwnProperty(vbName)) {
-                        continue;
-                    }
-                    geometry._vertexBuffers[vbName]._buffer._data = null;
-                }
-            }
-        }
-    }
-
-    /**
-     * This function will remove the local cached buffer data from texture.
-     * It will save memory but will prevent the texture from being rebuilt
-     */
-    public cleanCachedTextureBuffer(): void {
-        for (var baseTexture of this.textures) {
-            let buffer = (<Texture>baseTexture)._buffer;
-
-            if (buffer) {
-                (<Texture>baseTexture)._buffer = null;
-            }
-        }
-    }
 
     /**
      * Get the world extend vectors with an optional filter

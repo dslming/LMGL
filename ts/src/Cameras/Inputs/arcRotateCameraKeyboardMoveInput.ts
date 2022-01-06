@@ -103,7 +103,7 @@ export class ArcRotateCameraKeyboardMoveInput implements ICameraInput<ArcRotateC
             this._keys = [];
         });
 
-        this._onKeyboardObserver = this._scene.onKeyboardObservable.add((info) => {
+        this._onKeyboardObserver = this._scene.sceneEventTrigger.onKeyboardObservable.add((info) => {
             let evt = info.event;
             if (!evt.metaKey) {
                 if (info.type === KeyboardEventTypes.KEYDOWN) {
@@ -154,7 +154,7 @@ export class ArcRotateCameraKeyboardMoveInput implements ICameraInput<ArcRotateC
     public detachControl(ignored?: any): void {
         if (this._scene) {
             if (this._onKeyboardObserver) {
-                this._scene.onKeyboardObservable.remove(this._onKeyboardObserver);
+                this._scene.sceneEventTrigger.onKeyboardObservable.remove(this._onKeyboardObserver);
             }
             if (this._onCanvasBlurObserver) {
                 this._engine.onCanvasBlurObservable.remove(this._onCanvasBlurObserver);

@@ -220,10 +220,10 @@ export class InputManager {
                 scene.onPointerMove(evt, pickResult, type);
             }
 
-            if (scene.onPointerObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
                 let pi = new PointerInfo(type, evt, pickResult);
                 this._setRayOnPointerInfo(pi);
-                scene.onPointerObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
             }
         }
     }
@@ -244,7 +244,7 @@ export class InputManager {
         if (pickResult) {
             pi.ray = pickResult.ray;
         }
-        scene.onPrePointerObservable.notifyObservers(pi, type);
+        scene.sceneEventTrigger.onPrePointerObservable.notifyObservers(pi, type);
         if (pi.skipOnPointerObservable) {
             return true;
         } else {
@@ -336,10 +336,10 @@ export class InputManager {
                 scene.onPointerDown(evt, pickResult, type);
             }
 
-            if (scene.onPointerObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
                 let pi = new PointerInfo(type, evt, pickResult);
                 this._setRayOnPointerInfo(pi);
-                scene.onPointerObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
             }
         }
     }
@@ -381,11 +381,11 @@ export class InputManager {
                 if (scene.onPointerPick) {
                     scene.onPointerPick(evt, pickResult);
                 }
-                if (clickInfo.singleClick && !clickInfo.ignore && scene.onPointerObservable.hasObservers()) {
+                if (clickInfo.singleClick && !clickInfo.ignore && scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
                     let type = PointerEventTypes.POINTERPICK;
                     let pi = new PointerInfo(type, evt, pickResult);
                     this._setRayOnPointerInfo(pi);
-                    scene.onPointerObservable.notifyObservers(pi, type);
+                    scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
                 }
             }
             let actionManager = pickResult.pickedMesh._getActionManagerForTrigger();
@@ -417,17 +417,17 @@ export class InputManager {
         }
 
         let type = 0;
-        if (scene.onPointerObservable.hasObservers()) {
+        if (scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
             if (!clickInfo.ignore && !clickInfo.hasSwiped) {
-                if (clickInfo.singleClick && scene.onPointerObservable.hasSpecificMask(PointerEventTypes.POINTERTAP)) {
+                if (clickInfo.singleClick && scene.sceneEventTrigger.onPointerObservable.hasSpecificMask(PointerEventTypes.POINTERTAP)) {
                     type = PointerEventTypes.POINTERTAP;
-                } else if (clickInfo.doubleClick && scene.onPointerObservable.hasSpecificMask(PointerEventTypes.POINTERDOUBLETAP)) {
+                } else if (clickInfo.doubleClick && scene.sceneEventTrigger.onPointerObservable.hasSpecificMask(PointerEventTypes.POINTERDOUBLETAP)) {
                     type = PointerEventTypes.POINTERDOUBLETAP;
                 }
                 if (type) {
                     let pi = new PointerInfo(type, evt, pickResult);
                     this._setRayOnPointerInfo(pi);
-                    scene.onPointerObservable.notifyObservers(pi, type);
+                    scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
                 }
             }
 
@@ -436,7 +436,7 @@ export class InputManager {
 
                 let pi = new PointerInfo(type, evt, pickResult);
                 this._setRayOnPointerInfo(pi);
-                scene.onPointerObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
             }
         }
 
@@ -713,17 +713,19 @@ export class InputManager {
                 elementToAttachTo.focus();
             }
 
-            this._initClickEvent(scene.onPrePointerObservable, scene.onPointerObservable, evt, (clickInfo: _ClickInfo, pickResult: Nullable<PickingInfo>) => {
+            this._initClickEvent(
+                scene.sceneEventTrigger.onPrePointerObservable,
+                scene.sceneEventTrigger.onPointerObservable, evt, (clickInfo: _ClickInfo, pickResult: Nullable<PickingInfo>) => {
                 // PreObservable support
-                if (scene.onPrePointerObservable.hasObservers()) {
+                if (scene.sceneEventTrigger.onPrePointerObservable.hasObservers()) {
                     if (!clickInfo.ignore) {
                         if (!clickInfo.hasSwiped) {
-                            if (clickInfo.singleClick && scene.onPrePointerObservable.hasSpecificMask(PointerEventTypes.POINTERTAP)) {
+                            if (clickInfo.singleClick && scene.sceneEventTrigger.onPrePointerObservable.hasSpecificMask(PointerEventTypes.POINTERTAP)) {
                                 if (this._checkPrePointerObservable(null, evt, PointerEventTypes.POINTERTAP)) {
                                     return;
                                 }
                             }
-                            if (clickInfo.doubleClick && scene.onPrePointerObservable.hasSpecificMask(PointerEventTypes.POINTERDOUBLETAP)) {
+                            if (clickInfo.doubleClick && scene.sceneEventTrigger.onPrePointerObservable.hasSpecificMask(PointerEventTypes.POINTERDOUBLETAP)) {
                                 if (this._checkPrePointerObservable(null, evt, PointerEventTypes.POINTERDOUBLETAP)) {
                                     return;
                                 }
@@ -751,7 +753,7 @@ export class InputManager {
                 }
 
                 // Meshes
-                if (!this._meshPickProceed && ((AbstractActionManager && AbstractActionManager.HasTriggers) || scene.onPointerObservable.hasObservers())) {
+                if (!this._meshPickProceed && ((AbstractActionManager && AbstractActionManager.HasTriggers) || scene.sceneEventTrigger.onPointerObservable.hasObservers())) {
                     this._initActionManager(null, clickInfo);
                 }
                 if (!pickResult) {
@@ -766,17 +768,17 @@ export class InputManager {
 
         this._onKeyDown = (evt: KeyboardEvent) => {
             let type = KeyboardEventTypes.KEYDOWN;
-            if (scene.onPreKeyboardObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onPreKeyboardObservable.hasObservers()) {
                 let pi = new KeyboardInfoPre(type, evt);
-                scene.onPreKeyboardObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPreKeyboardObservable.notifyObservers(pi, type);
                 if (pi.skipOnPointerObservable) {
                     return;
                 }
             }
 
-            if (scene.onKeyboardObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onKeyboardObservable.hasObservers()) {
                 let pi = new KeyboardInfo(type, evt);
-                scene.onKeyboardObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onKeyboardObservable.notifyObservers(pi, type);
             }
 
             if (scene.actionManager) {
@@ -786,17 +788,17 @@ export class InputManager {
 
         this._onKeyUp = (evt: KeyboardEvent) => {
             let type = KeyboardEventTypes.KEYUP;
-            if (scene.onPreKeyboardObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onPreKeyboardObservable.hasObservers()) {
                 let pi = new KeyboardInfoPre(type, evt);
-                scene.onPreKeyboardObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPreKeyboardObservable.notifyObservers(pi, type);
                 if (pi.skipOnPointerObservable) {
                     return;
                 }
             }
 
-            if (scene.onKeyboardObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onKeyboardObservable.hasObservers()) {
                 let pi = new KeyboardInfo(type, evt);
-                scene.onKeyboardObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onKeyboardObservable.notifyObservers(pi, type);
             }
 
             if (scene.actionManager) {

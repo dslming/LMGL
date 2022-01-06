@@ -25,7 +25,7 @@ class App {
     camera.attachControl(canvas, true);
 
     var light = new lmgl2.HemisphericLight("hemiLight", new lmgl2.Vector3(-1, 1, 0), scene);
-    light.diffuse = new lmgl2.Color3(0.85, 0, 0);
+    light.diffuse = new lmgl2.Color3(0.1, 0.9, 0);
     light.specular = new lmgl2.Color3(0, 0.87, 0);
 
     var sphere = lmgl2.MeshBuilder.CreateSphere("sphere", {}, scene);

@@ -1125,7 +1125,7 @@ export class SceneLoader {
 
             container.dispose();
 
-            scene.onAnimationFileImportedObservable.notifyObservers(scene);
+            scene.sceneEventTrigger.onAnimationFileImportedObservable.notifyObservers(scene);
 
             if (onSuccess) {
                 onSuccess(scene);

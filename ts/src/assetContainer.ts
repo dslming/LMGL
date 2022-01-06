@@ -45,7 +45,7 @@ export class AssetContainer extends AbstractScene {
         // this["proceduralTextures"] = [];
         // this["reflectionProbes"] = [];
 
-        scene.onDisposeObservable.add(() => {
+        scene.sceneEventTrigger.onDisposeObservable.add(() => {
             if (!this._wasAddedToScene) {
                 this.dispose();
             }

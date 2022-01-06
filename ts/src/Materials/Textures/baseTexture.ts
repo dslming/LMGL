@@ -668,7 +668,7 @@ export class BaseTexture extends ThinTexture {
             if (index >= 0) {
                 this._scene.textures.splice(index, 1);
             }
-            this._scene.onTextureRemovedObservable.notifyObservers(this);
+            this._scene.sceneEventTrigger.onTextureRemovedObservable.notifyObservers(this);
             this._scene = null;
         }
 

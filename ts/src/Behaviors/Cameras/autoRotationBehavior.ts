@@ -110,7 +110,7 @@ export class AutoRotationBehavior implements Behavior<ArcRotateCamera> {
         this._attachedCamera = camera;
         let scene = this._attachedCamera.getScene();
 
-        this._onPrePointerObservableObserver = scene.onPrePointerObservable.add((pointerInfoPre) => {
+        this._onPrePointerObservableObserver = scene.sceneEventTrigger.onPrePointerObservable.add((pointerInfoPre) => {
             if (pointerInfoPre.type === PointerEventTypes.POINTERDOWN) {
                 this._isPointerDown = true;
                 return;
@@ -153,7 +153,7 @@ export class AutoRotationBehavior implements Behavior<ArcRotateCamera> {
         let scene = this._attachedCamera.getScene();
 
         if (this._onPrePointerObservableObserver) {
-            scene.onPrePointerObservable.remove(this._onPrePointerObservableObserver);
+            scene.sceneEventTrigger.onPrePointerObservable.remove(this._onPrePointerObservableObserver);
         }
 
         this._attachedCamera.onAfterCheckInputsObservable.remove(this._onAfterCheckInputsObserver);

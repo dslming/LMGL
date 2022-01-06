@@ -138,7 +138,7 @@ export class RenderingManager {
             info.renderingGroupId = index;
 
             // Before Observable
-            this._scene.onBeforeRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
+            this._scene.sceneEventTrigger.onBeforeRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
 
             // Clear depth/stencil if needed
             if (RenderingManager.AUTOCLEAR) {
@@ -161,7 +161,7 @@ export class RenderingManager {
             }
 
             // After Observable
-            this._scene.onAfterRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
+            this._scene.sceneEventTrigger.onAfterRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
         }
     }
 

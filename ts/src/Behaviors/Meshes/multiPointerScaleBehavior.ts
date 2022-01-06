@@ -87,7 +87,7 @@ export class MultiPointerScaleBehavior implements Behavior<Mesh> {
         ownerNode.addBehavior(this._dragBehaviorB);
 
         // On every frame move towards target scaling to avoid jitter caused by vr controllers
-        this._sceneRenderObserver = ownerNode.getScene().onBeforeRenderObservable.add(() => {
+        this._sceneRenderObserver = ownerNode.getScene().sceneEventTrigger.onBeforeRenderObservable.add(() => {
             if (this._dragBehaviorA.dragging && this._dragBehaviorB.dragging) {
                 var change = this._targetScale.subtract(ownerNode.scaling).scaleInPlace(0.1);
                 if (change.length() > 0.01) {
@@ -100,7 +100,7 @@ export class MultiPointerScaleBehavior implements Behavior<Mesh> {
      *  Detaches the behavior from the mesh
      */
     public detach(): void {
-        this._ownerNode.getScene().onBeforeRenderObservable.remove(this._sceneRenderObserver);
+        this._ownerNode.getScene().sceneEventTrigger.onBeforeRenderObservable.remove(this._sceneRenderObserver);
         [this._dragBehaviorA, this._dragBehaviorB].forEach((behavior) => {
             behavior.onDragStartObservable.clear();
             behavior.onDragObservable.clear();

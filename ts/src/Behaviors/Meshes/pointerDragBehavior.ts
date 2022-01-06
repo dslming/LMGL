@@ -170,7 +170,7 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
             } else {
                 PointerDragBehavior._planeScene = new Scene(this._scene.getEngine(), { virtual: true });
                 PointerDragBehavior._planeScene.detachControl();
-                this._scene.onDisposeObservable.addOnce(() => {
+                this._scene.sceneEventTrigger.onDisposeObservable.addOnce(() => {
                     PointerDragBehavior._planeScene.dispose();
                     (<any>PointerDragBehavior._planeScene) = null;
                 });
@@ -185,7 +185,7 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
             return this.attachedNode == m || m.isDescendantOf(this.attachedNode);
         };
 
-        this._pointerObserver = this._scene.onPointerObservable.add((pointerInfo, eventState) => {
+        this._pointerObserver = this._scene.sceneEventTrigger.onPointerObservable.add((pointerInfo, eventState) => {
             if (!this.enabled) {
                 return;
             }
@@ -230,7 +230,7 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
             }
         });
 
-        this._beforeRenderObserver = this._scene.onBeforeRenderObservable.add(() => {
+        this._beforeRenderObserver = this._scene.sceneEventTrigger.onBeforeRenderObservable.add(() => {
             if (this._moving && this.moveAttached) {
                 PivotTools._RemoveAndStorePivotPoint(this.attachedNode);
                 // Slowly move mesh to avoid jitter
@@ -455,10 +455,10 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
      */
     public detach(): void {
         if (this._pointerObserver) {
-            this._scene.onPointerObservable.remove(this._pointerObserver);
+            this._scene.sceneEventTrigger.onPointerObservable.remove(this._pointerObserver);
         }
         if (this._beforeRenderObserver) {
-            this._scene.onBeforeRenderObservable.remove(this._beforeRenderObserver);
+            this._scene.sceneEventTrigger.onBeforeRenderObservable.remove(this._beforeRenderObserver);
         }
         this.releaseDrag();
     }

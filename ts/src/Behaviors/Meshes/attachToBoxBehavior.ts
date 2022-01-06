@@ -90,7 +90,7 @@ export class AttachToBoxBehavior implements Behavior<Mesh> {
         this._scene = this._target.getScene();
 
         // Every frame, update the app bars position
-        this._onRenderObserver = this._scene.onBeforeRenderObservable.add(() => {
+        this._onRenderObserver = this._scene.sceneEventTrigger.onBeforeRenderObservable.add(() => {
             if (!this._scene.activeCamera) {
                 return;
             }
@@ -167,6 +167,6 @@ export class AttachToBoxBehavior implements Behavior<Mesh> {
      *  Detaches the behavior from the mesh
      */
     detach() {
-        this._scene.onBeforeRenderObservable.remove(this._onRenderObserver);
+        this._scene.sceneEventTrigger.onBeforeRenderObservable.remove(this._onRenderObserver);
     }
 }

@@ -115,7 +115,7 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
         var pickPredicate = (m: AbstractMesh) => {
             return this._ownerNode == m || m.isDescendantOf(this._ownerNode);
         };
-        this._pointerObserver = this._scene.onPointerObservable.add((pointerInfo, eventState) => {
+        this._pointerObserver = this._scene.sceneEventTrigger.onPointerObservable.add((pointerInfo, eventState) => {
             if (pointerInfo.type == PointerEventTypes.POINTERDOWN) {
                 if (!this.dragging && pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh && pointerInfo.pickInfo.ray && pickPredicate(pointerInfo.pickInfo.pickedMesh)) {
                     if (this._pointerCamera && this._pointerCamera.cameraRigMode == Camera.RIG_MODE_NONE) {
@@ -216,7 +216,7 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
 
         var tmpQuaternion = new Quaternion();
         // On every frame move towards target scaling to avoid jitter caused by vr controllers
-        this._sceneRenderObserver = ownerNode.getScene().onBeforeRenderObservable.add(() => {
+        this._sceneRenderObserver = ownerNode.getScene().sceneEventTrigger.onBeforeRenderObservable.add(() => {
             if (this.dragging && this._moving && pickedMesh) {
                 PivotTools._RemoveAndStorePivotPoint(pickedMesh);
                 // Slowly move mesh to avoid jitter
@@ -257,10 +257,10 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
             //     this._pointerCamera.attachControl(true);
             //     this._attachedToElement = false;
             // }
-            this._scene.onPointerObservable.remove(this._pointerObserver);
+            this._scene.sceneEventTrigger.onPointerObservable.remove(this._pointerObserver);
         }
         if (this._ownerNode) {
-            this._ownerNode.getScene().onBeforeRenderObservable.remove(this._sceneRenderObserver);
+            this._ownerNode.getScene().sceneEventTrigger.onBeforeRenderObservable.remove(this._sceneRenderObserver);
         }
         if (this._virtualOriginMesh) {
             this._virtualOriginMesh.dispose();

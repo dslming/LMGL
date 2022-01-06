@@ -1385,7 +1385,7 @@ export class Geometry implements IGetSetVerticesData {
         // Update
         mesh.computeWorldMatrix(true);
 
-        scene.onMeshImportedObservable.notifyObservers(<AbstractMesh>mesh);
+        scene.sceneEventTrigger.onMeshImportedObservable.notifyObservers(<AbstractMesh>mesh);
     }
 
     private static _CleanMatricesWeights(parsedGeometry: any, mesh: Mesh): void {
