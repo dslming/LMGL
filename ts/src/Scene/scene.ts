@@ -2191,9 +2191,9 @@ export class Scene extends AbstractScene {
         }
 
         // Animations
-        if (!ignoreAnimations) {
-            this.animate();
-        }
+        // if (!ignoreAnimations) {
+        //     this.animate();
+        // }
 
         // Before camera update steps
         for (let step of this._beforeCameraUpdateStage) {
@@ -2334,26 +2334,6 @@ export class Scene extends AbstractScene {
         this._activeBones.addCount(0, true);
         this._activeIndices.addCount(0, true);
         this._activeParticles.addCount(0, true);
-    }
-
-    /**
-     * Freeze all materials
-     * A frozen material will not be updatable but should be faster to render
-     */
-    public freezeMaterials(): void {
-        for (var i = 0; i < this.materials.length; i++) {
-            this.materials[i].freeze();
-        }
-    }
-
-    /**
-     * Unfreeze all materials
-     * A frozen material will not be updatable but should be faster to render
-     */
-    public unfreezeMaterials(): void {
-        for (var i = 0; i < this.materials.length; i++) {
-            this.materials[i].unfreeze();
-        }
     }
 
     /**

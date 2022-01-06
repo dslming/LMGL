@@ -885,4 +885,23 @@ export class SceneNode {
     }
 
 
+     /**
+     * Freeze all materials
+     * A frozen material will not be updatable but should be faster to render
+     */
+    public freezeMaterials(): void {
+        for (var i = 0; i < this.scene.materials.length; i++) {
+            this.scene.materials[i].freeze();
+        }
+    }
+
+    /**
+     * Unfreeze all scene.materials
+     * A frozen material will not be updatable but should be faster to render
+     */
+    public unfreezeMaterials(): void {
+        for (var i = 0; i < this.scene.materials.length; i++) {
+            this.scene.materials[i].unfreeze();
+        }
+    }
 }
