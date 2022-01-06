@@ -654,7 +654,7 @@ export class ShaderMaterial extends Material {
 
         const effect = effectOverride ?? this._effect;
 
-        if (effect && this.getScene().getCachedMaterial() !== this) {
+        if (effect && this.getScene().sceneCatch.getCachedMaterial() !== this) {
             if (this._options.uniforms.indexOf("view") !== -1) {
                 effect.setMatrix("view", this.getScene().getViewMatrix());
             }

@@ -80,6 +80,6 @@ export class PushMaterial extends Material {
     }
 
     protected _mustRebind(scene: Scene, effect: Effect, visibility: number = 1) {
-        return scene.isCachedMaterialInvalid(this, effect, visibility);
+        return scene.sceneCatch.isCachedMaterialInvalid(this, effect, visibility);
     }
 }

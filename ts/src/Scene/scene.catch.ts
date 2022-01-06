@@ -59,4 +59,39 @@ export class SceneCatch implements iSceneCatch {
             }
         }
     }
+
+    /**
+     * Gets the cached material (ie. the latest rendered one)
+     * @returns the cached material
+     */
+    public getCachedMaterial(): Nullable<Material> {
+        return this._cachedMaterial;
+    }
+
+    /**
+     * Gets the cached effect (ie. the latest rendered one)
+     * @returns the cached effect
+     */
+    public getCachedEffect(): Nullable<Effect> {
+        return this._cachedEffect;
+    }
+
+    /**
+     * Gets the cached visibility state (ie. the latest rendered one)
+     * @returns the cached visibility state
+     */
+    public getCachedVisibility(): Nullable<number> {
+        return this._cachedVisibility;
+    }
+
+    /**
+     * Gets a boolean indicating if the current material / effect / visibility must be bind again
+     * @param material defines the current material
+     * @param effect defines the current effect
+     * @param visibility defines the current visibility state
+     * @returns true if one parameter is not cached
+     */
+    public isCachedMaterialInvalid(material: Material, effect: Effect, visibility: number = 1) {
+        return this._cachedEffect !== effect || this._cachedMaterial !== material || this._cachedVisibility !== visibility;
+    }
 }
