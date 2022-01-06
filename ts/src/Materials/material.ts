@@ -680,7 +680,7 @@ export class Material {
         this._useUBO = this.getScene().getEngine().supportsUniformBuffers;
 
         if (!doNotAdd) {
-            this._scene.addMaterial(this);
+            this._scene.sceneNode.addMaterial(this);
         }
 
         if (this._scene.useMaterialMeshMap) {
@@ -1364,7 +1364,7 @@ export class Material {
         scene.freeProcessedMaterials();
 
         // Remove from scene
-        scene.removeMaterial(this);
+        scene.sceneNode.removeMaterial(this);
 
         if (notBoundToMesh !== true) {
             // Remove from meshes

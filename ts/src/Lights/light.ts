@@ -344,7 +344,7 @@ export abstract class Light extends Node {
      */
     constructor(name: string, scene: Scene) {
         super(name, scene);
-        this.getScene().addLight(this);
+        this.getScene().sceneNode.addLight(this);
         this._uniformBuffer = new UniformBuffer(this.getScene().getEngine());
         this._buildUniformLayout();
 
@@ -563,7 +563,7 @@ export abstract class Light extends Node {
         this._uniformBuffer.dispose();
 
         // Remove from scene
-        this.getScene().removeLight(this);
+        this.getScene().sceneNode.removeLight(this);
         super.dispose(doNotRecurse, disposeMaterialAndTextures);
     }
 
@@ -861,7 +861,7 @@ export abstract class Light extends Node {
         if (this._renderPriority != 0) {
             scene.requireLightSorting = true;
         }
-        this.getScene().sortLightsByPriority();
+        this.getScene().sceneNode.sortLightsByPriority();
     }
 
     /**

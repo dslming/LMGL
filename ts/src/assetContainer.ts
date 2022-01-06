@@ -193,10 +193,10 @@ export class AssetContainer extends AbstractScene {
         this._wasAddedToScene = true;
 
         this.cameras.forEach((o) => {
-            this.scene.addCamera(o);
+            this.scene.sceneNode.addCamera(o);
         });
         this.lights.forEach((o) => {
-            this.scene.addLight(o);
+            this.scene.sceneNode.addLight(o);
         });
         this.meshes.forEach((o) => {
             this.scene.sceneNode.addMesh(o);
@@ -214,13 +214,13 @@ export class AssetContainer extends AbstractScene {
         //     this.scene.addMultiMaterial(o);
         // });
         this.materials.forEach((o) => {
-            this.scene.addMaterial(o);
+            this.scene.sceneNode.addMaterial(o);
         });
         // this.morphTargetManagers.forEach((o) => {
         //     this.scene.addMorphTargetManager(o);
         // });
         this.geometries.forEach((o) => {
-            this.scene.addGeometry(o);
+            this.scene.sceneNode.addGeometry(o);
         });
         this.transformNodes.forEach((o) => {
             this.scene.sceneNode.addTransformNode(o);
@@ -251,10 +251,10 @@ export class AssetContainer extends AbstractScene {
         this._wasAddedToScene = false;
 
         this.cameras.forEach((o) => {
-            this.scene.removeCamera(o);
+            this.scene.sceneNode.removeCamera(o);
         });
         this.lights.forEach((o) => {
-            this.scene.removeLight(o);
+            this.scene.sceneNode.removeLight(o);
         });
         this.meshes.forEach((o) => {
             this.scene.sceneNode.removeMesh(o);
@@ -272,7 +272,7 @@ export class AssetContainer extends AbstractScene {
         //     this.scene.removeMultiMaterial(o);
         // });
         this.materials.forEach((o) => {
-            this.scene.removeMaterial(o);
+            this.scene.sceneNode.removeMaterial(o);
         });
         // this.morphTargetManagers.forEach((o) => {
         //     this.scene.removeMorphTargetManager(o);
@@ -287,7 +287,7 @@ export class AssetContainer extends AbstractScene {
         //     this.scene.removeActionManager(o);
         // });
         this.textures.forEach((o) => {
-            this.scene.removeTexture(o);
+            this.scene.sceneNode.removeTexture(o);
         });
         // this.reflectionProbes.forEach((o) => {
         //     this.scene.removeReflectionProbe(o);

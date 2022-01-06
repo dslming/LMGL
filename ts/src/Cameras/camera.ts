@@ -328,7 +328,7 @@ export class Camera extends Node {
     constructor(name: string, position: Vector3, scene: Scene, setActiveOnSceneIfNoneActive = true) {
         super(name, scene);
 
-        this.getScene().addCamera(this);
+        this.getScene().sceneNode.addCamera(this);
 
         if (setActiveOnSceneIfNoneActive && !this.getScene().activeCamera) {
             this.getScene().activeCamera = this;
@@ -850,7 +850,7 @@ export class Camera extends Node {
         // this.getScene().stopAnimation(this);
 
         // Remove from scene
-        this.getScene().removeCamera(this);
+        this.getScene().sceneNode.removeCamera(this);
         while (this._rigCameras.length > 0) {
             let camera = this._rigCameras.pop();
             if (camera) {
