@@ -790,7 +790,7 @@ export abstract class Light extends Node {
      */
     private _computePhotometricScale(): void {
         this._photometricScale = this._getPhotometricScale();
-        this.getScene().resetCachedMaterial();
+        this.getScene().sceneCatch.resetCachedMaterial();
     }
 
     /**

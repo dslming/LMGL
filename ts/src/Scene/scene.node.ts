@@ -883,4 +883,6 @@ export class SceneNode {
         this.scene.getIntersectingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
         this.scene.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
     }
+
+
 }

@@ -1273,7 +1273,7 @@ export class StandardMaterial extends PushMaterial {
                     }
                 } else {
                     this._rebuildInParallel = false;
-                    scene.resetCachedMaterial();
+                    scene.sceneCatch.resetCachedMaterial();
                     subMesh.setEffect(effect, defines);
                     this.buildUniformLayout();
                 }

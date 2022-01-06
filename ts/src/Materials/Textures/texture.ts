@@ -358,7 +358,7 @@ export class Texture extends BaseTexture {
             }
 
             if (!this.isBlocking && scene) {
-                scene.resetCachedMaterial();
+                scene.sceneCatch.resetCachedMaterial();
             }
         };
 

@@ -594,7 +594,7 @@ export class ShaderMaterial extends Material {
         }
 
         if (previousEffect !== this._effect) {
-            scene.resetCachedMaterial();
+            scene.sceneCatch.resetCachedMaterial();
         }
 
         this._renderId = scene.getRenderId();

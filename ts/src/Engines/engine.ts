@@ -1166,7 +1166,7 @@ export class Engine extends ThinEngine {
     protected _rebuildBuffers(): void {
         // Index / Vertex
         for (var scene of this.scenes) {
-            scene.resetCachedMaterial();
+            scene.sceneCatch.resetCachedMaterial();
             scene._rebuildGeometries();
             scene._rebuildTextures();
         }

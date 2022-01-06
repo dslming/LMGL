@@ -1160,38 +1160,6 @@ export class Scene extends AbstractScene {
     }
 
     /**
-     * Gets the total number of active particles rendered per frame
-     * @returns the total number of active particles rendered per frame
-     */
-    public getActiveParticles(): number {
-        return this._activeParticles.current;
-    }
-
-    /**
-     * Gets the performance counter for active particles
-     * @see https://doc.babylonjs.com/how_to/optimizing_your_scene#instrumentation
-     */
-    public get activeParticlesPerfCounter(): PerfCounter {
-        return this._activeParticles;
-    }
-
-    /**
-     * Gets the total number of active bones rendered per frame
-     * @returns the total number of active bones rendered per frame
-     */
-    // public getActiveBones(): number {
-    //     return this._activeBones.current;
-    // }
-
-    /**
-     * Gets the performance counter for active bones
-     * @see https://doc.babylonjs.com/how_to/optimizing_your_scene#instrumentation
-     */
-    public get activeBonesPerfCounter(): PerfCounter {
-        return this._activeBones;
-    }
-
-    /**
      * Gets the array of active meshes
      * @returns an array of AbstractMesh
      */
@@ -1227,8 +1195,6 @@ export class Scene extends AbstractScene {
     public incrementRenderId(): void {
         this._renderId++;
     }
-
-
 
     /**
      * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
@@ -1308,13 +1274,6 @@ export class Scene extends AbstractScene {
         // }
 
         return true;
-    }
-
-    /** Resets all cached information relative to material (including effect and visibility) */
-    public resetCachedMaterial(): void {
-        this._cachedMaterial = null;
-        this._cachedEffect = null;
-        this._cachedVisibility = null;
     }
 
 
@@ -1952,7 +1911,7 @@ export class Scene extends AbstractScene {
         engine.setViewport(this.activeCamera.viewport);
 
         // Camera
-        this.resetCachedMaterial();
+        this.sceneCatch.resetCachedMaterial();
         this._renderId++;
 
         var useMultiview = this.getEngine().getCaps().multiview && camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1;
@@ -2222,7 +2181,7 @@ export class Scene extends AbstractScene {
         this._activeIndices.fetchNewFrame();
         this._activeBones.fetchNewFrame();
         this._meshesForIntersections.reset();
-        this.resetCachedMaterial();
+        this.sceneCatch.resetCachedMaterial();
 
         this.sceneEventTrigger.onBeforeAnimationsObservable.notifyObservers(this);
 
@@ -2443,7 +2402,7 @@ export class Scene extends AbstractScene {
         //     this.stopAllAnimations();
         // }
 
-        this.resetCachedMaterial();
+        this.sceneCatch.resetCachedMaterial();
 
         // Smart arrays
         if (this.activeCamera) {

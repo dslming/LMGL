@@ -1226,7 +1226,7 @@ export class Material {
             this._markAllSubMeshesAsDirty(Material._RunDirtyCallBacks);
         }
 
-        this.getScene().resetCachedMaterial();
+        this.getScene().sceneCatch.resetCachedMaterial();
     }
 
     /**

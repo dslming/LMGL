@@ -94,4 +94,12 @@ export class SceneCatch implements iSceneCatch {
     public isCachedMaterialInvalid(material: Material, effect: Effect, visibility: number = 1) {
         return this._cachedEffect !== effect || this._cachedMaterial !== material || this._cachedVisibility !== visibility;
     }
+
+
+     /** Resets all cached information relative to material (including effect and visibility) */
+    public resetCachedMaterial(): void {
+        this._cachedMaterial = null;
+        this._cachedEffect = null;
+        this._cachedVisibility = null;
+    }
 }

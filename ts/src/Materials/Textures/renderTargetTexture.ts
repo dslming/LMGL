@@ -693,14 +693,14 @@ export class RenderTargetTexture extends Texture {
             for (let layer = 0; layer < this.getRenderLayers(); layer++) {
                 this.renderToTarget(0, useCameraPostProcess, dumpForDebug, layer, camera);
                 scene.incrementRenderId();
-                scene.resetCachedMaterial();
+                scene.sceneCatch.resetCachedMaterial();
             }
         }
         else if (this.isCube) {
             for (var face = 0; face < 6; face++) {
                 this.renderToTarget(face, useCameraPostProcess, dumpForDebug, undefined, camera);
                 scene.incrementRenderId();
-                scene.resetCachedMaterial();
+                scene.sceneCatch.resetCachedMaterial();
             }
         } else {
             this.renderToTarget(0, useCameraPostProcess, dumpForDebug, undefined, camera);
@@ -716,7 +716,7 @@ export class RenderTargetTexture extends Texture {
             engine.setViewport(scene.activeCamera.viewport);
         }
 
-        scene.resetCachedMaterial();
+        scene.sceneCatch.resetCachedMaterial();
     }
 
     private _bestReflectionRenderTargetDimension(renderDimension: number, scale: number): number {
