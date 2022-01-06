@@ -9,11 +9,16 @@ import { Geometry } from "../Meshes/geometry";
 import { TransformNode } from "../Meshes/transformNode";
 import { Nullable } from "../types";
 import { Node } from '../node'
+import { ISmartArrayLike } from "../Misc/smartArray";
+import { SubMesh } from "../Meshes/subMesh";
 export class SceneNode {
   scene: Scene;
    /** @hidden */
   public _blockEntityCollection = false;
-
+    private _defaultMeshCandidates: ISmartArrayLike<AbstractMesh> = {
+    data: [],
+    length: 0
+};
 
 
   constructor(scene:Scene) {
@@ -841,5 +846,41 @@ export class SceneNode {
         }
 
         return null;
+    }
+
+     /**
+     * @hidden
+     */
+    public _getDefaultMeshCandidates(): ISmartArrayLike<AbstractMesh> {
+        this._defaultMeshCandidates.data = this.scene.meshes;
+        this._defaultMeshCandidates.length = this.scene.meshes.length;
+        return this._defaultMeshCandidates;
+    }
+
+    private _defaultSubMeshCandidates: ISmartArrayLike<SubMesh> = {
+        data: [],
+        length: 0
+    };
+
+    /**
+     * @hidden
+     */
+    public _getDefaultSubMeshCandidates(mesh: AbstractMesh): ISmartArrayLike<SubMesh> {
+        this._defaultSubMeshCandidates.data = mesh.subMeshes;
+        this._defaultSubMeshCandidates.length = mesh.subMeshes.length;
+        return this._defaultSubMeshCandidates;
+    }
+
+     /**
+     * Sets the default candidate providers for the scene.
+     * This sets the getActiveMeshCandidates, getActiveSubMeshCandidates, getIntersectingSubMeshCandidates
+     * and getCollidingSubMeshCandidates to their default function
+     */
+    public setDefaultCandidateProviders(): void {
+        this.scene.getActiveMeshCandidates = this._getDefaultMeshCandidates.bind(this);
+
+        this.scene.getActiveSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
+        this.scene.getIntersectingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
+        this.scene.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
     }
 }

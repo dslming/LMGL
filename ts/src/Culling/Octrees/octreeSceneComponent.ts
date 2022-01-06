@@ -181,7 +181,7 @@ export class OctreeSceneComponent {
             var selection = this.scene._selectionOctree.select(this.scene.frustumPlanes);
             return selection;
         }
-        return this.scene._getDefaultMeshCandidates();
+        return this.scene.sceneNode._getDefaultMeshCandidates();
     }
 
     /**
@@ -194,7 +194,7 @@ export class OctreeSceneComponent {
             var intersections = mesh._submeshesOctree.select(this.scene.frustumPlanes);
             return intersections;
         }
-        return this.scene._getDefaultSubMeshCandidates(mesh);
+        return this.scene.sceneNode._getDefaultSubMeshCandidates(mesh);
     }
 
     private _tempRay = new Ray(Vector3.Zero(), new Vector3(1, 1, 1));
@@ -211,7 +211,7 @@ export class OctreeSceneComponent {
 
             return intersections;
         }
-        return this.scene._getDefaultSubMeshCandidates(mesh);
+        return this.scene.sceneNode._getDefaultSubMeshCandidates(mesh);
     }
 
     /**
@@ -227,7 +227,7 @@ export class OctreeSceneComponent {
 
             return intersections;
         }
-        return this.scene._getDefaultSubMeshCandidates(mesh);
+        return this.scene.sceneNode._getDefaultSubMeshCandidates(mesh);
     }
 
     /**

@@ -1096,7 +1096,7 @@ export class Scene extends AbstractScene {
         //     this._imageProcessingConfiguration = new ImageProcessingConfiguration();
         // }
 
-        this.setDefaultCandidateProviders();
+        this.sceneNode.setDefaultCandidateProviders();
 
         if (fullOptions.useGeometryUniqueIdsMap) {
             this.geometriesByUniqueId = {};
@@ -1118,49 +1118,6 @@ export class Scene extends AbstractScene {
     public getClassName(): string {
         return "Scene";
     }
-
-    private _defaultMeshCandidates: ISmartArrayLike<AbstractMesh> = {
-        data: [],
-        length: 0
-    };
-
-    /**
-     * @hidden
-     */
-    public _getDefaultMeshCandidates(): ISmartArrayLike<AbstractMesh> {
-        this._defaultMeshCandidates.data = this.meshes;
-        this._defaultMeshCandidates.length = this.meshes.length;
-        return this._defaultMeshCandidates;
-    }
-
-    private _defaultSubMeshCandidates: ISmartArrayLike<SubMesh> = {
-        data: [],
-        length: 0
-    };
-
-    /**
-     * @hidden
-     */
-    public _getDefaultSubMeshCandidates(mesh: AbstractMesh): ISmartArrayLike<SubMesh> {
-        this._defaultSubMeshCandidates.data = mesh.subMeshes;
-        this._defaultSubMeshCandidates.length = mesh.subMeshes.length;
-        return this._defaultSubMeshCandidates;
-    }
-
-    /**
-     * Sets the default candidate providers for the scene.
-     * This sets the getActiveMeshCandidates, getActiveSubMeshCandidates, getIntersectingSubMeshCandidates
-     * and getCollidingSubMeshCandidates to their default function
-     */
-    public setDefaultCandidateProviders(): void {
-        this.getActiveMeshCandidates = this._getDefaultMeshCandidates.bind(this);
-
-        this.getActiveSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-        this.getIntersectingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-        this.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-    }
-
-
 
     /**
      * Gets the cached material (ie. the latest rendered one)
