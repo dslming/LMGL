@@ -278,7 +278,7 @@ export class AssetContainer extends AbstractScene {
         //     this.scene.removeMorphTargetManager(o);
         // });
         this.geometries.forEach((o) => {
-            this.scene.removeGeometry(o);
+            this.scene.sceneNode.removeGeometry(o);
         });
         this.transformNodes.forEach((o) => {
             this.scene.sceneNode.removeTransformNode(o);

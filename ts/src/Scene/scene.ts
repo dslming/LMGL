@@ -838,7 +838,7 @@ export class Scene extends AbstractScene {
      * Use this boolean to avoid computing frustum clipping on submeshes (This could help when you are CPU bound)
      */
     public dispatchAllSubMeshesOfActiveMeshes: boolean = false;
-    private _activeMeshes = new SmartArray<AbstractMesh>(256);
+    public _activeMeshes = new SmartArray<AbstractMesh>(256);
     private _processedMaterials = new SmartArray<Material>(256);
     private _renderTargets = new SmartArrayNoDuplicate<RenderTargetTexture>(256);
     /** @hidden */
@@ -1600,7 +1600,7 @@ export class Scene extends AbstractScene {
      * @returns the new active camera or null if none found.
      */
     public setActiveCameraByName(name: string): Nullable<Camera> {
-        var camera = this.getCameraByName(name);
+        var camera = this.sceneNode.getCameraByName(name);
 
         if (camera) {
             this.activeCamera = camera;
@@ -1730,20 +1730,7 @@ export class Scene extends AbstractScene {
         return null;
     }
 
-    /**
-     * Gets a camera using its name
-     * @param name defines the camera's name
-     * @return the camera or null if none found.
-     */
-    public getCameraByName(name: string): Nullable<Camera> {
-        for (var index = 0; index < this.cameras.length; index++) {
-            if (this.cameras[index].name === name) {
-                return this.cameras[index];
-            }
-        }
 
-        return null;
-    }
 
     /**
      * Gets a bone using its id
@@ -1781,50 +1768,9 @@ export class Scene extends AbstractScene {
     //     return null;
     // }
 
-    /**
-     * Gets a light node using its name
-     * @param name defines the the light's name
-     * @return the light or null if none found.
-     */
-    public getLightByName(name: string): Nullable<Light> {
-        for (var index = 0; index < this.lights.length; index++) {
-            if (this.lights[index].name === name) {
-                return this.lights[index];
-            }
-        }
 
-        return null;
-    }
 
-    /**
-     * Gets a light node using its id
-     * @param id defines the light's id
-     * @return the light or null if none found.
-     */
-    public getLightByID(id: string): Nullable<Light> {
-        for (var index = 0; index < this.lights.length; index++) {
-            if (this.lights[index].id === id) {
-                return this.lights[index];
-            }
-        }
 
-        return null;
-    }
-
-    /**
-     * Gets a light node using its scene-generated unique ID
-     * @param uniqueId defines the light's unique id
-     * @return the light or null if none found.
-     */
-    public getLightByUniqueID(uniqueId: number): Nullable<Light> {
-        for (var index = 0; index < this.lights.length; index++) {
-            if (this.lights[index].uniqueId === uniqueId) {
-                return this.lights[index];
-            }
-        }
-
-        return null;
-    }
 
     /**
      * Gets a particle system by id
@@ -1841,340 +1787,9 @@ export class Scene extends AbstractScene {
     //     return null;
     // }
 
-    /**
-     * Gets a geometry using its ID
-     * @param id defines the geometry's id
-     * @return the geometry or null if none found.
-     */
-    public getGeometryByID(id: string): Nullable<Geometry> {
-        for (var index = 0; index < this.geometries.length; index++) {
-            if (this.geometries[index].id === id) {
-                return this.geometries[index];
-            }
-        }
-
-        return null;
-    }
-
-    private _getGeometryByUniqueID(uniqueId: number): Nullable<Geometry> {
-        if (this.geometriesByUniqueId) {
-            const index = this.geometriesByUniqueId[uniqueId];
-            if (index !== undefined) {
-                return this.geometries[index];
-            }
-        }
-        else {
-            for (var index = 0; index < this.geometries.length; index++) {
-                if (this.geometries[index].uniqueId === uniqueId) {
-                    return this.geometries[index];
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Add a new geometry to this scene
-     * @param geometry defines the geometry to be added to the scene.
-     * @param force defines if the geometry must be pushed even if a geometry with this id already exists
-     * @return a boolean defining if the geometry was added or not
-     */
-    public pushGeometry(geometry: Geometry, force?: boolean): boolean {
-        if (!force && this._getGeometryByUniqueID(geometry.uniqueId)) {
-            return false;
-        }
-
-        this.sceneNode.addGeometry(geometry);
-
-        this.sceneEventTrigger.onNewGeometryAddedObservable.notifyObservers(geometry);
-
-        return true;
-    }
-
-    /**
-     * Removes an existing geometry
-     * @param geometry defines the geometry to be removed from the scene
-     * @return a boolean defining if the geometry was removed or not
-     */
-    public removeGeometry(geometry: Geometry): boolean {
-        let index;
-        if (this.geometriesByUniqueId) {
-            index = this.geometriesByUniqueId[geometry.uniqueId];
-            if (index === undefined) {
-                return false;
-            }
-        }
-        else {
-            index = this.geometries.indexOf(geometry);
-            if (index < 0) {
-                return false;
-            }
-        }
-
-        if (index !== this.geometries.length - 1) {
-            const lastGeometry = this.geometries[this.geometries.length - 1];
-            if (lastGeometry) {
-                this.geometries[index] = lastGeometry;
-                if (this.geometriesByUniqueId) {
-                    this.geometriesByUniqueId[lastGeometry.uniqueId] = index;
-                    this.geometriesByUniqueId[geometry.uniqueId] = undefined;
-                }
-            }
-        }
-
-        this.geometries.pop();
-
-        this.sceneEventTrigger.onGeometryRemovedObservable.notifyObservers(geometry);
-        return true;
-    }
-
-    /**
-     * Gets the list of geometries attached to the scene
-     * @returns an array of Geometry
-     */
-    public getGeometries(): Geometry[] {
-        return this.geometries;
-    }
-
-    /**
-     * Gets the first added mesh found of a given ID
-     * @param id defines the id to search for
-     * @return the mesh found or null if not found at all
-     */
-    public getMeshByID(id: string): Nullable<AbstractMesh> {
-        for (var index = 0; index < this.meshes.length; index++) {
-            if (this.meshes[index].id === id) {
-                return this.meshes[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a list of meshes using their id
-     * @param id defines the id to search for
-     * @returns a list of meshes
-     */
-    public getMeshesByID(id: string): Array<AbstractMesh> {
-        return this.meshes.filter(function(m) {
-            return m.id === id;
-        });
-    }
-
-    /**
-     * Gets the first added transform node found of a given ID
-     * @param id defines the id to search for
-     * @return the found transform node or null if not found at all.
-     */
-    public getTransformNodeByID(id: string): Nullable<TransformNode> {
-        for (var index = 0; index < this.transformNodes.length; index++) {
-            if (this.transformNodes[index].id === id) {
-                return this.transformNodes[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a transform node with its auto-generated unique id
-     * @param uniqueId efines the unique id to search for
-     * @return the found transform node or null if not found at all.
-     */
-    public getTransformNodeByUniqueID(uniqueId: number): Nullable<TransformNode> {
-        for (var index = 0; index < this.transformNodes.length; index++) {
-            if (this.transformNodes[index].uniqueId === uniqueId) {
-                return this.transformNodes[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a list of transform nodes using their id
-     * @param id defines the id to search for
-     * @returns a list of transform nodes
-     */
-    public getTransformNodesByID(id: string): Array<TransformNode> {
-        return this.transformNodes.filter(function(m) {
-            return m.id === id;
-        });
-    }
-
-    /**
-     * Gets a mesh with its auto-generated unique id
-     * @param uniqueId defines the unique id to search for
-     * @return the found mesh or null if not found at all.
-     */
-    public getMeshByUniqueID(uniqueId: number): Nullable<AbstractMesh> {
-        for (var index = 0; index < this.meshes.length; index++) {
-            if (this.meshes[index].uniqueId === uniqueId) {
-                return this.meshes[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a the last added mesh using a given id
-     * @param id defines the id to search for
-     * @return the found mesh or null if not found at all.
-     */
-    public getLastMeshByID(id: string): Nullable<AbstractMesh> {
-        for (var index = this.meshes.length - 1; index >= 0; index--) {
-            if (this.meshes[index].id === id) {
-                return this.meshes[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a the last added node (Mesh, Camera, Light) using a given id
-     * @param id defines the id to search for
-     * @return the found node or null if not found at all
-     */
-    public getLastEntryByID(id: string): Nullable<Node> {
-        var index: number;
-        for (index = this.meshes.length - 1; index >= 0; index--) {
-            if (this.meshes[index].id === id) {
-                return this.meshes[index];
-            }
-        }
-
-        for (index = this.transformNodes.length - 1; index >= 0; index--) {
-            if (this.transformNodes[index].id === id) {
-                return this.transformNodes[index];
-            }
-        }
-
-        for (index = this.cameras.length - 1; index >= 0; index--) {
-            if (this.cameras[index].id === id) {
-                return this.cameras[index];
-            }
-        }
-
-        for (index = this.lights.length - 1; index >= 0; index--) {
-            if (this.lights[index].id === id) {
-                return this.lights[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a node (Mesh, Camera, Light) using a given id
-     * @param id defines the id to search for
-     * @return the found node or null if not found at all
-     */
-    public getNodeByID(id: string): Nullable<Node> {
-        const mesh = this.getMeshByID(id);
-        if (mesh) {
-            return mesh;
-        }
-
-        const transformNode = this.getTransformNodeByID(id);
-        if (transformNode) {
-            return transformNode;
-        }
-
-        const light = this.getLightByID(id);
-        if (light) {
-            return light;
-        }
-
-        const camera = this.getCameraByID(id);
-        if (camera) {
-            return camera;
-        }
-
-        // const bone = this.getBoneByID(id);
-        // if (bone) {
-        //     return bone;
-        // }
-
-        return null;
-    }
-
-    /**
-     * Gets a node (Mesh, Camera, Light) using a given name
-     * @param name defines the name to search for
-     * @return the found node or null if not found at all.
-     */
-    public getNodeByName(name: string): Nullable<Node> {
-        const mesh = this.getMeshByName(name);
-        if (mesh) {
-            return mesh;
-        }
-
-        const transformNode = this.getTransformNodeByName(name);
-        if (transformNode) {
-            return transformNode;
-        }
-
-        const light = this.getLightByName(name);
-        if (light) {
-            return light;
-        }
-
-        const camera = this.getCameraByName(name);
-        if (camera) {
-            return camera;
-        }
-
-        // const bone = this.getBoneByName(name);
-        // if (bone) {
-        //     return bone;
-        // }
-
-        return null;
-    }
-
-    /**
-     * Gets a mesh using a given name
-     * @param name defines the name to search for
-     * @return the found mesh or null if not found at all.
-     */
-    public getMeshByName(name: string): Nullable<AbstractMesh> {
-        for (var index = 0; index < this.meshes.length; index++) {
-            if (this.meshes[index].name === name) {
-                return this.meshes[index];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets a transform node using a given name
-     * @param name defines the name to search for
-     * @return the found transform node or null if not found at all.
-     */
-    public getTransformNodeByName(name: string): Nullable<TransformNode> {
-        for (var index = 0; index < this.transformNodes.length; index++) {
-            if (this.transformNodes[index].name === name) {
-                return this.transformNodes[index];
-            }
-        }
-
-        return null;
-    }
 
 
-    /**
-     * Gets a boolean indicating if the given mesh is active
-     * @param mesh defines the mesh to look for
-     * @returns true if the mesh is in the active list
-     */
-    public isActiveMesh(mesh: AbstractMesh): boolean {
-        return (this._activeMeshes.indexOf(mesh) !== -1);
-    }
+
 
     /**
      * Return a unique id as a string which can serve as an identifier for the scene

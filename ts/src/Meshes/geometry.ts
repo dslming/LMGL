@@ -698,7 +698,7 @@ export class Geometry implements IGetSetVerticesData {
         // must be done before setting vertexBuffers because of mesh._createGlobalSubMesh()
         mesh._geometry = this;
 
-        this._scene.pushGeometry(this);
+        this._scene.sceneNode.pushGeometry(this);
 
         meshes.push(mesh);
 
@@ -950,7 +950,7 @@ export class Geometry implements IGetSetVerticesData {
 
         this._boundingInfo = null;
 
-        this._scene.removeGeometry(this);
+        this._scene.sceneNode.removeGeometry(this);
         this._isDisposed = true;
     }
 
@@ -1170,7 +1170,7 @@ export class Geometry implements IGetSetVerticesData {
         // Geometry
         var geometryId = parsedGeometry.geometryId;
         if (geometryId) {
-            var geometry = scene.getGeometryByID(geometryId);
+            var geometry = scene.sceneNode.getGeometryByID(geometryId);
             if (geometry) {
                 geometry.applyToMesh(mesh);
             }
@@ -1468,7 +1468,7 @@ export class Geometry implements IGetSetVerticesData {
      * @returns the new geometry object
      */
     public static Parse(parsedVertexData: any, scene: Scene, rootUrl: string): Nullable<Geometry> {
-        if (scene.getGeometryByID(parsedVertexData.id)) {
+        if (scene.sceneNode.getGeometryByID(parsedVertexData.id)) {
             return null; // null since geometry could be something else than a box...
         }
 
@@ -1525,7 +1525,7 @@ export class Geometry implements IGetSetVerticesData {
             VertexData.ImportVertexData(parsedVertexData, geometry);
         }
 
-        scene.pushGeometry(geometry, true);
+        scene.sceneNode.pushGeometry(geometry, true);
 
         return geometry;
     }

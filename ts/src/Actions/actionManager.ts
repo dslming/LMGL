@@ -523,11 +523,11 @@ export class ActionManager extends AbstractActionManager {
                             value = target = scene;
                         }
                         else {
-                            value = target = scene.getNodeByName(value);
+                            value = target = scene.sceneNode.getNodeByName(value);
                         }
                     }
                     else if (name === "parent") {
-                        value = scene.getNodeByName(value);
+                        value = scene.sceneNode.getNodeByName(value);
                     }
                     else if (name === "sound") {
                         // Can not externalize to component, so only checks for the presence off the API.
@@ -610,10 +610,10 @@ export class ActionManager extends AbstractActionManager {
 
             if (trigger.properties.length > 0) {
                 var param = trigger.properties[0].value;
-                var value = trigger.properties[0].targetType === null ? param : scene.getMeshByName(param);
+                var value = trigger.properties[0].targetType === null ? param : scene.sceneNode.getMeshByName(param);
 
                 if (value._meshId) {
-                    value.mesh = scene.getMeshByID(value._meshId);
+                    value.mesh = scene.sceneNode.getMeshByID(value._meshId);
                 }
 
                 triggerParams = { trigger: (<any>ActionManager)[trigger.name], parameter: value };

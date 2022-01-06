@@ -376,7 +376,7 @@ export class SerializationHelper {
                         break;
                     case 6:     // Mesh reference
                         if (scene) {
-                            dest[property] = scene.getLastMeshByID(sourceProperty);
+                            dest[property] = scene.sceneNode.getLastMeshByID(sourceProperty);
                         }
                         break;
                     case 7:     // Color Curves
