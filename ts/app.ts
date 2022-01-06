@@ -20,7 +20,7 @@ class App {
   }
 
   createScene (engine:any, canvas:any) {
-    var scene = new lmgl2.Scene(engine);
+    var scene = lmgl2.creator(lmgl2.Scene, engine);
     var camera = new lmgl2.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 5, lmgl2.Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
 

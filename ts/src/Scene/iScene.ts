@@ -2,6 +2,7 @@ import { Observable } from "../Misc/observable";
 import { KeyboardInfoPre, KeyboardInfo } from "../Events/keyboardEvents";
 import { PointerEventTypes, PointerInfoPre, PointerInfo } from "../Events/pointerEvents";
 import { Matrix } from "../Maths";
+import { UniformBuffer } from "../Materials/uniformBuffer";
 
 export interface IDisposable {
     /**
@@ -34,22 +35,6 @@ export interface SceneOptions {
     virtual?: boolean;
 }
 
-export interface IMatrixMethod{
-    getViewMatrix(): Matrix;
-    getProjectionMatrix(): Matrix;
-    getTransformMatrix(): Matrix;
-    setTransformMatrix(viewL: Matrix, projectionL: Matrix, viewR?: Matrix, projectionR?: Matrix): void;
-}
-
-export interface IMatrixProperty{
-    _viewMatrix: Matrix;
-    _projectionMatrix: Matrix;
-    _transformMatrix: Matrix;
-}
-
-export interface IInteractionMethod{
-
-}
 
 export interface IInteractionProperty{
     onKeyboardObservable: Observable<KeyboardInfo>;

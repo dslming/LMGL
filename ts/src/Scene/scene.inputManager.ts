@@ -194,7 +194,7 @@ export class InputManager {
 
         var isMeshPicked = pickResult && pickResult.hit && pickResult.pickedMesh ? true : false;
         if (isMeshPicked) {
-            scene.setPointerOverMesh(pickResult!.pickedMesh, evt.pointerId);
+            scene.sceneInputManagerApp.setPointerOverMesh(pickResult!.pickedMesh, evt.pointerId);
 
             if (this._pointerOverMesh && this._pointerOverMesh.actionManager && this._pointerOverMesh.actionManager.hasPointerTriggers) {
                 if (!scene.doNotHandleCursors) {
@@ -206,7 +206,7 @@ export class InputManager {
                 }
             }
         } else {
-            scene.setPointerOverMesh(null, evt.pointerId);
+            scene.sceneInputManagerApp.setPointerOverMesh(null, evt.pointerId);
         }
 
         for (let step of scene._pointerMoveStage) {

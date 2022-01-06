@@ -947,7 +947,7 @@ export class Material {
         if (!this._useUBO) {
             effect.setMatrix("view", this.getScene().getViewMatrix());
         } else {
-            this.bindSceneUniformBuffer(effect, this.getScene().getSceneUniformBuffer());
+            this.bindSceneUniformBuffer(effect, this.getScene().sceneMatrix.getSceneUniformBuffer());
         }
     }
 
@@ -957,9 +957,9 @@ export class Material {
      */
     public bindViewProjection(effect: Effect): void {
         if (!this._useUBO) {
-            effect.setMatrix("viewProjection", this.getScene().getTransformMatrix());
+            effect.setMatrix("viewProjection", this.getScene().sceneMatrix.getTransformMatrix());
         } else {
-            this.bindSceneUniformBuffer(effect, this.getScene().getSceneUniformBuffer());
+            this.bindSceneUniformBuffer(effect, this.getScene().sceneMatrix.getSceneUniformBuffer());
         }
     }
 
@@ -1092,10 +1092,10 @@ export class Material {
                 return;
             }
 
-            var clipPlaneState = scene.clipPlane;
+            var clipPlaneState = scene.sceneClipPlane.clipPlane;
 
             if (localOptions.clipPlane) {
-                scene.clipPlane = new Plane(0, 0, 0, 1);
+                scene.sceneClipPlane.clipPlane = new Plane(0, 0, 0, 1);
             }
 
             if (this._storeEffectOnSubMeshes) {
@@ -1138,7 +1138,7 @@ export class Material {
             }
 
             if (localOptions.clipPlane) {
-                scene.clipPlane = clipPlaneState;
+                scene.sceneClipPlane.clipPlane = clipPlaneState;
             }
         };
 

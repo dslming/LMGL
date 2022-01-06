@@ -1,25 +1,31 @@
-import { Engine } from "..";
+import { Engine, Scene } from "..";
 import { UniformBuffer } from "../Materials/uniformBuffer";
 import { Frustum, Plane } from "../Maths/math";
 import { Vector2, Vector3, Matrix } from "../Maths/math.vector";
 
-export class SceneMatrix {
-  /** ------------------------------- IMatrixProperty ----------------------- */
+export interface ISceneMatrix{
+    getViewMatrix(): Matrix;
+    getProjectionMatrix(): Matrix;
+    getTransformMatrix(): Matrix;
+    setTransformMatrix(viewL: Matrix, projectionL: Matrix, viewR?: Matrix, projectionR?: Matrix): void;
+    getSceneUniformBuffer(): UniformBuffer
+}
+
+export class SceneMatrix implements ISceneMatrix{
   public _viewMatrix: Matrix;
   public _projectionMatrix: Matrix;
   public _transformMatrix = Matrix.Zero();
   private _viewUpdateFlag = -1;
   private _projectionUpdateFlag = -1;
-  public _frustumPlanes: Plane[];
-  private _sceneUbo: UniformBuffer;
+  public _sceneUbo: UniformBuffer;
   private _engine: Engine;
+  private scene: Scene;
 
-  constructor(_frustumPlanes: Plane[], engine: Engine) {
+  constructor(scene: Scene, engine: Engine) {
     this._engine = engine;
-    this._frustumPlanes = _frustumPlanes;
+    this.scene = scene;
   }
 
-  // Matrix
   /**
    * Gets the current view matrix
    * @returns a Matrix
@@ -27,6 +33,7 @@ export class SceneMatrix {
   public getViewMatrix(): Matrix {
     return this._viewMatrix;
   }
+
   /**
    * Gets the current projection matrix
    * @returns a Matrix
@@ -34,6 +41,7 @@ export class SceneMatrix {
   public getProjectionMatrix(): Matrix {
     return this._projectionMatrix;
   }
+
   /**
    * Gets the current transform matrix
    * @returns a Matrix made of View * Projection
@@ -62,19 +70,12 @@ export class SceneMatrix {
     this._viewMatrix.multiplyToRef(this._projectionMatrix, this._transformMatrix);
 
     // Update frustum
-    if (!this._frustumPlanes) {
-      this._frustumPlanes = Frustum.GetPlanes(this._transformMatrix);
+    if (!this.scene.sceneClipPlane.frustumPlanes) {
+      this.scene.sceneClipPlane.frustumPlanes = Frustum.GetPlanes(this._transformMatrix);
     } else {
-      Frustum.GetPlanesToRef(this._transformMatrix, this._frustumPlanes);
+      Frustum.GetPlanesToRef(this._transformMatrix, this.scene.sceneClipPlane.frustumPlanes);
     }
 
-    // if (this._multiviewSceneUbo && this._multiviewSceneUbo.useUbo) {
-    //     this._updateMultiviewUbo(viewR, projectionR);
-    // } else if (this._sceneUbo.useUbo) {
-    //     this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
-    //     this._sceneUbo.updateMatrix("view", this._viewMatrix);
-    //     this._sceneUbo.update();
-    // }
     if (this._sceneUbo.useUbo) {
       this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
       this._sceneUbo.updateMatrix("view", this._viewMatrix);
@@ -93,7 +94,6 @@ export class SceneMatrix {
     * @returns a UniformBuffer
     */
   public getSceneUniformBuffer(): UniformBuffer {
-    // return this._multiviewSceneUbo ? this._multiviewSceneUbo : this._sceneUbo;
     return this._sceneUbo;
   }
 }

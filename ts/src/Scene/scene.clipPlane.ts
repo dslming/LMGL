@@ -2,17 +2,22 @@ import { Plane } from "../Maths/math";
 import { Nullable } from "../types";
 import { IClipPlanesHolder } from '../Misc/interfaces/iClipPlanesHolder';
 
-export class SceneClipPlane implements IClipPlanesHolder {
+export interface ISceneClipPlane{
+  clipPlane: Nullable<Plane>;
+  clipPlane2: Nullable<Plane>;
+  clipPlane3: Nullable<Plane>;
+  clipPlane4: Nullable<Plane>;
+  clipPlane5: Nullable<Plane>;
+  clipPlane6: Nullable<Plane>;
+  frustumPlanes: Plane[];
+}
+export class SceneClipPlane implements IClipPlanesHolder ,ISceneClipPlane{
   constructor() { }
 
-  /** @hidden */
-  public _frustumPlanes: Plane[];
   /**
    * Gets the list of frustum planes (built from the active camera)
    */
-  public get frustumPlanes(): Plane[] {
-    return this._frustumPlanes;
-  }
+  public frustumPlanes: Plane[];
 
   /**
      * Gets or sets the active clipplane 1

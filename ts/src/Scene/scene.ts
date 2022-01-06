@@ -15,9 +15,9 @@ import { Mesh } from "../Meshes/mesh";
 import {
     IDisposable,
     SceneOptions,
-    IMatrixMethod,
-    IMatrixProperty,
-    IInteractionProperty,
+    // IMatrixMethod,
+    // IMatrixProperty,
+    // IInteractionProperty,
 } from './iScene'
 import { Camera } from "../Cameras/camera";
 import { BaseTexture } from "../Materials/Textures/baseTexture";
@@ -71,10 +71,10 @@ import { UniqueIdGenerator } from '../Misc/uniqueIdGenerator';
 import { FileTools, LoadFileError, RequestFileError, ReadFileError } from '../Misc/fileTools';
 import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
 import { applyMixins } from '../Misc/tools'
-import { aaa } from "./aaa";
-import { SceneMatrix } from "./scene.matrix";
-import { SceneClipPlane } from "./scene.clipPlane";
-import { SceneInputManagerApp } from "./scene.inputManagerApp";
+import { ISceneMatrix, SceneMatrix } from "./scene.matrix";
+import { ISceneClipPlane, SceneClipPlane } from "./scene.clipPlane";
+import { ISceneInputManagerApp, SceneInputManagerApp } from "./scene.inputManagerApp";
+import { iSceneCatch, SceneCatch } from "./scene.catch";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -85,8 +85,8 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
  * @see https://doc.babylonjs.com/features/scene
  */
 export class Scene extends AbstractScene {
-    private SceneClipPlane = new SceneClipPlane();
-
+    public sceneClipPlane = new SceneClipPlane();
+    public sceneCatch = new SceneCatch();
     public sceneInputManagerApp = new SceneInputManagerApp(this);
 
 
@@ -1089,12 +1089,7 @@ export class Scene extends AbstractScene {
      */
     public animationTimeScale: number = 1;
 
-    /** @hidden */
-    public _cachedMaterial: Nullable<Material>;
-    /** @hidden */
-    public _cachedEffect: Nullable<Effect>;
-    /** @hidden */
-    public _cachedVisibility: Nullable<number>;
+
 
     private _renderId = 0;
     private _frameId = 0;
@@ -1328,7 +1323,7 @@ export class Scene extends AbstractScene {
      */
     private geometriesByUniqueId: Nullable<{ [uniqueId: string]: number | undefined }> = null;
 
-    private sceneMatrix: SceneMatrix;
+    public sceneMatrix: SceneMatrix;
 
     /**
      * Creates a new Scene
@@ -1338,7 +1333,7 @@ export class Scene extends AbstractScene {
     constructor(engine: Engine, options?: SceneOptions) {
         super();
 
-        this.sceneMatrix = new SceneMatrix(this.SceneClipPlane._frustumPlanes, engine);
+        this.sceneMatrix = new SceneMatrix(this, engine);
 
         const fullOptions = {
             useGeometryUniqueIdsMap: true,
@@ -1386,6 +1381,7 @@ export class Scene extends AbstractScene {
         if (!options || !options.virtual) {
             this._engine.onNewSceneAddedObservable.notifyObservers(this);
         }
+
     }
 
     /**
@@ -2874,7 +2870,7 @@ export class Scene extends AbstractScene {
     }
 
     private _evaluateSubMesh(subMesh: SubMesh, mesh: AbstractMesh, initialMesh: AbstractMesh): void {
-        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.SceneClipPlane._frustumPlanes)) {
+        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.sceneClipPlane.frustumPlanes)) {
             for (let step of this._evaluateSubMeshStage) {
                 step.action(mesh, subMesh);
             }
@@ -3013,7 +3009,7 @@ export class Scene extends AbstractScene {
                 return;
             }
 
-            if (!this.SceneClipPlane._frustumPlanes) {
+            if (!this.sceneClipPlane.frustumPlanes) {
                 this.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix());
             }
 
@@ -3128,7 +3124,7 @@ export class Scene extends AbstractScene {
 
             mesh._preActivate();
 
-            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.SceneClipPlane._frustumPlanes))) {
+            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.sceneClipPlane.frustumPlanes))) {
                 this._activeMeshes.push(mesh);
                 this.activeCamera._activeMeshes.push(mesh);
 
@@ -3257,7 +3253,7 @@ export class Scene extends AbstractScene {
 
         var useMultiview = this.getEngine().getCaps().multiview && camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1;
         if (useMultiview) {
-            this.setTransformMatrix(camera._rigCameras[0].getViewMatrix(), camera._rigCameras[0].getProjectionMatrix(), camera._rigCameras[1].getViewMatrix(), camera._rigCameras[1].getProjectionMatrix());
+            this.sceneMatrix.setTransformMatrix(camera._rigCameras[0].getViewMatrix(), camera._rigCameras[0].getProjectionMatrix(), camera._rigCameras[1].getViewMatrix(), camera._rigCameras[1].getProjectionMatrix());
         } else {
             this.updateTransformMatrix();
         }
@@ -3378,7 +3374,7 @@ export class Scene extends AbstractScene {
 
         // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
         this._activeCamera = camera;
-        this.setTransformMatrix(this._activeCamera.getViewMatrix(), this._activeCamera.getProjectionMatrix());
+        this.sceneMatrix.setTransformMatrix(this._activeCamera.getViewMatrix(), this._activeCamera.getProjectionMatrix());
         this.onAfterRenderCameraObservable.notifyObservers(camera);
     }
 
@@ -3877,7 +3873,7 @@ export class Scene extends AbstractScene {
         }
 
         // Release UBO
-        this._sceneUbo.dispose();
+        this.sceneMatrix._sceneUbo.dispose();
 
         // if (this._multiviewSceneUbo) {
         //     this._multiviewSceneUbo.dispose();
@@ -4349,27 +4345,13 @@ export class Scene extends AbstractScene {
 }
 
 declare module "./scene" {
-    export interface Scene {
-        _viewMatrix: Matrix;
-        _projectionMatrix: Matrix;
-        _transformMatrix: Matrix;
-        getViewMatrix(): Matrix;
-        getProjectionMatrix(): Matrix;
-        getTransformMatrix(): Matrix;
+    export interface Scene extends
+        ISceneInputManagerApp,
+        ISceneMatrix,
+        ISceneClipPlane,
+        iSceneCatch
+    {
 
-        clipPlane: Nullable<Plane>;
-        clipPlane2: Nullable<Plane>;
-        clipPlane3: Nullable<Plane>;
-        clipPlane4: Nullable<Plane>;
-        clipPlane5: Nullable<Plane>;
-        clipPlane6: Nullable<Plane>;
-
-        detachControl(): void;
-        attachControl(): void;
-        setPointerOverMesh(mesh: Nullable<AbstractMesh>, pointerId?: number): void;
-        pointerX: number;
-        pointerY: number;
-        meshUnderPointer: Nullable<AbstractMesh>;
     }
 }
 
