@@ -77,6 +77,7 @@ import { ISceneInputManagerApp, SceneInputManagerApp } from "./scene.inputManage
 import { iSceneCatch, SceneCatch } from "./scene.catch";
 import { SceneFile } from "./scene.file";
 import { SceneEventTrigger } from "./scene.eventTrigger";
+import { SceneNode } from "./scene.node";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -87,7 +88,22 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
  * @see https://doc.babylonjs.com/features/scene
  */
 export class Scene extends AbstractScene {
+     /**
+    * All of the (abstract) meshes added to this scene
+    */
+  public meshes = new Array<AbstractMesh>();
+
+  /**
+    * All of the tranform nodes added to this scene
+    * In the context of a Scene, it is not supposed to be modified manually.
+    * Any addition or removal should be done using the addTransformNode and removeTransformNode Scene methods.
+    * Note also that the order of the TransformNode wihin the array is not significant and might change.
+    * @see https://doc.babylonjs.com/how_to/transformnode
+    */
+    public transformNodes = new Array<TransformNode>();
+
     public sceneFile = new SceneFile()
+    public sceneNode = new SceneNode(this)
     public sceneClipPlane = new SceneClipPlane();
     public sceneCatch = new SceneCatch(this);
     public sceneInputManagerApp = new SceneInputManagerApp(this);
@@ -1519,103 +1535,7 @@ export class Scene extends AbstractScene {
         return UniqueIdGenerator.UniqueId;
     }
 
-    /**
-     * Add a mesh to the list of scene's meshes
-     * @param newMesh defines the mesh to add
-     * @param recursive if all child meshes should also be added to the scene
-     */
-    public addMesh(newMesh: AbstractMesh, recursive = false) {
-        if (this._blockEntityCollection) {
-            return;
-        }
 
-        this.meshes.push(newMesh);
-
-        newMesh._resyncLightSources();
-
-        if (!newMesh.parent) {
-            newMesh._addToSceneRootNodes();
-        }
-
-        this.sceneEventTrigger.onNewMeshAddedObservable.notifyObservers(newMesh);
-
-        if (recursive) {
-            newMesh.getChildMeshes().forEach((m) => {
-                this.addMesh(m);
-            });
-        }
-    }
-
-    /**
-     * Remove a mesh for the list of scene's meshes
-     * @param toRemove defines the mesh to remove
-     * @param recursive if all child meshes should also be removed from the scene
-     * @returns the index where the mesh was in the mesh list
-     */
-    public removeMesh(toRemove: AbstractMesh, recursive = false): number {
-        var index = this.meshes.indexOf(toRemove);
-        if (index !== -1) {
-            // Remove from the scene if mesh found
-            this.meshes[index] = this.meshes[this.meshes.length - 1];
-            this.meshes.pop();
-
-            if (!toRemove.parent) {
-                toRemove._removeFromSceneRootNodes();
-            }
-        }
-
-        this.sceneEventTrigger.onMeshRemovedObservable.notifyObservers(toRemove);
-        if (recursive) {
-            toRemove.getChildMeshes().forEach((m) => {
-                this.removeMesh(m);
-            });
-        }
-        return index;
-    }
-
-    /**
-     * Add a transform node to the list of scene's transform nodes
-     * @param newTransformNode defines the transform node to add
-     */
-    public addTransformNode(newTransformNode: TransformNode) {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        newTransformNode._indexInSceneTransformNodesArray = this.transformNodes.length;
-        this.transformNodes.push(newTransformNode);
-
-        if (!newTransformNode.parent) {
-            newTransformNode._addToSceneRootNodes();
-        }
-
-        this.sceneEventTrigger.onNewTransformNodeAddedObservable.notifyObservers(newTransformNode);
-    }
-
-    /**
-     * Remove a transform node for the list of scene's transform nodes
-     * @param toRemove defines the transform node to remove
-     * @returns the index where the transform node was in the transform node list
-     */
-    public removeTransformNode(toRemove: TransformNode): number {
-        var index = toRemove._indexInSceneTransformNodesArray;
-        if (index !== -1) {
-            if (index !== this.transformNodes.length - 1) {
-                const lastNode = this.transformNodes[this.transformNodes.length - 1];
-                this.transformNodes[index] = lastNode;
-                lastNode._indexInSceneTransformNodesArray = index;
-            }
-
-            toRemove._indexInSceneTransformNodesArray = -1;
-            this.transformNodes.pop();
-            if (!toRemove.parent) {
-                toRemove._removeFromSceneRootNodes();
-            }
-        }
-
-        this.sceneEventTrigger.onTransformNodeRemovedObservable.notifyObservers(toRemove);
-
-        return index;
-    }
 
     /**
      * Remove a skeleton for the list of scene's skeletons

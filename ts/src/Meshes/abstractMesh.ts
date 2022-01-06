@@ -709,7 +709,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
     constructor(name: string, scene: Nullable<Scene> = null) {
         super(name, scene, false);
 
-        this.getScene().addMesh(this);
+        this.getScene().sceneNode.addMesh(this);
 
         this._resyncLightSources();
     }
@@ -1746,7 +1746,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
         engine.wipeCaches();
 
         // Remove from scene
-        this.getScene().removeMesh(this);
+        this.getScene().sceneNode.removeMesh(this);
 
         if (disposeMaterialAndTextures) {
             if (this.material) {

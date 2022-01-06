@@ -199,7 +199,7 @@ export class AssetContainer extends AbstractScene {
             this.scene.addLight(o);
         });
         this.meshes.forEach((o) => {
-            this.scene.addMesh(o);
+            this.scene.sceneNode.addMesh(o);
         });
         // this.skeletons.forEach((o) => {
         //     this.scene.addSkeleton(o);
@@ -223,7 +223,7 @@ export class AssetContainer extends AbstractScene {
             this.scene.addGeometry(o);
         });
         this.transformNodes.forEach((o) => {
-            this.scene.addTransformNode(o);
+            this.scene.sceneNode.addTransformNode(o);
         });
         // this.actionManagers.forEach((o) => {
         //     this.scene.addActionManager(o);
@@ -257,7 +257,7 @@ export class AssetContainer extends AbstractScene {
             this.scene.removeLight(o);
         });
         this.meshes.forEach((o) => {
-            this.scene.removeMesh(o);
+            this.scene.sceneNode.removeMesh(o);
         });
         // this.skeletons.forEach((o) => {
         //     this.scene.removeSkeleton(o);
@@ -281,7 +281,7 @@ export class AssetContainer extends AbstractScene {
             this.scene.removeGeometry(o);
         });
         this.transformNodes.forEach((o) => {
-            this.scene.removeTransformNode(o);
+            this.scene.sceneNode.removeTransformNode(o);
         });
         // this.actionManagers.forEach((o) => {
         //     this.scene.removeActionManager(o);

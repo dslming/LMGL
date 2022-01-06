@@ -175,7 +175,7 @@ export class TransformNode extends Node {
         super(name, scene);
 
         if (isPure) {
-            this.getScene().addTransformNode(this);
+            this.getScene().sceneNode.addTransformNode(this);
         }
     }
 
@@ -1361,7 +1361,7 @@ export class TransformNode extends Node {
         // this.getScene().stopAnimation(this);
 
         // Remove from scene
-        this.getScene().removeTransformNode(this);
+        this.getScene().sceneNode.removeTransformNode(this);
 
         this.onAfterWorldMatrixUpdateObservable.clear();
 
