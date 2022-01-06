@@ -539,7 +539,7 @@ export class SceneLoader {
 
             request = plugin.requestFile
                 ? plugin.requestFile(scene, fileInfo.url, successCallback, onProgress, useArrayBuffer, errorCallback)
-                : scene._requestFile(fileInfo.url, successCallback, onProgress, true, useArrayBuffer, errorCallback);
+                : scene.sceneFile._requestFile(fileInfo.url, successCallback, onProgress, true, useArrayBuffer, errorCallback);
         };
 
         const file = fileInfo.file || FilesInputStore.FilesToLoad[fileInfo.name.toLowerCase()];
@@ -577,7 +577,7 @@ export class SceneLoader {
 
                 request = plugin.readFile
                     ? plugin.readFile(scene, file, dataCallback, onProgress, useArrayBuffer, errorCallback)
-                    : scene._readFile(file, dataCallback, onProgress, useArrayBuffer, errorCallback);
+                    : scene.sceneFile._readFile(file, dataCallback, onProgress, useArrayBuffer, errorCallback);
             } else {
                 onError("Unable to find file named " + fileInfo.name);
             }

@@ -803,7 +803,7 @@ export class Geometry implements IGetSetVerticesData {
         }
 
         scene._addPendingData(this);
-        scene._loadFile(
+        scene.sceneFile._loadFile(
             this.delayLoadingFile,
             (data) => {
                 if (!this._delayLoadingFunction) {

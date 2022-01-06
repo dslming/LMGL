@@ -75,6 +75,7 @@ import { ISceneMatrix, SceneMatrix } from "./scene.matrix";
 import { ISceneClipPlane, SceneClipPlane } from "./scene.clipPlane";
 import { ISceneInputManagerApp, SceneInputManagerApp } from "./scene.inputManagerApp";
 import { iSceneCatch, SceneCatch } from "./scene.catch";
+import { SceneFile } from "./scene.file";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -85,6 +86,7 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
  * @see https://doc.babylonjs.com/features/scene
  */
 export class Scene extends AbstractScene {
+    public sceneFile = new SceneFile()
     public sceneClipPlane = new SceneClipPlane();
     public sceneCatch = new SceneCatch();
     public sceneInputManagerApp = new SceneInputManagerApp(this);
@@ -1100,7 +1102,7 @@ export class Scene extends AbstractScene {
 
     /** @hidden */
     public _toBeDisposed = new Array<Nullable<IDisposable>>(256);
-    private _activeRequests = new Array<IFileRequest>();
+    // private _activeRequests = new Array<IFileRequest>();
 
     /** @hidden */
     public _pendingData = new Array();
@@ -3757,10 +3759,7 @@ export class Scene extends AbstractScene {
         this._meshesForIntersections.dispose();
         this._toBeDisposed = [];
 
-        // Abort active requests
-        for (let request of this._activeRequests) {
-            request.abort();
-        }
+        this.sceneFile.dispose()
 
         // Events
         this.onDisposeObservable.notifyObservers(this);
@@ -4280,68 +4279,6 @@ export class Scene extends AbstractScene {
         }
     }
 
-    /** @hidden */
-    public _loadFile(url: string, onSuccess: (data: string | ArrayBuffer, responseURL?: string) => void, onProgress?: (ev: ProgressEvent) => void, useOfflineSupport?: boolean, useArrayBuffer?: boolean, onError?: (request?: WebRequest, exception?: LoadFileError) => void): IFileRequest {
-        const request = FileTools.LoadFile(url, onSuccess, onProgress, useArrayBuffer, onError);
-        this._activeRequests.push(request);
-        request.onCompleteObservable.add((request) => {
-            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
-        });
-        return request;
-    }
-
-    /** @hidden */
-    public _loadFileAsync(url: string, onProgress?: (data: any) => void, useOfflineSupport?: boolean, useArrayBuffer?: boolean): Promise<string | ArrayBuffer> {
-        return new Promise((resolve, reject) => {
-            this._loadFile(url, (data) => {
-                resolve(data);
-            }, onProgress, useOfflineSupport, useArrayBuffer, (request, exception) => {
-                reject(exception);
-            });
-        });
-    }
-
-    /** @hidden */
-    public _requestFile(url: string, onSuccess: (data: string | ArrayBuffer, request?: WebRequest) => void, onProgress?: (ev: ProgressEvent) => void, useOfflineSupport?: boolean, useArrayBuffer?: boolean, onError?: (error: RequestFileError) => void, onOpened?: (request: WebRequest) => void): IFileRequest {
-        const request = FileTools.RequestFile(url, onSuccess, onProgress, useArrayBuffer, onError, onOpened);
-        this._activeRequests.push(request);
-        request.onCompleteObservable.add((request) => {
-            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
-        });
-        return request;
-    }
-
-    /** @hidden */
-    public _requestFileAsync(url: string, onProgress?: (ev: ProgressEvent) => void, useOfflineSupport?: boolean, useArrayBuffer?: boolean, onOpened?: (request: WebRequest) => void): Promise<string | ArrayBuffer> {
-        return new Promise((resolve, reject) => {
-            this._requestFile(url, (data) => {
-                resolve(data);
-            }, onProgress, useOfflineSupport, useArrayBuffer, (error) => {
-                reject(error);
-            }, onOpened);
-        });
-    }
-
-    /** @hidden */
-    public _readFile(file: File, onSuccess: (data: string | ArrayBuffer) => void, onProgress?: (ev: ProgressEvent) => any, useArrayBuffer?: boolean, onError?: (error: ReadFileError) => void): IFileRequest {
-        const request = FileTools.ReadFile(file, onSuccess, onProgress, useArrayBuffer, onError);
-        this._activeRequests.push(request);
-        request.onCompleteObservable.add((request) => {
-            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
-        });
-        return request;
-    }
-
-    /** @hidden */
-    public _readFileAsync(file: File, onProgress?: (ev: ProgressEvent) => any, useArrayBuffer?: boolean): Promise<string | ArrayBuffer> {
-        return new Promise((resolve, reject) => {
-            this._readFile(file, (data) => {
-                resolve(data);
-            }, onProgress, useArrayBuffer, (error) => {
-                reject(error);
-            });
-        });
-    }
 }
 
 declare module "./scene" {
