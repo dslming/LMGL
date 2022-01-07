@@ -1593,7 +1593,7 @@ export class StandardMaterial extends PushMaterial {
             }
 
             // View
-            if (scene.fogEnabled && mesh.applyFog && scene.fogMode !== Scene.FOGMODE_NONE || this._reflectionTexture || this._refractionTexture) {
+            if (scene.sceneFog.fogEnabled && mesh.applyFog && scene.sceneFog.fogMode !== Scene.FOGMODE_NONE || this._reflectionTexture || this._refractionTexture) {
                 this.bindView(effect);
             }
 

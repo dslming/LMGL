@@ -89,7 +89,7 @@ export class MaterialHelper {
      * @returns true if fog must be enabled
      */
     public static GetFogState(mesh: AbstractMesh, scene: Scene) {
-        return (scene.fogEnabled && mesh.applyFog && scene.fogMode !== Scene.FOGMODE_NONE);
+        return (scene.sceneFog.fogEnabled && mesh.applyFog && scene.sceneFog.fogMode !== Scene.FOGMODE_NONE);
     }
 
     /**

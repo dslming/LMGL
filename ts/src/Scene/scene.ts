@@ -70,6 +70,7 @@ import { SceneNode } from "./scene.node";
 import { ScenePick } from "./scene.pick";
 import { SceneStage } from "./scene.stage";
 import { SceneRender } from "./scene.render";
+import { SceneFog } from "./scene.fog";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -95,6 +96,7 @@ export class Scene extends AbstractScene {
     public transformNodes = new Array<TransformNode>();
 
     public sceneFile = new SceneFile()
+    public sceneFog = new SceneFog(this)
     public sceneNode = new SceneNode(this)
     public sceneClipPlane = new SceneClipPlane();
     public sceneCatch = new SceneCatch(this);
@@ -468,7 +470,6 @@ export class Scene extends AbstractScene {
     }
 
     // Deterministic lockstep
-    private _timeAccumulator: number = 0;
     private _currentStepId: number = 0;
     private _currentInternalStep: number = 0;
 
@@ -499,71 +500,7 @@ export class Scene extends AbstractScene {
         return this._currentInternalStep;
     }
 
-    // Fog
 
-    private _fogEnabled = true;
-    /**
-    * Gets or sets a boolean indicating if fog is enabled on this scene
-    * @see https://doc.babylonjs.com/babylon101/environment#fog
-    * (Default is true)
-    */
-    public set fogEnabled(value: boolean) {
-        if (this._fogEnabled === value) {
-            return;
-        }
-        this._fogEnabled = value;
-        this.markAllMaterialsAsDirty(Constants.MATERIAL_MiscDirtyFlag);
-    }
-    public get fogEnabled(): boolean {
-        return this._fogEnabled;
-    }
-
-    private _fogMode = Scene.FOGMODE_NONE;
-    /**
-    * Gets or sets the fog mode to use
-    * @see https://doc.babylonjs.com/babylon101/environment#fog
-    * | mode | value |
-    * | --- | --- |
-    * | FOGMODE_NONE | 0 |
-    * | FOGMODE_EXP | 1 |
-    * | FOGMODE_EXP2 | 2 |
-    * | FOGMODE_LINEAR | 3 |
-    */
-    public set fogMode(value: number) {
-        if (this._fogMode === value) {
-            return;
-        }
-        this._fogMode = value;
-        this.markAllMaterialsAsDirty(Constants.MATERIAL_MiscDirtyFlag);
-    }
-    public get fogMode(): number {
-        return this._fogMode;
-    }
-
-    /**
-    * Gets or sets the fog color to use
-    * @see https://doc.babylonjs.com/babylon101/environment#fog
-    * (Default is Color3(0.2, 0.2, 0.3))
-    */
-    public fogColor = new Color3(0.2, 0.2, 0.3);
-    /**
-    * Gets or sets the fog density to use
-    * @see https://doc.babylonjs.com/babylon101/environment#fog
-    * (Default is 0.1)
-    */
-    public fogDensity = 0.1;
-    /**
-    * Gets or sets the fog start distance to use
-    * @see https://doc.babylonjs.com/babylon101/environment#fog
-    * (Default is 0)
-    */
-    public fogStart = 0;
-    /**
-    * Gets or sets the fog end distance to use
-    * @see https://doc.babylonjs.com/babylon101/environment#fog
-    * (Default is 1000)
-    */
-    public fogEnd = 1000.0;
 
     /**
     * Flag indicating that the frame buffer binding is handled by another component
