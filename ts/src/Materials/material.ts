@@ -554,7 +554,7 @@ export class Material {
                 return true;
         }
 
-        return this._scene.forceWireframe;
+        return this._scene.sceneRender.forceWireframe;
     }
 
     /**

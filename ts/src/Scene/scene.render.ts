@@ -2,8 +2,10 @@ import { Scene } from ".";
 import { ActionEvent } from "../Actions/actionEvent";
 import { Camera } from "../Cameras/camera";
 import { Constants } from "../Engines/constants";
+import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
+import { BaseTexture } from "../Materials/Textures/baseTexture";
 import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
-import { Color4 } from "../Maths/math";
+import { Color3, Color4 } from "../Maths/math";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
 import { TransformNode } from "../Meshes/transformNode";
@@ -13,6 +15,112 @@ import { IRenderingManagerAutoClearSetup } from "../Rendering/renderingManager";
 import { Nullable } from "../types";
 
 export class SceneRender {
+    /**
+     * Defines the color used to simulate the ambient color (Default is (0, 0, 0))
+     */
+    public ambientColor = new Color3(0, 0, 0);
+
+    /**
+     * This is use to store the default BRDF lookup for PBR materials in your scene.
+     * It should only be one of the following (if not the default embedded one):
+     * * For uncorrelated BRDF (pbr.brdf.useEnergyConservation = false and pbr.brdf.useSmithVisibilityHeightCorrelated = false) : https://assets.babylonjs.com/environments/uncorrelatedBRDF.dds
+     * * For correlated BRDF (pbr.brdf.useEnergyConservation = false and pbr.brdf.useSmithVisibilityHeightCorrelated = true) : https://assets.babylonjs.com/environments/correlatedBRDF.dds
+     * * For correlated multi scattering BRDF (pbr.brdf.useEnergyConservation = true and pbr.brdf.useSmithVisibilityHeightCorrelated = true) : https://assets.babylonjs.com/environments/correlatedMSBRDF.dds
+     * The material properties need to be setup according to the type of texture in use.
+     */
+    public environmentBRDFTexture: BaseTexture;
+
+    /**
+     * Texture used in all pbr material as the reflection texture.
+     * As in the majority of the scene they are the same (exception for multi room and so on),
+     * this is easier to reference from here than from all the materials.
+     */
+    public get environmentTexture(): Nullable<BaseTexture> {
+        return this.scene._environmentTexture;
+    }
+    /**
+     * Texture used in all pbr material as the reflection texture.
+     * As in the majority of the scene they are the same (exception for multi room and so on),
+     * this is easier to set here than in all the materials.
+     */
+    public set environmentTexture(value: Nullable<BaseTexture>) {
+        if (this.scene._environmentTexture === value) {
+            return;
+        }
+
+        this.scene._environmentTexture = value;
+        this.scene.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
+    }
+
+    /** @hidden */
+    protected _environmentIntensity: number = 1;
+    /**
+     * Intensity of the environment in all pbr material.
+     * This dims or reinforces the IBL lighting overall (reflection and diffuse).
+     * As in the majority of the scene they are the same (exception for multi room and so on),
+     * this is easier to reference from here than from all the materials.
+     */
+    public get environmentIntensity(): number {
+        return this._environmentIntensity;
+    }
+    /**
+     * Intensity of the environment in all pbr material.
+     * This dims or reinforces the IBL lighting overall (reflection and diffuse).
+     * As in the majority of the scene they are the same (exception for multi room and so on),
+     * this is easier to set here than in all the materials.
+     */
+    public set environmentIntensity(value: number) {
+        if (this._environmentIntensity === value) {
+            return;
+        }
+
+        this._environmentIntensity = value;
+        this.scene.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
+    }
+
+    /** @hidden */
+    protected _imageProcessingConfiguration: ImageProcessingConfiguration;
+    /**
+     * Default image processing configuration used either in the rendering
+     * Forward main pass or through the imageProcessingPostProcess if present.
+     * As in the majority of the scene they are the same (exception for multi camera),
+     * this is easier to reference from here than from all the materials and post process.
+     *
+     * No setter as we it is a shared configuration, you can set the values instead.
+     */
+    public get imageProcessingConfiguration(): ImageProcessingConfiguration {
+        return this._imageProcessingConfiguration;
+    }
+
+    private _forceWireframe = false;
+    /**
+     * Gets or sets a boolean indicating if all rendering must be done in wireframe
+     */
+    public set forceWireframe(value: boolean) {
+        if (this._forceWireframe === value) {
+            return;
+        }
+        this._forceWireframe = value;
+        this.scene.markAllMaterialsAsDirty(Constants.MATERIAL_MiscDirtyFlag);
+    }
+    public get forceWireframe(): boolean {
+        return this._forceWireframe;
+    }
+
+    public _skipFrustumClipping = false;
+    /**
+     * Gets or sets a boolean indicating if we should skip the frustum clipping part of the active meshes selection
+     */
+    public set skipFrustumClipping(value: boolean) {
+        if (this._skipFrustumClipping === value) {
+            return;
+        }
+        this._skipFrustumClipping = value;
+    }
+    public get skipFrustumClipping(): boolean {
+        return this._skipFrustumClipping;
+    }
+
     /**
      * Gets or sets a boolean that indicates if the scene must clear the render buffer before rendering a frame
      */
@@ -319,7 +427,7 @@ export class SceneRender {
         // Clear
         if ((this.autoClearDepthAndStencil || this.autoClear) && !this.scene.prePass) {
             this.scene._engine.clear(this.clearColor,
-                this.autoClear || this.scene.forceWireframe || this.scene.forcePointsCloud,
+                this.autoClear || this.forceWireframe || this.scene.forcePointsCloud,
                 this.autoClearDepthAndStencil,
                 this.autoClearDepthAndStencil);
         }
@@ -543,7 +651,7 @@ export class SceneRender {
     }
 
     private _evaluateSubMesh(subMesh: SubMesh, mesh: AbstractMesh, initialMesh: AbstractMesh): void {
-        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.scene.dispatchAllSubMeshesOfActiveMeshes || this.scene._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes)) {
+        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.scene.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes)) {
             for (let step of this.scene.sceneStage._evaluateSubMeshStage) {
                 step.action(mesh, subMesh);
             }
@@ -647,7 +755,7 @@ export class SceneRender {
 
             mesh._preActivate();
 
-            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.scene.activeCamera.layerMask) !== 0) && (this.scene._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes))) {
+            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.scene.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes))) {
                 this.scene._activeMeshes.push(mesh);
                 this.scene.activeCamera._activeMeshes.push(mesh);
 

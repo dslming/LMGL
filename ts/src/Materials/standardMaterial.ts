@@ -574,7 +574,7 @@ export class StandardMaterial extends PushMaterial {
 
         // Pick the scene configuration if needed
         if (!configuration) {
-            this._imageProcessingConfiguration = this.getScene().imageProcessingConfiguration;
+            this._imageProcessingConfiguration = this.getScene().sceneRender.imageProcessingConfiguration;
         }
         else {
             this._imageProcessingConfiguration = configuration;
@@ -1580,7 +1580,7 @@ export class StandardMaterial extends PushMaterial {
             MaterialHelper.BindClipPlane(effect, scene);
 
             // Colors
-            scene.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
+            scene.sceneRender.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
 
             MaterialHelper.BindEyePosition(effect, scene);
             effect.setColor3("vAmbientColor", this._globalAmbientColor);

@@ -1903,7 +1903,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         }
 
         // Bind
-        var fillMode = scene.forcePointsCloud ? Material.PointFillMode : (scene.forceWireframe ? Material.WireFrameFillMode : this._effectiveMaterial.fillMode);
+        var fillMode = scene.forcePointsCloud ? Material.PointFillMode : (scene.sceneRender.forceWireframe ? Material.WireFrameFillMode : this._effectiveMaterial.fillMode);
 
         if (this._internalMeshDataInfo._onBeforeBindObservable) {
             this._internalMeshDataInfo._onBeforeBindObservable.notifyObservers(this);
