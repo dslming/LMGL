@@ -329,7 +329,7 @@ export abstract class ShadowLight extends Light implements IShadowLight {
      */
     public computeWorldMatrix(force?: boolean): Matrix {
         if (!force && this.isSynchronized()) {
-            this._currentRenderId = this.getScene().getRenderId();
+            this._currentRenderId = this.getScene().sceneRender.getRenderId();
             return this._worldMatrix;
         }
 

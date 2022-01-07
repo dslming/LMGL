@@ -726,37 +726,6 @@ export class Scene extends AbstractScene {
     }
 
     /**
-     * Defines the gravity applied to this scene (used only for collisions)
-     * @see https://doc.babylonjs.com/babylon101/cameras,_mesh_collisions_and_gravity
-     */
-    public gravity = new Vector3(0, -9.807, 0);
-
-    // Postprocesses
-    /**
-    * Gets or sets a boolean indicating if postprocesses are enabled on this scene
-    */
-    public postProcessesEnabled = true;
-    /**
-     * Gets the current postprocess manager
-     */
-    // public postProcessManager: PostProcessManager;
-
-    // Customs render targets
-    /**
-    * Gets or sets a boolean indicating if render targets are enabled on this scene
-    */
-    public renderTargetsEnabled = true;
-    /**
-    * Gets or sets a boolean indicating if next render targets must be dumped as image for debugging purposes
-    * We recommend not using it and instead rely on Spector.js: http://spector.babylonjs.com
-    */
-    public dumpNextRenderTargets = false;
-    /**
-     * The list of user defined render targets added to the scene
-     */
-    public customRenderTargets = new Array<RenderTargetTexture>();
-
-    /**
      * Defines if texture loading must be delayed
      * If true, textures will only be loaded when they need to be rendered
      */
@@ -766,19 +735,6 @@ export class Scene extends AbstractScene {
      * Gets the list of meshes imported to the scene through SceneLoader
      */
     public importedMeshesFiles = new Array<String>();
-
-    // Probes
-    /**
-    * Gets or sets a boolean indicating if probes are enabled on this scene
-    */
-    public probesEnabled = true;
-
-    // Offline support
-    /**
-     * Gets or sets the current offline provider to use to store scene data
-     * @see https://doc.babylonjs.com/how_to/caching_resources_in_indexeddb
-     */
-    // public offlineProvider: IOfflineProvider;
 
     /**
      * Gets or sets the action manager associated with the scene
@@ -1058,34 +1014,15 @@ export class Scene extends AbstractScene {
         return this._activeMeshes;
     }
 
-    /**
-     * Gets the animation ratio (which is 1.0 is the scene renders at 60fps and 2 if the scene renders at 30fps, etc.)
-     * @returns a number
-     */
-    public getAnimationRatio(): number {
-        return this._animationRatio !== undefined ? this._animationRatio : 1;
-    }
+    // /**
+    //  * Gets the animation ratio (which is 1.0 is the scene renders at 60fps and 2 if the scene renders at 30fps, etc.)
+    //  * @returns a number
+    //  */
+    // public getAnimationRatio(): number {
+    //     return this._animationRatio !== undefined ? this._animationRatio : 1;
+    // }
 
-    /**
-     * Gets an unique Id for the current render phase
-     * @returns a number
-     */
-    public getRenderId(): number {
-        return this._renderId;
-    }
 
-    /**
-     * Gets an unique Id for the current frame
-     * @returns a number
-     */
-    public getFrameId(): number {
-        return this._frameId;
-    }
-
-    /** Call this function if you want to manually increment the render Id*/
-    public incrementRenderId(): void {
-        this._renderId++;
-    }
 
     /**
      * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
@@ -1165,34 +1102,6 @@ export class Scene extends AbstractScene {
         // }
 
         return true;
-    }
-
-
-    private _executeOnceBeforeRender(func: () => void): void {
-        let execFunc = () => {
-            func();
-            setTimeout(() => {
-                this.sceneEventTrigger.unregisterBeforeRender(execFunc);
-            });
-        };
-        this.sceneEventTrigger.registerBeforeRender(execFunc);
-    }
-
-    /**
-     * The provided function will run before render once and will be disposed afterwards.
-     * A timeout delay can be provided so that the function will be executed in N ms.
-     * The timeout is using the browser's native setTimeout so time percision cannot be guaranteed.
-     * @param func The function to be executed.
-     * @param timeout optional delay in ms
-     */
-    public executeOnceBeforeRender(func: () => void, timeout?: number): void {
-        if (timeout !== undefined) {
-            setTimeout(() => {
-                this._executeOnceBeforeRender(func);
-            }, timeout);
-        } else {
-            this._executeOnceBeforeRender(func);
-        }
     }
 
     /** @hidden */
@@ -1640,9 +1549,9 @@ export class Scene extends AbstractScene {
             mesh.computeWorldMatrix();
 
             // Intersections
-            // if (mesh.actionManager && mesh.actionManager.hasSpecificTriggers2(Constants.ACTION_OnIntersectionEnterTrigger, Constants.ACTION_OnIntersectionExitTrigger)) {
-            //     this._meshesForIntersections.pushNoDuplicate(mesh);
-            // }
+            if (mesh.actionManager && mesh.actionManager.hasSpecificTriggers2(Constants.ACTION_OnIntersectionEnterTrigger, Constants.ACTION_OnIntersectionExitTrigger)) {
+                this._meshesForIntersections.pushNoDuplicate(mesh);
+            }
 
             // Switch to current LOD
             let meshToRender = this.customLODSelector ? this.customLODSelector(mesh, this.activeCamera) : mesh.getLOD(this.activeCamera);

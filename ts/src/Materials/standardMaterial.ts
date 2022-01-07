@@ -1284,7 +1284,7 @@ export class StandardMaterial extends PushMaterial {
             return false;
         }
 
-        defines._renderId = scene.getRenderId();
+        defines._renderId = scene.sceneRender.getRenderId();
         subMesh.effect._wasPreviouslyReady = true;
 
         return true;

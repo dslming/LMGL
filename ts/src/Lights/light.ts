@@ -393,8 +393,8 @@ export abstract class Light extends Node {
 
         this._uniformBuffer.bindToEffect(effect, "Light" + iAsString);
 
-        if (this._renderId !== scene.getRenderId() || !this._uniformBuffer.useUbo) {
-            this._renderId = scene.getRenderId();
+        if (this._renderId !== scene.sceneRender.getRenderId() || !this._uniformBuffer.useUbo) {
+            this._renderId = scene.sceneRender.getRenderId();
 
             let scaledIntensity = this.getScaledIntensity();
 

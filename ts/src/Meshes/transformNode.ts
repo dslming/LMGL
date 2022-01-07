@@ -662,7 +662,7 @@ export class TransformNode extends Node {
      * @returns the current TransformNode
     */
     public setPivotPoint(point: Vector3, space: Space = Space.LOCAL): TransformNode {
-        if (this.getScene().getRenderId() == 0) {
+        if (this.getScene().sceneRender.getRenderId() == 0) {
             this.computeWorldMatrix(true);
         }
 
@@ -967,7 +967,7 @@ export class TransformNode extends Node {
             return this._worldMatrix;
         }
 
-        let currentRenderId = this.getScene().getRenderId();
+        let currentRenderId = this.getScene().sceneRender.getRenderId();
         if (!this._isDirty && !force && this.isSynchronized()) {
             this._currentRenderId = currentRenderId;
             return this._worldMatrix;

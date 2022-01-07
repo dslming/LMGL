@@ -390,7 +390,7 @@ export class Node implements IBehaviorAware<Node> {
      * @returns a Matrix
      */
     public getWorldMatrix(): Matrix {
-        if (this._currentRenderId !== this._scene.getRenderId()) {
+        if (this._currentRenderId !== this._scene.sceneRender.getRenderId()) {
             this.computeWorldMatrix();
         }
         return this._worldMatrix;
@@ -802,7 +802,7 @@ export class Node implements IBehaviorAware<Node> {
  */
     public getHierarchyBoundingVectors(includeDescendants = true, predicate: Nullable<(abstractMesh: AbstractMesh) => boolean> = null): { min: Vector3, max: Vector3 } {
         // Ensures that all world matrix will be recomputed.
-        this.getScene().incrementRenderId();
+        this.getScene().sceneRender.incrementRenderId();
 
         this.computeWorldMatrix(true);
 

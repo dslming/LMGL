@@ -10,10 +10,54 @@ import { IRenderingManagerAutoClearSetup } from "../Rendering/renderingManager";
 import { Nullable } from "../types";
 
 export class SceneRender {
-  scene: Scene;
+    scene: Scene;
+    // Customs render targets
+    /**
+    * Gets or sets a boolean indicating if render targets are enabled on this scene
+    */
+    public renderTargetsEnabled = true;
+
+    /**
+* Gets or sets a boolean indicating if next render targets must be dumped as image for debugging purposes
+* We recommend not using it and instead rely on Spector.js: http://spector.babylonjs.com
+*/
+    public dumpNextRenderTargets = false;
+
+    /**
+   * The list of user defined render targets added to the scene
+   */
+    public customRenderTargets = new Array<RenderTargetTexture>();
+
   constructor(scene: Scene) {
     this.scene = scene;
-  }
+    }
+    private _executeOnceBeforeRender(func: () => void): void {
+        let execFunc = () => {
+            func();
+            setTimeout(() => {
+                this.scene.sceneEventTrigger.unregisterBeforeRender(execFunc);
+            });
+        };
+        this.scene.sceneEventTrigger.registerBeforeRender(execFunc);
+    }
+
+    /**
+     * The provided function will run before render once and will be disposed afterwards.
+     * A timeout delay can be provided so that the function will be executed in N ms.
+     * The timeout is using the browser's native setTimeout so time percision cannot be guaranteed.
+     * @param func The function to be executed.
+     * @param timeout optional delay in ms
+     */
+    public executeOnceBeforeRender(func: () => void, timeout?: number): void {
+        if (timeout !== undefined) {
+            setTimeout(() => {
+                this._executeOnceBeforeRender(func);
+            }, timeout);
+        } else {
+            this._executeOnceBeforeRender(func);
+        }
+    }
+
   /**
      * Gets the current auto clear configuration for one rendering group of the rendering
      * manager.
@@ -220,11 +264,11 @@ export class SceneRender {
         this.scene.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this.scene);
         var engine = this.scene.getEngine();
         var currentActiveCamera = this.scene.activeCamera;
-        if (this.scene.renderTargetsEnabled) {
-            Tools.StartPerformanceCounter("Custom render targets", this.scene.customRenderTargets.length > 0);
+        if (this.renderTargetsEnabled) {
+            Tools.StartPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
             this.scene._intermediateRendering = true;
-            for (var customIndex = 0; customIndex < this.scene.customRenderTargets.length; customIndex++) {
-                var renderTarget = this.scene.customRenderTargets[customIndex];
+            for (var customIndex = 0; customIndex < this.customRenderTargets.length; customIndex++) {
+                var renderTarget = this.customRenderTargets[customIndex];
                 if (renderTarget._shouldRender()) {
                     this.scene._renderId++;
 
@@ -240,10 +284,10 @@ export class SceneRender {
                     // Camera
                     this.scene.sceneMatrix.updateTransformMatrix();
 
-                    renderTarget.render(currentActiveCamera !== this.scene.activeCamera, this.scene.dumpNextRenderTargets);
+                    renderTarget.render(currentActiveCamera !== this.scene.activeCamera, this.dumpNextRenderTargets);
                 }
             }
-            Tools.EndPerformanceCounter("Custom render targets", this.scene.customRenderTargets.length > 0);
+            Tools.EndPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
             this.scene._intermediateRendering = false;
             this.scene._renderId++;
         }
@@ -316,8 +360,8 @@ export class SceneRender {
             this.scene._toBeDisposed = [];
         }
 
-        if (this.scene.dumpNextRenderTargets) {
-            this.scene.dumpNextRenderTargets = false;
+        if (this.dumpNextRenderTargets) {
+            this.dumpNextRenderTargets = false;
         }
 
         this.scene._activeBones.addCount(0, true);
@@ -376,7 +420,7 @@ export class SceneRender {
         }
 
         let needRebind = false;
-        if (this.scene.renderTargetsEnabled) {
+        if (this.renderTargetsEnabled) {
             this.scene._intermediateRendering = true;
 
             if (this.scene._renderTargets.length > 0) {
@@ -386,7 +430,7 @@ export class SceneRender {
                     if (renderTarget._shouldRender()) {
                         this.scene._renderId++;
                         var hasSpecialRenderTargetCamera = renderTarget.activeCamera && renderTarget.activeCamera !== this.scene.activeCamera;
-                        renderTarget.render((<boolean>hasSpecialRenderTargetCamera), this.scene.dumpNextRenderTargets);
+                        renderTarget.render((<boolean>hasSpecialRenderTargetCamera), this.dumpNextRenderTargets);
                         needRebind = true;
                     }
                 }
@@ -445,5 +489,26 @@ export class SceneRender {
         this.scene._renderTargets.reset();
 
         this.scene.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(this.scene.activeCamera);
+    }
+
+    /**
+    * Gets an unique Id for the current render phase
+    * @returns a number
+    */
+    public getRenderId(): number {
+        return this.scene._renderId;
+    }
+
+    /**
+     * Gets an unique Id for the current frame
+     * @returns a number
+     */
+    public getFrameId(): number {
+        return this.scene._frameId;
+    }
+
+    /** Call this function if you want to manually increment the render Id*/
+    public incrementRenderId(): void {
+        this.scene._renderId++;
     }
 }

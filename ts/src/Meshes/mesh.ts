@@ -1103,7 +1103,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     /** @hidden */
     public _preActivate(): Mesh {
         let internalDataInfo = this._internalMeshDataInfo;
-        var sceneRenderId = this.getScene().getRenderId();
+        var sceneRenderId = this.getScene().sceneRender.getRenderId();
         if (internalDataInfo._preActivateId === sceneRenderId) {
             return this;
         }
@@ -1601,7 +1601,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
         if (this._instanceDataStorage.visibleInstances && !isReplacementMode) {
             let visibleInstances = this._instanceDataStorage.visibleInstances;
-            var currentRenderId = scene.getRenderId();
+            var currentRenderId = scene.sceneRender.getRenderId();
             var defaultRenderId = (isInIntermediateRendering ? visibleInstances.intermediateDefaultRenderId : visibleInstances.defaultRenderId);
             batchCache.visibleInstances[subMeshId] = visibleInstances[currentRenderId];
 

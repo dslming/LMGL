@@ -136,7 +136,7 @@ export class Action implements IAction {
     public _executeCurrent(evt?: ActionEvent): void {
         if (this._nextActiveAction._condition) {
             var condition = this._nextActiveAction._condition;
-            var currentRenderId = this._actionManager.getScene().getRenderId();
+            var currentRenderId = this._actionManager.getScene().sceneRender.getRenderId();
 
             // We cache the current evaluation for the current frame
             if (condition._evaluationId === currentRenderId) {

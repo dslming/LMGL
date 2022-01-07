@@ -692,14 +692,14 @@ export class RenderTargetTexture extends Texture {
         if (this.is2DArray) {
             for (let layer = 0; layer < this.getRenderLayers(); layer++) {
                 this.renderToTarget(0, useCameraPostProcess, dumpForDebug, layer, camera);
-                scene.incrementRenderId();
+                scene.sceneRender.incrementRenderId();
                 scene.sceneCatch.resetCachedMaterial();
             }
         }
         else if (this.isCube) {
             for (var face = 0; face < 6; face++) {
                 this.renderToTarget(face, useCameraPostProcess, dumpForDebug, undefined, camera);
-                scene.incrementRenderId();
+                scene.sceneRender.incrementRenderId();
                 scene.sceneCatch.resetCachedMaterial();
             }
         } else {
@@ -737,7 +737,7 @@ export class RenderTargetTexture extends Texture {
 
         this._renderingManager.reset();
 
-        var sceneRenderId = scene.getRenderId();
+        var sceneRenderId = scene.sceneRender.getRenderId();
         for (var meshIndex = 0; meshIndex < currentRenderListLength; meshIndex++) {
             var mesh = currentRenderList[meshIndex];
 
@@ -1070,10 +1070,10 @@ export class RenderTargetTexture extends Texture {
             return;
         }
 
-        var index = scene.customRenderTargets.indexOf(this);
+        var index = scene.sceneRender.customRenderTargets.indexOf(this);
 
         if (index >= 0) {
-            scene.customRenderTargets.splice(index, 1);
+            scene.sceneRender.customRenderTargets.splice(index, 1);
         }
 
         for (var camera of scene.cameras) {

@@ -629,7 +629,7 @@ export class Camera extends Node {
 
         this.updateCache();
         this._computedViewMatrix = this._getViewMatrix();
-        this._currentRenderId = this.getScene().getRenderId();
+        this._currentRenderId = this.getScene().sceneRender.getRenderId();
         this._childUpdateId++;
 
         this._refreshFrustumPlanes = true;

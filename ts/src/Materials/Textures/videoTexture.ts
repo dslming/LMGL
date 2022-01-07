@@ -312,7 +312,7 @@ export class VideoTexture extends Texture {
             return;
         }
 
-        let frameId = this.getScene()!.getFrameId();
+        let frameId = this.getScene()!.sceneRender.getFrameId();
         if (this._frameId === frameId) {
             return;
         }

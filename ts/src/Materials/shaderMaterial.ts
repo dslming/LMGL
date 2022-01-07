@@ -492,7 +492,7 @@ export class ShaderMaterial extends Material {
         var engine = scene.getEngine();
 
         if (!this.checkReadyOnEveryCall) {
-            if (this._renderId === scene.getRenderId()) {
+            if (this._renderId === scene.sceneRender.getRenderId()) {
                 if (this._checkCache(mesh, useInstances)) {
                     return true;
                 }
@@ -597,7 +597,7 @@ export class ShaderMaterial extends Material {
             scene.sceneCatch.resetCachedMaterial();
         }
 
-        this._renderId = scene.getRenderId();
+        this._renderId = scene.sceneRender.getRenderId();
         this._effect._wasPreviouslyReady = true;
 
         return true;
