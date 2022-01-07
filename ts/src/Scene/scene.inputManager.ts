@@ -216,8 +216,8 @@ export class InputManager {
         if (pickResult) {
             let type = evt.type === this._wheelEventName ? PointerEventTypes.POINTERWHEEL : PointerEventTypes.POINTERMOVE;
 
-            if (scene.onPointerMove) {
-                scene.onPointerMove(evt, pickResult, type);
+            if (scene.sceneInputManagerApp.onPointerMove) {
+                scene.sceneInputManagerApp.onPointerMove(evt, pickResult, type);
             }
 
             if (scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
@@ -332,8 +332,8 @@ export class InputManager {
         if (pickResult) {
             let type = PointerEventTypes.POINTERDOWN;
 
-            if (scene.onPointerDown) {
-                scene.onPointerDown(evt, pickResult, type);
+            if (scene.sceneInputManagerApp.onPointerDown) {
+                scene.sceneInputManagerApp.onPointerDown(evt, pickResult, type);
             }
 
             if (scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
@@ -378,8 +378,8 @@ export class InputManager {
         if (pickResult && pickResult && pickResult.pickedMesh) {
             this._pickedUpMesh = pickResult.pickedMesh;
             if (this._pickedDownMesh === this._pickedUpMesh) {
-                if (scene.onPointerPick) {
-                    scene.onPointerPick(evt, pickResult);
+                if (scene.sceneInputManagerApp.onPointerPick) {
+                    scene.sceneInputManagerApp.onPointerPick(evt, pickResult);
                 }
                 if (clickInfo.singleClick && !clickInfo.ignore && scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
                     let type = PointerEventTypes.POINTERPICK;
@@ -440,8 +440,8 @@ export class InputManager {
             }
         }
 
-        if (scene.onPointerUp && !clickInfo.ignore) {
-            scene.onPointerUp(evt, pickResult, type);
+        if (scene.sceneInputManagerApp.onPointerUp && !clickInfo.ignore) {
+            scene.sceneInputManagerApp.onPointerUp(evt, pickResult, type);
         }
     }
 
@@ -480,7 +480,7 @@ export class InputManager {
 
         this._initActionManager = (act: Nullable<AbstractActionManager>, clickInfo: _ClickInfo): Nullable<AbstractActionManager> => {
             if (!this._meshPickProceed) {
-                let pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerDownPredicate, false, scene.cameraToUseForPointers);
+                let pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.sceneInputManagerApp.pointerDownPredicate, false, scene.cameraToUseForPointers);
                 this._currentPickResult = pickResult;
                 if (pickResult) {
                     act = pickResult.hit && pickResult.pickedMesh ? pickResult.pickedMesh._getActionManagerForTrigger() : null;
@@ -630,8 +630,8 @@ export class InputManager {
                 return;
             }
 
-            if (!scene.pointerMovePredicate) {
-                scene.pointerMovePredicate = (mesh: AbstractMesh): boolean =>
+            if (!scene.sceneInputManagerApp.pointerMovePredicate) {
+                scene.sceneInputManagerApp.pointerMovePredicate = (mesh: AbstractMesh): boolean =>
                     mesh.isPickable &&
                     mesh.isVisible &&
                     mesh.isReady() &&
@@ -641,7 +641,7 @@ export class InputManager {
             }
 
             // Meshes
-            var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerMovePredicate, false, scene.cameraToUseForPointers);
+            var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.sceneInputManagerApp.pointerMovePredicate, false, scene.cameraToUseForPointers);
 
             this._processPointerMove(pickResult, evt);
         };
@@ -678,15 +678,15 @@ export class InputManager {
 
             this._pointerCaptures[evt.pointerId] = true;
 
-            if (!scene.pointerDownPredicate) {
-                scene.pointerDownPredicate = (mesh: AbstractMesh): boolean => {
+            if (!scene.sceneInputManagerApp.pointerDownPredicate) {
+                scene.sceneInputManagerApp.pointerDownPredicate = (mesh: AbstractMesh): boolean => {
                     return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.isEnabled() && (!scene.cameraToUseForPointers || (scene.cameraToUseForPointers.layerMask & mesh.layerMask) !== 0);
                 };
             }
 
             // Meshes
             this._pickedDownMesh = null;
-            var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerDownPredicate, false, scene.cameraToUseForPointers);
+            var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.sceneInputManagerApp.pointerDownPredicate, false, scene.cameraToUseForPointers);
 
             this._processPointerDown(pickResult, evt);
         };
@@ -746,8 +746,8 @@ export class InputManager {
                     return;
                 }
 
-                if (!scene.pointerUpPredicate) {
-                    scene.pointerUpPredicate = (mesh: AbstractMesh): boolean => {
+                if (!scene.sceneInputManagerApp.pointerUpPredicate) {
+                    scene.sceneInputManagerApp.pointerUpPredicate = (mesh: AbstractMesh): boolean => {
                         return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.isEnabled() && (!scene.cameraToUseForPointers || (scene.cameraToUseForPointers.layerMask & mesh.layerMask) !== 0);
                     };
                 }

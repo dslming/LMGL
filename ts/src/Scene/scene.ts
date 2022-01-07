@@ -169,26 +169,6 @@ export class Scene extends AbstractScene {
         return this._forcePointsCloud;
     }
 
-
-
-    /**
-     * Gets or sets a boolean indicating if animations are enabled
-     */
-    public animationsEnabled = true;
-
-    // private _animationPropertiesOverride: Nullable<AnimationPropertiesOverride> = null;
-
-    /**
-     * Gets or sets the animation properties override
-     */
-    // public get animationPropertiesOverride(): Nullable<AnimationPropertiesOverride> {
-    //     return this._animationPropertiesOverride;
-    // }
-
-    // public set animationPropertiesOverride(value: Nullable<AnimationPropertiesOverride>) {
-    //     this._animationPropertiesOverride = value;
-    // }
-
     /**
      * Gets or sets a boolean indicating if a constant deltatime has to be used
      * This is mostly useful for testing purposes when you do not want the animations to scale with the framerate
@@ -255,32 +235,6 @@ export class Scene extends AbstractScene {
 
     /** @hidden */
     public _registeredForLateAnimationBindings = new SmartArrayNoDuplicate<any>(256);
-
-    // Pointers
-    /**
-     * Gets or sets a predicate used to select candidate meshes for a pointer down event
-     */
-    public pointerDownPredicate: (Mesh: AbstractMesh) => boolean;
-    /**
-     * Gets or sets a predicate used to select candidate meshes for a pointer up event
-     */
-    public pointerUpPredicate: (Mesh: AbstractMesh) => boolean;
-    /**
-     * Gets or sets a predicate used to select candidate meshes for a pointer move event
-     */
-    public pointerMovePredicate: (Mesh: AbstractMesh) => boolean;
-
-    /** Callback called when a pointer move is detected */
-    public onPointerMove: (evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) => void;
-    /** Callback called when a pointer down is detected  */
-    public onPointerDown: (evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) => void;
-    /** Callback called when a pointer up is detected  */
-    public onPointerUp: (evt: PointerEvent, pickInfo: Nullable<PickingInfo>, type: PointerEventTypes) => void;
-    /** Callback called when a pointer pick is detected */
-    public onPointerPick: (evt: PointerEvent, pickInfo: PickingInfo) => void;
-
-
-
 
 
     /**

@@ -1,4 +1,5 @@
 import { PickingInfo } from "../Collisions/pickingInfo";
+import { PointerEventTypes } from "../Events/pointerEvents";
 import { Vector2 } from "../Maths/math";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { Nullable } from "../types";
@@ -6,6 +7,31 @@ import { Scene } from "./scene";
 import { InputManager } from "./scene.inputManager";
 
 export class SceneInputManagerApp {
+  // Pointers
+    /**
+     * Gets or sets a predicate used to select candidate meshes for a pointer down event
+     */
+    public pointerDownPredicate: (Mesh: AbstractMesh) => boolean;
+    /**
+     * Gets or sets a predicate used to select candidate meshes for a pointer up event
+     */
+    public pointerUpPredicate: (Mesh: AbstractMesh) => boolean;
+    /**
+     * Gets or sets a predicate used to select candidate meshes for a pointer move event
+     */
+    public pointerMovePredicate: (Mesh: AbstractMesh) => boolean;
+
+    /** Callback called when a pointer move is detected */
+    public onPointerMove: (evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) => void;
+    /** Callback called when a pointer down is detected  */
+    public onPointerDown: (evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) => void;
+    /** Callback called when a pointer up is detected  */
+    public onPointerUp: (evt: PointerEvent, pickInfo: Nullable<PickingInfo>, type: PointerEventTypes) => void;
+    /** Callback called when a pointer pick is detected */
+    public onPointerPick: (evt: PointerEvent, pickInfo: PickingInfo) => void;
+
+
+
   public inputManager: InputManager;
 
   constructor(scene:Scene) {
