@@ -212,10 +212,8 @@ export class SceneRender {
         // Register components that have been associated lately to the scene.
         this.scene._registerTransientComponents();
 
-        this.scene._activeParticles.fetchNewFrame();
         this.scene._totalVertices.fetchNewFrame();
         this.scene._activeIndices.fetchNewFrame();
-        this.scene._activeBones.fetchNewFrame();
         this.scene._meshesForIntersections.reset();
         this.scene.sceneCatch.resetCachedMaterial();
 
@@ -362,9 +360,7 @@ export class SceneRender {
             this.dumpNextRenderTargets = false;
         }
 
-        this.scene._activeBones.addCount(0, true);
         this.scene._activeIndices.addCount(0, true);
-        this.scene._activeParticles.addCount(0, true);
     }
 
     /** @hidden */

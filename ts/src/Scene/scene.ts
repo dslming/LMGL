@@ -683,25 +683,6 @@ export class Scene extends AbstractScene {
     public _totalVertices = new PerfCounter();
     /** @hidden */
     public _activeIndices = new PerfCounter();
-    /** @hidden */
-    public _activeParticles = new PerfCounter();
-    /** @hidden */
-    public _activeBones = new PerfCounter();
-
-    private _animationRatio: number;
-
-    /** @hidden */
-    public _animationTimeLast: number;
-
-    /** @hidden */
-    public _animationTime: number = 0;
-
-    /**
-     * Gets or sets a general scale for animation speed
-     * @see https://www.babylonjs-playground.com/#IBU2W7#3
-     */
-    public animationTimeScale: number = 1;
-
 
     public _renderId = 0;
     public _frameId = 0;
@@ -1510,7 +1491,9 @@ export class Scene extends AbstractScene {
 
     private _blockMaterialDirtyMechanism = false;
 
-    /** Gets or sets a boolean blocking all the calls to markAllMaterialsAsDirty (ie. the materials won't be updated if they are out of sync) */
+    /**
+     * Gets or sets a boolean blocking all the calls to markAllMaterialsAsDirty (ie. the materials won't be updated if they are out of sync)
+     */
     public get blockMaterialDirtyMechanism(): boolean {
         return this._blockMaterialDirtyMechanism;
     }
