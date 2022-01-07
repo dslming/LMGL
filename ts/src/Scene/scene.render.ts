@@ -5,6 +5,7 @@ import { Constants } from "../Engines/constants";
 import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
+import { TransformNode } from "../Meshes/transformNode";
 import { Logger } from "../Misc/logger";
 import { Tools } from "../Misc/tools";
 import { IRenderingManagerAutoClearSetup } from "../Rendering/renderingManager";
@@ -402,7 +403,7 @@ export class SceneRender {
         this.scene.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.scene.activeCamera);
 
         // Meshes
-        this.scene._evaluateActiveMeshes();
+        this._evaluateActiveMeshes();
 
         // Render targets
         this.scene.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this.scene);
@@ -530,5 +531,141 @@ export class SceneRender {
         } else {
             this.scene.getEngine().restoreDefaultFramebuffer(); // Restore back buffer if needed
         }
+    }
+
+    private _evaluateSubMesh(subMesh: SubMesh, mesh: AbstractMesh, initialMesh: AbstractMesh): void {
+        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.scene.dispatchAllSubMeshesOfActiveMeshes || this.scene._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes)) {
+            for (let step of this.scene.sceneStage._evaluateSubMeshStage) {
+                step.action(mesh, subMesh);
+            }
+
+            const material = subMesh.getMaterial();
+            if (material !== null && material !== undefined) {
+                // Render targets
+                if (material.hasRenderTargetTextures && material.getRenderTargetTextures != null) {
+                    if (this.scene._processedMaterials.indexOf(material) === -1) {
+                        this.scene._processedMaterials.push(material);
+
+                        this.scene._renderTargets.concatWithNoDuplicate(material.getRenderTargetTextures!());
+                    }
+                }
+
+                // Dispatch
+                this.scene._renderingManager.dispatch(subMesh, mesh, material);
+            }
+        }
+    }
+
+    private _activeMesh(sourceMesh: AbstractMesh, mesh: AbstractMesh): void {
+        if (
+            mesh !== undefined && mesh !== null
+            && mesh.subMeshes !== undefined && mesh.subMeshes !== null && mesh.subMeshes.length > 0
+        ) {
+            const subMeshes = this.scene.getActiveSubMeshCandidates(mesh);
+            const len = subMeshes.length;
+            for (let i = 0; i < len; i++) {
+                const subMesh = subMeshes.data[i];
+                this._evaluateSubMesh(subMesh, mesh, sourceMesh);
+            }
+        }
+    }
+
+    public _evaluateActiveMeshes(): void {
+        if (this.scene._activeMeshesFrozen && this.scene._activeMeshes.length) {
+
+            if (!this.scene._skipEvaluateActiveMeshesCompletely) {
+                const len = this.scene._activeMeshes.length;
+                for (let i = 0; i < len; i++) {
+                    let mesh = this.scene._activeMeshes.data[i];
+                    mesh.computeWorldMatrix();
+                }
+            }
+            return;
+        }
+
+        if (!this.scene.activeCamera) {
+            return;
+        }
+
+        this.scene.sceneEventTrigger.onBeforeActiveMeshesEvaluationObservable.notifyObservers(this.scene);
+
+        this.scene.activeCamera._activeMeshes.reset();
+        this.scene._activeMeshes.reset();
+        this.scene._renderingManager.reset();
+        this.scene._processedMaterials.reset();
+        this.scene._softwareSkinnedMeshes.reset();
+        for (let step of this.scene.sceneStage._beforeEvaluateActiveMeshStage) {
+            step.action();
+        }
+
+        // Determine mesh candidates
+        const meshes = this.scene.getActiveMeshCandidates();
+
+        // Check each mesh
+        const len = meshes.length;
+        for (let i = 0; i < len; i++) {
+            const mesh = meshes.data[i];
+            mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = false;
+            if (mesh.isBlocked) {
+                continue;
+            }
+
+            this.scene._totalVertices.addCount(mesh.getTotalVertices(), false);
+
+            if (!mesh.isReady() || !mesh.isEnabled() || mesh.scaling.lengthSquared() === 0) {
+                continue;
+            }
+
+            mesh.computeWorldMatrix();
+
+            // Intersections
+            if (mesh.actionManager && mesh.actionManager.hasSpecificTriggers2(Constants.ACTION_OnIntersectionEnterTrigger, Constants.ACTION_OnIntersectionExitTrigger)) {
+                this.scene._meshesForIntersections.pushNoDuplicate(mesh);
+            }
+
+            // Switch to current LOD
+            let meshToRender = this.scene.customLODSelector ? this.scene.customLODSelector(mesh, this.scene.activeCamera) : mesh.getLOD(this.scene.activeCamera);
+            mesh._internalAbstractMeshDataInfo._currentLOD = meshToRender;
+            mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = true;
+            if (meshToRender === undefined || meshToRender === null) {
+                continue;
+            }
+
+            // Compute world matrix if LOD is billboard
+            if (meshToRender !== mesh && meshToRender.billboardMode !== TransformNode.BILLBOARDMODE_NONE) {
+                meshToRender.computeWorldMatrix();
+            }
+
+            mesh._preActivate();
+
+            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.scene.activeCamera.layerMask) !== 0) && (this.scene._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes))) {
+                this.scene._activeMeshes.push(mesh);
+                this.scene.activeCamera._activeMeshes.push(mesh);
+
+                if (meshToRender !== mesh) {
+                    meshToRender._activate(this.scene._renderId, false);
+                }
+
+                for (let step of this.scene.sceneStage._preActiveMeshStage) {
+                    step.action(mesh);
+                }
+
+                if (mesh._activate(this.scene._renderId, false)) {
+                    if (!mesh.isAnInstance) {
+                        meshToRender._internalAbstractMeshDataInfo._onlyForInstances = false;
+                    } else {
+                        if (mesh._internalAbstractMeshDataInfo._actAsRegularMesh) {
+                            meshToRender = mesh;
+                        }
+                    }
+                    meshToRender._internalAbstractMeshDataInfo._isActive = true;
+                    this._activeMesh(mesh, meshToRender);
+                }
+
+                mesh._postActivate();
+            }
+        }
+
+        this.scene.sceneEventTrigger.onAfterActiveMeshesEvaluationObservable.notifyObservers(this.scene);
     }
 }

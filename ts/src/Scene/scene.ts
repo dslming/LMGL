@@ -270,7 +270,7 @@ export class Scene extends AbstractScene {
         return this._forceWireframe;
     }
 
-    private _skipFrustumClipping = false;
+    public _skipFrustumClipping = false;
     /**
      * Gets or sets a boolean indicating if we should skip the frustum clipping part of the active meshes selection
      */
@@ -799,12 +799,12 @@ export class Scene extends AbstractScene {
      */
     public dispatchAllSubMeshesOfActiveMeshes: boolean = false;
     public _activeMeshes = new SmartArray<AbstractMesh>(256);
-    private _processedMaterials = new SmartArray<Material>(256);
+    public _processedMaterials = new SmartArray<Material>(256);
     public _renderTargets = new SmartArrayNoDuplicate<RenderTargetTexture>(256);
     /** @hidden */
     // public _activeParticleSystems = new SmartArray<IParticleSystem>(256);
     // private _activeSkeletons = new SmartArrayNoDuplicate<Skeleton>(32);
-    private _softwareSkinnedMeshes = new SmartArrayNoDuplicate<Mesh>(32);
+    public _softwareSkinnedMeshes = new SmartArrayNoDuplicate<Mesh>(32);
 
     public _renderingManager: RenderingManager;
 
@@ -1322,28 +1322,7 @@ export class Scene extends AbstractScene {
         return this._externalData.remove(key);
     }
 
-    private _evaluateSubMesh(subMesh: SubMesh, mesh: AbstractMesh, initialMesh: AbstractMesh): void {
-        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.sceneClipPlane.frustumPlanes)) {
-            for (let step of this.sceneStage._evaluateSubMeshStage) {
-                step.action(mesh, subMesh);
-            }
 
-            const material = subMesh.getMaterial();
-            if (material !== null && material !== undefined) {
-                // Render targets
-                if (material.hasRenderTargetTextures && material.getRenderTargetTextures != null) {
-                    if (this._processedMaterials.indexOf(material) === -1) {
-                        this._processedMaterials.push(material);
-
-                        this._renderTargets.concatWithNoDuplicate(material.getRenderTargetTextures!());
-                    }
-                }
-
-                // Dispatch
-                this._renderingManager.dispatch(subMesh, mesh, material);
-            }
-        }
-    }
 
     /**
      * Clear the processed materials smart array preventing retention point in material dispose.
@@ -1427,7 +1406,7 @@ export class Scene extends AbstractScene {
 
     /** @hidden */
     public _activeMeshesFrozen = false;
-    private _skipEvaluateActiveMeshesCompletely = false;
+    public _skipEvaluateActiveMeshesCompletely = false;
 
     /**
      * Use this function to stop evaluating active meshes. The current list will be keep alive between frames
@@ -1447,7 +1426,7 @@ export class Scene extends AbstractScene {
                 this.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix());
             }
 
-            this._evaluateActiveMeshes();
+            this.sceneRender._evaluateActiveMeshes();
             this._activeMeshesFrozen = true;
             this._skipEvaluateActiveMeshesCompletely = skipEvaluateActiveMeshes;
 
@@ -1480,128 +1459,7 @@ export class Scene extends AbstractScene {
         return this;
     }
 
-    public _evaluateActiveMeshes(): void {
-        if (this._activeMeshesFrozen && this._activeMeshes.length) {
 
-            if (!this._skipEvaluateActiveMeshesCompletely) {
-                const len = this._activeMeshes.length;
-                for (let i = 0; i < len; i++) {
-                    let mesh = this._activeMeshes.data[i];
-                    mesh.computeWorldMatrix();
-                }
-            }
-
-            // if (this._activeParticleSystems) {
-            //     const psLength = this._activeParticleSystems.length;
-            //     for (let i = 0; i < psLength; i++) {
-            //         this._activeParticleSystems.data[i].animate();
-            //     }
-            // }
-
-            return;
-        }
-
-        if (!this.activeCamera) {
-            return;
-        }
-
-        this.sceneEventTrigger.onBeforeActiveMeshesEvaluationObservable.notifyObservers(this);
-
-        this.activeCamera._activeMeshes.reset();
-        this._activeMeshes.reset();
-        this._renderingManager.reset();
-        this._processedMaterials.reset();
-        // this._activeParticleSystems.reset();
-        // this._activeSkeletons.reset();
-        this._softwareSkinnedMeshes.reset();
-        for (let step of this.sceneStage._beforeEvaluateActiveMeshStage) {
-            step.action();
-        }
-
-        // Determine mesh candidates
-        const meshes = this.getActiveMeshCandidates();
-
-        // Check each mesh
-        const len = meshes.length;
-        for (let i = 0; i < len; i++) {
-            const mesh = meshes.data[i];
-            mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = false;
-            if (mesh.isBlocked) {
-                continue;
-            }
-
-            this._totalVertices.addCount(mesh.getTotalVertices(), false);
-
-            if (!mesh.isReady() || !mesh.isEnabled() || mesh.scaling.lengthSquared() === 0) {
-                continue;
-            }
-
-            mesh.computeWorldMatrix();
-
-            // Intersections
-            if (mesh.actionManager && mesh.actionManager.hasSpecificTriggers2(Constants.ACTION_OnIntersectionEnterTrigger, Constants.ACTION_OnIntersectionExitTrigger)) {
-                this._meshesForIntersections.pushNoDuplicate(mesh);
-            }
-
-            // Switch to current LOD
-            let meshToRender = this.customLODSelector ? this.customLODSelector(mesh, this.activeCamera) : mesh.getLOD(this.activeCamera);
-            mesh._internalAbstractMeshDataInfo._currentLOD = meshToRender;
-            mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = true;
-            if (meshToRender === undefined || meshToRender === null) {
-                continue;
-            }
-
-            // Compute world matrix if LOD is billboard
-            if (meshToRender !== mesh && meshToRender.billboardMode !== TransformNode.BILLBOARDMODE_NONE) {
-                meshToRender.computeWorldMatrix();
-            }
-
-            mesh._preActivate();
-
-            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.sceneClipPlane.frustumPlanes))) {
-                this._activeMeshes.push(mesh);
-                this.activeCamera._activeMeshes.push(mesh);
-
-                if (meshToRender !== mesh) {
-                    meshToRender._activate(this._renderId, false);
-                }
-
-                for (let step of this.sceneStage._preActiveMeshStage) {
-                    step.action(mesh);
-                }
-
-                if (mesh._activate(this._renderId, false)) {
-                    if (!mesh.isAnInstance) {
-                        meshToRender._internalAbstractMeshDataInfo._onlyForInstances = false;
-                    } else {
-                        if (mesh._internalAbstractMeshDataInfo._actAsRegularMesh) {
-                            meshToRender = mesh;
-                        }
-                    }
-                    meshToRender._internalAbstractMeshDataInfo._isActive = true;
-                    this._activeMesh(mesh, meshToRender);
-                }
-
-                mesh._postActivate();
-            }
-        }
-
-        this.sceneEventTrigger.onAfterActiveMeshesEvaluationObservable.notifyObservers(this);
-    }
-
-    private _activeMesh(sourceMesh: AbstractMesh, mesh: AbstractMesh): void {
-        if (
-            mesh !== undefined && mesh !== null
-            && mesh.subMeshes !== undefined && mesh.subMeshes !== null && mesh.subMeshes.length > 0
-        ) {
-            const subMeshes = this.getActiveSubMeshCandidates(mesh);
-            const len = subMeshes.length;
-            for (let i = 0; i < len; i++) {
-                const subMesh = subMeshes.data[i];
-                this._evaluateSubMesh(subMesh, mesh, sourceMesh);
-            }
-        }
-    }
 
     /**
      * User updatable function that will return a deterministic frame time when engine is in deterministic lock step mode
