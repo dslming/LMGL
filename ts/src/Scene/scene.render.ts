@@ -12,6 +12,9 @@ import { IRenderingManagerAutoClearSetup } from "../Rendering/renderingManager";
 import { Nullable } from "../types";
 
 export class SceneRender {
+    public _renderId = 0;
+    public _frameId = 0;
+
     scene: Scene;
     // Customs render targets
     /**
@@ -207,7 +210,7 @@ export class SceneRender {
             this.scene._checkIsReady();
         }
 
-        this.scene._frameId++;
+        this._frameId++;
 
         // Register components that have been associated lately to the scene.
         this.scene._registerTransientComponents();
@@ -266,7 +269,7 @@ export class SceneRender {
             for (var customIndex = 0; customIndex < this.customRenderTargets.length; customIndex++) {
                 var renderTarget = this.customRenderTargets[customIndex];
                 if (renderTarget._shouldRender()) {
-                    this.scene._renderId++;
+                    this._renderId++;
 
                     this.scene.activeCamera = renderTarget.activeCamera || this.scene.activeCamera;
 
@@ -285,7 +288,7 @@ export class SceneRender {
             }
             Tools.EndPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
             this.scene._intermediateRendering = false;
-            this.scene._renderId++;
+            this._renderId++;
         }
 
         // Restore back buffer
@@ -383,7 +386,7 @@ export class SceneRender {
 
         // Camera
         this.scene.sceneCatch.resetCachedMaterial();
-        this.scene._renderId++;
+        this._renderId++;
 
         var useMultiview = this.scene.getEngine().getCaps().multiview && camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1;
         if (useMultiview) {
@@ -422,7 +425,7 @@ export class SceneRender {
                 for (var renderIndex = 0; renderIndex < this.scene._renderTargets.length; renderIndex++) {
                     let renderTarget = this.scene._renderTargets.data[renderIndex];
                     if (renderTarget._shouldRender()) {
-                        this.scene._renderId++;
+                        this._renderId++;
                         var hasSpecialRenderTargetCamera = renderTarget.activeCamera && renderTarget.activeCamera !== this.scene.activeCamera;
                         renderTarget.render((<boolean>hasSpecialRenderTargetCamera), this.dumpNextRenderTargets);
                         needRebind = true;
@@ -430,7 +433,7 @@ export class SceneRender {
                 }
                 Tools.EndPerformanceCounter("Render targets", this.scene._renderTargets.length > 0);
 
-                this.scene._renderId++;
+                this._renderId++;
             }
 
             for (let step of this.scene.sceneStage._cameraDrawRenderTargetStage) {
@@ -490,7 +493,7 @@ export class SceneRender {
     * @returns a number
     */
     public getRenderId(): number {
-        return this.scene._renderId;
+        return this._renderId;
     }
 
     /**
@@ -498,12 +501,12 @@ export class SceneRender {
      * @returns a number
      */
     public getFrameId(): number {
-        return this.scene._frameId;
+        return this._frameId;
     }
 
     /** Call this function if you want to manually increment the render Id*/
     public incrementRenderId(): void {
-        this.scene._renderId++;
+        this._renderId++;
     }
 
 
@@ -635,14 +638,14 @@ export class SceneRender {
                 this.scene.activeCamera._activeMeshes.push(mesh);
 
                 if (meshToRender !== mesh) {
-                    meshToRender._activate(this.scene._renderId, false);
+                    meshToRender._activate(this._renderId, false);
                 }
 
                 for (let step of this.scene.sceneStage._preActiveMeshStage) {
                     step.action(mesh);
                 }
 
-                if (mesh._activate(this.scene._renderId, false)) {
+                if (mesh._activate(this._renderId, false)) {
                     if (!mesh.isAnInstance) {
                         meshToRender._internalAbstractMeshDataInfo._onlyForInstances = false;
                     } else {
