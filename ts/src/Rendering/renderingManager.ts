@@ -152,11 +152,11 @@ export class RenderingManager {
             }
 
             // Render
-            for (let step of this._scene._beforeRenderingGroupDrawStage) {
+            for (let step of this._scene.sceneStage._beforeRenderingGroupDrawStage) {
                 step.action(index);
             }
             renderingGroup.render(customRenderFunction, renderSprites, renderParticles, activeMeshes);
-            for (let step of this._scene._afterRenderingGroupDrawStage) {
+            for (let step of this._scene.sceneStage._afterRenderingGroupDrawStage) {
                 step.action(index);
             }
 

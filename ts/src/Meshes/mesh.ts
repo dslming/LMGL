@@ -1869,7 +1869,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
             effect = this._effectiveMaterial.getEffect();
         }
 
-        for (let step of scene._beforeRenderingMeshStage) {
+        for (let step of scene.sceneStage._beforeRenderingMeshStage) {
             step.action(this, subMesh, batch, effect);
         }
 
@@ -1933,7 +1933,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         // Unbind
         this._effectiveMaterial.unbind();
 
-        for (let step of scene._afterRenderingMeshStage) {
+        for (let step of scene.sceneStage._afterRenderingMeshStage) {
             step.action(this, subMesh, batch, effect);
         }
 

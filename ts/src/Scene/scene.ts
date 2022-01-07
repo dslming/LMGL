@@ -79,6 +79,7 @@ import { SceneFile } from "./scene.file";
 import { SceneEventTrigger } from "./scene.eventTrigger";
 import { SceneNode } from "./scene.node";
 import { ScenePick } from "./scene.pick";
+import { SceneStage } from "./scene.stage";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -110,6 +111,8 @@ export class Scene extends AbstractScene {
     public sceneInputManagerApp = new SceneInputManagerApp(this);
     public sceneEventTrigger = new SceneEventTrigger(this);
     public scenePick = new ScenePick(this);
+    public sceneStage = new SceneStage();
+
 
 
 
@@ -855,11 +858,6 @@ export class Scene extends AbstractScene {
 
     // private _sceneUbo: UniformBuffer;
 
-    /** ------------------------------- IMatrixProperty ----------------------- */
-    // public _viewMatrix: Matrix;
-    // public _projectionMatrix: Matrix;
-    // public _transformMatrix = Matrix.Zero();
-
     public _forcedViewPosition: Nullable<Vector3>;
 
 
@@ -924,8 +922,6 @@ export class Scene extends AbstractScene {
         }
     }
 
-
-
     /**
      * @hidden
      * Gets a component from the scene.
@@ -940,112 +936,6 @@ export class Scene extends AbstractScene {
         }
         return null;
     }
-
-    /**
-     * @hidden
-     * Defines the actions happening before camera updates.
-     */
-    public _beforeCameraUpdateStage = Stage.Create<SimpleStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening before clear the canvas.
-     */
-    public _beforeClearStage = Stage.Create<SimpleStageAction>();
-    /**
-     * @hidden
-     * Defines the actions when collecting render targets for the frame.
-     */
-    public _gatherRenderTargetsStage = Stage.Create<RenderTargetsStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening for one camera in the frame.
-     */
-    public _gatherActiveCameraRenderTargetsStage = Stage.Create<RenderTargetsStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening during the per mesh ready checks.
-     */
-    public _isReadyForMeshStage = Stage.Create<MeshStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening before evaluate active mesh checks.
-     */
-    public _beforeEvaluateActiveMeshStage = Stage.Create<SimpleStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening during the evaluate sub mesh checks.
-     */
-    public _evaluateSubMeshStage = Stage.Create<EvaluateSubMeshStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening during the active mesh stage.
-     */
-    public _preActiveMeshStage = Stage.Create<PreActiveMeshStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening during the per camera render target step.
-     */
-    public _cameraDrawRenderTargetStage = Stage.Create<CameraStageFrameBufferAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just before the active camera is drawing.
-     */
-    public _beforeCameraDrawStage = Stage.Create<CameraStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just before a render target is drawing.
-     */
-    public _beforeRenderTargetDrawStage = Stage.Create<RenderTargetStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just before a rendering group is drawing.
-     */
-    public _beforeRenderingGroupDrawStage = Stage.Create<RenderingGroupStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just before a mesh is drawing.
-     */
-    public _beforeRenderingMeshStage = Stage.Create<RenderingMeshStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just after a mesh has been drawn.
-     */
-    public _afterRenderingMeshStage = Stage.Create<RenderingMeshStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just after a rendering group has been drawn.
-     */
-    public _afterRenderingGroupDrawStage = Stage.Create<RenderingGroupStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just after the active camera has been drawn.
-     */
-    public _afterCameraDrawStage = Stage.Create<CameraStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just after a render target has been drawn.
-     */
-    public _afterRenderTargetDrawStage = Stage.Create<RenderTargetStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening just after rendering all cameras and computing intersections.
-     */
-    public _afterRenderStage = Stage.Create<SimpleStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening when a pointer move event happens.
-     */
-    public _pointerMoveStage = Stage.Create<PointerMoveStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening when a pointer down event happens.
-     */
-    public _pointerDownStage = Stage.Create<PointerUpDownStageAction>();
-    /**
-     * @hidden
-     * Defines the actions happening when a pointer up event happens.
-     */
-    public _pointerUpStage = Stage.Create<PointerUpDownStageAction>();
 
     /**
      * an optional map from Geometry Id to Geometry index in the 'geometries' array
@@ -1239,7 +1129,7 @@ export class Scene extends AbstractScene {
 
             let hardwareInstancedRendering = mesh.hasThinInstances || mesh.getClassName() === "InstancedMesh" || mesh.getClassName() === "InstancedLinesMesh" || engine.getCaps().instancedArrays && (<Mesh>mesh).instances.length > 0;
             // Is Ready For Mesh
-            for (let step of this._isReadyForMeshStage) {
+            for (let step of this.sceneStage._isReadyForMeshStage) {
                 if (!step.action(mesh, hardwareInstancedRendering)) {
                     return false;
                 }
@@ -1536,7 +1426,7 @@ export class Scene extends AbstractScene {
 
     private _evaluateSubMesh(subMesh: SubMesh, mesh: AbstractMesh, initialMesh: AbstractMesh): void {
         if (initialMesh.hasInstances || initialMesh.isAnInstance || this.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.sceneClipPlane.frustumPlanes)) {
-            for (let step of this._evaluateSubMeshStage) {
+            for (let step of this.sceneStage._evaluateSubMeshStage) {
                 step.action(mesh, subMesh);
             }
 
@@ -1745,7 +1635,7 @@ export class Scene extends AbstractScene {
         // this._activeParticleSystems.reset();
         // this._activeSkeletons.reset();
         this._softwareSkinnedMeshes.reset();
-        for (let step of this._beforeEvaluateActiveMeshStage) {
+        for (let step of this.sceneStage._beforeEvaluateActiveMeshStage) {
             step.action();
         }
 
@@ -1797,7 +1687,7 @@ export class Scene extends AbstractScene {
                     meshToRender._activate(this._renderId, false);
                 }
 
-                for (let step of this._preActiveMeshStage) {
+                for (let step of this.sceneStage._preActiveMeshStage) {
                     step.action(mesh);
                 }
 
@@ -1936,7 +1826,7 @@ export class Scene extends AbstractScene {
         }
 
         // Collects render targets from external components.
-        for (let step of this._gatherActiveCameraRenderTargetsStage) {
+        for (let step of this.sceneStage._gatherActiveCameraRenderTargetsStage) {
             step.action(this._renderTargets);
         }
 
@@ -1960,7 +1850,7 @@ export class Scene extends AbstractScene {
                 this._renderId++;
             }
 
-            for (let step of this._cameraDrawRenderTargetStage) {
+            for (let step of this.sceneStage._cameraDrawRenderTargetStage) {
                 needRebind = step.action(this.activeCamera) || needRebind;
             }
 
@@ -1985,7 +1875,7 @@ export class Scene extends AbstractScene {
         // }
 
         // Before Camera Draw
-        for (let step of this._beforeCameraDrawStage) {
+        for (let step of this.sceneStage._beforeCameraDrawStage) {
             step.action(this.activeCamera);
         }
 
@@ -1995,7 +1885,7 @@ export class Scene extends AbstractScene {
         this.sceneEventTrigger.onAfterDrawPhaseObservable.notifyObservers(this);
 
         // After Camera Draw
-        for (let step of this._afterCameraDrawStage) {
+        for (let step of this.sceneStage._afterCameraDrawStage) {
             step.action(this.activeCamera);
         }
 
@@ -2187,7 +2077,7 @@ export class Scene extends AbstractScene {
         // }
 
         // Before camera update steps
-        for (let step of this._beforeCameraUpdateStage) {
+        for (let step of this.sceneStage._beforeCameraUpdateStage) {
             step.action();
         }
 
@@ -2257,7 +2147,7 @@ export class Scene extends AbstractScene {
         }
         this.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this);
 
-        for (let step of this._beforeClearStage) {
+        for (let step of this.sceneStage._beforeClearStage) {
             step.action();
         }
 
@@ -2270,7 +2160,7 @@ export class Scene extends AbstractScene {
         }
 
         // Collects render targets from external components.
-        for (let step of this._gatherRenderTargetsStage) {
+        for (let step of this.sceneStage._gatherRenderTargetsStage) {
             step.action(this._renderTargets);
         }
 
@@ -2295,7 +2185,7 @@ export class Scene extends AbstractScene {
         this._checkIntersections();
 
         // Executes the after render stage actions.
-        for (let step of this._afterRenderStage) {
+        for (let step of this.sceneStage._afterRenderStage) {
             step.action();
         }
 
@@ -2341,27 +2231,7 @@ export class Scene extends AbstractScene {
         // this.skeletons = [];
         // this.morphTargetManagers = [];
         this._transientComponents = [];
-        this._isReadyForMeshStage.clear();
-        this._beforeEvaluateActiveMeshStage.clear();
-        this._evaluateSubMeshStage.clear();
-        this._preActiveMeshStage.clear();
-        this._cameraDrawRenderTargetStage.clear();
-        this._beforeCameraDrawStage.clear();
-        this._beforeRenderTargetDrawStage.clear();
-        this._beforeRenderingGroupDrawStage.clear();
-        this._beforeRenderingMeshStage.clear();
-        this._afterRenderingMeshStage.clear();
-        this._afterRenderingGroupDrawStage.clear();
-        this._afterCameraDrawStage.clear();
-        this._afterRenderTargetDrawStage.clear();
-        this._afterRenderStage.clear();
-        this._beforeCameraUpdateStage.clear();
-        this._beforeClearStage.clear();
-        this._gatherRenderTargetsStage.clear();
-        this._gatherActiveCameraRenderTargetsStage.clear();
-        this._pointerMoveStage.clear();
-        this._pointerDownStage.clear();
-        this._pointerUpStage.clear();
+        this.sceneStage.clear()
 
         for (let component of this._components) {
             component.dispose();

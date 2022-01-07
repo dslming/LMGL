@@ -106,7 +106,7 @@ export class GamepadSystemSceneComponent implements ISceneComponent {
      * Registers the component in a given scene
      */
     public register(): void {
-        this.scene._beforeCameraUpdateStage.registerStep(SceneComponentConstants.STEP_BEFORECAMERAUPDATE_GAMEPAD, this, this._beforeCameraUpdate);
+        this.scene.sceneStage._beforeCameraUpdateStage.registerStep(SceneComponentConstants.STEP_BEFORECAMERAUPDATE_GAMEPAD, this, this._beforeCameraUpdate);
     }
 
     /**

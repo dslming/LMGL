@@ -897,7 +897,7 @@ export class RenderTargetTexture extends Texture {
         }
 
         // Before Camera Draw
-        for (let step of scene._beforeRenderTargetDrawStage) {
+        for (let step of scene.sceneStage._beforeRenderTargetDrawStage) {
             step.action(this);
         }
 
@@ -905,7 +905,7 @@ export class RenderTargetTexture extends Texture {
         this._renderingManager.render(this.customRenderFunction, currentRenderList, this.renderParticles, this.renderSprites);
 
         // After Camera Draw
-        for (let step of scene._afterRenderTargetDrawStage) {
+        for (let step of scene.sceneStage._afterRenderTargetDrawStage) {
             step.action(this);
         }
 

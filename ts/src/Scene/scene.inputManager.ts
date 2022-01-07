@@ -209,7 +209,7 @@ export class InputManager {
             scene.sceneInputManagerApp.setPointerOverMesh(null, evt.pointerId);
         }
 
-        for (let step of scene._pointerMoveStage) {
+        for (let step of scene.sceneStage._pointerMoveStage) {
             pickResult = step.action(this._unTranslatedPointerX, this._unTranslatedPointerY, pickResult, isMeshPicked, canvas);
         }
 
@@ -324,7 +324,7 @@ export class InputManager {
                 }
             }
         } else {
-            for (let step of scene._pointerDownStage) {
+            for (let step of scene.sceneStage._pointerDownStage) {
                 pickResult = step.action(this._unTranslatedPointerX, this._unTranslatedPointerY, pickResult, evt);
             }
         }
@@ -403,7 +403,7 @@ export class InputManager {
             }
         } else {
             if (!clickInfo.ignore) {
-                for (let step of scene._pointerUpStage) {
+                for (let step of scene.sceneStage._pointerUpStage) {
                     pickResult = step.action(this._unTranslatedPointerX, this._unTranslatedPointerY, pickResult, evt);
                 }
             }
