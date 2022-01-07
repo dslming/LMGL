@@ -116,12 +116,6 @@ export class Node implements IBehaviorAware<Node> {
     public _isDisposed = false;
 
     /**
-     * Gets a list of Animations associated with the node
-     */
-    // public animations = new Array<Animation>();
-    // protected _ranges: { [name: string]: Nullable<AnimationRange> } = {};
-
-    /**
      * Callback raised when the node is ready to be used
      */
     public onReady: Nullable<(node: Node) => void> = null;
@@ -228,22 +222,6 @@ export class Node implements IBehaviorAware<Node> {
             this._sceneRootNodesIndex = -1;
         }
     }
-
-    // private _animationPropertiesOverride: Nullable<AnimationPropertiesOverride> = null;
-
-    /**
-     * Gets or sets the animation properties override
-     */
-    // public get animationPropertiesOverride(): Nullable<AnimationPropertiesOverride> {
-    //     if (!this._animationPropertiesOverride) {
-    //         return this._scene.animationPropertiesOverride;
-    //     }
-    //     return this._animationPropertiesOverride;
-    // }
-
-    // public set animationPropertiesOverride(value: Nullable<AnimationPropertiesOverride>) {
-    //     this._animationPropertiesOverride = value;
-    // }
 
     /**
      * Gets a string identifying the name of the class
@@ -617,115 +595,6 @@ export class Node implements IBehaviorAware<Node> {
     }
 
     /**
-     * Get an animation by name
-     * @param name defines the name of the animation to look for
-     * @returns null if not found else the requested animation
-     */
-    // public getAnimationByName(name: string): Nullable<Animation> {
-    //     for (var i = 0; i < this.animations.length; i++) {
-    //         var animation = this.animations[i];
-
-    //         if (animation.name === name) {
-    //             return animation;
-    //         }
-    //     }
-
-    //     return null;
-    // }
-
-    /**
-     * Creates an animation range for this node
-     * @param name defines the name of the range
-     * @param from defines the starting key
-     * @param to defines the end key
-     */
-    // public createAnimationRange(name: string, from: number, to: number): void {
-    //     // check name not already in use
-    //     if (!this._ranges[name]) {
-    //         this._ranges[name] = Node._AnimationRangeFactory(name, from, to);
-    //         for (var i = 0, nAnimations = this.animations.length; i < nAnimations; i++) {
-    //             if (this.animations[i]) {
-    //                 this.animations[i].createRange(name, from, to);
-    //             }
-    //         }
-    //     }
-    // }
-
-    /**
-     * Delete a specific animation range
-     * @param name defines the name of the range to delete
-     * @param deleteFrames defines if animation frames from the range must be deleted as well
-     */
-    // public deleteAnimationRange(name: string, deleteFrames = true): void {
-    //     for (var i = 0, nAnimations = this.animations.length; i < nAnimations; i++) {
-    //         if (this.animations[i]) {
-    //             this.animations[i].deleteRange(name, deleteFrames);
-    //         }
-    //     }
-    //     this._ranges[name] = null; // said much faster than 'delete this._range[name]'
-    // }
-
-    /**
-     * Get an animation range by name
-     * @param name defines the name of the animation range to look for
-     * @returns null if not found else the requested animation range
-     */
-    // public getAnimationRange(name: string): Nullable<AnimationRange> {
-    //     return this._ranges[name] || null;
-    // }
-
-    /**
-     * Gets the list of all animation ranges defined on this node
-     * @returns an array
-     */
-    // public getAnimationRanges(): Nullable<AnimationRange>[] {
-    //     var animationRanges: Nullable<AnimationRange>[] = [];
-    //     var name: string;
-    //     for (name in this._ranges) {
-    //         animationRanges.push(this._ranges[name]);
-    //     }
-    //     return animationRanges;
-    // }
-
-    // /**
-    //  * Will start the animation sequence
-    //  * @param name defines the range frames for animation sequence
-    //  * @param loop defines if the animation should loop (false by default)
-    //  * @param speedRatio defines the speed factor in which to run the animation (1 by default)
-    //  * @param onAnimationEnd defines a function to be executed when the animation ended (undefined by default)
-    //  * @returns the object created for this animation. If range does not exist, it will return null
-    //  */
-    // public beginAnimation(name: string, loop?: boolean, speedRatio?: number, onAnimationEnd?: () => void): Nullable<Animatable> {
-    //     var range = this.getAnimationRange(name);
-
-    //     if (!range) {
-    //         return null;
-    //     }
-
-    //     return this._scene.beginAnimation(this, range.from, range.to, loop, speedRatio, onAnimationEnd);
-    // }
-
-    /**
-     * Serialize animation ranges into a JSON compatible object
-     * @returns serialization object
-     */
-    // public serializeAnimationRanges(): any {
-    //     var serializationRanges = [];
-    //     for (var name in this._ranges) {
-    //         var localRange = this._ranges[name];
-    //         if (!localRange) {
-    //             continue;
-    //         }
-    //         var range: any = {};
-    //         range.name = name;
-    //         range.from = localRange.from;
-    //         range.to = localRange.to;
-    //         serializationRanges.push(range);
-    //     }
-    //     return serializationRanges;
-    // }
-
-    /**
      * Computes the world matrix of the node
      * @param force defines if the cache version should be invalidated forcing the world matrix to be created from scratch
      * @returns the world matrix
@@ -771,25 +640,11 @@ export class Node implements IBehaviorAware<Node> {
     }
 
     /**
-     * Parse animation range data from a serialization object and store them into a given node
-     * @param node defines where to store the animation ranges
-     * @param parsedNode defines the serialization object to read data from
-     * @param scene defines the hosting scene
+     * Return the minimum and maximum world vectors of the entire hierarchy under current node
+     * @param includeDescendants Include bounding info from descendants as well (true by default)
+     * @param predicate defines a callback function that can be customize to filter what meshes should be included in the list used to compute the bounding vectors
+     * @returns the new bounding vectors
      */
-    // public static ParseAnimationRanges(node: Node, parsedNode: any, scene: Scene): void {
-    //     if (parsedNode.ranges) {
-    //         for (var index = 0; index < parsedNode.ranges.length; index++) {
-    //             var data = parsedNode.ranges[index];
-    //             node.createAnimationRange(data.name, data.from, data.to);
-    //         }
-    //     }
-    // }
-    /**
- * Return the minimum and maximum world vectors of the entire hierarchy under current node
- * @param includeDescendants Include bounding info from descendants as well (true by default)
- * @param predicate defines a callback function that can be customize to filter what meshes should be included in the list used to compute the bounding vectors
- * @returns the new bounding vectors
- */
     public getHierarchyBoundingVectors(includeDescendants = true, predicate: Nullable<(abstractMesh: AbstractMesh) => boolean> = null): { min: Vector3, max: Vector3 } {
         // Ensures that all world matrix will be recomputed.
         this.getScene().sceneRender.incrementRenderId();
