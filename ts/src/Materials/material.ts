@@ -945,7 +945,7 @@ export class Material {
      */
     public bindView(effect: Effect): void {
         if (!this._useUBO) {
-            effect.setMatrix("view", this.getScene().getViewMatrix());
+            effect.setMatrix("view", this.getScene().sceneMatrix.getViewMatrix());
         } else {
             this.bindSceneUniformBuffer(effect, this.getScene().sceneMatrix.getSceneUniformBuffer());
         }
@@ -968,11 +968,11 @@ export class Material {
      * @param mesh defines the rendered mesh
      */
     protected _afterBind(mesh?: Mesh): void {
-        this._scene._cachedMaterial = this;
+        this._scene.sceneCatch._cachedMaterial = this;
         if (mesh) {
-            this._scene._cachedVisibility = mesh.visibility;
+            this._scene.sceneCatch._cachedVisibility = mesh.visibility;
         } else {
-            this._scene._cachedVisibility = 1;
+            this._scene.sceneCatch._cachedVisibility = 1;
         }
 
         if (this._onBindObservable && mesh) {

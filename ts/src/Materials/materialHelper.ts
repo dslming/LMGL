@@ -131,12 +131,12 @@ export class MaterialHelper {
         let useClipPlane5 = false;
         let useClipPlane6 = false;
 
-        useClipPlane1 = useClipPlane == null ? (scene.clipPlane !== undefined && scene.clipPlane !== null) : useClipPlane;
-        useClipPlane2 = useClipPlane == null ? (scene.clipPlane2 !== undefined && scene.clipPlane2 !== null) : useClipPlane;
-        useClipPlane3 = useClipPlane == null ? (scene.clipPlane3 !== undefined && scene.clipPlane3 !== null) : useClipPlane;
-        useClipPlane4 = useClipPlane == null ? (scene.clipPlane4 !== undefined && scene.clipPlane4 !== null) : useClipPlane;
-        useClipPlane5 = useClipPlane == null ? (scene.clipPlane5 !== undefined && scene.clipPlane5 !== null) : useClipPlane;
-        useClipPlane6 = useClipPlane == null ? (scene.clipPlane6 !== undefined && scene.clipPlane6 !== null) : useClipPlane;
+        useClipPlane1 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane !== undefined && scene.sceneClipPlane.clipPlane !== null) : useClipPlane;
+        useClipPlane2 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane2 !== undefined && scene.sceneClipPlane.clipPlane2 !== null) : useClipPlane;
+        useClipPlane3 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane3 !== undefined && scene.sceneClipPlane.clipPlane3 !== null) : useClipPlane;
+        useClipPlane4 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane4 !== undefined && scene.sceneClipPlane.clipPlane4 !== null) : useClipPlane;
+        useClipPlane5 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane5 !== undefined && scene.sceneClipPlane.clipPlane5 !== null) : useClipPlane;
+        useClipPlane6 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane6 !== undefined && scene.sceneClipPlane.clipPlane6 !== null) : useClipPlane;
 
         if (defines["CLIPPLANE"] !== useClipPlane1) {
             defines["CLIPPLANE"] = useClipPlane1;
@@ -920,6 +920,6 @@ export class MaterialHelper {
      * @param effect The effect we are binding the data to
      */
     public static BindClipPlane(effect: Effect, scene: Scene): void {
-        ThinMaterialHelper.BindClipPlane(effect, scene);
+        ThinMaterialHelper.BindClipPlane(effect, scene.sceneClipPlane);
     }
 }

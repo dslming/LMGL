@@ -178,7 +178,7 @@ export class OctreeSceneComponent {
      */
     public getActiveMeshCandidates(): ISmartArrayLike<AbstractMesh> {
         if (this.scene._selectionOctree) {
-            var selection = this.scene._selectionOctree.select(this.scene.frustumPlanes);
+            var selection = this.scene._selectionOctree.select(this.scene.sceneClipPlane.frustumPlanes);
             return selection;
         }
         return this.scene.sceneNode._getDefaultMeshCandidates();
@@ -191,7 +191,7 @@ export class OctreeSceneComponent {
      */
     public getActiveSubMeshCandidates(mesh: AbstractMesh): ISmartArrayLike<SubMesh> {
         if (mesh._submeshesOctree && mesh.useOctreeForRenderingSelection) {
-            var intersections = mesh._submeshesOctree.select(this.scene.frustumPlanes);
+            var intersections = mesh._submeshesOctree.select(this.scene.sceneClipPlane.frustumPlanes);
             return intersections;
         }
         return this.scene.sceneNode._getDefaultSubMeshCandidates(mesh);

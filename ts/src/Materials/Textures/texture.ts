@@ -586,7 +586,7 @@ export class Texture extends BaseTexture {
             this.vScale === this._cachedVScale &&
             this.coordinatesMode === this._cachedCoordinatesMode) {
             if (this.coordinatesMode === Texture.PROJECTION_MODE) {
-                if (this._cachedProjectionMatrixId === scene.getProjectionMatrix().updateFlag) {
+                if (this._cachedProjectionMatrixId === scene.sceneMatrix.getProjectionMatrix().updateFlag) {
                     return this._cachedTextureMatrix!;
                 }
             } else {
@@ -625,7 +625,7 @@ export class Texture extends BaseTexture {
                     this._projectionModeMatrix
                 );
 
-                let projectionMatrix = scene.getProjectionMatrix();
+                let projectionMatrix = scene.sceneMatrix.getProjectionMatrix();
                 this._cachedProjectionMatrixId = projectionMatrix.updateFlag;
                 projectionMatrix.multiplyToRef(this._projectionModeMatrix, this._cachedTextureMatrix);
                 break;

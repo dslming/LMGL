@@ -622,12 +622,12 @@ export class ShaderMaterial extends Material {
         }
 
         if (this._options.uniforms.indexOf("worldView") !== -1) {
-            world.multiplyToRef(scene.getViewMatrix(), this._cachedWorldViewMatrix);
+            world.multiplyToRef(scene.sceneMatrix.getViewMatrix(), this._cachedWorldViewMatrix);
             effect.setMatrix("worldView", this._cachedWorldViewMatrix);
         }
 
         if (this._options.uniforms.indexOf("worldViewProjection") !== -1) {
-            world.multiplyToRef(scene.getTransformMatrix(), this._cachedWorldViewProjectionMatrix);
+            world.multiplyToRef(scene.sceneMatrix.getTransformMatrix(), this._cachedWorldViewProjectionMatrix);
             effect.setMatrix("worldViewProjection", this._cachedWorldViewProjectionMatrix);
         }
     }
@@ -656,15 +656,15 @@ export class ShaderMaterial extends Material {
 
         if (effect && this.getScene().sceneCatch.getCachedMaterial() !== this) {
             if (this._options.uniforms.indexOf("view") !== -1) {
-                effect.setMatrix("view", this.getScene().getViewMatrix());
+                effect.setMatrix("view", this.getScene().sceneMatrix.getViewMatrix());
             }
 
             if (this._options.uniforms.indexOf("projection") !== -1) {
-                effect.setMatrix("projection", this.getScene().getProjectionMatrix());
+                effect.setMatrix("projection", this.getScene().sceneMatrix.getProjectionMatrix());
             }
 
             if (this._options.uniforms.indexOf("viewProjection") !== -1) {
-                effect.setMatrix("viewProjection", this.getScene().getTransformMatrix());
+                effect.setMatrix("viewProjection", this.getScene().sceneMatrix.getTransformMatrix());
                 // if (this._multiview) {
                 //     effect.setMatrix("viewProjectionR", this.getScene()._transformMatrixR);
                 // }
@@ -784,7 +784,7 @@ export class ShaderMaterial extends Material {
 
     protected _afterBind(mesh?: Mesh): void {
         super._afterBind(mesh);
-        this.getScene()._cachedEffect = this._effect;
+        this.getScene().sceneCatch._cachedEffect = this._effect;
     }
 
     /**

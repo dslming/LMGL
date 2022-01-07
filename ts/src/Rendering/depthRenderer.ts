@@ -124,7 +124,7 @@ export class DepthRenderer {
                 engine.enableEffect(this._effect);
                 renderingMesh._bind(subMesh, this._effect, material.fillMode);
 
-                this._effect.setMatrix("viewProjection", scene.getTransformMatrix());
+                this._effect.setMatrix("viewProjection", scene.sceneMatrix.getTransformMatrix());
 
                 this._effect.setFloat2("depthValues", camera.minZ, camera.minZ + camera.maxZ);
 

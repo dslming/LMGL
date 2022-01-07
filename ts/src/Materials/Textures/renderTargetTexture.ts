@@ -677,7 +677,7 @@ export class RenderTargetTexture extends Texture {
             engine.setViewport(this.activeCamera.viewport, this.getRenderWidth(), this.getRenderHeight());
 
             if (this.activeCamera !== scene.activeCamera) {
-                scene.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(true));
+                scene.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(true));
             }
         }
         else {
@@ -711,7 +711,7 @@ export class RenderTargetTexture extends Texture {
         if (scene.activeCamera) {
             // Do not avoid setting uniforms when multiple scenes are active as another camera may have overwrite these
             if (scene.getEngine().scenes.length > 1 || (this.activeCamera && this.activeCamera !== scene.activeCamera)) {
-                scene.setTransformMatrix(scene.activeCamera.getViewMatrix(), scene.activeCamera.getProjectionMatrix(true));
+                scene.sceneMatrix.setTransformMatrix(scene.activeCamera.getViewMatrix(), scene.activeCamera.getProjectionMatrix(true));
             }
             engine.setViewport(scene.activeCamera.viewport);
         }

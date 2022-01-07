@@ -70,11 +70,10 @@ import { Frustum } from '../Maths/math.frustum';
 import { UniqueIdGenerator } from '../Misc/uniqueIdGenerator';
 import { FileTools, LoadFileError, RequestFileError, ReadFileError } from '../Misc/fileTools';
 import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
-import { applyMixins } from '../Misc/tools'
-import { ISceneMatrix, SceneMatrix } from "./scene.matrix";
-import { ISceneClipPlane, SceneClipPlane } from "./scene.clipPlane";
-import { ISceneInputManagerApp, SceneInputManagerApp } from "./scene.inputManagerApp";
-import { iSceneCatch, SceneCatch } from "./scene.catch";
+import {  SceneMatrix } from "./scene.matrix";
+import { SceneClipPlane } from "./scene.clipPlane";
+import {  SceneInputManagerApp } from "./scene.inputManagerApp";
+import {  SceneCatch } from "./scene.catch";
 import { SceneFile } from "./scene.file";
 import { SceneEventTrigger } from "./scene.eventTrigger";
 import { SceneNode } from "./scene.node";
@@ -1517,7 +1516,7 @@ export class Scene extends AbstractScene {
 
         this.sceneEventTrigger.dispose();
 
-        this.detachControl();
+        this.sceneInputManagerApp.detachControl();
 
         // Detach cameras
         var canvas = this._engine.getInputElement();
@@ -1661,14 +1660,14 @@ export class Scene extends AbstractScene {
 
 }
 
-declare module "./scene" {
-    export interface Scene extends
-        ISceneInputManagerApp,
-        ISceneMatrix,
-        ISceneClipPlane,
-        iSceneCatch
-    {
+// declare module "./scene" {
+//     export interface Scene extends
+//         // ISceneInputManagerApp,
+//         // ISceneMatrix,
+//         // ISceneClipPlane,
+//         // iSceneCatch
+//     {
 
-    }
-}
+//     }
+// }
 

@@ -2,16 +2,7 @@ import { Plane } from "../Maths/math";
 import { Nullable } from "../types";
 import { IClipPlanesHolder } from '../Misc/interfaces/iClipPlanesHolder';
 
-export interface ISceneClipPlane{
-  clipPlane: Nullable<Plane>;
-  clipPlane2: Nullable<Plane>;
-  clipPlane3: Nullable<Plane>;
-  clipPlane4: Nullable<Plane>;
-  clipPlane5: Nullable<Plane>;
-  clipPlane6: Nullable<Plane>;
-  frustumPlanes: Plane[];
-}
-export class SceneClipPlane implements IClipPlanesHolder ,ISceneClipPlane{
+export class SceneClipPlane implements IClipPlanesHolder{
   constructor() { }
 
   /**

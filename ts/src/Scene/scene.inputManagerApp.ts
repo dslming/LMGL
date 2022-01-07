@@ -5,13 +5,6 @@ import { Nullable } from "../types";
 import { Scene } from "./scene";
 import { InputManager } from "./scene.inputManager";
 
-export interface ISceneInputManagerApp {
-  detachControl(): void;
-  setPointerOverMesh(mesh: Nullable<AbstractMesh>, pointerId?: number): void;
-  meshUnderPointer: Nullable<AbstractMesh>;
-  pointerX: number;
-  pointerY: number;
- }
 export class SceneInputManagerApp {
   public inputManager: InputManager;
 

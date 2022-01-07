@@ -99,7 +99,7 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
         this._scene = this._ownerNode.getScene();
         if (!SixDofDragBehavior._virtualScene) {
             SixDofDragBehavior._virtualScene = new Scene(this._scene.getEngine(), {virtual: true});
-            SixDofDragBehavior._virtualScene.detachControl();
+            SixDofDragBehavior._virtualScene.sceneInputManagerApp.detachControl();
             this._scene.getEngine().scenes.pop();
         }
 

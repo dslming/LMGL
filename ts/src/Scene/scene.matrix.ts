@@ -3,15 +3,9 @@ import { UniformBuffer } from "../Materials/uniformBuffer";
 import { Frustum, Plane } from "../Maths/math";
 import { Vector2, Vector3, Matrix } from "../Maths/math.vector";
 
-export interface ISceneMatrix{
-    getViewMatrix(): Matrix;
-    getProjectionMatrix(): Matrix;
-    getTransformMatrix(): Matrix;
-    setTransformMatrix(viewL: Matrix, projectionL: Matrix, viewR?: Matrix, projectionR?: Matrix): void;
-    getSceneUniformBuffer(): UniformBuffer
-}
 
-export class SceneMatrix implements ISceneMatrix{
+
+export class SceneMatrix{
   public _viewMatrix: Matrix;
   public _projectionMatrix: Matrix;
   public _transformMatrix = Matrix.Zero();

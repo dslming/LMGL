@@ -59,7 +59,7 @@ export class ActionEvent implements IActionEvent {
      */
     public static CreateNew(source: AbstractMesh, evt?: Event, additionalData?: any): ActionEvent {
         var scene = source.getScene();
-        return new ActionEvent(source, scene.pointerX, scene.pointerY, scene.meshUnderPointer || source, evt, additionalData);
+        return new ActionEvent(source, scene.sceneInputManagerApp.pointerX, scene.sceneInputManagerApp.pointerY, scene.sceneInputManagerApp.meshUnderPointer || source, evt, additionalData);
     }
 
     /**
@@ -81,7 +81,7 @@ export class ActionEvent implements IActionEvent {
      * @returns the new ActionEvent
      */
     public static CreateNewFromScene(scene: Scene, evt: Event): ActionEvent {
-        return new ActionEvent(null, scene.pointerX, scene.pointerY, scene.meshUnderPointer, evt);
+        return new ActionEvent(null, scene.sceneInputManagerApp.pointerX, scene.sceneInputManagerApp.pointerY, scene.sceneInputManagerApp.meshUnderPointer, evt);
     }
 
     /**
