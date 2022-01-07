@@ -1980,64 +1980,6 @@ export class Scene extends AbstractScene {
         return this._engine.getTimeStep();
     }
 
-    /** @hidden */
-    public _animate(): void {
-        // Nothing to do as long as Animatable have not been imported.
-    }
-
-    /** Execute all animations (for a frame) */
-    public animate() {
-        if (this._engine.isDeterministicLockStep()) {
-            var deltaTime = Math.max(Scene.MinDeltaTime, Math.min(this._engine.getDeltaTime(), Scene.MaxDeltaTime)) + this._timeAccumulator;
-
-            let defaultFrameTime = this._engine.getTimeStep();
-            var defaultFPS = (1000.0 / defaultFrameTime) / 1000.0;
-
-            let stepsTaken = 0;
-
-            var maxSubSteps = this._engine.getLockstepMaxSteps();
-
-            var internalSteps = Math.floor(deltaTime / defaultFrameTime);
-            internalSteps = Math.min(internalSteps, maxSubSteps);
-
-            while (deltaTime > 0 && stepsTaken < internalSteps) {
-                this.sceneEventTrigger.onBeforeStepObservable.notifyObservers(this);
-
-                // Animations
-                this._animationRatio = defaultFrameTime * defaultFPS;
-                this._animate();
-                this.sceneEventTrigger.onAfterAnimationsObservable.notifyObservers(this);
-
-                // Physics
-                if (this.physicsEnabled) {
-                    this._advancePhysicsEngineStep(defaultFrameTime);
-                }
-
-                this.sceneEventTrigger.onAfterStepObservable.notifyObservers(this);
-                this._currentStepId++;
-
-                stepsTaken++;
-                deltaTime -= defaultFrameTime;
-
-            }
-
-            this._timeAccumulator = deltaTime < 0 ? 0 : deltaTime;
-
-        }
-        else {
-            // Animations
-            var deltaTime = this.useConstantAnimationDeltaTime ? 16 : Math.max(Scene.MinDeltaTime, Math.min(this._engine.getDeltaTime(), Scene.MaxDeltaTime));
-            this._animationRatio = deltaTime * (60.0 / 1000.0);
-            this._animate();
-            this.sceneEventTrigger.onAfterAnimationsObservable.notifyObservers(this);
-
-            // Physics
-            if (this.physicsEnabled) {
-                this._advancePhysicsEngineStep(deltaTime);
-            }
-        }
-    }
-
     /**
      * Render the scene
      * @param updateCameras defines a boolean indicating if cameras must update according to their inputs (true by default)
