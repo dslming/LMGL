@@ -15,9 +15,6 @@ import { Mesh } from "../Meshes/mesh";
 import {
     IDisposable,
     SceneOptions,
-    // IMatrixMethod,
-    // IMatrixProperty,
-    // IInteractionProperty,
 } from './iScene'
 import { Camera } from "../Cameras/camera";
 import { BaseTexture } from "../Materials/Textures/baseTexture";
@@ -53,22 +50,15 @@ import {
 } from "./sceneComponent";
 
 import { Engine } from "../Engines/engine";
-import { Node } from "../node";
 import { Constants } from "../Engines/constants";
 import { DomManagement } from "../Misc/domManagement";
-import { Logger } from "../Misc/logger";
 import { EngineStore } from "../Engines/engineStore";
 import { AbstractActionManager } from '../Actions/abstractActionManager';
 import { _DevTools } from '../Misc/devTools';
-import { WebRequest } from '../Misc/webRequest';
 import { InputManager } from './scene.inputManager';
 import { PerfCounter } from '../Misc/perfCounter';
-import { IFileRequest } from '../Misc/fileRequest';
 import { Color4, Color3 } from '../Maths/math.color';
-import { Plane } from '../Maths/math.plane';
-import { Frustum } from '../Maths/math.frustum';
 import { UniqueIdGenerator } from '../Misc/uniqueIdGenerator';
-import { FileTools, LoadFileError, RequestFileError, ReadFileError } from '../Misc/fileTools';
 import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
 import {  SceneMatrix } from "./scene.matrix";
 import { SceneClipPlane } from "./scene.clipPlane";
@@ -776,17 +766,13 @@ export class Scene extends AbstractScene {
     public animationTimeScale: number = 1;
 
 
-
     public _renderId = 0;
     public _frameId = 0;
     public _executeWhenReadyTimeoutId = -1;
     public _intermediateRendering = false;
 
-
-
     /** @hidden */
     public _toBeDisposed = new Array<Nullable<IDisposable>>(256);
-    // private _activeRequests = new Array<IFileRequest>();
 
     /** @hidden */
     public _pendingData = new Array();
@@ -801,14 +787,9 @@ export class Scene extends AbstractScene {
     public _processedMaterials = new SmartArray<Material>(256);
     public _renderTargets = new SmartArrayNoDuplicate<RenderTargetTexture>(256);
     /** @hidden */
-    // public _activeParticleSystems = new SmartArray<IParticleSystem>(256);
-    // private _activeSkeletons = new SmartArrayNoDuplicate<Skeleton>(32);
     public _softwareSkinnedMeshes = new SmartArrayNoDuplicate<Mesh>(32);
 
     public _renderingManager: RenderingManager;
-
-    /** @hidden */
-    public _activeAnimatables = new Array<Animatable>();
 
     // private _sceneUbo: UniformBuffer;
 
@@ -926,21 +907,12 @@ export class Scene extends AbstractScene {
 
         this._renderingManager = new RenderingManager(this);
 
-        // if (PostProcessManager) {
-        //     this.postProcessManager = new PostProcessManager(this);
-        // }
-
         if (DomManagement.IsWindowObjectExist()) {
             this.sceneInputManagerApp.attachControl();
         }
 
         // Uniform Buffer
         this.sceneMatrix._createUbo();
-
-        // Default Image processing definition
-        // if (ImageProcessingConfiguration) {
-        //     this._imageProcessingConfiguration = new ImageProcessingConfiguration();
-        // }
 
         this.sceneNode.setDefaultCandidateProviders();
 
@@ -1083,13 +1055,6 @@ export class Scene extends AbstractScene {
             }
         }
 
-        // Particles
-        // for (var particleSystem of this.particleSystems) {
-        //     if (!particleSystem.isReady()) {
-        //         return false;
-        //     }
-        // }
-
         return true;
     }
 
@@ -1176,21 +1141,6 @@ export class Scene extends AbstractScene {
         this._executeWhenReadyTimeoutId = setTimeout(() => {
             this._checkIsReady();
         }, 150) as any;
-    }
-
-    /**
-     * Gets all animatable attached to the scene
-     */
-    public get animatables(): Animatable[] {
-        return this._activeAnimatables;
-    }
-
-    /**
-     * Resets the last animation time frame.
-     * Useful to override when animations start running when loading a scene for the first time.
-     */
-    public resetLastAnimationTimeFrame(): void {
-        this._animationTimeLast = PrecisionDate.Now;
     }
 
     /**
@@ -1659,15 +1609,3 @@ export class Scene extends AbstractScene {
     }
 
 }
-
-// declare module "./scene" {
-//     export interface Scene extends
-//         // ISceneInputManagerApp,
-//         // ISceneMatrix,
-//         // ISceneClipPlane,
-//         // iSceneCatch
-//     {
-
-//     }
-// }
-

@@ -20,9 +20,9 @@ export class SceneRender {
     public renderTargetsEnabled = true;
 
     /**
-* Gets or sets a boolean indicating if next render targets must be dumped as image for debugging purposes
-* We recommend not using it and instead rely on Spector.js: http://spector.babylonjs.com
-*/
+    * Gets or sets a boolean indicating if next render targets must be dumped as image for debugging purposes
+    * We recommend not using it and instead rely on Spector.js: http://spector.babylonjs.com
+    */
     public dumpNextRenderTargets = false;
 
     /**
@@ -30,9 +30,10 @@ export class SceneRender {
    */
     public customRenderTargets = new Array<RenderTargetTexture>();
 
-  constructor(scene: Scene) {
-    this.scene = scene;
+    constructor(scene: Scene) {
+        this.scene = scene;
     }
+
     private _executeOnceBeforeRender(func: () => void): void {
         let execFunc = () => {
             func();
@@ -92,14 +93,14 @@ export class SceneRender {
     }
 
     /**
-  * Overrides the default sort function applied in the renderging group to prepare the meshes.
-  * This allowed control for front to back rendering or reversly depending of the special needs.
-  *
-  * @param renderingGroupId The rendering group id corresponding to its index
-  * @param opaqueSortCompareFn The opaque queue comparison function use to sort.
-  * @param alphaTestSortCompareFn The alpha test queue comparison function use to sort.
-  * @param transparentSortCompareFn The transparent queue comparison function use to sort.
-  */
+     * Overrides the default sort function applied in the renderging group to prepare the meshes.
+     * This allowed control for front to back rendering or reversly depending of the special needs.
+     *
+     * @param renderingGroupId The rendering group id corresponding to its index
+     * @param opaqueSortCompareFn The opaque queue comparison function use to sort.
+     * @param alphaTestSortCompareFn The alpha test queue comparison function use to sort.
+     * @param transparentSortCompareFn The transparent queue comparison function use to sort.
+     */
     public setRenderingOrder(renderingGroupId: number,
         opaqueSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
         alphaTestSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
@@ -224,11 +225,6 @@ export class SceneRender {
         if (this.scene.actionManager) {
             this.scene.actionManager.processTrigger(Constants.ACTION_OnEveryFrameTrigger);
         }
-
-        // Animations
-        // if (!ignoreAnimations) {
-        //     this.scene.animate();
-        // }
 
         // Before camera update steps
         for (let step of this.scene.sceneStage._beforeCameraUpdateStage) {
