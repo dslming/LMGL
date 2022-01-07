@@ -3,6 +3,7 @@ import { ActionEvent } from "../Actions/actionEvent";
 import { Camera } from "../Cameras/camera";
 import { Constants } from "../Engines/constants";
 import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
+import { Color4 } from "../Maths/math";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
 import { TransformNode } from "../Meshes/transformNode";
@@ -12,6 +13,19 @@ import { IRenderingManagerAutoClearSetup } from "../Rendering/renderingManager";
 import { Nullable } from "../types";
 
 export class SceneRender {
+    /**
+     * Gets or sets a boolean that indicates if the scene must clear the render buffer before rendering a frame
+     */
+    public autoClear = true;
+    /**
+     * Gets or sets a boolean that indicates if the scene must clear the depth and stencil buffers before rendering a frame
+     */
+    public autoClearDepthAndStencil = true;
+    /**
+     * Defines the color used to clear the render buffer (Default is (0.2, 0.2, 0.3, 1.0))
+     */
+    public clearColor: Color4 = new Color4(0.2, 0.2, 0.3, 1.0);
+
     public _renderId = 0;
     public _frameId = 0;
 
@@ -303,11 +317,11 @@ export class SceneRender {
         }
 
         // Clear
-        if ((this.scene.autoClearDepthAndStencil || this.scene.autoClear) && !this.scene.prePass) {
-            this.scene._engine.clear(this.scene.clearColor,
-                this.scene.autoClear || this.scene.forceWireframe || this.scene.forcePointsCloud,
-                this.scene.autoClearDepthAndStencil,
-                this.scene.autoClearDepthAndStencil);
+        if ((this.autoClearDepthAndStencil || this.autoClear) && !this.scene.prePass) {
+            this.scene._engine.clear(this.clearColor,
+                this.autoClear || this.scene.forceWireframe || this.scene.forcePointsCloud,
+                this.autoClearDepthAndStencil,
+                this.autoClearDepthAndStencil);
         }
 
         // Collects render targets from external components.

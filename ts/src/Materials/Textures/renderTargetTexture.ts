@@ -889,7 +889,7 @@ export class RenderTargetTexture extends Texture {
         if (this.onClearObservable.hasObservers()) {
             this.onClearObservable.notifyObservers(engine);
         } else {
-            engine.clear(this.clearColor || scene.clearColor, true, true, true);
+            engine.clear(this.clearColor || scene.sceneRender.clearColor, true, true, true);
         }
 
         if (!this._doNotChangeAspectRatio) {

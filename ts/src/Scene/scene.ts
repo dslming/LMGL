@@ -81,12 +81,12 @@ declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePicking
  * @see https://doc.babylonjs.com/features/scene
  */
 export class Scene extends AbstractScene {
-     /**
+    /**
     * All of the (abstract) meshes added to this scene
     */
-  public meshes = new Array<AbstractMesh>();
+    public meshes = new Array<AbstractMesh>();
 
-  /**
+    /**
     * All of the tranform nodes added to this scene
     * In the context of a Scene, it is not supposed to be modified manually.
     * Any addition or removal should be done using the addTransformNode and removeTransformNode Scene methods.
@@ -145,9 +145,6 @@ export class Scene extends AbstractScene {
         throw _DevTools.WarnImport("DefaultCollisionCoordinator");
     }
 
-    // Members
-
-
     /** Define this parameter if you are using multiple cameras and you want to specify which one should be used for pointer position */
     public cameraToUseForPointers: Nullable<Camera> = null;
 
@@ -157,18 +154,7 @@ export class Scene extends AbstractScene {
     /** @hidden */
     public _blockEntityCollection = false;
 
-    /**
-     * Gets or sets a boolean that indicates if the scene must clear the render buffer before rendering a frame
-     */
-    public autoClear = true;
-    /**
-     * Gets or sets a boolean that indicates if the scene must clear the depth and stencil buffers before rendering a frame
-     */
-    public autoClearDepthAndStencil = true;
-    /**
-     * Defines the color used to clear the render buffer (Default is (0.2, 0.2, 0.3, 1.0))
-     */
-    public clearColor: Color4 = new Color4(0.2, 0.2, 0.3, 1.0);
+
     /**
      * Defines the color used to simulate the ambient color (Default is (0, 0, 0))
      */

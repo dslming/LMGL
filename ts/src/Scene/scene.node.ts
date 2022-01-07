@@ -17,7 +17,6 @@ import { Constants } from "../Engines/constants";
 export class SceneNode {
   scene: Scene;
    /** @hidden */
-  public _blockEntityCollection = false;
     private _defaultMeshCandidates: ISmartArrayLike<AbstractMesh> = {
     data: [],
     length: 0
@@ -34,7 +33,7 @@ export class SceneNode {
      * @param recursive if all child meshes should also be added to the scene
      */
     public addMesh(newMesh: AbstractMesh, recursive = false) {
-        if (this._blockEntityCollection) {
+        if (this.scene._blockEntityCollection) {
             return;
         }
 
@@ -87,7 +86,7 @@ export class SceneNode {
      * @param newTransformNode defines the transform node to add
      */
     public addTransformNode(newTransformNode: TransformNode) {
-        if (this._blockEntityCollection) {
+        if (this.scene._blockEntityCollection) {
             return;
         }
         newTransformNode._indexInSceneTransformNodesArray = this.scene.transformNodes.length;
@@ -310,7 +309,7 @@ export class SceneNode {
      * @param newTexture The texture to add
      */
     public addTexture(newTexture: BaseTexture): void {
-        if (this._blockEntityCollection) {
+        if (this.scene._blockEntityCollection) {
             return;
         }
         this.scene.textures.push(newTexture);
