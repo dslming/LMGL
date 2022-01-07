@@ -116,9 +116,6 @@ export class Scene extends AbstractScene {
     public sceneRender = new SceneRender(this);
 
 
-
-
-
     /** The fog is deactivated */
     public static readonly FOGMODE_NONE = 0;
     /** The fog density is following an exponential function */
@@ -127,7 +124,6 @@ export class Scene extends AbstractScene {
     public static readonly FOGMODE_EXP2 = 2;
     /** The fog density is following a linear function. */
     public static readonly FOGMODE_LINEAR = 3;
-
 
     /**
      * Gets or sets the minimum deltatime when deterministic lock step is enabled
@@ -790,7 +786,7 @@ export class Scene extends AbstractScene {
     */
     public actionManager: AbstractActionManager;
 
-    private _meshesForIntersections = new SmartArrayNoDuplicate<AbstractMesh>(256);
+    public _meshesForIntersections = new SmartArrayNoDuplicate<AbstractMesh>(256);
 
     // Procedural textures
     /**
@@ -802,7 +798,7 @@ export class Scene extends AbstractScene {
     public _engine: Engine;
 
     // Performance counters
-    private _totalVertices = new PerfCounter();
+    public _totalVertices = new PerfCounter();
     /** @hidden */
     public _activeIndices = new PerfCounter();
     /** @hidden */
@@ -827,8 +823,8 @@ export class Scene extends AbstractScene {
 
 
     public _renderId = 0;
-    private _frameId = 0;
-    private _executeWhenReadyTimeoutId = -1;
+    public _frameId = 0;
+    public _executeWhenReadyTimeoutId = -1;
     public _intermediateRendering = false;
 
 
@@ -898,7 +894,7 @@ export class Scene extends AbstractScene {
     /**
      * Registers the transient components if needed.
      */
-    private _registerTransientComponents(): void {
+    public _registerTransientComponents(): void {
         // Register components that have been associated lately to the scene.
         if (this._transientComponents.length > 0) {
             for (let component of this._transientComponents) {
@@ -1692,26 +1688,6 @@ export class Scene extends AbstractScene {
         }
 
         this.sceneEventTrigger.onAfterActiveMeshesEvaluationObservable.notifyObservers(this);
-
-        // Particle systems
-        // if (this.particlesEnabled) {
-        //     this.onBeforeParticlesRenderingObservable.notifyObservers(this);
-        //     for (var particleIndex = 0; particleIndex < this.particleSystems.length; particleIndex++) {
-        //         var particleSystem = this.particleSystems[particleIndex];
-
-        //         if (!particleSystem.isStarted() || !particleSystem.emitter) {
-        //             continue;
-        //         }
-
-        //         let emitter = <any>particleSystem.emitter;
-        //         if (!emitter.position || emitter.isEnabled()) {
-        //             this._activeParticleSystems.push(particleSystem);
-        //             particleSystem.animate();
-        //             this._renderingManager.dispatchParticles(particleSystem);
-        //         }
-        //     }
-        //     this.onAfterParticlesRenderingObservable.notifyObservers(this);
-        // }
     }
 
     private _activeMesh(sourceMesh: AbstractMesh, mesh: AbstractMesh): void {
@@ -1759,71 +1735,7 @@ export class Scene extends AbstractScene {
     public _allowPostProcessClearColor = true;
 
 
-    private _processSubCameras(camera: Camera): void {
-        if (camera.cameraRigMode === Camera.RIG_MODE_NONE || (camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1 && this.getEngine().getCaps().multiview)) {
-            this.sceneRender._renderForCamera(camera);
-            this.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
-            return;
-        }
 
-         {
-            // rig cameras
-            for (var index = 0; index < camera._rigCameras.length; index++) {
-                this.sceneRender._renderForCamera(camera._rigCameras[index], camera);
-            }
-        }
-
-        // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
-        this._activeCamera = camera;
-        this.sceneMatrix.setTransformMatrix(this._activeCamera.getViewMatrix(), this._activeCamera.getProjectionMatrix());
-        this.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
-    }
-
-    private _checkIntersections(): void {
-        for (var index = 0; index < this._meshesForIntersections.length; index++) {
-            var sourceMesh = this._meshesForIntersections.data[index];
-
-            if (!sourceMesh.actionManager) {
-                continue;
-            }
-
-            for (var actionIndex = 0; sourceMesh.actionManager && actionIndex < sourceMesh.actionManager.actions.length; actionIndex++) {
-                var action = sourceMesh.actionManager.actions[actionIndex];
-
-                if (action.trigger === Constants.ACTION_OnIntersectionEnterTrigger || action.trigger === Constants.ACTION_OnIntersectionExitTrigger) {
-                    var parameters = action.getTriggerParameter();
-                    var otherMesh = parameters instanceof AbstractMesh ? parameters : parameters.mesh;
-
-                    var areIntersecting = otherMesh.intersectsMesh(sourceMesh, parameters.usePreciseIntersection);
-                    var currentIntersectionInProgress = sourceMesh._intersectionsInProgress.indexOf(otherMesh);
-
-                    if (areIntersecting && currentIntersectionInProgress === -1) {
-                        if (action.trigger === Constants.ACTION_OnIntersectionEnterTrigger) {
-                            action._executeCurrent(ActionEvent.CreateNew(sourceMesh, undefined, otherMesh));
-                            sourceMesh._intersectionsInProgress.push(otherMesh);
-                        } else if (action.trigger === Constants.ACTION_OnIntersectionExitTrigger) {
-                            sourceMesh._intersectionsInProgress.push(otherMesh);
-                        }
-                    } else if (!areIntersecting && currentIntersectionInProgress > -1) {
-                        //They intersected, and now they don't.
-
-                        //is this trigger an exit trigger? execute an event.
-                        if (action.trigger === Constants.ACTION_OnIntersectionExitTrigger) {
-                            action._executeCurrent(ActionEvent.CreateNew(sourceMesh, undefined, otherMesh));
-                        }
-
-                        //if this is an exit trigger, or no exit trigger exists, remove the id from the intersection in progress array.
-                        if (!sourceMesh.actionManager.hasSpecificTrigger(Constants.ACTION_OnIntersectionExitTrigger, (parameter) => {
-                            var parameterMesh = parameter instanceof AbstractMesh ? parameter : parameter.mesh;
-                            return otherMesh === parameterMesh;
-                        }) || action.trigger === Constants.ACTION_OnIntersectionExitTrigger) {
-                            sourceMesh._intersectionsInProgress.splice(currentIntersectionInProgress, 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     /** @hidden */
     public _advancePhysicsEngineStep(step: number) {
@@ -1837,184 +1749,6 @@ export class Scene extends AbstractScene {
         return this._engine.getTimeStep();
     }
 
-    /**
-     * Render the scene
-     * @param updateCameras defines a boolean indicating if cameras must update according to their inputs (true by default)
-     * @param ignoreAnimations defines a boolean indicating if animations should not be executed (false by default)
-     */
-    public render(updateCameras = true, ignoreAnimations = false): void {
-        if (this.isDisposed) {
-            return;
-        }
-
-        if (this.sceneEventTrigger.onReadyObservable.hasObservers() && this._executeWhenReadyTimeoutId === -1) {
-            this._checkIsReady();
-        }
-
-        this._frameId++;
-
-        // Register components that have been associated lately to the scene.
-        this._registerTransientComponents();
-
-        this._activeParticles.fetchNewFrame();
-        this._totalVertices.fetchNewFrame();
-        this._activeIndices.fetchNewFrame();
-        this._activeBones.fetchNewFrame();
-        this._meshesForIntersections.reset();
-        this.sceneCatch.resetCachedMaterial();
-
-        this.sceneEventTrigger.onBeforeAnimationsObservable.notifyObservers(this);
-
-        // Actions
-        if (this.actionManager) {
-            this.actionManager.processTrigger(Constants.ACTION_OnEveryFrameTrigger);
-        }
-
-        // Animations
-        // if (!ignoreAnimations) {
-        //     this.animate();
-        // }
-
-        // Before camera update steps
-        for (let step of this.sceneStage._beforeCameraUpdateStage) {
-            step.action();
-        }
-
-        // Update Cameras
-        if (updateCameras) {
-            if (this.activeCameras && this.activeCameras.length > 0) {
-                for (var cameraIndex = 0; cameraIndex < this.activeCameras.length; cameraIndex++) {
-                    let camera = this.activeCameras[cameraIndex];
-                    camera.update();
-                    if (camera.cameraRigMode !== Camera.RIG_MODE_NONE) {
-                        // rig cameras
-                        for (var index = 0; index < camera._rigCameras.length; index++) {
-                            camera._rigCameras[index].update();
-                        }
-                    }
-                }
-            } else if (this.activeCamera) {
-                this.activeCamera.update();
-                if (this.activeCamera.cameraRigMode !== Camera.RIG_MODE_NONE) {
-                    // rig cameras
-                    for (var index = 0; index < this.activeCamera._rigCameras.length; index++) {
-                        this.activeCamera._rigCameras[index].update();
-                    }
-                }
-            }
-        }
-
-        // Before render
-        this.sceneEventTrigger.onBeforeRenderObservable.notifyObservers(this);
-
-        // Customs render targets
-        this.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
-        var engine = this.getEngine();
-        var currentActiveCamera = this.activeCamera;
-        if (this.renderTargetsEnabled) {
-            Tools.StartPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
-            this._intermediateRendering = true;
-            for (var customIndex = 0; customIndex < this.customRenderTargets.length; customIndex++) {
-                var renderTarget = this.customRenderTargets[customIndex];
-                if (renderTarget._shouldRender()) {
-                    this._renderId++;
-
-                    this.activeCamera = renderTarget.activeCamera || this.activeCamera;
-
-                    if (!this.activeCamera) {
-                        throw new Error("Active camera not set");
-                    }
-
-                    // Viewport
-                    engine.setViewport(this.activeCamera.viewport);
-
-                    // Camera
-                    this.sceneMatrix.updateTransformMatrix();
-
-                    renderTarget.render(currentActiveCamera !== this.activeCamera, this.dumpNextRenderTargets);
-                }
-            }
-            Tools.EndPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
-            this._intermediateRendering = false;
-            this._renderId++;
-        }
-
-        // Restore back buffer
-        this.activeCamera = currentActiveCamera;
-        if (this._activeCamera && this._activeCamera.cameraRigMode !== Camera.RIG_MODE_CUSTOM && !this.prePass) {
-            this._bindFrameBuffer();
-        }
-        this.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this);
-
-        for (let step of this.sceneStage._beforeClearStage) {
-            step.action();
-        }
-
-        // Clear
-        if ((this.autoClearDepthAndStencil || this.autoClear) && !this.prePass) {
-            this._engine.clear(this.clearColor,
-                this.autoClear || this.forceWireframe || this.forcePointsCloud,
-                this.autoClearDepthAndStencil,
-                this.autoClearDepthAndStencil);
-        }
-
-        // Collects render targets from external components.
-        for (let step of this.sceneStage._gatherRenderTargetsStage) {
-            step.action(this._renderTargets);
-        }
-
-        // Multi-cameras?
-        if (this.activeCameras && this.activeCameras.length > 0) {
-            for (var cameraIndex = 0; cameraIndex < this.activeCameras.length; cameraIndex++) {
-                if (cameraIndex > 0) {
-                    this._engine.clear(null, false, true, true);
-                }
-
-                this._processSubCameras(this.activeCameras[cameraIndex]);
-            }
-        } else {
-            if (!this.activeCamera) {
-                throw new Error("No camera defined");
-            }
-
-            this._processSubCameras(this.activeCamera);
-        }
-
-        // Intersection checks
-        this._checkIntersections();
-
-        // Executes the after render stage actions.
-        for (let step of this.sceneStage._afterRenderStage) {
-            step.action();
-        }
-
-        // After render
-        if (this.sceneEventTrigger.afterRender) {
-            this.sceneEventTrigger.afterRender();
-        }
-
-        this.sceneEventTrigger.onAfterRenderObservable.notifyObservers(this);
-
-        // Cleaning
-        if (this._toBeDisposed.length) {
-            for (var index = 0; index < this._toBeDisposed.length; index++) {
-                var data = this._toBeDisposed[index];
-                if (data) {
-                    data.dispose();
-                }
-            }
-
-            this._toBeDisposed = [];
-        }
-
-        if (this.dumpNextRenderTargets) {
-            this.dumpNextRenderTargets = false;
-        }
-
-        this._activeBones.addCount(0, true);
-        this._activeIndices.addCount(0, true);
-        this._activeParticles.addCount(0, true);
-    }
 
     /**
      * Releases all held ressources
@@ -2153,8 +1887,6 @@ export class Scene extends AbstractScene {
         return this._isDisposed;
     }
 
-
-
     /**
      * Get the world extend vectors with an optional filter
      *
@@ -2186,44 +1918,6 @@ export class Scene extends AbstractScene {
             max: max
         };
     }
-
-
-
-
-    /**
-     * Overrides the default sort function applied in the renderging group to prepare the meshes.
-     * This allowed control for front to back rendering or reversly depending of the special needs.
-     *
-     * @param renderingGroupId The rendering group id corresponding to its index
-     * @param opaqueSortCompareFn The opaque queue comparison function use to sort.
-     * @param alphaTestSortCompareFn The alpha test queue comparison function use to sort.
-     * @param transparentSortCompareFn The transparent queue comparison function use to sort.
-     */
-    public setRenderingOrder(renderingGroupId: number,
-        opaqueSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
-        alphaTestSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
-        transparentSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null): void {
-
-        this._renderingManager.setRenderingOrder(renderingGroupId,
-            opaqueSortCompareFn,
-            alphaTestSortCompareFn,
-            transparentSortCompareFn);
-    }
-
-    /**
-     * Specifies whether or not the stencil and depth buffer are cleared between two rendering groups.
-     *
-     * @param renderingGroupId The rendering group id corresponding to its index
-     * @param autoClearDepthStencil Automatically clears depth and stencil between groups if true.
-     * @param depth Automatically clears depth between groups if true and autoClear is true.
-     * @param stencil Automatically clears stencil between groups if true and autoClear is true.
-     */
-    public setRenderingAutoClearDepthStencil(renderingGroupId: number, autoClearDepthStencil: boolean,
-        depth = true,
-        stencil = true): void {
-        this._renderingManager.setRenderingAutoClearDepthStencil(renderingGroupId, autoClearDepthStencil, depth, stencil);
-    }
-
 
 
     private _blockMaterialDirtyMechanism = false;
