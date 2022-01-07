@@ -11,6 +11,9 @@ import { Nullable } from "../types";
 import { Node } from '../node'
 import { ISmartArrayLike } from "../Misc/smartArray";
 import { SubMesh } from "../Meshes/subMesh";
+import { Mesh } from "../Meshes/mesh";
+import { Tags } from "../Misc/tags";
+import { Constants } from "../Engines/constants";
 export class SceneNode {
   scene: Scene;
    /** @hidden */
@@ -904,4 +907,112 @@ export class SceneNode {
             this.scene.materials[i].unfreeze();
         }
     }
+
+
+
+    // Misc.
+    /** @hidden */
+    public _rebuildGeometries(): void {
+        for (var geometry of this.scene.geometries) {
+            geometry._rebuild();
+        }
+
+        for (var mesh of this.scene.meshes) {
+            mesh._rebuild();
+        }
+
+        // if (this.postProcessManager) {
+        //     this.postProcessManager._rebuild();
+        // }
+
+        for (let component of this.scene._components) {
+            component.rebuild();
+        }
+
+        // for (var system of this.particleSystems) {
+        //     system.rebuild();
+        // }
+    }
+
+    /** @hidden */
+    public _rebuildTextures(): void {
+        for (var texture of this.scene.textures) {
+            texture._rebuild();
+        }
+
+        this.scene.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
+    }
+
+    // Tags
+    private _getByTags(list: any[], tagsQuery: string, forEach?: (item: any) => void): any[] {
+        if (tagsQuery === undefined) {
+            // returns the complete list (could be done with Tags.MatchesQuery but no need to have a for-loop here)
+            return list;
+        }
+
+        var listByTags = [];
+
+        forEach = forEach || ((item: any) => { return; });
+
+        for (var i in list) {
+            var item = list[i];
+            if (Tags && Tags.MatchesQuery(item, tagsQuery)) {
+                listByTags.push(item);
+                forEach(item);
+            }
+        }
+
+        return listByTags;
+    }
+
+    /**
+     * Get a list of meshes by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of Mesh
+     */
+    public getMeshesByTags(tagsQuery: string, forEach?: (mesh: AbstractMesh) => void): Mesh[] {
+        return this._getByTags(this.scene.meshes, tagsQuery, forEach);
+    }
+
+    /**
+     * Get a list of cameras by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of Camera
+     */
+    public getCamerasByTags(tagsQuery: string, forEach?: (camera: Camera) => void): Camera[] {
+        return this._getByTags(this.scene.cameras, tagsQuery, forEach);
+    }
+
+    /**
+     * Get a list of lights by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of Light
+     */
+    public getLightsByTags(tagsQuery: string, forEach?: (light: Light) => void): Light[] {
+        return this._getByTags(this.scene.lights, tagsQuery, forEach);
+    }
+
+    /**
+     * Get a list of materials by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of Material
+     */
+    // public getMaterialByTags(tagsQuery: string, forEach?: (material: Material) => void): Material[] {
+    //     return this._getByTags(this.materials, tagsQuery, forEach).concat(this._getByTags(this.multiMaterials, tagsQuery, forEach));
+    // }
+
+    /**
+     * Get a list of transform nodes by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of TransformNode
+     */
+    public getTransformNodesByTags(tagsQuery: string, forEach?: (transform: TransformNode) => void): TransformNode[] {
+        return this._getByTags(this.scene.transformNodes, tagsQuery, forEach);
+    }
+
 }
