@@ -1864,17 +1864,6 @@ export class Scene extends AbstractScene {
         }
     }
 
-    /**
-     * Update the transform matrix to update from the current active camera
-     * @param force defines a boolean used to force the update even if cache is up to date
-     */
-    public updateTransformMatrix(force?: boolean): void {
-        if (!this.activeCamera) {
-            return;
-        }
-        this.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(force));
-    }
-
     private _bindFrameBuffer() {
         if (this.activeCamera && this.activeCamera.outputRenderTarget) {
             var useMultiview = this.getEngine().getCaps().multiview && this.activeCamera.outputRenderTarget && this.activeCamera.outputRenderTarget.getViewCount() > 1;
@@ -1920,7 +1909,7 @@ export class Scene extends AbstractScene {
         if (useMultiview) {
             this.sceneMatrix.setTransformMatrix(camera._rigCameras[0].getViewMatrix(), camera._rigCameras[0].getProjectionMatrix(), camera._rigCameras[1].getViewMatrix(), camera._rigCameras[1].getProjectionMatrix());
         } else {
-            this.updateTransformMatrix();
+            this.sceneMatrix.updateTransformMatrix();
         }
 
         this.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.activeCamera);
@@ -2251,7 +2240,7 @@ export class Scene extends AbstractScene {
                     engine.setViewport(this.activeCamera.viewport);
 
                     // Camera
-                    this.updateTransformMatrix();
+                    this.sceneMatrix.updateTransformMatrix();
 
                     renderTarget.render(currentActiveCamera !== this.activeCamera, this.dumpNextRenderTargets);
                 }

@@ -893,7 +893,7 @@ export class RenderTargetTexture extends Texture {
         }
 
         if (!this._doNotChangeAspectRatio) {
-            scene.updateTransformMatrix(true);
+            scene.sceneMatrix.updateTransformMatrix(true);
         }
 
         // Before Camera Draw
@@ -917,7 +917,7 @@ export class RenderTargetTexture extends Texture {
         // }
 
         if (!this._doNotChangeAspectRatio) {
-            scene.updateTransformMatrix(true);
+            scene.sceneMatrix.updateTransformMatrix(true);
         }
 
         // Dump ?
