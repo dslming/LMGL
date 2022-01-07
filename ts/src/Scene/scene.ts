@@ -1,65 +1,27 @@
 import { AbstractScene } from "./abstractScene"
 import { Nullable } from "../types";
 import { Tools } from "../Misc/tools";
-import { PrecisionDate } from "../Misc/precisionDate";
-import { Observable, Observer } from "../Misc/observable";
 import { SmartArrayNoDuplicate, SmartArray, ISmartArrayLike } from "../Misc/smartArray";
-import { StringDictionary } from "../Misc/stringDictionary";
-import { Tags } from "../Misc/tags";
 import { Vector2, Vector3, Matrix } from "../Maths/math.vector";
-import { Geometry } from "../Meshes/geometry";
 import { TransformNode } from "../Meshes/transformNode";
 import { SubMesh } from "../Meshes/subMesh";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { Mesh } from "../Meshes/mesh";
-import {
-    IDisposable,
-    SceneOptions,
-} from './iScene'
+import { IDisposable, SceneOptions} from './iScene'
 import { Camera } from "../Cameras/camera";
-import { BaseTexture } from "../Materials/Textures/baseTexture";
-import { Texture } from "../Materials/Textures/texture";
 import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
 import { Material } from "../Materials/material";
-import { Effect } from "../Materials/effect";
-import { UniformBuffer } from "../Materials/uniformBuffer";
-import { Light } from "../Lights/light";
-import { PickingInfo } from "../Collisions/pickingInfo";
 import { ICollisionCoordinator } from "../Collisions/collisionCoordinator";
-import { PointerEventTypes, PointerInfoPre, PointerInfo } from "../Events/pointerEvents";
-import { KeyboardInfoPre, KeyboardInfo } from "../Events/keyboardEvents";
-import { ActionEvent } from "../Actions/actionEvent";
-import { RenderingGroupInfo, RenderingManager, IRenderingManagerAutoClearSetup } from "../Rendering/renderingManager";
-
-import {
-    ISceneComponent,
-    ISceneSerializableComponent,
-    Stage,
-    SimpleStageAction,
-    RenderTargetsStageAction,
-    RenderTargetStageAction,
-    MeshStageAction,
-    EvaluateSubMeshStageAction,
-    PreActiveMeshStageAction,
-    CameraStageAction,
-    RenderingGroupStageAction,
-    RenderingMeshStageAction,
-    PointerMoveStageAction,
-    PointerUpDownStageAction,
-    CameraStageFrameBufferAction
-} from "./sceneComponent";
-
+import {  RenderingManager } from "../Rendering/renderingManager";
+import {ISceneComponent,ISceneSerializableComponent} from "./sceneComponent";
 import { Engine } from "../Engines/engine";
 import { Constants } from "../Engines/constants";
 import { DomManagement } from "../Misc/domManagement";
 import { EngineStore } from "../Engines/engineStore";
 import { AbstractActionManager } from '../Actions/abstractActionManager';
 import { _DevTools } from '../Misc/devTools';
-import { InputManager } from './scene.inputManager';
 import { PerfCounter } from '../Misc/perfCounter';
-import { Color4, Color3 } from '../Maths/math.color';
 import { UniqueIdGenerator } from '../Misc/uniqueIdGenerator';
-import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
 import {  SceneMatrix } from "./scene.matrix";
 import { SceneClipPlane } from "./scene.clipPlane";
 import {  SceneInputManagerApp } from "./scene.inputManagerApp";
@@ -74,7 +36,6 @@ import { SceneFog } from "./scene.fog";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
-declare type TrianglePickingPredicate = import("../Culling/ray").TrianglePickingPredicate;
 
 /**
  * Represents a scene to be rendered by the engine.
@@ -105,7 +66,6 @@ export class Scene extends AbstractScene {
     public scenePick = new ScenePick(this);
     public sceneStage = new SceneStage();
     public sceneRender = new SceneRender(this);
-
 
     /** The fog is deactivated */
     public static readonly FOGMODE_NONE = 0;
@@ -240,10 +200,7 @@ export class Scene extends AbstractScene {
     /** @hidden */
     public _mirroredCameraPosition: Nullable<Vector3>;
 
-
-
     // Coordinates system
-
     private _useRightHandedSystem = false;
     /**
     * Gets or sets a boolean indicating if the scene must use right-handed coordinates system
@@ -290,8 +247,6 @@ export class Scene extends AbstractScene {
         return this._currentInternalStep;
     }
 
-
-
     /**
     * Flag indicating that the frame buffer binding is handled by another component
     */
@@ -334,6 +289,7 @@ export class Scene extends AbstractScene {
 
     /** @hidden */
     public _activeCamera: Nullable<Camera>;
+
     /** Gets or sets the current active camera */
     public get activeCamera(): Nullable<Camera> {
         return this._activeCamera;
@@ -381,46 +337,12 @@ export class Scene extends AbstractScene {
         return this._texturesEnabled;
     }
 
-    // Physics
-    /**
-     * Gets or sets a boolean indicating if physic engines are enabled on this scene
-     */
-    public physicsEnabled = true;
-
-    // Particles
-    /**
-    * Gets or sets a boolean indicating if particles are enabled on this scene
-    */
-    public particlesEnabled = true;
-
     // Sprites
     /**
     * Gets or sets a boolean indicating if sprites are enabled on this scene
     */
     public spritesEnabled = true;
 
-    // Skeletons
-    private _skeletonsEnabled = true;
-    /**
-    * Gets or sets a boolean indicating if skeletons are enabled on this scene
-    */
-    public set skeletonsEnabled(value: boolean) {
-        if (this._skeletonsEnabled === value) {
-            return;
-        }
-        this._skeletonsEnabled = value;
-        this.markAllMaterialsAsDirty(Constants.MATERIAL_AttributesDirtyFlag);
-    }
-
-    public get skeletonsEnabled(): boolean {
-        return this._skeletonsEnabled;
-    }
-
-    // Lens flares
-    /**
-    * Gets or sets a boolean indicating if lens flares are enabled on this scene
-    */
-    public lensFlaresEnabled = true;
 
     // Collisions
     /**
@@ -460,12 +382,6 @@ export class Scene extends AbstractScene {
 
     public _meshesForIntersections = new SmartArrayNoDuplicate<AbstractMesh>(256);
 
-    // Procedural textures
-    /**
-    * Gets or sets a boolean indicating if procedural textures are enabled on this scene
-    */
-    public proceduralTexturesEnabled = true;
-
     // Private
     public _engine: Engine;
 
@@ -497,9 +413,6 @@ export class Scene extends AbstractScene {
     public _softwareSkinnedMeshes = new SmartArrayNoDuplicate<Mesh>(32);
 
     public _renderingManager: RenderingManager;
-
-    // private _sceneUbo: UniformBuffer;
-
     public _forcedViewPosition: Nullable<Vector3>;
 
     /**
@@ -581,7 +494,6 @@ export class Scene extends AbstractScene {
      * an optional map from Geometry Id to Geometry index in the 'geometries' array
      */
     public geometriesByUniqueId: Nullable<{ [uniqueId: string]: number | undefined }> = null;
-
     public sceneMatrix: SceneMatrix;
 
     /**
@@ -631,7 +543,6 @@ export class Scene extends AbstractScene {
         if (!options || !options.virtual) {
             this._engine.onNewSceneAddedObservable.notifyObservers(this);
         }
-
     }
 
     /**
@@ -927,8 +838,6 @@ export class Scene extends AbstractScene {
         return this._uid;
     }
 
-
-
     /**
      * Clear the processed materials smart array preventing retention point in material dispose.
      */
@@ -1064,15 +973,12 @@ export class Scene extends AbstractScene {
         return this;
     }
 
-
-
     /**
      * User updatable function that will return a deterministic frame time when engine is in deterministic lock step mode
      */
     public getDeterministicFrameTime: () => number = () => {
         return this._engine.getTimeStep();
     }
-
 
     /**
      * Releases all held ressources
@@ -1134,11 +1040,6 @@ export class Scene extends AbstractScene {
             }
         }
 
-        // Release animation groups
-        // while (this.animationGroups.length) {
-        //     this.animationGroups[0].dispose();
-        // }
-
         // Release lights
         while (this.lights.length) {
             this.lights[0].dispose();
@@ -1161,9 +1062,6 @@ export class Scene extends AbstractScene {
         if (this._defaultMaterial) {
             this._defaultMaterial.dispose();
         }
-        // while (this.multiMaterials.length) {
-        //     this.multiMaterials[0].dispose();
-        // }
         while (this.materials.length) {
             this.materials[0].dispose();
         }
