@@ -7,6 +7,48 @@ import { Scene } from "./scene";
 import { InputManager } from "./scene.inputManager";
 
 export class SceneInputManagerApp {
+   /**
+     * Gets or sets the distance in pixel that you have to move to prevent some events. Default is 10 pixels
+     */
+    public static get DragMovementThreshold() {
+        return InputManager.DragMovementThreshold;
+    }
+
+    public static set DragMovementThreshold(value: number) {
+        InputManager.DragMovementThreshold = value;
+    }
+
+    /**
+     * Time in milliseconds to wait to raise long press events if button is still pressed. Default is 500 ms
+     */
+    public static get LongPressDelay() {
+        return InputManager.LongPressDelay;
+    }
+
+    public static set LongPressDelay(value: number) {
+        InputManager.LongPressDelay = value;
+    }
+
+    /**
+     * Time in milliseconds to wait to raise long press events if button is still pressed. Default is 300 ms
+     */
+    public static get DoubleClickDelay() {
+        return InputManager.DoubleClickDelay;
+    }
+
+    public static set DoubleClickDelay(value: number) {
+        InputManager.DoubleClickDelay = value;
+    }
+
+    /** If you need to check double click without raising a single click at first click, enable this flag */
+    public static get ExclusiveDoubleClickMode() {
+        return InputManager.ExclusiveDoubleClickMode;
+    }
+
+    public static set ExclusiveDoubleClickMode(value: boolean) {
+        InputManager.ExclusiveDoubleClickMode = value;
+    }
+
   // Pointers
     /**
      * Gets or sets a predicate used to select candidate meshes for a pointer down event
