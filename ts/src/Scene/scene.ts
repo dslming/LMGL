@@ -1014,16 +1014,6 @@ export class Scene extends AbstractScene {
         return this._activeMeshes;
     }
 
-    // /**
-    //  * Gets the animation ratio (which is 1.0 is the scene renders at 60fps and 2 if the scene renders at 30fps, etc.)
-    //  * @returns a number
-    //  */
-    // public getAnimationRatio(): number {
-    //     return this._animationRatio !== undefined ? this._animationRatio : 1;
-    // }
-
-
-
     /**
      * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
      * Delay loaded resources are not taking in account
@@ -1600,16 +1590,6 @@ export class Scene extends AbstractScene {
     }
 
     private _activeMesh(sourceMesh: AbstractMesh, mesh: AbstractMesh): void {
-        // if (this._skeletonsEnabled && mesh.skeleton !== null && mesh.skeleton !== undefined) {
-        //     // if (this._activeSkeletons.pushNoDuplicate(mesh.skeleton)) {
-        //     //     mesh.skeleton.prepare();
-        //     // }
-
-        //     if (!mesh.computeBonesUsingShaders) {
-        //         this._softwareSkinnedMeshes.pushNoDuplicate(<Mesh>mesh);
-        //     }
-        // }
-
         if (
             mesh !== undefined && mesh !== null
             && mesh.subMeshes !== undefined && mesh.subMeshes !== null && mesh.subMeshes.length > 0
@@ -1621,34 +1601,6 @@ export class Scene extends AbstractScene {
                 this._evaluateSubMesh(subMesh, mesh, sourceMesh);
             }
         }
-    }
-
-    public _bindFrameBuffer() {
-        if (this.activeCamera && this.activeCamera.outputRenderTarget) {
-            var useMultiview = this.getEngine().getCaps().multiview && this.activeCamera.outputRenderTarget && this.activeCamera.outputRenderTarget.getViewCount() > 1;
-            if (useMultiview) {
-                this.activeCamera.outputRenderTarget._bindFrameBuffer();
-            } else {
-                var internalTexture = this.activeCamera.outputRenderTarget.getInternalTexture();
-                if (internalTexture) {
-                    this.getEngine().bindFramebuffer(internalTexture);
-                } else {
-                    Logger.Error("Camera contains invalid customDefaultRenderTarget");
-                }
-            }
-        } else {
-            this.getEngine().restoreDefaultFramebuffer(); // Restore back buffer if needed
-        }
-    }
-    /** @hidden */
-    public _allowPostProcessClearColor = true;
-
-
-
-
-    /** @hidden */
-    public _advancePhysicsEngineStep(step: number) {
-        // Do nothing. Code will be replaced if physics engine component is referenced
     }
 
     /**
@@ -1753,16 +1705,6 @@ export class Scene extends AbstractScene {
             this.materials[0].dispose();
         }
 
-        // Release particles
-        // while (this.particleSystems.length) {
-        //     this.particleSystems[0].dispose();
-        // }
-
-        // // Release postProcesses
-        // while (this.postProcesses.length) {
-        //     this.postProcesses[0].dispose();
-        // }
-
         // Release textures
         while (this.textures.length) {
             this.textures[0].dispose();
@@ -1770,13 +1712,6 @@ export class Scene extends AbstractScene {
 
         // Release UBO
         this.sceneMatrix._sceneUbo.dispose();
-
-        // if (this._multiviewSceneUbo) {
-        //     this._multiviewSceneUbo.dispose();
-        // }
-
-        // Post-processes
-        // this.postProcessManager.dispose();
 
         // Remove from engine
         index = this._engine.scenes.indexOf(this);

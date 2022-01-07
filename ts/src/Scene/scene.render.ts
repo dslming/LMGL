@@ -5,6 +5,7 @@ import { Constants } from "../Engines/constants";
 import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
+import { Logger } from "../Misc/logger";
 import { Tools } from "../Misc/tools";
 import { IRenderingManagerAutoClearSetup } from "../Rendering/renderingManager";
 import { Nullable } from "../types";
@@ -295,7 +296,7 @@ export class SceneRender {
         // Restore back buffer
         this.scene.activeCamera = currentActiveCamera;
         if (this.scene._activeCamera && this.scene._activeCamera.cameraRigMode !== Camera.RIG_MODE_CUSTOM && !this.scene.prePass) {
-            this.scene._bindFrameBuffer();
+            this._bindFrameBuffer();
         }
         this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this.scene);
 
@@ -453,7 +454,7 @@ export class SceneRender {
 
         // Restore framebuffer after rendering to targets
         if (needRebind && !this.scene.prePass) {
-            this.scene._bindFrameBuffer();
+            this._bindFrameBuffer();
         }
 
         this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this.scene);
@@ -510,5 +511,24 @@ export class SceneRender {
     /** Call this function if you want to manually increment the render Id*/
     public incrementRenderId(): void {
         this.scene._renderId++;
+    }
+
+
+    public _bindFrameBuffer() {
+        if (this.scene.activeCamera && this.scene.activeCamera.outputRenderTarget) {
+            var useMultiview = this.scene.getEngine().getCaps().multiview && this.scene.activeCamera.outputRenderTarget && this.scene.activeCamera.outputRenderTarget.getViewCount() > 1;
+            if (useMultiview) {
+                this.scene.activeCamera.outputRenderTarget._bindFrameBuffer();
+            } else {
+                var internalTexture = this.scene.activeCamera.outputRenderTarget.getInternalTexture();
+                if (internalTexture) {
+                    this.scene.getEngine().bindFramebuffer(internalTexture);
+                } else {
+                    Logger.Error("Camera contains invalid customDefaultRenderTarget");
+                }
+            }
+        } else {
+            this.scene.getEngine().restoreDefaultFramebuffer(); // Restore back buffer if needed
+        }
     }
 }
