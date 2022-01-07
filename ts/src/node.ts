@@ -10,10 +10,6 @@ import { _DevTools } from './Misc/devTools';
 import { AbstractActionManager } from './Actions/abstractActionManager';
 import { IInspectable } from './Misc/iInspectable';
 
-// declare type Animatable = import("./Animations/animatable").Animatable;
-// declare type AnimationPropertiesOverride = import("./Animations/animationPropertiesOverride").AnimationPropertiesOverride;
-// declare type Animation = import("./Animations/animation").Animation;
-// declare type AnimationRange = import("./Animations/animationRange").AnimationRange;
 declare type AbstractMesh = import("./Meshes/abstractMesh").AbstractMesh;
 
 /**
@@ -22,16 +18,10 @@ declare type AbstractMesh = import("./Meshes/abstractMesh").AbstractMesh;
 export type NodeConstructor = (name: string, scene: Scene, options?: any) => () => Node;
 
 
-
 /**
  * Node is the basic class for all scene objects (Mesh, Light, Camera.)
  */
 export class Node implements IBehaviorAware<Node> {
-    /** @hidden */
-    // public static _AnimationRangeFactory = (name: string, from: number, to: number): AnimationRange => {
-    //     throw _DevTools.WarnImport("AnimationRange");
-    // }
-
     private static _NodeConstructors: { [key: string]: any } = {};
 
     /**

@@ -7,7 +7,6 @@ import { Node } from "../node";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { Effect } from "../Materials/effect";
 import { UniformBuffer } from "../Materials/uniformBuffer";
-// import { IShadowGenerator } from "./Shadows/shadowGenerator";
 import { _TypeStore } from '../Misc/typeStore';
 
 /**
@@ -412,15 +411,6 @@ export abstract class Light extends Node {
         // Textures might still need to be rebound.
         this.transferTexturesToEffect(effect, iAsString);
 
-        // Shadows
-        // if (scene.shadowsEnabled && this.shadowEnabled) {
-        //     var shadowGenerator = this.getShadowGenerator();
-        //     if (shadowGenerator) {
-        //         shadowGenerator.bindShadowLight(iAsString, effect);
-        //         needUpdate = true;
-        //     }
-        // }
-
         if (needUpdate) {
             this._uniformBuffer.update();
         }
@@ -453,11 +443,6 @@ export abstract class Light extends Node {
     public toString(fullDetails?: boolean): string {
         var ret = "Name: " + this.name;
         ret += ", type: " + (["Point", "Directional", "Spot", "Hemispheric"])[this.getTypeID()];
-        // if (this.animations) {
-        //     for (var i = 0; i < this.animations.length; i++) {
-        //         ret += ", animation[0]: " + this.animations[i].toString(fullDetails);
-        //     }
-        // }
         if (fullDetails) {
         }
         return ret;
@@ -480,14 +465,6 @@ export abstract class Light extends Node {
 
         this._resyncMeshes();
     }
-
-    /**
-     * Returns the Light associated shadow generator if any.
-     * @return the associated shadow generator.
-     */
-    // public getShadowGenerator(): Nullable<IShadowGenerator> {
-    //     return this._shadowGenerator;
-    // }
 
     /**
      * Returns a Vector3, the absolute light position in the World.
@@ -547,14 +524,6 @@ export abstract class Light extends Node {
      * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
      */
     public dispose(doNotRecurse?: boolean, disposeMaterialAndTextures = false): void {
-        // if (this._shadowGenerator) {
-        //     this._shadowGenerator.dispose();
-        //     this._shadowGenerator = null;
-        // }
-
-        // Animations
-        // this.getScene().stopAnimation(this);
-
         // Remove from meshes
         for (var mesh of this.getScene().meshes) {
             mesh._removeLightSource(this, true);
@@ -633,10 +602,6 @@ export abstract class Light extends Node {
             });
         }
 
-        // Animations
-        // SerializationHelper.AppendSerializedAnimations(this, serializationObject);
-        // serializationObject.ranges = this.serializeAnimationRanges();
-
         return serializationObject;
     }
 
@@ -697,22 +662,6 @@ export abstract class Light extends Node {
         if (parsedLight.lightmapMode !== undefined) {
             light.lightmapMode = parsedLight.lightmapMode;
         }
-
-        // Animations
-        // if (parsedLight.animations) {
-        //     for (var animationIndex = 0; animationIndex < parsedLight.animations.length; animationIndex++) {
-        //         var parsedAnimation = parsedLight.animations[animationIndex];
-        //         const internalClass = _TypeStore.GetClass("BABYLON.Animation");
-        //         if (internalClass) {
-        //             light.animations.push(internalClass.Parse(parsedAnimation));
-        //         }
-        //     }
-        //     Node.ParseAnimationRanges(light, parsedLight, scene);
-        // }
-
-        // if (parsedLight.autoAnimate) {
-        //     scene.beginAnimation(light, parsedLight.autoAnimateFrom, parsedLight.autoAnimateTo, parsedLight.autoAnimateLoop, parsedLight.autoAnimateSpeed || 1.0);
-        // }
 
         return light;
     }

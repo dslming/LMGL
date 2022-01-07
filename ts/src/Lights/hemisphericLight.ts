@@ -1,12 +1,10 @@
 import { serializeAsColor3, serializeAsVector3 } from "../Misc/decorators";
-// import { Nullable } from "../types";
 import { Scene } from "../Scene/scene";
 import { Matrix, Vector3 } from "../Maths/math.vector";
 import { Color3 } from "../Maths/math.color";
 import { Node } from "../node";
 import { Effect } from "../Materials/effect";
 import { Light } from "./light";
-// import { IShadowGenerator } from "./Shadows/shadowGenerator";
 
 Node.AddNodeConstructor("Light_Type_3", (name, scene) => {
     return () => new HemisphericLight(name, Vector3.Zero(), scene);
@@ -73,13 +71,6 @@ export class HemisphericLight extends Light {
         return this.direction;
     }
 
-    /**
-     * Returns the shadow generator associated to the light.
-     * @returns Always null for hemispheric lights because it does not support shadows.
-     */
-    // public getShadowGenerator(): Nullable<IShadowGenerator> {
-    //     return null;
-    // }
 
     /**
      * Sets the passed Effect object with the HemisphericLight normalized direction and color and the passed name (string).
