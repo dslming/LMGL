@@ -80,6 +80,7 @@ import { SceneEventTrigger } from "./scene.eventTrigger";
 import { SceneNode } from "./scene.node";
 import { ScenePick } from "./scene.pick";
 import { SceneStage } from "./scene.stage";
+import { SceneRender } from "./scene.render";
 
 declare type Ray = import("../Culling/ray").Ray;
 declare type Collider = import("../Collisions/collider").Collider;
@@ -112,6 +113,8 @@ export class Scene extends AbstractScene {
     public sceneEventTrigger = new SceneEventTrigger(this);
     public scenePick = new ScenePick(this);
     public sceneStage = new SceneStage();
+    public sceneRender = new SceneRender(this);
+
 
 
 
@@ -796,7 +799,7 @@ export class Scene extends AbstractScene {
     public proceduralTexturesEnabled = true;
 
     // Private
-    private _engine: Engine;
+    public _engine: Engine;
 
     // Performance counters
     private _totalVertices = new PerfCounter();
@@ -823,10 +826,10 @@ export class Scene extends AbstractScene {
 
 
 
-    private _renderId = 0;
+    public _renderId = 0;
     private _frameId = 0;
     private _executeWhenReadyTimeoutId = -1;
-    private _intermediateRendering = false;
+    public _intermediateRendering = false;
 
 
 
@@ -845,13 +848,13 @@ export class Scene extends AbstractScene {
     public dispatchAllSubMeshesOfActiveMeshes: boolean = false;
     public _activeMeshes = new SmartArray<AbstractMesh>(256);
     private _processedMaterials = new SmartArray<Material>(256);
-    private _renderTargets = new SmartArrayNoDuplicate<RenderTargetTexture>(256);
+    public _renderTargets = new SmartArrayNoDuplicate<RenderTargetTexture>(256);
     /** @hidden */
     // public _activeParticleSystems = new SmartArray<IParticleSystem>(256);
     // private _activeSkeletons = new SmartArrayNoDuplicate<Skeleton>(32);
     private _softwareSkinnedMeshes = new SmartArrayNoDuplicate<Mesh>(32);
 
-    private _renderingManager: RenderingManager;
+    public _renderingManager: RenderingManager;
 
     /** @hidden */
     public _activeAnimatables = new Array<Animatable>();
@@ -1472,7 +1475,7 @@ export class Scene extends AbstractScene {
 
         if (value) {
             this.freeActiveMeshes();
-            this.freeRenderingGroups();
+            this.sceneRender.freeRenderingGroups();
         }
 
         this._preventFreeActiveMeshesAndRenderingGroups = value;
@@ -1500,26 +1503,7 @@ export class Scene extends AbstractScene {
         }
     }
 
-    /**
-     * Clear the info related to rendering groups preventing retention points during dispose.
-     */
-    public freeRenderingGroups(): void {
-        if (this.blockfreeActiveMeshesAndRenderingGroups) {
-            return;
-        }
 
-        if (this._renderingManager) {
-            this._renderingManager.freeRenderingGroups();
-        }
-        if (this.textures) {
-            for (let i = 0; i < this.textures.length; i++) {
-                let texture = this.textures[i];
-                if (texture && (<RenderTargetTexture>texture).renderList) {
-                    (<RenderTargetTexture>texture).freeRenderingGroups();
-                }
-            }
-        }
-    }
 
     /** @hidden */
     public _isInIntermediateRendering(): boolean {
@@ -1601,7 +1585,7 @@ export class Scene extends AbstractScene {
         return this;
     }
 
-    private _evaluateActiveMeshes(): void {
+    public _evaluateActiveMeshes(): void {
         if (this._activeMeshesFrozen && this._activeMeshes.length) {
 
             if (!this._skipEvaluateActiveMeshesCompletely) {
@@ -1754,7 +1738,7 @@ export class Scene extends AbstractScene {
         }
     }
 
-    private _bindFrameBuffer() {
+    public _bindFrameBuffer() {
         if (this.activeCamera && this.activeCamera.outputRenderTarget) {
             var useMultiview = this.getEngine().getCaps().multiview && this.activeCamera.outputRenderTarget && this.activeCamera.outputRenderTarget.getViewCount() > 1;
             if (useMultiview) {
@@ -1773,138 +1757,11 @@ export class Scene extends AbstractScene {
     }
     /** @hidden */
     public _allowPostProcessClearColor = true;
-    /** @hidden */
-    public _renderForCamera(camera: Camera, rigParent?: Camera): void {
-        if (camera && camera._skipRendering) {
-            return;
-        }
 
-        var engine = this._engine;
-
-        // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
-        this._activeCamera = camera;
-
-        if (!this.activeCamera) {
-            throw new Error("Active camera not set");
-        }
-
-        // Viewport
-        engine.setViewport(this.activeCamera.viewport);
-
-        // Camera
-        this.sceneCatch.resetCachedMaterial();
-        this._renderId++;
-
-        var useMultiview = this.getEngine().getCaps().multiview && camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1;
-        if (useMultiview) {
-            this.sceneMatrix.setTransformMatrix(camera._rigCameras[0].getViewMatrix(), camera._rigCameras[0].getProjectionMatrix(), camera._rigCameras[1].getViewMatrix(), camera._rigCameras[1].getProjectionMatrix());
-        } else {
-            this.sceneMatrix.updateTransformMatrix();
-        }
-
-        this.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.activeCamera);
-
-        // Meshes
-        this._evaluateActiveMeshes();
-
-        // Software skinning
-        // for (var softwareSkinnedMeshIndex = 0; softwareSkinnedMeshIndex < this._softwareSkinnedMeshes.length; softwareSkinnedMeshIndex++) {
-        //     var mesh = this._softwareSkinnedMeshes.data[softwareSkinnedMeshIndex];
-
-        //     mesh.applySkeleton(<Skeleton>mesh.skeleton);
-        // }
-
-        // Render targets
-        this.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
-
-        if (camera.customRenderTargets && camera.customRenderTargets.length > 0) {
-            this._renderTargets.concatWithNoDuplicate(camera.customRenderTargets);
-        }
-
-        if (rigParent && rigParent.customRenderTargets && rigParent.customRenderTargets.length > 0) {
-            this._renderTargets.concatWithNoDuplicate(rigParent.customRenderTargets);
-        }
-
-        // Collects render targets from external components.
-        for (let step of this.sceneStage._gatherActiveCameraRenderTargetsStage) {
-            step.action(this._renderTargets);
-        }
-
-        let needRebind = false;
-        if (this.renderTargetsEnabled) {
-            this._intermediateRendering = true;
-
-            if (this._renderTargets.length > 0) {
-                Tools.StartPerformanceCounter("Render targets", this._renderTargets.length > 0);
-                for (var renderIndex = 0; renderIndex < this._renderTargets.length; renderIndex++) {
-                    let renderTarget = this._renderTargets.data[renderIndex];
-                    if (renderTarget._shouldRender()) {
-                        this._renderId++;
-                        var hasSpecialRenderTargetCamera = renderTarget.activeCamera && renderTarget.activeCamera !== this.activeCamera;
-                        renderTarget.render((<boolean>hasSpecialRenderTargetCamera), this.dumpNextRenderTargets);
-                        needRebind = true;
-                    }
-                }
-                Tools.EndPerformanceCounter("Render targets", this._renderTargets.length > 0);
-
-                this._renderId++;
-            }
-
-            for (let step of this.sceneStage._cameraDrawRenderTargetStage) {
-                needRebind = step.action(this.activeCamera) || needRebind;
-            }
-
-            this._intermediateRendering = false;
-
-            // Need to bind if sub-camera has an outputRenderTarget eg. for webXR
-            if (this.activeCamera && this.activeCamera.outputRenderTarget) {
-                needRebind = true;
-            }
-        }
-
-        // Restore framebuffer after rendering to targets
-        if (needRebind && !this.prePass) {
-            this._bindFrameBuffer();
-        }
-
-        this.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this);
-
-        // Prepare Frame
-        // if (this.postProcessManager && !camera._multiviewTexture && !this.prePass) {
-        //     this.postProcessManager._prepareFrame();
-        // }
-
-        // Before Camera Draw
-        for (let step of this.sceneStage._beforeCameraDrawStage) {
-            step.action(this.activeCamera);
-        }
-
-        // Render
-        this.sceneEventTrigger.onBeforeDrawPhaseObservable.notifyObservers(this);
-        this._renderingManager.render(null, null, true, true);
-        this.sceneEventTrigger.onAfterDrawPhaseObservable.notifyObservers(this);
-
-        // After Camera Draw
-        for (let step of this.sceneStage._afterCameraDrawStage) {
-            step.action(this.activeCamera);
-        }
-
-        // Finalize frame
-        // if (this.postProcessManager && !camera._multiviewTexture) {
-        //     // if the camera has an output render target, render the post process to the render target
-        //     const texture = camera.outputRenderTarget ? camera.outputRenderTarget.getInternalTexture()! : undefined;
-        //     this.postProcessManager._finalizeFrame(camera.isIntermediate, texture);
-        // }
-
-        // Reset some special arrays
-        this._renderTargets.reset();
-
-        this.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(this.activeCamera);
-    }
 
     private _processSubCameras(camera: Camera): void {
         if (camera.cameraRigMode === Camera.RIG_MODE_NONE || (camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1 && this.getEngine().getCaps().multiview)) {
-            this._renderForCamera(camera);
+            this.sceneRender._renderForCamera(camera);
             this.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
             return;
         }
@@ -1912,7 +1769,7 @@ export class Scene extends AbstractScene {
          {
             // rig cameras
             for (var index = 0; index < camera._rigCameras.length; index++) {
-                this._renderForCamera(camera._rigCameras[index], camera);
+                this.sceneRender._renderForCamera(camera._rigCameras[index], camera);
             }
         }
 
@@ -2367,15 +2224,7 @@ export class Scene extends AbstractScene {
         this._renderingManager.setRenderingAutoClearDepthStencil(renderingGroupId, autoClearDepthStencil, depth, stencil);
     }
 
-    /**
-     * Gets the current auto clear configuration for one rendering group of the rendering
-     * manager.
-     * @param index the rendering group index to get the information for
-     * @returns The auto clear setup for the requested rendering group
-     */
-    public getAutoClearDepthStencilSetup(index: number): IRenderingManagerAutoClearSetup {
-        return this._renderingManager.getAutoClearDepthStencilSetup(index);
-    }
+
 
     private _blockMaterialDirtyMechanism = false;
 

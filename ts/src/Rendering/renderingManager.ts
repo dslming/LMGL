@@ -143,7 +143,7 @@ export class RenderingManager {
             // Clear depth/stencil if needed
             if (RenderingManager.AUTOCLEAR) {
                 const autoClear = this._useSceneAutoClearSetup ?
-                    this._scene.getAutoClearDepthStencilSetup(index) :
+                    this._scene.sceneRender.getAutoClearDepthStencilSetup(index) :
                     this._autoClearDepthStencil[index];
 
                 if (autoClear && autoClear.autoClear) {

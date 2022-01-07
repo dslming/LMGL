@@ -1672,7 +1672,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
 
         // Smart Array Retainers.
         this.getScene().freeActiveMeshes();
-        this.getScene().freeRenderingGroups();
+        this.getScene().sceneRender.freeRenderingGroups();
 
         // Action manager
         // if (this.actionManager !== undefined && this.actionManager !== null) {
