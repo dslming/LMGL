@@ -86,12 +86,6 @@ export class Node implements IBehaviorAware<Node> {
      */
     public reservedDataStore: any = null;
 
-    /**
-     * List of inspectable custom properties (used by the Inspector)
-     * @see https://doc.babylonjs.com/how_to/debug_layer#extensibility
-     */
-    public inspectableCustomProperties: IInspectable[];
-
     private _doNotSerialize = false;
     /**
      * Gets or sets a boolean used to define if the node must be serialized

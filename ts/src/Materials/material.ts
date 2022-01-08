@@ -251,12 +251,6 @@ export class Material {
     protected _alpha = 1.0;
 
     /**
-     * List of inspectable custom properties (used by the Inspector)
-     * @see https://doc.babylonjs.com/how_to/debug_layer#extensibility
-     */
-    public inspectableCustomProperties: IInspectable[];
-
-    /**
      * Sets the alpha value of the material
      */
     public set alpha(value: number) {

@@ -201,12 +201,6 @@ export class Texture extends BaseTexture {
         return this._noMipmap;
     }
 
-    /**
-     * List of inspectable custom properties (used by the Inspector)
-     * @see https://doc.babylonjs.com/how_to/debug_layer#extensibility
-     */
-    public inspectableCustomProperties: Nullable<IInspectable[]> = null;
-
     private _noMipmap: boolean = false;
     /** @hidden */
     public _invertY: boolean = false;

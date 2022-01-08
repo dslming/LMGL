@@ -20,7 +20,6 @@ class App {
 
   createScene (engine:any, canvas:any) {
     var scene = BABYLONG.creator(BABYLONG.Scene, engine);
-    scene.initDebugeLayer(scene)
     var camera = new BABYLONG.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 5, BABYLONG.Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
 
