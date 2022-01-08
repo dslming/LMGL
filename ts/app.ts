@@ -1,6 +1,5 @@
-import * as lmgl2 from './src/index'
-(window as any).lmgl2 = lmgl2;
-
+import * as BABYLONG from './src/index'
+(window as any).BABYLONG = BABYLONG;
 class App {
   private scene: any;
   private camera: any;
@@ -12,7 +11,7 @@ class App {
 
   constructor() {
     this.canvas = document.getElementById('renderCanvas');
-    this.engine = new lmgl2.Engine(this.canvas, true);
+    this.engine = new BABYLONG.Engine(this.canvas, true);
     this.createScene(this.engine, this.canvas);
     this.engine.runRenderLoop(()=> {
       this.scene.render();
@@ -20,15 +19,16 @@ class App {
   }
 
   createScene (engine:any, canvas:any) {
-    var scene = lmgl2.creator(lmgl2.Scene, engine);
-    var camera = new lmgl2.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 5, lmgl2.Vector3.Zero(), scene);
+    var scene = BABYLONG.creator(BABYLONG.Scene, engine);
+    scene.initDebugeLayer(scene)
+    var camera = new BABYLONG.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 5, BABYLONG.Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
 
-    var light = new lmgl2.HemisphericLight("hemiLight", new lmgl2.Vector3(-1, 1, 0), scene);
-    light.diffuse = new lmgl2.Color3(0.1, 0.9, 0);
-    light.specular = new lmgl2.Color3(0, 0.87, 0);
+    var light = new BABYLONG.HemisphericLight("hemiLight", new BABYLONG.Vector3(-1, 1, 0), scene);
+    light.diffuse = new BABYLONG.Color3(0.1, 0.9, 0);
+    light.specular = new BABYLONG.Color3(0, 0.87, 0);
 
-    var sphere = lmgl2.MeshBuilder.CreateSphere("sphere", {}, scene);
+    var sphere = BABYLONG.MeshBuilder.CreateSphere("sphere", {}, scene);
     sphere.position.z = 0;
 
     this.scene = scene;
@@ -38,7 +38,7 @@ class App {
 };
 }
 window.onload = () => {
-  console.error(lmgl2);
+  console.error(BABYLONG);
   const app = new App();
 
   (window as any).lm = app;
