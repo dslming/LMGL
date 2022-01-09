@@ -9,9 +9,8 @@ claaa Node {
 }
 ```
 
-#### Mesh
-```js
-```
+
+
 #### Light
 
 ```js
