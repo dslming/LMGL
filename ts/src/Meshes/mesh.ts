@@ -1,10 +1,8 @@
 import { Observer, Observable } from "../Misc/observable";
 import { Tools, AsyncLoop } from "../Misc/tools";
-// import { IAnimatable } from '../Animations/animatable.interface';
 import { DeepCopier } from "../Misc/deepCopier";
 import { Tags } from "../Misc/tags";
 import { Nullable, FloatArray, IndicesArray } from "../types";
-// import { Camera } from "../Cameras/camera";
 import { Scene } from "../Scene/scene";
 import { Quaternion, Matrix, Vector3, Vector2, Vector4 } from "../Maths/math.vector";
 import { Color3, Color4 } from '../Maths/math.color';
@@ -17,33 +15,22 @@ import { Geometry } from "./geometry";
 import { AbstractMesh } from "./abstractMesh";
 import { SubMesh } from "./subMesh";
 import { BoundingInfo } from "../Culling/boundingInfo";
-// import { BoundingSphere } from "../Culling/boundingSphere";
 import { Effect } from "../Materials/effect";
 import { Material } from "../Materials/material";
-// import { MultiMaterial } from "../Materials/multiMaterial";
 import { SceneLoaderFlags } from "../Loading/sceneLoaderFlags";
-// import { Skeleton } from "../Bones/skeleton";
-// import { MorphTargetManager } from "../Morph/morphTargetManager";
 import { Constants } from "../Engines/constants";
 // import { SerializationHelper } from "../Misc/decorators";
 import { Logger } from "../Misc/logger";
 import { _TypeStore } from '../Misc/typeStore';
 import { _DevTools } from '../Misc/devTools';
 import { SceneComponentConstants } from "../Scene/sceneComponent";
-// import { MeshLODLevel } from './meshLODLevel';
 import { Path3D } from '../Maths/math.path';
 import { Plane } from '../Maths/math.plane';
 import { TransformNode } from './transformNode';
 import { CanvasGenerator } from '../Misc/canvasGenerator';
 import { LinesMesh } from "./linesMesh";
-// import { ICreateCapsuleOptions } from './Builders/capsuleBuilder';
-
-// declare type LinesMesh = import("./linesMesh").LinesMesh;
 declare type InstancedMesh = import("./instancedMesh").InstancedMesh;
 declare type GroundMesh = import("./groundMesh").GroundMesh;
-// declare type IPhysicsEnabledObject = import("../Physics/physicsImpostor").IPhysicsEnabledObject;
-// declare type PhysicsImpostor = import("../Physics/physicsImpostor").PhysicsImpostor;
-
 declare var earcut: any;
 
 /**
@@ -123,10 +110,6 @@ class _InternalMeshDataInfo {
     public meshMap: Nullable<{ [id: string]: Mesh | undefined }> = null;
 
     public _preActivateId: number = -1;
-    // public _LODLevels = new Array<MeshLODLevel>();
-
-    // Morph
-    // public _morphTargetManager: Nullable<MorphTargetManager> = null;
 }
 
 /**
@@ -344,21 +327,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
      */
     public onLODLevelSelection: (distance: number, mesh: Mesh, selectedLevel: Nullable<Mesh>) => void;
 
-    /**
-     * Gets or sets the morph target manager
-     * @see https://doc.babylonjs.com/how_to/how_to_use_morphtargets
-     */
-    // public get morphTargetManager(): Nullable<MorphTargetManager> {
-    //     return this._internalMeshDataInfo._morphTargetManager;
-    // }
-
-    // public set morphTargetManager(value: Nullable<MorphTargetManager>) {
-    //     if (this._internalMeshDataInfo._morphTargetManager === value) {
-    //         return;
-    //     }
-    //     this._internalMeshDataInfo._morphTargetManager = value;
-    //     this._syncGeometryWithMorphTargetManager();
-    // }
 
     // Private
     /** @hidden */
@@ -468,33 +436,11 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
             // Source mesh
             this._internalMeshDataInfo._source = source;
-            // if (scene.useClonedMeshMap) {
-            //     if (!source._internalMeshDataInfo.meshMap) {
-            //         source._internalMeshDataInfo.meshMap = {};
-            //     }
-            //     source._internalMeshDataInfo.meshMap[this.uniqueId] = this;
-            // }
 
             // Construction Params
             // Clone parameters allowing mesh to be updated in case of parametric shapes.
             this._originalBuilderSideOrientation = source._originalBuilderSideOrientation;
             this._creationDataStorage = source._creationDataStorage;
-
-            // Animation ranges
-            // if (source._ranges) {
-            //     const ranges = source._ranges;
-            //     for (var name in ranges) {
-            //         if (!ranges.hasOwnProperty(name)) {
-            //             continue;
-            //         }
-
-            //         if (!ranges[name]) {
-            //             continue;
-            //         }
-
-            //         this.createAnimationRange(name, ranges[name]!.from, ranges[name]!.to);
-            //     }
-            // }
 
             // Metadata
             if (source.metadata && source.metadata.clone) {
@@ -534,30 +480,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
                 }
             }
 
-            // Morphs
-            // if (source.morphTargetManager) {
-            //     this.morphTargetManager = source.morphTargetManager;
-            // }
-
-            // Physics clone
-            // if (scene.getPhysicsEngine) {
-            //     var physicsEngine = scene.getPhysicsEngine();
-            //     if (clonePhysicsImpostor && physicsEngine) {
-            //         var impostor = physicsEngine.getImpostorForPhysicsObject(source);
-            //         if (impostor) {
-            //             this.physicsImpostor = impostor.clone(this);
-            //         }
-            //     }
-            // }
-
-            // Particles
-            // for (index = 0; index < scene.particleSystems.length; index++) {
-            //     var system = scene.particleSystems[index];
-
-            //     if (system.emitter === source) {
-            //         system.clone(system.name, this);
-            //     }
-            // }
             this.refreshBoundingInfo();
             this.computeWorldMatrix(true);
         }
@@ -619,12 +541,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         ret += ", n vertices: " + this.getTotalVertices();
         ret += ", parent: " + (this._waitingParentId ? this._waitingParentId : (this.parent ? this.parent.name : "NONE"));
 
-        // if (this.animations) {
-        //     for (var i = 0; i < this.animations.length; i++) {
-        //         ret += ", animation[0]: " + this.animations[i].toString(fullDetails);
-        //     }
-        // }
-
         if (fullDetails) {
 
             if (this._geometry) {
@@ -650,33 +566,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         }
     }
 
-    /**
-     * Gets a boolean indicating if this mesh has LOD
-     */
-    // public get hasLODLevels(): boolean {
-    //     // return this._internalMeshDataInfo._LODLevels.length > 0;
-    // }
-
-    /**
-     * Gets the list of MeshLODLevel associated with the current mesh
-     * @returns an array of MeshLODLevel
-     */
-    // public getLODLevels(): MeshLODLevel[] {
-    //     return this._internalMeshDataInfo._LODLevels;
-    // }
-
-    // private _sortLODLevels(): void {
-    //     this._internalMeshDataInfo._LODLevels.sort((a, b) => {
-    //         if (a.distance < b.distance) {
-    //             return 1;
-    //         }
-    //         if (a.distance > b.distance) {
-    //             return -1;
-    //         }
-
-    //         return 0;
-    //     });
-    // }
 
     /**
      * Add a mesh as LOD level triggered at the given distance.
@@ -691,120 +580,12 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
             return this;
         }
 
-        // var level = new MeshLODLevel(distance, mesh);
-        // this._internalMeshDataInfo._LODLevels.push(level);
-
         if (mesh) {
             mesh._masterMesh = this;
         }
 
-        // this._sortLODLevels();
-
         return this;
     }
-
-    /**
-     * Returns the LOD level mesh at the passed distance or null if not found.
-     * @see https://doc.babylonjs.com/how_to/how_to_use_lod
-     * @param distance The distance from the center of the object to show this level
-     * @returns a Mesh or `null`
-     */
-    // public getLODLevelAtDistance(distance: number): Nullable<Mesh> {
-    //     let internalDataInfo = this._internalMeshDataInfo;
-    //     for (var index = 0; index < internalDataInfo._LODLevels.length; index++) {
-    //         var level = internalDataInfo._LODLevels[index];
-
-    //         if (level.distance === distance) {
-    //             return level.mesh;
-    //         }
-    //     }
-    //     return null;
-    // }
-
-    /**
-     * Remove a mesh from the LOD array
-     * @see https://doc.babylonjs.com/how_to/how_to_use_lod
-     * @param mesh defines the mesh to be removed
-     * @return This mesh (for chaining)
-     */
-    // public removeLODLevel(mesh: Mesh): Mesh {
-    //     let internalDataInfo = this._internalMeshDataInfo;
-    //     for (var index = 0; index < internalDataInfo._LODLevels.length; index++) {
-    //         if (internalDataInfo._LODLevels[index].mesh === mesh) {
-    //             internalDataInfo._LODLevels.splice(index, 1);
-    //             if (mesh) {
-    //                 mesh._masterMesh = null;
-    //             }
-    //         }
-    //     }
-
-    //     this._sortLODLevels();
-    //     return this;
-    // }
-
-    /**
-     * Returns the registered LOD mesh distant from the parameter `camera` position if any, else returns the current mesh.
-     * @see https://doc.babylonjs.com/how_to/how_to_use_lod
-     * @param camera defines the camera to use to compute distance
-     * @param boundingSphere defines a custom bounding sphere to use instead of the one from this mesh
-     * @return This mesh (for chaining)
-     */
-    // public getLOD(camera: Camera, boundingSphere?: BoundingSphere): Nullable<AbstractMesh> {
-    //     let internalDataInfo = this._internalMeshDataInfo;
-    //     if (!internalDataInfo._LODLevels || internalDataInfo._LODLevels.length === 0) {
-    //         return this;
-    //     }
-
-    //     let bSphere: BoundingSphere;
-
-    //     if (boundingSphere) {
-    //         bSphere = boundingSphere;
-    //     } else {
-    //         let boundingInfo = this.getBoundingInfo();
-
-    //         bSphere = boundingInfo.boundingSphere;
-    //     }
-
-    //     var distanceToCamera = bSphere.centerWorld.subtract(camera.globalPosition).length();
-
-    //     if (internalDataInfo._LODLevels[internalDataInfo._LODLevels.length - 1].distance > distanceToCamera) {
-    //         if (this.onLODLevelSelection) {
-    //             this.onLODLevelSelection(distanceToCamera, this, this);
-    //         }
-    //         return this;
-    //     }
-
-    //     for (var index = 0; index < internalDataInfo._LODLevels.length; index++) {
-    //         var level = internalDataInfo._LODLevels[index];
-
-    //         if (level.distance < distanceToCamera) {
-    //             if (level.mesh) {
-    //                 if (level.mesh.delayLoadState === Constants.DELAYLOADSTATE_NOTLOADED) {
-    //                     level.mesh._checkDelayState();
-    //                     return this;
-    //                 }
-
-    //                 if (level.mesh.delayLoadState === Constants.DELAYLOADSTATE_LOADING) {
-    //                     return this;
-    //                 }
-
-    //                 level.mesh._preActivate();
-    //                 level.mesh._updateSubMeshesBoundingInfo(this.worldMatrixFromCache);
-    //             }
-
-    //             if (this.onLODLevelSelection) {
-    //                 this.onLODLevelSelection(distanceToCamera, this, level.mesh);
-    //             }
-
-    //             return level.mesh;
-    //         }
-    //     }
-
-    //     if (this.onLODLevelSelection) {
-    //         this.onLODLevelSelection(distanceToCamera, this, this);
-    //     }
-    //     return this;
-    // }
 
     /**
      * Gets the mesh internal Geometry object
@@ -1057,13 +838,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         //     }
         // }
 
-        // LOD
-        // for (var lod of this._internalMeshDataInfo._LODLevels) {
-        //     if (lod.mesh && !lod.mesh.isReady(hardwareInstancedRendering)) {
-        //         return false;
-        //     }
-        // }
-
         return true;
     }
 
@@ -1148,19 +922,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         if (!this.hasThinInstances) {
             return;
         }
-
-        // if (!this.doNotSyncBoundingInfo) {
-        //     this.thinInstanceRefreshBoundingInfo(false);
-        // }
     }
-
-    /** @hidden */
-    // public _postActivate(): void {
-    //     if (this.edgesShareWithInstances && this.edgesRenderer && this.edgesRenderer.isEnabled && this._renderingGroup) {
-    //         this._renderingGroup._edgesRenderers.pushNoDuplicate(this.edgesRenderer);
-    //         this.edgesRenderer.customInstances.push(this.getWorldMatrix());
-    //     }
-    // }
 
     /**
      * This method recomputes and sets a new BoundingInfo to the mesh unless it is locked.
@@ -1717,57 +1479,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     }
 
     /** @hidden */
-    // public _processRendering(renderingMesh: AbstractMesh, subMesh: SubMesh, effect: Effect, fillMode: number, batch: _InstancesBatch, hardwareInstancedRendering: boolean,
-    //     onBeforeDraw: (isInstance: boolean, world: Matrix, effectiveMaterial?: Material) => void, effectiveMaterial?: Material): Mesh {
-    //     var scene = this.getScene();
-    //     var engine = scene.getEngine();
-
-    //     if (hardwareInstancedRendering && subMesh.getRenderingMesh().hasThinInstances) {
-    //         this._renderWithThinInstances(subMesh, fillMode, effect, engine);
-    //         return this;
-    //     }
-
-    //     if (hardwareInstancedRendering) {
-    //         this._renderWithInstances(subMesh, fillMode, batch, effect, engine);
-    //     } else {
-    //         let instanceCount = 0;
-    //         if (batch.renderSelf[subMesh._id]) {
-    //             // Draw
-    //             if (onBeforeDraw) {
-    //                 onBeforeDraw(false, renderingMesh._effectiveMesh.getWorldMatrix(), effectiveMaterial);
-    //             }
-    //             instanceCount++;
-
-    //             this._draw(subMesh, fillMode, this._instanceDataStorage.overridenInstanceCount);
-    //         }
-
-    //         let visibleInstancesForSubMesh = batch.visibleInstances[subMesh._id];
-
-    //         if (visibleInstancesForSubMesh) {
-    //             let visibleInstanceCount = visibleInstancesForSubMesh.length;
-    //             instanceCount += visibleInstanceCount;
-
-    //             // Stats
-    //             for (var instanceIndex = 0; instanceIndex < visibleInstanceCount; instanceIndex++) {
-    //                 var instance = visibleInstancesForSubMesh[instanceIndex];
-
-    //                 // World
-    //                 var world = instance.getWorldMatrix();
-    //                 if (onBeforeDraw) {
-    //                     onBeforeDraw(true, world, effectiveMaterial);
-    //                 }
-    //                 // Draw
-    //                 this._draw(subMesh, fillMode);
-    //             }
-    //         }
-
-    //         // Stats
-    //         scene._activeIndices.addCount(subMesh.indexCount * instanceCount, false);
-    //     }
-    //     return this;
-    // }
-
-    /** @hidden */
     public _rebuild(): void {
         if (this._instanceDataStorage.instancesBuffer) {
             // Dispose instance buffer to be recreated in _renderWithInstances when rendered
@@ -2071,24 +1782,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
         return this;
     }
-
-    /**
-     * Returns as a new array populated with the mesh material and/or skeleton, if any.
-     * @returns an array of IAnimatable
-     */
-    // public getAnimatables(): IAnimatable[] {
-    //     var results = new Array<IAnimatable>();
-
-    //     if (this.material) {
-    //         results.push(this.material);
-    //     }
-
-    //     if (this.skeleton) {
-    //         results.push(this.skeleton);
-    //     }
-
-    //     return results;
-    // }
 
     /**
      * Modifies the mesh geometry according to the passed transformation matrix.
@@ -3055,30 +2748,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
                 matrixData: Tools.SliceToArray(this._thinInstanceDataStorage.matrixData),
                 matrixBufferSize: this._thinInstanceDataStorage.matrixBufferSize,
             };
-
-            // if (this._userThinInstanceBuffersStorage) {
-            //     const userThinInstance: any = {
-            //         data: {},
-            //         sizes: {},
-            //         strides: {},
-            //     };
-
-            //     for (const kind in this._userThinInstanceBuffersStorage.data) {
-            //         userThinInstance.data[kind] = Tools.SliceToArray(this._userThinInstanceBuffersStorage.data[kind]);
-            //         userThinInstance.sizes[kind] = this._userThinInstanceBuffersStorage.sizes[kind];
-            //         userThinInstance.strides[kind] = this._userThinInstanceBuffersStorage.strides[kind];
-            //     }
-
-                // serializationObject.thinInstances.userThinInstance = userThinInstance;
-            // }
         }
-
-        // Animations
-        // SerializationHelper.AppendSerializedAnimations(this, serializationObject);
-        // serializationObject.ranges = this.serializeAnimationRanges();
-
-        // Layer mask
-        // serializationObject.layerMask = this.layerMask;
 
         // Alpha
         serializationObject.alphaIndex = this.alphaIndex;
@@ -3087,15 +2757,10 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         // Overlay
         serializationObject.overlayAlpha = this.overlayAlpha;
         serializationObject.overlayColor = this.overlayColor.asArray();
-        // serializationObject.renderOverlay = this.renderOverlay;
 
         // Fog
         serializationObject.applyFog = this.applyFog;
 
-        // Action Manager
-        // if (this.actionManager) {
-        //     serializationObject.actions = this.actionManager.serialize(this.name);
-        // }
     }
 
     /** @hidden */
@@ -3304,46 +2969,12 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
             mesh.material = null;
         }
 
-        // Morph targets
-        // if (parsedMesh.morphTargetManagerId > -1) {
-        //     mesh.morphTargetManager = scene.getMorphTargetManagerById(parsedMesh.morphTargetManagerId);
-        // }
-
-        // Skeleton
-        // if (parsedMesh.skeletonId !== undefined && parsedMesh.skeletonId !== null) {
-        //     mesh.skeleton = scene.getLastSkeletonByID(parsedMesh.skeletonId);
-        //     if (parsedMesh.numBoneInfluencers) {
-        //         mesh.numBoneInfluencers = parsedMesh.numBoneInfluencers;
-        //     }
-        // }
-
-        // Animations
-        // if (parsedMesh.animations) {
-        //     for (var animationIndex = 0; animationIndex < parsedMesh.animations.length; animationIndex++) {
-        //         var parsedAnimation = parsedMesh.animations[animationIndex];
-        //         const internalClass = _TypeStore.GetClass("BABYLON.Animation");
-        //         if (internalClass) {
-        //             mesh.animations.push(internalClass.Parse(parsedAnimation));
-        //         }
-        //     }
-        //     Node.ParseAnimationRanges(mesh, parsedMesh, scene);
-        // }
-
-        // if (parsedMesh.autoAnimate) {
-        //     scene.beginAnimation(mesh, parsedMesh.autoAnimateFrom, parsedMesh.autoAnimateTo, parsedMesh.autoAnimateLoop, parsedMesh.autoAnimateSpeed || 1.0);
-        // }
-
         // Layer Mask
         if (parsedMesh.layerMask && (!isNaN(parsedMesh.layerMask))) {
             mesh.layerMask = Math.abs(parseInt(parsedMesh.layerMask));
         } else {
             mesh.layerMask = 0x0FFFFFFF;
         }
-
-        // Physics
-        // if (parsedMesh.physicsImpostor) {
-        //     Mesh._PhysicsImpostorParser(scene, mesh, parsedMesh);
-        // }
 
         // Levels
         if (parsedMesh.lodMeshIds) {
@@ -3418,51 +3049,8 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
                     instance.alphaIndex = parsedInstance.alphaIndex;
                 }
 
-                // Physics
-                if (parsedInstance.physicsImpostor) {
-                    // Mesh._PhysicsImpostorParser(scene, instance, parsedInstance);
-                }
-
-                // Animation
-                // if (parsedInstance.animations) {
-                //     for (animationIndex = 0; animationIndex < parsedInstance.animations.length; animationIndex++) {
-                //         parsedAnimation = parsedInstance.animations[animationIndex];
-                //         const internalClass = _TypeStore.GetClass("BABYLON.Animation");
-                //         if (internalClass) {
-                //             instance.animations.push(internalClass.Parse(parsedAnimation));
-                //         }
-                //     }
-                //     Node.ParseAnimationRanges(instance, parsedInstance, scene);
-
-                //     if (parsedInstance.autoAnimate) {
-                //         scene.beginAnimation(instance, parsedInstance.autoAnimateFrom, parsedInstance.autoAnimateTo, parsedInstance.autoAnimateLoop, parsedInstance.autoAnimateSpeed || 1.0);
-                //     }
-                // }
             }
         }
-
-        // Thin instances
-        // if (parsedMesh.thinInstances) {
-        //     const thinInstances = parsedMesh.thinInstances;
-
-        //     if (thinInstances.matrixData) {
-        //         mesh.thinInstanceSetBuffer("matrix", new Float32Array(thinInstances.matrixData), 16, false);
-
-        //         mesh._thinInstanceDataStorage.matrixBufferSize = thinInstances.matrixBufferSize;
-        //         mesh._thinInstanceDataStorage.instancesCount = thinInstances.instancesCount;
-        //     } else {
-        //         mesh._thinInstanceDataStorage.matrixBufferSize = thinInstances.matrixBufferSize;
-        //     }
-
-        //     // if (parsedMesh.thinInstances.userThinInstance) {
-        //     //     const userThinInstance = parsedMesh.thinInstances.userThinInstance;
-
-        //     //     for (const kind in userThinInstance.data) {
-        //     //         mesh.thinInstanceSetBuffer(kind, new Float32Array(userThinInstance.data[kind]), userThinInstance.strides[kind], false);
-        //     //         mesh._userThinInstanceBuffersStorage.sizes[kind] = userThinInstance.sizes[kind];
-        //     //     }
-        //     // }
-        // }
 
         return mesh;
     }
@@ -4045,14 +3633,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
                 }
             }
         }
-        // if (multiMultiMaterials) {
-        //     var newMultiMaterial: Nullable<MultiMaterial> = null;
-        //     var subIndex: number;
-        //     var matIndex: number;
-        //     subdivideWithSubMeshes = false;
-        // }
-        // var materialArray: Array<Material> = new Array<Material>();
-        // var materialIndexArray: Array<number> = new Array<number>();
+
         // Merge
         var vertexData: Nullable<VertexData> = null;
         var otherVertexData: VertexData;
@@ -4120,12 +3701,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         }
 
         if (multiMultiMaterials) {
-            // newMultiMaterial = new MultiMaterial(source.name + "_merged", source.getScene());
-            // newMultiMaterial.subMaterials = materialArray;
-            // for (subIndex = 0; subIndex < meshSubclass.subMeshes.length; subIndex++) {
-            //     meshSubclass.subMeshes[subIndex].materialIndex = materialIndexArray[subIndex];
-            // }
-            // meshSubclass.material = newMultiMaterial;
         } else {
             meshSubclass.material = source.material;
         }

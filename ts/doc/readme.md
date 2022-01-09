@@ -9,6 +9,9 @@ claaa Node {
 }
 ```
 
+#### Mesh
+```js
+```
 #### Light
 
 ```js
@@ -17,5 +20,28 @@ class Light {
   public specular = new Color3(1.0, 1.0, 1.0);
   public _uniformBuffer: UniformBuffer;
 
+  protected _buildUniformLayout(): void {
+    this._uniformBuffer.addUniform("vLightData", 4);
+    this._uniformBuffer.addUniform("vLightDiffuse", 4);
+    this._uniformBuffer.addUniform("vLightSpecular", 4);
+    this._uniformBuffer.addUniform("vLightGround", 3);
+    this._uniformBuffer.addUniform("shadowsInfo", 3);
+    this._uniformBuffer.addUniform("depthValues", 2);
+    this._uniformBuffer.create();
+  }
+
+  private _resyncMeshes() {
+    for (var mesh of this.getScene().meshes) {
+      mesh._resyncLightSource(this);
+    }
+  }
+
+  constructor(name: string, scene: Scene) {
+    super(name, scene);
+    this._uniformBuffer = new UniformBuffer(this.getScene().getEngine());
+    this._buildUniformLayout();
+    this._resyncMeshes();
+  }
 }
 ```
+
