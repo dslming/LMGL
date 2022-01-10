@@ -2,41 +2,26 @@ import { Observable } from "../Misc/observable";
 import { Nullable } from "../types";
 import { Scene } from "../Scene/scene";
 import { InternalTexture } from "../Materials/Textures/internalTexture";
-import { ILoadingScreen } from "../Loading/loadingScreen";
 import { DomManagement } from "../Misc/domManagement";
 import { EngineStore } from "./engineStore";
-// import { _DevTools } from '../Misc/devTools';
 import { WebGLPipelineContext } from './webGLPipelineContext';
 import { IPipelineContext } from './IPipelineContext';
-// import { ICustomAnimationFrameRequester } from './customAnimationFrameRequester';
+import { ICustomAnimationFrameRequester } from './customAnimationFrameRequester';
 import { ThinEngine } from './thinEngine';
 import { EngineOptions} from './iEngine'
 import { Constants } from './constants';
 import { IViewportLike, IColor4Like } from '../Maths/math.like';
-// import { RenderTargetTexture } from '../Materials/Textures/renderTargetTexture';
-// import { PerformanceMonitor } from '../Misc/performanceMonitor';
+import { PerformanceMonitor } from '../Misc/performanceMonitor';
 import { DataBuffer } from '../Meshes/dataBuffer';
-// import { PerfCounter } from '../Misc/perfCounter';
+import { PerfCounter } from '../Misc/perfCounter';
 import { WebGLDataBuffer } from '../Meshes/webGLDataBuffer';
-// import { Logger } from '../Misc/logger';
+import { Logger } from '../Misc/logger';
 
 import "./Extensions/engine.alpha";
 import "./Extensions/engine.readTexture";
 import "./Extensions/engine.dynamicBuffer";
-// import { IAudioEngine } from '../Audio/Interfaces/IAudioEngine';
 
 declare type Material = import("../Materials/material").Material;
-// declare type PostProcess = import("../PostProcesses/postProcess").PostProcess;
-
-/**
- * Defines the interface used by display changed events
- */
-export interface IDisplayChangedEventArgs {
-    /** Gets the vrDisplay object (if any) */
-    vrDisplay: Nullable<any>;
-    /** Gets a boolean indicating if webVR is supported */
-    vrSupported: boolean;
-}
 
 /**
  * Defines the interface used by objects containing a viewport (like a camera)
@@ -294,15 +279,15 @@ export class Engine extends ThinEngine {
      * @param flag defines which part of the materials must be marked as dirty
      * @param predicate defines a predicate used to filter which materials should be affected
      */
-    public static MarkAllMaterialsAsDirty(flag: number, predicate?: (mat: Material) => boolean): void {
-        for (var engineIndex = 0; engineIndex < Engine.Instances.length; engineIndex++) {
-            var engine = Engine.Instances[engineIndex];
+    // public static MarkAllMaterialsAsDirty(flag: number, predicate?: (mat: Material) => boolean): void {
+    //     for (var engineIndex = 0; engineIndex < Engine.Instances.length; engineIndex++) {
+    //         var engine = Engine.Instances[engineIndex];
 
-            for (var sceneIndex = 0; sceneIndex < engine.scenes.length; sceneIndex++) {
-                engine.scenes[sceneIndex].markAllMaterialsAsDirty(flag, predicate);
-            }
-        }
-    }
+    //         for (var sceneIndex = 0; sceneIndex < engine.scenes.length; sceneIndex++) {
+    //             engine.scenes[sceneIndex].markAllMaterialsAsDirty(flag, predicate);
+    //         }
+    //     }
+    // }
 
     /**
      * Method called to create the default loading screen.
@@ -310,9 +295,9 @@ export class Engine extends ThinEngine {
      * @param canvas The rendering canvas element
      * @returns The loading screen
      */
-    public static DefaultLoadingScreenFactory(canvas: HTMLCanvasElement): ILoadingScreen {
-        throw _DevTools.WarnImport("LoadingScreen");
-    }
+    // public static DefaultLoadingScreenFactory(canvas: HTMLCanvasElement): ILoadingScreen {
+    //     throw _DevTools.WarnImport("LoadingScreen");
+    // }
 
     /**
      * Method called to create the default rescale post process on each engine.
@@ -411,7 +396,7 @@ export class Engine extends ThinEngine {
      */
     // public static AudioEngineFactory: (hostElement: Nullable<HTMLElement>) => IAudioEngine;
 
-    private _loadingScreen: ILoadingScreen;
+    // private _loadingScreen: ILoadingScreen;
     // private _pointerLockRequested: boolean;
     // private _rescalePostProcess: PostProcess;
 
@@ -571,7 +556,7 @@ export class Engine extends ThinEngine {
                 // }
             }
 
-            this._connectVREvents();
+            // this._connectVREvents();
 
             // this.enableOfflineSupport = Engine.OfflineProviderFactory !== undefined;
 
@@ -1035,61 +1020,6 @@ export class Engine extends ThinEngine {
         this._drawCalls.addCount(1, false);
     }
 
-    /**
-     * Initializes a webVR display and starts listening to display change events
-     * The onVRDisplayChangedObservable will be notified upon these changes
-     * @returns The onVRDisplayChangedObservable
-     */
-    public initWebVR(): Observable<IDisplayChangedEventArgs> {
-        throw _DevTools.WarnImport("WebVRCamera");
-    }
-
-    /** @hidden */
-    public _prepareVRComponent() {
-        // Do nothing as the engine side effect will overload it
-    }
-
-    /** @hidden */
-    public _connectVREvents(canvas?: HTMLCanvasElement, document?: any) {
-        // Do nothing as the engine side effect will overload it
-    }
-
-    /** @hidden */
-    public _submitVRFrame() {
-        // Do nothing as the engine side effect will overload it
-    }
-    /**
-     * Call this function to leave webVR mode
-     * Will do nothing if webVR is not supported or if there is no webVR device
-     * @see https://doc.babylonjs.com/how_to/webvr_camera
-     */
-    public disableVR() {
-        // Do nothing as the engine side effect will overload it
-    }
-
-    /**
-     * Gets a boolean indicating that the system is in VR mode and is presenting
-     * @returns true if VR mode is engaged
-     */
-    public isVRPresenting() {
-        return false;
-    }
-
-    /** @hidden */
-    public _requestVRFrame() {
-        // Do nothing as the engine side effect will overload it
-    }
-
-    /** @hidden */
-    public _loadFileAsync(url: string, useArrayBuffer?: boolean): Promise<string | ArrayBuffer> {
-        return new Promise((resolve, reject) => {
-            this._loadFile(url, (data) => {
-                resolve(data);
-            }, undefined, useArrayBuffer, (request, exception) => {
-                reject(exception);
-            });
-        });
-    }
 
     /**
     * Gets the source code of the vertex shader associated with a specific webGL program
@@ -1121,54 +1051,14 @@ export class Engine extends ThinEngine {
         return this._gl.getShaderSource(shaders[1]);
     }
 
-    // /**
-    //  * Sets a depth stencil texture from a render target to the according uniform.
-    //  * @param channel The texture channel
-    //  * @param uniform The uniform to set
-    //  * @param texture The render target texture containing the depth stencil texture to apply
-    //  */
-    // public setDepthStencilTexture(channel: number, uniform: Nullable<WebGLUniformLocation>, texture: Nullable<RenderTargetTexture>): void {
-    //     if (channel === undefined) {
-    //         return;
-    //     }
-
-    //     if (uniform) {
-    //         this._boundUniforms[channel] = uniform;
-    //     }
-
-    //     if (!texture || !texture.depthStencilTexture) {
-    //         this._setTexture(channel, null);
-    //     }
-    //     else {
-    //         this._setTexture(channel, texture, false, true);
-    //     }
-    // }
-
-    /**
-     * Sets a texture to the webGL context from a postprocess
-     * @param channel defines the channel to use
-     * @param postProcess defines the source postprocess
-     */
-    // public setTextureFromPostProcess(channel: number, postProcess: Nullable<PostProcess>): void {
-    //     this._bindTexture(channel, postProcess ? postProcess._textures.data[postProcess._currentRenderTextureInd] : null);
-    // }
-
-    /**
-     * Binds the output of the passed in post process to the texture channel specified
-     * @param channel The channel the texture should be bound to
-     * @param postProcess The post process which's output should be bound
-     */
-    // public setTextureFromPostProcessOutput(channel: number, postProcess: Nullable<PostProcess>): void {
-    //     this._bindTexture(channel, postProcess ? postProcess._outputTexture : null);
-    // }
 
     protected _rebuildBuffers(): void {
         // Index / Vertex
-        for (var scene of this.scenes) {
-            scene.sceneCatch.resetCachedMaterial();
-            scene.sceneNode._rebuildGeometries();
-            scene.sceneNode._rebuildTextures();
-        }
+        // for (var scene of this.scenes) {
+        //     scene.sceneCatch.resetCachedMaterial();
+        //     scene.sceneNode._rebuildGeometries();
+        //     scene.sceneNode._rebuildTextures();
+        // }
 
         super._rebuildBuffers();
     }
@@ -1209,9 +1099,8 @@ export class Engine extends ThinEngine {
             if (this.customAnimationFrameRequester) {
                 this.customAnimationFrameRequester.requestID = this._queueNewFrame(this.customAnimationFrameRequester.renderFunction || this._boundRenderFunction, this.customAnimationFrameRequester);
                 this._frameHandler = this.customAnimationFrameRequester.requestID;
-            } else if (this.isVRPresenting()) {
-                this._requestVRFrame();
-            } else {
+            }
+            else {
                 this._frameHandler = this._queueNewFrame(this._boundRenderFunction, this.getHostWindow());
             }
         } else {
@@ -1222,56 +1111,6 @@ export class Engine extends ThinEngine {
     /** @hidden */
     public _renderViews() {
         return false;
-    }
-
-    /**
-     * Toggle full screen mode
-     * @param requestPointerLock defines if a pointer lock should be requested from the user
-     */
-    public switchFullscreen(requestPointerLock: boolean): void {
-        // if (this.isFullscreen) {
-        //     this.exitFullscreen();
-        // } else {
-        //     this.enterFullscreen(requestPointerLock);
-        // }
-    }
-
-    /**
-     * Enters full screen mode
-     * @param requestPointerLock defines if a pointer lock should be requested from the user
-     */
-    public enterFullscreen(requestPointerLock: boolean): void {
-        // if (!this.isFullscreen) {
-        //     this._pointerLockRequested = requestPointerLock;
-        //     if (this._renderingCanvas) {
-        //         Engine._RequestFullscreen(this._renderingCanvas);
-        //     }
-        // }
-    }
-
-    /**
-     * Exits full screen mode
-     */
-    public exitFullscreen(): void {
-        // if (this.isFullscreen) {
-        //     Engine._ExitFullscreen();
-        // }
-    }
-
-    /**
-     * Enters Pointerlock mode
-     */
-    public enterPointerlock(): void {
-        if (this._renderingCanvas) {
-            Engine._RequestPointerlock(this._renderingCanvas);
-        }
-    }
-
-    /**
-     * Exits Pointerlock mode
-     */
-    public exitPointerlock(): void {
-        Engine._ExitPointerlock();
     }
 
     /**
@@ -1289,16 +1128,13 @@ export class Engine extends ThinEngine {
      */
     public endFrame(): void {
         super.endFrame();
-        this._submitVRFrame();
 
         this.onEndFrameObservable.notifyObservers(this);
     }
 
     public resize(): void {
         // We're not resizing the size of the canvas while in VR mode & presenting
-        if (this.isVRPresenting()) {
-            return;
-        }
+
 
         super.resize();
     }
@@ -1325,7 +1161,7 @@ export class Engine extends ThinEngine {
                 for (var camIndex = 0; camIndex < scene.cameras.length; camIndex++) {
                     var cam = scene.cameras[camIndex];
 
-                    cam._currentRenderId = 0;
+                    // cam._currentRenderId = 0;
                 }
             }
 
@@ -1715,7 +1551,7 @@ export class Engine extends ThinEngine {
     }
 
     public dispose(): void {
-        this.hideLoadingUI();
+        // this.hideLoadingUI();
 
         this.onNewSceneAddedObservable.clear();
 
@@ -1740,7 +1576,7 @@ export class Engine extends ThinEngine {
         // }
 
         //WebVR
-        this.disableVR();
+        // this.disableVR();
 
         // Events
         if (DomManagement.IsWindowObjectExist()) {
@@ -1783,81 +1619,6 @@ export class Engine extends ThinEngine {
         this.onEndFrameObservable.clear();
     }
 
-    // private _disableTouchAction(): void {
-    //     if (!this._renderingCanvas || !this._renderingCanvas.setAttribute) {
-    //         return;
-    //     }
-
-    //     this._renderingCanvas.setAttribute("touch-action", "none");
-    //     this._renderingCanvas.style.touchAction = "none";
-    //     (this._renderingCanvas.style as any).msTouchAction = "none";
-    // }
-
-    // Loading screen
-
-    /**
-     * Display the loading screen
-     * @see https://doc.babylonjs.com/how_to/creating_a_custom_loading_screen
-     */
-    public displayLoadingUI(): void {
-        if (!DomManagement.IsWindowObjectExist()) {
-            return;
-        }
-        const loadingScreen = this.loadingScreen;
-        if (loadingScreen) {
-            loadingScreen.displayLoadingUI();
-        }
-    }
-
-    /**
-     * Hide the loading screen
-     * @see https://doc.babylonjs.com/how_to/creating_a_custom_loading_screen
-     */
-    public hideLoadingUI(): void {
-        if (!DomManagement.IsWindowObjectExist()) {
-            return;
-        }
-        const loadingScreen = this._loadingScreen;
-        if (loadingScreen) {
-            loadingScreen.hideLoadingUI();
-        }
-    }
-
-    /**
-     * Gets the current loading screen object
-     * @see https://doc.babylonjs.com/how_to/creating_a_custom_loading_screen
-     */
-    public get loadingScreen(): ILoadingScreen {
-        if (!this._loadingScreen && this._renderingCanvas) {
-            this._loadingScreen = Engine.DefaultLoadingScreenFactory(this._renderingCanvas);
-        }
-        return this._loadingScreen;
-    }
-
-    /**
-     * Sets the current loading screen object
-     * @see https://doc.babylonjs.com/how_to/creating_a_custom_loading_screen
-     */
-    public set loadingScreen(loadingScreen: ILoadingScreen) {
-        this._loadingScreen = loadingScreen;
-    }
-
-    /**
-     * Sets the current loading screen text
-     * @see https://doc.babylonjs.com/how_to/creating_a_custom_loading_screen
-     */
-    public set loadingUIText(text: string) {
-        this.loadingScreen.loadingUIText = text;
-    }
-
-    /**
-     * Sets the current loading screen background color
-     * @see https://doc.babylonjs.com/how_to/creating_a_custom_loading_screen
-     */
-    public set loadingUIBackgroundColor(color: string) {
-        this.loadingScreen.loadingUIBackgroundColor = color;
-    }
-
     /** Pointerlock and fullscreen */
 
     /**
@@ -1880,36 +1641,6 @@ export class Engine extends ThinEngine {
 
         if (document.exitPointerLock) {
             document.exitPointerLock();
-        }
-    }
-
-    /**
-     * Ask the browser to promote the current element to fullscreen rendering mode
-     * @param element defines the DOM element to promote
-     */
-    static _RequestFullscreen(element: HTMLElement): void {
-        var requestFunction = element.requestFullscreen || (<any>element).msRequestFullscreen || (<any>element).webkitRequestFullscreen || (<any>element).mozRequestFullScreen;
-        if (!requestFunction) { return; }
-        requestFunction.call(element);
-    }
-
-    /**
-     * Asks the browser to exit fullscreen mode
-     */
-    static _ExitFullscreen(): void {
-        let anyDoc = document as any;
-
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-        else if (anyDoc.mozCancelFullScreen) {
-            anyDoc.mozCancelFullScreen();
-        }
-        else if (anyDoc.webkitCancelFullScreen) {
-            anyDoc.webkitCancelFullScreen();
-        }
-        else if (anyDoc.msCancelFullScreen) {
-            anyDoc.msCancelFullScreen();
         }
     }
 }

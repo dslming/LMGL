@@ -1,6 +1,6 @@
 import { fnMap } from './global.js'
 
-window.BABYLON = lmgl2;
+window.BABYLON = BABYLON;
 
 var canvas
 var engine
