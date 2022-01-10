@@ -359,7 +359,7 @@ export class SubMesh implements ICullable {
                     indices[index + 2], indices[index]);
             }
 
-            this._linesIndexBuffer = engine.createIndexBuffer(linesIndices);
+            this._linesIndexBuffer = engine.engineVertex.createIndexBuffer(linesIndices);
             this._linesIndexCount = linesIndices.length;
         }
         return this._linesIndexBuffer;

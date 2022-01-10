@@ -126,10 +126,10 @@ export class Buffer {
 
         if (!this._buffer) { // create buffer
             if (this._updatable) {
-                this._buffer = this._engine.createDynamicVertexBuffer(data);
+                this._buffer = this._engine.engineVertex.createDynamicVertexBuffer(data);
                 this._data = data;
             } else {
-                this._buffer = this._engine.createVertexBuffer(data);
+                this._buffer = this._engine.engineVertex.createVertexBuffer(data);
             }
         } else if (this._updatable) { // update buffer
             this._engine.updateDynamicVertexBuffer(this._buffer, data);

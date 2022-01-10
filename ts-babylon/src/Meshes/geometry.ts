@@ -208,7 +208,7 @@ export class Geometry implements IGetSetVerticesData {
 
         // Index buffer
         if (this._meshes.length !== 0 && this._indices) {
-            this._indexBuffer = this._engine.createIndexBuffer(this._indices);
+            this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices);
         }
 
         // Vertex buffers
@@ -382,16 +382,16 @@ export class Geometry implements IGetSetVerticesData {
         }
 
         if (indexToBind != this._indexBuffer || !this._vertexArrayObjects) {
-            this._engine.bindBuffers(vbs, indexToBind, effect);
+            this._engine.engineVertex.bindBuffers(vbs, indexToBind, effect);
             return;
         }
 
         // Using VAO
         if (!this._vertexArrayObjects[effect.key]) {
-            this._vertexArrayObjects[effect.key] = this._engine.recordVertexArrayObject(vbs, indexToBind, effect);
+            this._vertexArrayObjects[effect.key] = this._engine.engineVertex.recordVertexArrayObject(vbs, indexToBind, effect);
         }
 
-        this._engine.bindVertexArrayObject(this._vertexArrayObjects[effect.key], indexToBind);
+        this._engine.engineVertex.bindVertexArrayObject(this._vertexArrayObjects[effect.key], indexToBind);
     }
 
     /**
@@ -585,7 +585,7 @@ export class Geometry implements IGetSetVerticesData {
         this._indices = indices;
         this._indexBufferIsUpdatable = updatable;
         if (this._meshes.length !== 0 && this._indices) {
-            this._indexBuffer = this._engine.createIndexBuffer(this._indices, updatable);
+            this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices, updatable);
         }
 
         if (totalVertices != undefined) {
@@ -652,7 +652,7 @@ export class Geometry implements IGetSetVerticesData {
         }
 
         if (this._vertexArrayObjects[effect.key]) {
-            this._engine.releaseVertexArrayObject(this._vertexArrayObjects[effect.key]);
+            this._engine.engineVertex.releaseVertexArrayObject(this._vertexArrayObjects[effect.key]);
             delete this._vertexArrayObjects[effect.key];
         }
     }
@@ -752,7 +752,7 @@ export class Geometry implements IGetSetVerticesData {
 
         // indexBuffer
         if (numOfMeshes === 1 && this._indices && this._indices.length > 0) {
-            this._indexBuffer = this._engine.createIndexBuffer(this._indices);
+            this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices);
         }
         if (this._indexBuffer) {
             this._indexBuffer.references = numOfMeshes;
@@ -911,7 +911,7 @@ export class Geometry implements IGetSetVerticesData {
     private _disposeVertexArrayObjects(): void {
         if (this._vertexArrayObjects) {
             for (var kind in this._vertexArrayObjects) {
-                this._engine.releaseVertexArrayObject(this._vertexArrayObjects[kind]);
+                this._engine.engineVertex.releaseVertexArrayObject(this._vertexArrayObjects[kind]);
             }
             this._vertexArrayObjects = {};
         }

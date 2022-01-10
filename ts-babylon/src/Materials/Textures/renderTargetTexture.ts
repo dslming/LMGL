@@ -674,7 +674,7 @@ export class RenderTargetTexture extends Texture {
         let camera: Nullable<Camera>;
         if (this.activeCamera) {
             camera = this.activeCamera;
-            engine.setViewport(this.activeCamera.viewport, this.getRenderWidth(), this.getRenderHeight());
+            engine.engineViewPort.setViewport(this.activeCamera.viewport, this.getRenderWidth(), this.getRenderHeight());
 
             if (this.activeCamera !== scene.activeCamera) {
                 scene.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(true));
@@ -683,7 +683,7 @@ export class RenderTargetTexture extends Texture {
         else {
             camera = scene.activeCamera;
             if (camera) {
-                engine.setViewport(camera.viewport, this.getRenderWidth(), this.getRenderHeight());
+                engine.engineViewPort.setViewport(camera.viewport, this.getRenderWidth(), this.getRenderHeight());
             }
         }
 
@@ -713,7 +713,7 @@ export class RenderTargetTexture extends Texture {
             if (scene.getEngine().scenes.length > 1 || (this.activeCamera && this.activeCamera !== scene.activeCamera)) {
                 scene.sceneMatrix.setTransformMatrix(scene.activeCamera.getViewMatrix(), scene.activeCamera.getProjectionMatrix(true));
             }
-            engine.setViewport(scene.activeCamera.viewport);
+            engine.engineViewPort.setViewport(scene.activeCamera.viewport);
         }
 
         scene.sceneCatch.resetCachedMaterial();

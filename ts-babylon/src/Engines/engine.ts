@@ -986,10 +986,10 @@ export class Engine extends ThinEngine {
      * @return the current viewport Object (if any) that is being replaced by this call. You can restore this viewport later on to go back to the original state
      */
     public setDirectViewport(x: number, y: number, width: number, height: number): Nullable<IViewportLike> {
-        let currentViewport = this._cachedViewport;
-        this._cachedViewport = null;
+        let currentViewport = this.engineViewPort._cachedViewport;
+        this.engineViewPort._cachedViewport = null;
 
-        this._viewport(x, y, width, height);
+        this.engineViewPort._viewport(x, y, width, height);
 
         return currentViewport;
     }
@@ -1650,7 +1650,7 @@ export class Engine extends ThinEngine {
         var result = new WebGLDataBuffer(buffer);
         result.capacity = capacity;
 
-        this.bindArrayBuffer(result);
+        this.engineVertex.bindArrayBuffer(result);
         this._gl.bufferData(this._gl.ARRAY_BUFFER, capacity, this._gl.DYNAMIC_DRAW);
         return result;
     }

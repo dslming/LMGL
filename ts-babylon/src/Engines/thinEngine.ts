@@ -27,6 +27,8 @@ import { Logger } from '../Misc/logger';
 import { IEffectFallbacks } from '../Materials/iEffectFallbacks';
 import { VertexBuffer } from '../Meshes/buffer';
 import { EngineUniform } from './engine.uniform';
+import { EngineVertex } from './engine.vertex';
+import { EngineViewPort } from './engine.viewPort';
 
 
 declare type WebRequest = import("../Misc/webRequest").WebRequest;
@@ -44,16 +46,17 @@ export class ThinEngine {
   public _workingCanvas: Nullable<HTMLCanvasElement | OffscreenCanvas>;
   public _workingContext: Nullable<CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D>;
 
-  /** --------------------------------- gl ---------------------------------- */
+    /** --------------------------------- gl ---------------------------------- */
   public _webGLVersion = 2.0;
   public _gl: WebGLRenderingContext;
   public _glVersion: string;
   private _glRenderer: string;
   private _glVendor: string;
   public _caps: EngineCapabilities;
-  private _viewportCached = { x: 0, y: 0, z: 0, w: 0 };
   protected _highPrecisionShadersAllowed = true;
     engineUniform: EngineUniform;
+    engineVertex: EngineVertex;
+    engineViewPort: EngineViewPort;
   public get _shouldUseHighPrecisionShader(): boolean {
       return !!(this._caps.highPrecisionShaderSupported && this._highPrecisionShadersAllowed);
   }
@@ -66,15 +69,7 @@ export class ThinEngine {
   /** --------------------------------- effect ---------------------------------- */
   protected _currentEffect: Nullable<Effect>;
 
-  /** --------------------------------- vao ---------------------------------- */
-  private _cachedVertexArrayObject: Nullable<WebGLVertexArrayObject>;
-  private _vaoRecordInProgress = false;
-  protected _currentBoundBuffer = new Array<Nullable<WebGLBuffer>>();
-  private _mustWipeVertexAttributes = false;
-  protected _cachedEffectForVertexBuffers: Nullable<Effect>;
-  private _currentInstanceLocations = new Array<number>();
-    private _currentInstanceBuffers = new Array<DataBuffer>();
-    private _uintIndicesCurrentlySet = false;
+
 
 
 
@@ -227,12 +222,7 @@ export class ThinEngine {
   public _frameHandler: number;
 
 
-  // Cache
-  private _vertexAttribArraysEnabled: boolean[] = [];
-  protected _cachedViewport: Nullable<IViewportLike>;
-  protected _cachedVertexBuffers: any;
-  protected _cachedIndexBuffer: Nullable<DataBuffer>;
-  private _currentBufferPointers = new Array<BufferPointer>();
+
   /**
    * Gets or sets a boolean indicating that cache can be kept between frames
    */
@@ -502,7 +492,7 @@ export class ThinEngine {
       }
     }
 
-      this.engineUniform = new EngineUniform(this._gl)
+      this.engineUniform = new EngineUniform(this._gl);
 
     // Ensures a consistent color space unpacking of textures cross browser.
     this._gl.pixelStorei(this._gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, this._gl.NONE);
@@ -515,11 +505,13 @@ export class ThinEngine {
     this.resize();
 
     // this._isStencilEnable = options.stencil ? true : false;
-    this._initGLContext();
+      this._initGLContext();
+      this.engineVertex = new EngineVertex(this._gl, this._caps);
+      this.engineViewPort = new EngineViewPort(this);
 
     // Prepare buffer pointers
     for (var i = 0; i < this._caps.maxVertexAttribs; i++) {
-      this._currentBufferPointers[i] = new BufferPointer();
+      this.engineVertex._currentBufferPointers[i] = new BufferPointer();
     }
 
     // Shader processor
@@ -679,12 +671,7 @@ export class ThinEngine {
 
       return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferWidth : this._gl.drawingBufferWidth;
   }
-  /**
-   * Gets the current viewport
-   */
-  public get currentViewport(): Nullable<IViewportLike> {
-      return this._cachedViewport;
-  }
+
 
     /**
      * Gets the current render height
@@ -808,8 +795,8 @@ export class ThinEngine {
         // Render
 
         const drawMode = this._drawMode(fillMode);
-        var indexFormat = this._uintIndicesCurrentlySet ? this._gl.UNSIGNED_INT : this._gl.UNSIGNED_SHORT;
-        var mult = this._uintIndicesCurrentlySet ? 4 : 2;
+        var indexFormat = this.engineVertex._uintIndicesCurrentlySet ? this._gl.UNSIGNED_INT : this._gl.UNSIGNED_SHORT;
+        var mult = this.engineVertex._uintIndicesCurrentlySet ? 4 : 2;
         if (instancesCount) {
             this._gl.drawElementsInstanced(drawMode, indexCount, indexFormat, indexStart * mult, instancesCount);
         } else {
@@ -991,35 +978,8 @@ export class ThinEngine {
         }
         this._gl.clear(mode);
     }
-  /**
-     * Set the WebGL's viewport
-     * @param viewport defines the viewport element to be used
-     * @param requiredWidth defines the width required for rendering. If not provided the rendering canvas' width is used
-     * @param requiredHeight defines the height required for rendering. If not provided the rendering canvas' height is used
-     */
-    public setViewport(viewport: IViewportLike, requiredWidth?: number, requiredHeight?: number): void {
-        var width = requiredWidth || this.getRenderWidth();
-        var height = requiredHeight || this.getRenderHeight();
-        var x = viewport.x || 0;
-        var y = viewport.y || 0;
 
-        this._cachedViewport = viewport;
 
-        this._viewport(x * width, y * height, width * viewport.width, height * viewport.height);
-    }
-  public _viewport(x: number, y: number, width: number, height: number): void {
-        if (x !== this._viewportCached.x ||
-            y !== this._viewportCached.y ||
-            width !== this._viewportCached.z ||
-            height !== this._viewportCached.w) {
-            this._viewportCached.x = x;
-            this._viewportCached.y = y;
-            this._viewportCached.z = width;
-            this._viewportCached.w = height;
-
-            this._gl.viewport(x, y, width, height);
-        }
-    }
   /**
      * Gets the object containing all engine capabilities
      * @returns the EngineCapabilities object
@@ -2577,8 +2537,8 @@ export class ThinEngine {
             }
         }
 
-        if (this._cachedViewport && !forceFullscreenViewport) {
-            this.setViewport(this._cachedViewport, requiredWidth, requiredHeight);
+        if (this.engineViewPort._cachedViewport && !forceFullscreenViewport) {
+            this.engineViewPort.setViewport(this.engineViewPort._cachedViewport, requiredWidth, requiredHeight);
         } else {
             if (!requiredWidth) {
                 requiredWidth = texture.width;
@@ -2593,7 +2553,7 @@ export class ThinEngine {
                 }
             }
 
-            this._viewport(0, 0, requiredWidth, requiredHeight);
+            this.engineViewPort._viewport(0, 0, requiredWidth, requiredHeight);
         }
 
         this.wipeCaches();
@@ -2664,20 +2624,14 @@ export class ThinEngine {
         } else {
             this._bindUnboundFramebuffer(null);
         }
-        if (this._cachedViewport) {
-            this.setViewport(this._cachedViewport);
+        if (this.engineViewPort._cachedViewport) {
+            this.engineViewPort.setViewport(this.engineViewPort._cachedViewport);
         }
 
         this.wipeCaches();
     }
 
-    // VBOs
 
-    /** @hidden */
-    protected _resetVertexBufferBinding(): void {
-        this.bindArrayBuffer(null);
-        this._cachedVertexBuffers = null;
-    }
 
   /** ---------------------------------------- shader --------------------------------------------------------- */
    protected static _ConcatenateShader(source: string, defines: Nullable<string>, shaderVersion: string = ""): string {
@@ -2896,184 +2850,7 @@ export class ThinEngine {
     return true;
   }
 
-  /** -------------------------------- vao -------------------------------------- */
-  /**
-     * Unbind all instance attributes
-     */
-    public unbindInstanceAttributes() {
-        var boundBuffer;
-        for (var i = 0, ul = this._currentInstanceLocations.length; i < ul; i++) {
-            var instancesBuffer = this._currentInstanceBuffers[i];
-            if (boundBuffer != instancesBuffer && instancesBuffer.references) {
-                boundBuffer = instancesBuffer;
-                this.bindArrayBuffer(instancesBuffer);
-            }
-            var offsetLocation = this._currentInstanceLocations[i];
-            this._gl.vertexAttribDivisor(offsetLocation, 0);
-        }
-        this._currentInstanceBuffers.length = 0;
-        this._currentInstanceLocations.length = 0;
-    }
 
-  /**
-     * Records a vertex array object
-     * @see https://doc.babylonjs.com/features/webgl2#vertex-array-objects
-     * @param vertexBuffers defines the list of vertex buffers to store
-     * @param indexBuffer defines the index buffer to store
-     * @param effect defines the effect to store
-     * @returns the new vertex array object
-     */
-    public recordVertexArrayObject(vertexBuffers: { [key: string]: VertexBuffer; }, indexBuffer: Nullable<DataBuffer>, effect: Effect): WebGLVertexArrayObject {
-        var vao = this._gl.createVertexArray();
-
-        this._vaoRecordInProgress = true;
-
-        this._gl.bindVertexArray(vao);
-
-        this._mustWipeVertexAttributes = true;
-        this._bindVertexBuffersAttributes(vertexBuffers, effect);
-
-        this.bindIndexBuffer(indexBuffer);
-
-        this._vaoRecordInProgress = false;
-        this._gl.bindVertexArray(null);
-
-        return vao;
-    }
-
-    /**
-     * Bind a specific vertex array object
-     * @see https://doc.babylonjs.com/features/webgl2#vertex-array-objects
-     * @param vertexArrayObject defines the vertex array object to bind
-     * @param indexBuffer defines the index buffer to bind
-     */
-    public bindVertexArrayObject(vertexArrayObject: WebGLVertexArrayObject, indexBuffer: Nullable<DataBuffer>): void {
-        if (this._cachedVertexArrayObject !== vertexArrayObject) {
-            this._cachedVertexArrayObject = vertexArrayObject;
-
-            this._gl.bindVertexArray(vertexArrayObject);
-            this._cachedVertexBuffers = null;
-            this._cachedIndexBuffer = null;
-
-            this._uintIndicesCurrentlySet = indexBuffer != null && indexBuffer.is32Bits;
-            this._mustWipeVertexAttributes = true;
-        }
-    }
-  /** @hidden */
-    public _bindIndexBufferWithCache(indexBuffer: Nullable<DataBuffer>): void {
-        if (indexBuffer == null) {
-            return;
-        }
-        if (this._cachedIndexBuffer !== indexBuffer) {
-            this._cachedIndexBuffer = indexBuffer;
-            this.bindIndexBuffer(indexBuffer);
-            this._uintIndicesCurrentlySet = indexBuffer.is32Bits;
-        }
-    }
-
-  private _vertexAttribPointer(buffer: DataBuffer, indx: number, size: number, type: number, normalized: boolean, stride: number, offset: number): void {
-        var pointer = this._currentBufferPointers[indx];
-        if (!pointer) {
-            return;
-        }
-
-        var changed = false;
-        if (!pointer.active) {
-            changed = true;
-            pointer.active = true;
-            pointer.index = indx;
-            pointer.size = size;
-            pointer.type = type;
-            pointer.normalized = normalized;
-            pointer.stride = stride;
-            pointer.offset = offset;
-            pointer.buffer = buffer;
-        } else {
-            if (pointer.buffer !== buffer) { pointer.buffer = buffer; changed = true; }
-            if (pointer.size !== size) { pointer.size = size; changed = true; }
-            if (pointer.type !== type) { pointer.type = type; changed = true; }
-            if (pointer.normalized !== normalized) { pointer.normalized = normalized; changed = true; }
-            if (pointer.stride !== stride) { pointer.stride = stride; changed = true; }
-            if (pointer.offset !== offset) { pointer.offset = offset; changed = true; }
-        }
-
-        if (changed || this._vaoRecordInProgress) {
-            this.bindArrayBuffer(buffer);
-            this._gl.vertexAttribPointer(indx, size, type, normalized, stride, offset);
-        }
-  }
-
-  private _bindVertexBuffersAttributes(vertexBuffers: { [key: string]: Nullable<VertexBuffer> }, effect: Effect): void {
-        var attributes = effect.getAttributesNames();
-
-        if (!this._vaoRecordInProgress) {
-            this._unbindVertexArrayObject();
-        }
-
-        this.unbindAllAttributes();
-
-        for (var index = 0; index < attributes.length; index++) {
-            var order = effect.getAttributeLocation(index);
-
-            if (order >= 0) {
-                var vertexBuffer = vertexBuffers[attributes[index]];
-
-                if (!vertexBuffer) {
-                    continue;
-                }
-
-                this._gl.enableVertexAttribArray(order);
-                if (!this._vaoRecordInProgress) {
-                    this._vertexAttribArraysEnabled[order] = true;
-                }
-
-                var buffer = vertexBuffer.getBuffer();
-                if (buffer) {
-                    this._vertexAttribPointer(buffer, order, vertexBuffer.getSize(), vertexBuffer.type, vertexBuffer.normalized, vertexBuffer.byteStride, vertexBuffer.byteOffset);
-
-                    if (vertexBuffer.getIsInstanced()) {
-                        this._gl.vertexAttribDivisor(order, vertexBuffer.getInstanceDivisor());
-                        if (!this._vaoRecordInProgress) {
-                            this._currentInstanceLocations.push(order);
-                            this._currentInstanceBuffers.push(buffer);
-                        }
-                    }
-                }
-            }
-        }
-   }
-
-  /**
-     * Bind a list of vertex buffers to the webGL context
-     * @param vertexBuffers defines the list of vertex buffers to bind
-     * @param indexBuffer defines the index buffer to bind
-     * @param effect defines the effect associated with the vertex buffers
-     */
-    public bindBuffers(vertexBuffers: { [key: string]: Nullable<VertexBuffer> }, indexBuffer: Nullable<DataBuffer>, effect: Effect): void {
-        if (this._cachedVertexBuffers !== vertexBuffers || this._cachedEffectForVertexBuffers !== effect) {
-            this._cachedVertexBuffers = vertexBuffers;
-            this._cachedEffectForVertexBuffers = effect;
-
-            this._bindVertexBuffersAttributes(vertexBuffers, effect);
-        }
-
-        this._bindIndexBufferWithCache(indexBuffer);
-    }
-  /**
-     * Release and free the memory of a vertex array object
-     * @param vao defines the vertex array object to delete
-     */
-    public releaseVertexArrayObject(vao: WebGLVertexArrayObject) {
-        this._gl.deleteVertexArray(vao);
-    }
-   /**
-     * Creates a vertex buffer
-     * @param data the data for the vertex buffer
-     * @returns the new WebGL static buffer
-     */
-    public createVertexBuffer(data: DataArray): DataBuffer {
-        return this._createVertexBuffer(data, this._gl.STATIC_DRAW);
-    }
   protected _deleteBuffer(buffer: DataBuffer): void {
     this._gl.deleteBuffer(buffer.underlyingResource);
   }
@@ -3108,105 +2885,10 @@ export class ThinEngine {
 
         return results;
     }
-  private _unbindVertexArrayObject(): void {
-      if (!this._cachedVertexArrayObject) {
-          return;
-      }
 
-      this._cachedVertexArrayObject = null;
-      this._gl.bindVertexArray(null);
-  }
-  /**
-     * Bind a webGL buffer to the webGL context
-     * @param buffer defines the buffer to bind
-     */
-    public bindArrayBuffer(buffer: Nullable<DataBuffer>): void {
-        if (!this._vaoRecordInProgress) {
-            this._unbindVertexArrayObject();
-        }
-        this.bindBuffer(buffer, this._gl.ARRAY_BUFFER);
-    }
-   /**
-     * Creates a new index buffer
-     * @param indices defines the content of the index buffer
-     * @param updatable defines if the index buffer must be updatable
-     * @returns a new webGL buffer
-     */
-    public createIndexBuffer(indices: IndicesArray, updatable?: boolean): DataBuffer {
-        var vbo = this._gl.createBuffer();
-        let dataBuffer = new WebGLDataBuffer(vbo!);
 
-        if (!vbo) {
-            throw new Error("Unable to create index buffer");
-        }
 
-        this.bindIndexBuffer(dataBuffer);
 
-        const data = this._normalizeIndexData(indices);
-        this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, data, updatable ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW);
-        this._resetIndexBufferBinding();
-        dataBuffer.references = 1;
-        dataBuffer.is32Bits = (data.BYTES_PER_ELEMENT === 4);
-        return dataBuffer;
-    }
-    private _createVertexBuffer(data: DataArray, usage: number): DataBuffer {
-        var vbo = this._gl.createBuffer();
-
-        if (!vbo) {
-            throw new Error("Unable to create vertex buffer");
-        }
-
-        let dataBuffer = new WebGLDataBuffer(vbo);
-        this.bindArrayBuffer(dataBuffer);
-
-        if (data instanceof Array) {
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(data), this._gl.STATIC_DRAW);
-        } else {
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, <ArrayBuffer>data, this._gl.STATIC_DRAW);
-        }
-
-        this._resetVertexBufferBinding();
-
-        dataBuffer.references = 1;
-        return dataBuffer;
-    }
-  /**
-     * Creates a dynamic vertex buffer
-     * @param data the data for the dynamic vertex buffer
-     * @returns the new WebGL dynamic buffer
-     */
-    public createDynamicVertexBuffer(data: DataArray): DataBuffer {
-        return this._createVertexBuffer(data, this._gl.DYNAMIC_DRAW);
-    }
-
-    protected _resetIndexBufferBinding(): void {
-        this.bindIndexBuffer(null);
-        this._cachedIndexBuffer = null;
-    }
-    protected _normalizeIndexData(indices: IndicesArray): Uint16Array | Uint32Array {
-        if (indices instanceof Uint16Array) {
-            return indices;
-        }
-
-        // Check 32 bit support
-        if (this._caps.uintIndices) {
-            if (indices instanceof Uint32Array) {
-                return indices;
-            } else {
-                // number[] or Int32Array, check if 32 bit is necessary
-                for (var index = 0; index < indices.length; index++) {
-                    if (indices[index] >= 65535) {
-                        return new Uint32Array(indices);
-                    }
-                }
-
-                return new Uint16Array(indices);
-            }
-        }
-
-        // No 32 bit support, force conversion to 16 bit (values greater 16 bit are lost)
-        return new Uint16Array(indices);
-    }
 
     /**
      * Bind a specific block at a given index in a specific shader program
@@ -3222,19 +2904,9 @@ export class ThinEngine {
         this._gl.uniformBlockBinding(program, uniformLocation, index);
     }
 
-    protected bindIndexBuffer(buffer: Nullable<DataBuffer>): void {
-        if (!this._vaoRecordInProgress) {
-            this._unbindVertexArrayObject();
-        }
-        this.bindBuffer(buffer, this._gl.ELEMENT_ARRAY_BUFFER);
-    }
 
-    private bindBuffer(buffer: Nullable<DataBuffer>, target: number): void {
-        if (this._vaoRecordInProgress || this._currentBoundBuffer[target] !== buffer) {
-            this._gl.bindBuffer(target, buffer ? buffer.underlyingResource : null);
-            this._currentBoundBuffer[target] = buffer;
-        }
-    }
+
+
 
   /**
      * Force the entire cache to be cleared
@@ -3246,13 +2918,13 @@ export class ThinEngine {
             return;
         }
         this._currentEffect = null;
-        this._viewportCached.x = 0;
-        this._viewportCached.y = 0;
-        this._viewportCached.z = 0;
-        this._viewportCached.w = 0;
+        this.engineViewPort._viewportCached.x = 0;
+        this.engineViewPort._viewportCached.y = 0;
+        this.engineViewPort._viewportCached.z = 0;
+        this.engineViewPort._viewportCached.w = 0;
 
         // Done before in case we clean the attributes
-        this._unbindVertexArrayObject();
+        this.engineVertex._unbindVertexArrayObject();
 
         if (bruteForce) {
             this._currentProgram = null;
@@ -3275,45 +2947,18 @@ export class ThinEngine {
             this._gl.pixelStorei(this._gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, this._gl.NONE);
             this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
 
-            this._mustWipeVertexAttributes = true;
-            this.unbindAllAttributes();
+            this.engineVertex._mustWipeVertexAttributes = true;
+            this.engineVertex.unbindAllAttributes();
         }
 
-        this._resetVertexBufferBinding();
-        this._cachedIndexBuffer = null;
-        this._cachedEffectForVertexBuffers = null;
-        this.bindIndexBuffer(null);
+        this.engineVertex._resetVertexBufferBinding();
+        this.engineVertex._cachedIndexBuffer = null;
+        this.engineVertex._cachedEffectForVertexBuffers = null;
+        this.engineVertex.bindIndexBuffer(null);
     }
-  /**
-     * Disable the attribute corresponding to the location in parameter
-     * @param attributeLocation defines the attribute location of the attribute to disable
-     */
-    public disableAttributeByIndex(attributeLocation: number) {
-        this._gl.disableVertexAttribArray(attributeLocation);
-        this._vertexAttribArraysEnabled[attributeLocation] = false;
-        this._currentBufferPointers[attributeLocation].active = false;
-    }
-  /**
-     * Unbind all vertex attributes from the webGL context
-     */
-    public unbindAllAttributes() {
-        if (this._mustWipeVertexAttributes) {
-            this._mustWipeVertexAttributes = false;
 
-            for (var i = 0; i < this._caps.maxVertexAttribs; i++) {
-                this.disableAttributeByIndex(i);
-            }
-            return;
-        }
 
-        for (var i = 0, ul = this._vertexAttribArraysEnabled.length; i < ul; i++) {
-            if (i >= this._caps.maxVertexAttribs || !this._vertexAttribArraysEnabled[i]) {
-                continue;
-            }
 
-            this.disableAttributeByIndex(i);
-        }
-    }
 
  /** @hidden */
     public _loadFile(url: string, onSuccess: (data: string | ArrayBuffer, responseURL?: string) => void, onProgress?: (data: any) => void, useArrayBuffer?: boolean, onError?: (request?: IWebRequest, exception?: any) => void): IFileRequest {
@@ -3372,7 +3017,7 @@ export class ThinEngine {
         this.releaseEffects();
 
         // Unbind
-        this.unbindAllAttributes();
+        this.engineVertex.unbindAllAttributes();
         this.engineUniform._boundUniforms = [];
 
         // Events
@@ -3387,7 +3032,7 @@ export class ThinEngine {
 
         this._workingCanvas = null;
         this._workingContext = null;
-        this._currentBufferPointers = [];
+        this.engineVertex._currentBufferPointers = [];
         this._renderingCanvas = null;
         this._currentProgram = null;
         // this._boundRenderFunction = null;

@@ -1455,7 +1455,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         this._bind(subMesh, effect, fillMode);
         this._draw(subMesh, fillMode, instancesCount);
 
-        engine.unbindInstanceAttributes();
+        engine.engineVertex.unbindInstanceAttributes();
         return this;
     }
 
@@ -1470,7 +1470,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         this._bind(subMesh, effect, fillMode);
         this._draw(subMesh, fillMode, instancesCount);
 
-        engine.unbindInstanceAttributes();
+        engine.engineVertex.unbindInstanceAttributes();
     }
 
     /** @hidden */

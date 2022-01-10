@@ -400,7 +400,7 @@ export class SceneRender {
                     }
 
                     // Viewport
-                    engine.setViewport(this.scene.activeCamera.viewport);
+                    engine.engineViewPort.setViewport(this.scene.activeCamera.viewport);
 
                     // Camera
                     this.scene.sceneMatrix.updateTransformMatrix();
@@ -504,7 +504,7 @@ export class SceneRender {
         }
 
         // Viewport
-        engine.setViewport(this.scene.activeCamera.viewport);
+        engine.engineViewPort.setViewport(this.scene.activeCamera.viewport);
 
         // Camera
         this.scene.sceneCatch.resetCachedMaterial();
