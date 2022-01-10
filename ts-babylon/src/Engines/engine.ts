@@ -1582,7 +1582,7 @@ export class Engine extends ThinEngine {
         }
 
         texture.samples = samples;
-        texture._depthStencilBuffer = this._setupFramebufferDepthAttachments(texture._generateStencilBuffer, texture._generateDepthBuffer, texture.width, texture.height, samples);
+        texture._depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(texture._generateStencilBuffer, texture._generateDepthBuffer, texture.width, texture.height, samples);
 
         this._bindUnboundFramebuffer(null);
 

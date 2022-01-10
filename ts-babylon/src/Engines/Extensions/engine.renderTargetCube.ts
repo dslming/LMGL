@@ -61,7 +61,7 @@ ThinEngine.prototype.createRenderTargetCubeTexture = function(size: number, opti
     var framebuffer = gl.createFramebuffer();
     this._bindUnboundFramebuffer(framebuffer);
 
-    texture._depthStencilBuffer = this._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer, fullOptions.generateDepthBuffer, size, size);
+    texture._depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer, fullOptions.generateDepthBuffer, size, size);
 
     // MipMaps
     if (fullOptions.generateMipMaps) {

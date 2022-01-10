@@ -1034,7 +1034,7 @@ export class RenderTargetTexture extends Texture {
         let objBuffer = this.getInternalTexture();
         let scene = this.getScene();
         if (objBuffer && scene) {
-            scene.getEngine()._releaseFramebufferObjects(objBuffer);
+            scene.getEngine().engineFramebuffer._releaseFramebufferObjects(objBuffer);
         }
     }
 

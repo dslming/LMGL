@@ -177,7 +177,7 @@ ThinEngine.prototype.createMultipleRenderTarget = function(size: any, options: I
     var textures = [];
     var attachments = [];
 
-    var depthStencilBuffer = this._setupFramebufferDepthAttachments(generateStencilBuffer, generateDepthBuffer, width, height);
+    var depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(generateStencilBuffer, generateDepthBuffer, width, height);
 
     for (var i = 0; i < textureCount; i++) {
         var samplingMode = samplingModes[i] || defaultSamplingMode;
@@ -342,7 +342,7 @@ ThinEngine.prototype.updateMultipleRenderTargetTextureSampleCount = function(tex
 
         this._bindUnboundFramebuffer(framebuffer);
 
-        let depthStencilBuffer = this._setupFramebufferDepthAttachments(textures[0]._generateStencilBuffer, textures[0]._generateDepthBuffer, textures[0].width, textures[0].height, samples);
+        let depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(textures[0]._generateStencilBuffer, textures[0]._generateDepthBuffer, textures[0].width, textures[0].height, samples);
 
         var attachments = [];
 

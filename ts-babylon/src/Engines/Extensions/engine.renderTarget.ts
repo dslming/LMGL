@@ -105,7 +105,7 @@ ThinEngine.prototype.createRenderTargetTexture = function(this: ThinEngine, size
     // Create the framebuffer
     const framebuffer = gl.createFramebuffer();
     this._bindUnboundFramebuffer(framebuffer);
-    texture._depthStencilBuffer = this._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer ? true : false, fullOptions.generateDepthBuffer, width, height);
+    texture._depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer ? true : false, fullOptions.generateDepthBuffer, width, height);
 
     // No need to rebind on every frame
     if (!texture.is2DArray) {

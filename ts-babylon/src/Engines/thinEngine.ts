@@ -29,6 +29,7 @@ import { VertexBuffer } from '../Meshes/buffer';
 import { EngineUniform } from './engine.uniform';
 import { EngineVertex } from './engine.vertex';
 import { EngineViewPort } from './engine.viewPort';
+import { EngineFramebuffer } from './engine.framebuffer';
 
 
 declare type WebRequest = import("../Misc/webRequest").WebRequest;
@@ -57,6 +58,7 @@ export class ThinEngine {
     engineUniform: EngineUniform;
     engineVertex: EngineVertex;
     engineViewPort: EngineViewPort;
+    engineFramebuffer: EngineFramebuffer;
   public get _shouldUseHighPrecisionShader(): boolean {
       return !!(this._caps.highPrecisionShaderSupported && this._highPrecisionShadersAllowed);
   }
@@ -503,6 +505,7 @@ export class ThinEngine {
     var limitDeviceRatio = devicePixelRatio;
     this._hardwareScalingLevel = adaptToDeviceRatio ? 1.0 / Math.min(limitDeviceRatio, devicePixelRatio) : 1.0;
     this.resize();
+      this.engineFramebuffer = new EngineFramebuffer(this._gl, this);
 
     // this._isStencilEnable = options.stencil ? true : false;
       this._initGLContext();
@@ -857,24 +860,7 @@ export class ThinEngine {
         // Will be implemented by children
     }
 
-  private _getDepthStencilBuffer = (width: number, height: number, samples: number, internalFormat: number, msInternalFormat: number, attachment: number) => {
-        var gl = this._gl;
-        const depthStencilBuffer = gl.createRenderbuffer();
 
-        gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilBuffer);
-
-        if (samples > 1 && gl.renderbufferStorageMultisample) {
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, msInternalFormat, width, height);
-        } else {
-            gl.renderbufferStorage(gl.RENDERBUFFER, internalFormat, width, height);
-        }
-
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, depthStencilBuffer);
-
-        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-
-        return depthStencilBuffer;
-   }
 
   /** @hidden */
     public _setupDepthStencilTexture(internalTexture: InternalTexture, size: number | { width: number, height: number, layers?: number }, generateStencil: boolean, bilinearFiltering: boolean, comparisonFunction: number): void {
@@ -1084,7 +1070,7 @@ export class ThinEngine {
 
     this._caps.maxAnisotropy = this._caps.textureAnisotropicFilterExtension ? this._gl.getParameter(this._caps.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
     this._caps.textureFloatLinearFiltering = this._caps.textureFloat && this._gl.getExtension('OES_texture_float_linear') ? true : false;
-    this._caps.textureFloatRender = this._caps.textureFloat && this._canRenderToFloatFramebuffer() ? true : false;
+    this._caps.textureFloatRender = this._caps.textureFloat && this.engineFramebuffer._canRenderToFloatFramebuffer() ? true : false;
     this._caps.textureHalfFloatLinearFiltering = (this._webGLVersion > 1 || (this._caps.textureHalfFloat && this._gl.getExtension('OES_texture_half_float_linear'))) ? true : false;
 
     // Checks if some of the format renders first to allow the use of webgl inspector.
@@ -1093,7 +1079,7 @@ export class ThinEngine {
         this._gl.HALF_FLOAT_OES = 0x140B;
       }
     }
-    this._caps.textureHalfFloatRender = this._caps.textureHalfFloat && this._canRenderToHalfFloatFramebuffer();
+    this._caps.textureHalfFloatRender = this._caps.textureHalfFloat && this.engineFramebuffer._canRenderToHalfFloatFramebuffer();
     // Draw buffers
     if (this._webGLVersion > 1) {
       this._caps.drawBuffersExtension = true;
@@ -1429,7 +1415,7 @@ export class ThinEngine {
 
   /** @hidden */
     public _releaseTexture(texture: InternalTexture): void {
-        this._releaseFramebufferObjects(texture);
+        this.engineFramebuffer._releaseFramebufferObjects(texture);
 
         this._deleteTexture(texture._webGLTexture);
 
@@ -2374,115 +2360,7 @@ export class ThinEngine {
       return true;
   }
 
-  /** ---------------------------------------- framebuffer--------------------------------------------------------- */
-   /** @hidden */
-    public _setupFramebufferDepthAttachments(generateStencilBuffer: boolean, generateDepthBuffer: boolean, width: number, height: number, samples = 1): Nullable<WebGLRenderbuffer> {
-        var gl = this._gl;
 
-        // Create the depth/stencil buffer
-        if (generateStencilBuffer && generateDepthBuffer) {
-            return this._getDepthStencilBuffer(width, height, samples, gl.DEPTH_STENCIL, gl.DEPTH24_STENCIL8, gl.DEPTH_STENCIL_ATTACHMENT);
-        }
-        if (generateDepthBuffer) {
-            let depthFormat = gl.DEPTH_COMPONENT16;
-            if (this._webGLVersion > 1) {
-                depthFormat = gl.DEPTH_COMPONENT32F;
-            }
-
-            return this._getDepthStencilBuffer(width, height, samples, depthFormat, depthFormat, gl.DEPTH_ATTACHMENT);
-        }
-        if (generateStencilBuffer) {
-            return this._getDepthStencilBuffer(width, height, samples, gl.STENCIL_INDEX8, gl.STENCIL_INDEX8, gl.STENCIL_ATTACHMENT);
-        }
-
-        return null;
-    }
-  /** @hidden */
-    public _releaseFramebufferObjects(texture: InternalTexture): void {
-        var gl = this._gl;
-
-        if (texture._framebuffer) {
-            gl.deleteFramebuffer(texture._framebuffer);
-            texture._framebuffer = null;
-        }
-
-        if (texture._depthStencilBuffer) {
-            gl.deleteRenderbuffer(texture._depthStencilBuffer);
-            texture._depthStencilBuffer = null;
-        }
-
-        if (texture._MSAAFramebuffer) {
-            gl.deleteFramebuffer(texture._MSAAFramebuffer);
-            texture._MSAAFramebuffer = null;
-        }
-
-        if (texture._MSAARenderBuffer) {
-            gl.deleteRenderbuffer(texture._MSAARenderBuffer);
-            texture._MSAARenderBuffer = null;
-        }
-    }
-  // Thank you : http://stackoverflow.com/questions/28827511/webgl-ios-render-to-floating-point-texture
-  private _canRenderToFramebuffer(type: number): boolean {
-      let gl = this._gl;
-
-      //clear existing errors
-      while (gl.getError() !== gl.NO_ERROR) { }
-
-      let successful = true;
-
-      let texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, this._getRGBABufferInternalSizedFormat(type), 1, 1, 0, gl.RGBA, this._getWebGLTextureType(type), null);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-      let fb = gl.createFramebuffer();
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-      let status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-
-      successful = successful && (status === gl.FRAMEBUFFER_COMPLETE);
-      successful = successful && (gl.getError() === gl.NO_ERROR);
-
-      //try render by clearing frame buffer's color buffer
-      if (successful) {
-          gl.clear(gl.COLOR_BUFFER_BIT);
-          successful = successful && (gl.getError() === gl.NO_ERROR);
-      }
-
-      //try reading from frame to ensure render occurs (just creating the FBO is not sufficient to determine if rendering is supported)
-      if (successful) {
-          //in practice it's sufficient to just read from the backbuffer rather than handle potentially issues reading from the texture
-          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-          let readFormat = gl.RGBA;
-          let readType = gl.UNSIGNED_BYTE;
-          let buffer = new Uint8Array(4);
-          gl.readPixels(0, 0, 1, 1, readFormat, readType, buffer);
-          successful = successful && (gl.getError() === gl.NO_ERROR);
-      }
-
-      //clean up
-      gl.deleteTexture(texture);
-      gl.deleteFramebuffer(fb);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-      //clear accumulated errors
-      while (!successful && (gl.getError() !== gl.NO_ERROR)) { }
-
-      return successful;
-  }
-  private _canRenderToFloatFramebuffer(): boolean {
-    if (this._webGLVersion > 1) {
-        return this._caps.colorBufferFloat;
-    }
-    return this._canRenderToFramebuffer(Constants.TEXTURETYPE_FLOAT);
-  }
-  private _canRenderToHalfFloatFramebuffer(): boolean {
-    if (this._webGLVersion > 1) {
-        return this._caps.colorBufferFloat;
-    }
-    return this._canRenderToFramebuffer(Constants.TEXTURETYPE_HALF_FLOAT);
-  }
   public _createTexture(): WebGLTexture {
     let texture = this._gl.createTexture();
     if (!texture) {
@@ -2755,8 +2633,6 @@ export class ThinEngine {
     return this._depthCullingState;
   }
 
-
-
   /** -------------------------------- effect -------------------------------------- */
   /**
      * Create a new effect (used to store vertex/fragment shaders)
@@ -2886,10 +2762,6 @@ export class ThinEngine {
         return results;
     }
 
-
-
-
-
     /**
      * Bind a specific block at a given index in a specific shader program
      * @param pipelineContext defines the pipeline context to use
@@ -2903,10 +2775,6 @@ export class ThinEngine {
 
         this._gl.uniformBlockBinding(program, uniformLocation, index);
     }
-
-
-
-
 
   /**
      * Force the entire cache to be cleared
