@@ -615,11 +615,11 @@ ScenePick.prototype.createPickingRayToRef = function (x: number, y: number, worl
     }
 
     var cameraViewport = camera.viewport;
-    var viewport = cameraViewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight());
+    var viewport = cameraViewport.toGlobal(engine.engineFramebuffer.getRenderWidth(), engine.engineFramebuffer.getRenderHeight());
 
     // Moving coordinates to local viewport world
     x = x / engine.getHardwareScalingLevel() - viewport.x;
-    y = y / engine.getHardwareScalingLevel() - (engine.getRenderHeight() - viewport.y - viewport.height);
+    y = y / engine.getHardwareScalingLevel() - (engine.engineFramebuffer.getRenderHeight() - viewport.y - viewport.height);
 
     result.update(x, y, viewport.width, viewport.height, world ? world : Matrix.IdentityReadOnly, cameraViewSpace ? Matrix.IdentityReadOnly : camera.getViewMatrix(), camera.getProjectionMatrix());
     return this.scene;
@@ -649,12 +649,12 @@ ScenePick.prototype.createPickingRayInCameraSpaceToRef = function (x: number, y:
     }
 
     var cameraViewport = camera.viewport;
-    var viewport = cameraViewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight());
+    var viewport = cameraViewport.toGlobal(engine.engineFramebuffer.getRenderWidth(), engine.engineFramebuffer.getRenderHeight());
     var identity = Matrix.Identity();
 
     // Moving coordinates to local viewport world
     x = x / engine.getHardwareScalingLevel() - viewport.x;
-    y = y / engine.getHardwareScalingLevel() - (engine.getRenderHeight() - viewport.y - viewport.height);
+    y = y / engine.getHardwareScalingLevel() - (engine.engineFramebuffer.getRenderHeight() - viewport.y - viewport.height);
     result.update(x, y, viewport.width, viewport.height, identity, identity, camera.getProjectionMatrix());
     return this.scene;
 };

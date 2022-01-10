@@ -72,7 +72,7 @@ export class DepthRenderer {
 
         // Render target
         var format = (this.isPacked || engine.webGLVersion === 1) ? Constants.TEXTUREFORMAT_RGBA : Constants.TEXTUREFORMAT_R;
-        this._depthMap = new RenderTargetTexture("depthMap", { width: engine.getRenderWidth(), height: engine.getRenderHeight() }, this._scene, false, true, type,
+        this._depthMap = new RenderTargetTexture("depthMap", { width: engine.engineFramebuffer.getRenderWidth(), height: engine.engineFramebuffer.getRenderHeight() }, this._scene, false, true, type,
             false, undefined, undefined, undefined, undefined,
             format);
         this._depthMap.wrapU = Texture.CLAMP_ADDRESSMODE;

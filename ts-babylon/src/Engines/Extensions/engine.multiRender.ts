@@ -83,7 +83,7 @@ ThinEngine.prototype.bindAttachments = function(attachments: number[]): void {
 };
 
 ThinEngine.prototype.unBindMultiColorAttachmentFramebuffer = function(textures: InternalTexture[], disableGenerateMipMaps: boolean = false, onBeforeUnbind?: () => void): void {
-    this._currentRenderTarget = null;
+    this.engineFramebuffer._currentRenderTarget = null;
 
     // If MSAA, we need to bitblt back to main texture
     var gl = this._gl;
@@ -130,12 +130,12 @@ ThinEngine.prototype.unBindMultiColorAttachmentFramebuffer = function(textures: 
     if (onBeforeUnbind) {
         if (textures[0]._MSAAFramebuffer) {
             // Bind the correct framebuffer
-            this._bindUnboundFramebuffer(textures[0]._framebuffer);
+            this.engineFramebuffer._bindUnboundFramebuffer(textures[0]._framebuffer);
         }
         onBeforeUnbind();
     }
 
-    this._bindUnboundFramebuffer(null);
+    this.engineFramebuffer._bindUnboundFramebuffer(null);
 };
 
 ThinEngine.prototype.createMultipleRenderTarget = function(size: any, options: IMultiRenderTargetOptions): InternalTexture[] {
@@ -169,7 +169,7 @@ ThinEngine.prototype.createMultipleRenderTarget = function(size: any, options: I
     var gl = this._gl;
     // Create the framebuffer
     var framebuffer = gl.createFramebuffer();
-    this._bindUnboundFramebuffer(framebuffer);
+    this.engineFramebuffer._bindUnboundFramebuffer(framebuffer);
 
     var width = size.width || size;
     var height = size.height || size;
@@ -289,7 +289,7 @@ ThinEngine.prototype.createMultipleRenderTarget = function(size: any, options: I
     }
 
     gl.drawBuffers(attachments);
-    this._bindUnboundFramebuffer(null);
+    this.engineFramebuffer._bindUnboundFramebuffer(null);
 
     this.resetTextureCache();
 
@@ -340,7 +340,7 @@ ThinEngine.prototype.updateMultipleRenderTargetTextureSampleCount = function(tex
             throw new Error("Unable to create multi sampled framebuffer");
         }
 
-        this._bindUnboundFramebuffer(framebuffer);
+        this.engineFramebuffer._bindUnboundFramebuffer(framebuffer);
 
         let depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(textures[0]._generateStencilBuffer, textures[0]._generateDepthBuffer, textures[0].width, textures[0].height, samples);
 
@@ -370,10 +370,10 @@ ThinEngine.prototype.updateMultipleRenderTargetTextureSampleCount = function(tex
         }
         gl.drawBuffers(attachments);
     } else {
-        this._bindUnboundFramebuffer(textures[0]._framebuffer);
+        this.engineFramebuffer._bindUnboundFramebuffer(textures[0]._framebuffer);
     }
 
-    this._bindUnboundFramebuffer(null);
+    this.engineFramebuffer._bindUnboundFramebuffer(null);
 
     return samples;
 };

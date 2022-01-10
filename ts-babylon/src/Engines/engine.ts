@@ -601,7 +601,7 @@ export class Engine extends ThinEngine {
      */
     public getAspectRatio(viewportOwner: IViewportOwnerLike, useScreen = false): number {
         var viewport = viewportOwner.viewport;
-        return (this.getRenderWidth(useScreen) * viewport.width) / (this.getRenderHeight(useScreen) * viewport.height);
+        return (this.engineFramebuffer.getRenderWidth(useScreen) * viewport.width) / (this.engineFramebuffer.getRenderHeight(useScreen) * viewport.height);
     }
 
     /**
@@ -609,7 +609,7 @@ export class Engine extends ThinEngine {
      * @returns a number defining the aspect ratio
      */
     public getScreenAspectRatio(): number {
-        return (this.getRenderWidth(true)) / (this.getRenderHeight(true));
+        return (this.engineFramebuffer.getRenderWidth(true)) / (this.engineFramebuffer.getRenderHeight(true));
     }
 
     /**
@@ -1563,7 +1563,7 @@ export class Engine extends ThinEngine {
             }
 
             texture._MSAAFramebuffer = framebuffer;
-            this._bindUnboundFramebuffer(texture._MSAAFramebuffer);
+            this.engineFramebuffer._bindUnboundFramebuffer(texture._MSAAFramebuffer);
 
             var colorRenderbuffer = gl.createRenderbuffer();
 
@@ -1578,13 +1578,13 @@ export class Engine extends ThinEngine {
 
             texture._MSAARenderBuffer = colorRenderbuffer;
         } else {
-            this._bindUnboundFramebuffer(texture._framebuffer);
+            this.engineFramebuffer._bindUnboundFramebuffer(texture._framebuffer);
         }
 
         texture.samples = samples;
         texture._depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(texture._generateStencilBuffer, texture._generateDepthBuffer, texture.width, texture.height, samples);
 
-        this._bindUnboundFramebuffer(null);
+        this.engineFramebuffer._bindUnboundFramebuffer(null);
 
         return samples;
     }

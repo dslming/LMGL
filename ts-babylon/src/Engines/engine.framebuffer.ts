@@ -4,6 +4,12 @@ import { Constants } from "./constants";
 import { ThinEngine} from './thinEngine'
 
 export class EngineFramebuffer {
+     /** framebuffer */
+  public _currentRenderTarget: Nullable<InternalTexture>;
+  private _framebufferDimensionsObject: Nullable<{framebufferWidth: number, framebufferHeight: number}>;
+  public _currentFramebuffer: Nullable<WebGLFramebuffer> = null;
+    public _dummyFramebuffer: Nullable<WebGLFramebuffer> = null;
+
    public _gl: WebGLRenderingContext;
     public _webGLVersion = 2;
   engine: ThinEngine;
@@ -141,4 +147,156 @@ export class EngineFramebuffer {
     }
     return this._canRenderToFramebuffer(Constants.TEXTURETYPE_HALF_FLOAT);
   }
+
+     /**
+     * Binds the frame buffer to the specified texture.
+     * @param texture The texture to render to or null for the default canvas
+     * @param faceIndex The face of the texture to render to in case of cube texture
+     * @param requiredWidth The width of the target to render to
+     * @param requiredHeight The height of the target to render to
+     * @param forceFullscreenViewport Forces the viewport to be the entire texture/screen if true
+     * @param lodLevel defines the lod level to bind to the frame buffer
+     * @param layer defines the 2d array index to bind to frame buffer to
+     */
+    public bindFramebuffer(texture: InternalTexture, faceIndex: number = 0, requiredWidth?: number, requiredHeight?: number, forceFullscreenViewport?: boolean, lodLevel = 0, layer = 0): void {
+        if (this._currentRenderTarget) {
+            this.unBindFramebuffer(this._currentRenderTarget);
+        }
+        this._currentRenderTarget = texture;
+        this._bindUnboundFramebuffer(texture._MSAAFramebuffer ? texture._MSAAFramebuffer : texture._framebuffer);
+
+        const gl = this._gl;
+        if (texture.is2DArray) {
+            gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture._webGLTexture, lodLevel, layer);
+        }
+        else if (texture.isCube) {
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, texture._webGLTexture, lodLevel);
+        }
+
+        const depthStencilTexture = texture._depthStencilTexture;
+        if (depthStencilTexture) {
+            const attachment = (depthStencilTexture._generateStencilBuffer) ? gl.DEPTH_STENCIL_ATTACHMENT : gl.DEPTH_ATTACHMENT;
+            if (texture.is2DArray) {
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, attachment, depthStencilTexture._webGLTexture, lodLevel, layer);
+            }
+            else if (texture.isCube) {
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, depthStencilTexture._webGLTexture, lodLevel);
+            }
+            else {
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, depthStencilTexture._webGLTexture, lodLevel);
+            }
+        }
+
+        if (this.engine.engineViewPort._cachedViewport && !forceFullscreenViewport) {
+            this.engine.engineViewPort.setViewport(this.engine.engineViewPort._cachedViewport, requiredWidth, requiredHeight);
+        } else {
+            if (!requiredWidth) {
+                requiredWidth = texture.width;
+                if (lodLevel) {
+                    requiredWidth = requiredWidth / Math.pow(2, lodLevel);
+                }
+            }
+            if (!requiredHeight) {
+                requiredHeight = texture.height;
+                if (lodLevel) {
+                    requiredHeight = requiredHeight / Math.pow(2, lodLevel);
+                }
+            }
+
+            this.engine.engineViewPort._viewport(0, 0, requiredWidth, requiredHeight);
+        }
+
+        this.engine.wipeCaches();
+    }
+
+    /** @hidden */
+    public _bindUnboundFramebuffer(framebuffer: Nullable<WebGLFramebuffer>) {
+        if (this._currentFramebuffer !== framebuffer) {
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, framebuffer);
+            this._currentFramebuffer = framebuffer;
+        }
+    }
+
+    /**
+     * Unbind the current render target texture from the webGL context
+     * @param texture defines the render target texture to unbind
+     * @param disableGenerateMipMaps defines a boolean indicating that mipmaps must not be generated
+     * @param onBeforeUnbind defines a function which will be called before the effective unbind
+     */
+    public unBindFramebuffer(texture: InternalTexture, disableGenerateMipMaps = false, onBeforeUnbind?: () => void): void {
+        this._currentRenderTarget = null;
+
+        // If MSAA, we need to bitblt back to main texture
+        var gl = this._gl;
+        if (texture._MSAAFramebuffer) {
+            if (texture._textureArray) {
+                // This texture is part of a MRT texture, we need to treat all attachments
+                this.engine.unBindMultiColorAttachmentFramebuffer(texture._textureArray!, disableGenerateMipMaps, onBeforeUnbind);
+                return;
+            }
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, texture._MSAAFramebuffer);
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, texture._framebuffer);
+            gl.blitFramebuffer(0, 0, texture.width, texture.height,
+                0, 0, texture.width, texture.height,
+                gl.COLOR_BUFFER_BIT, gl.NEAREST);
+        }
+
+        if (texture.generateMipMaps && !disableGenerateMipMaps && !texture.isCube) {
+            this.engine._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            this.engine._bindTextureDirectly(gl.TEXTURE_2D, null);
+        }
+
+        if (onBeforeUnbind) {
+            if (texture._MSAAFramebuffer) {
+                // Bind the correct framebuffer
+                this._bindUnboundFramebuffer(texture._framebuffer);
+            }
+            onBeforeUnbind();
+        }
+
+        this._bindUnboundFramebuffer(null);
+    }
+
+     /**
+   * Gets the current render width
+   * @param useScreen defines if screen size must be used (or the current render target if any)
+   * @returns a number defining the current render width
+   */
+  public getRenderWidth(useScreen = false): number {
+      if (!useScreen && this._currentRenderTarget) {
+          return this._currentRenderTarget.width;
+      }
+
+      return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferWidth : this._gl.drawingBufferWidth;
+  }
+
+    /**
+     * Gets the current render height
+     * @param useScreen defines if screen size must be used (or the current render target if any)
+     * @returns a number defining the current render height
+     */
+    public getRenderHeight(useScreen = false): number {
+        if (!useScreen && this._currentRenderTarget) {
+            return this._currentRenderTarget.height;
+        }
+
+        return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferHeight : this._gl.drawingBufferHeight;
+    }
+
+      /**
+     * Unbind the current render target and bind the default framebuffer
+     */
+    public restoreDefaultFramebuffer(): void {
+        if (this._currentRenderTarget) {
+            this.unBindFramebuffer(this._currentRenderTarget);
+        } else {
+            this._bindUnboundFramebuffer(null);
+        }
+        if (this.engine.engineViewPort._cachedViewport) {
+            this.engine.engineViewPort.setViewport(this.engine.engineViewPort._cachedViewport);
+        }
+
+        this.engine.wipeCaches();
+    }
 }

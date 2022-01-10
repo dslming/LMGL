@@ -504,8 +504,8 @@ export class ImageProcessingConfiguration {
 
         // Vignette
         if (this._vignetteEnabled) {
-            var inverseWidth = 1 / effect.getEngine().getRenderWidth();
-            var inverseHeight = 1 / effect.getEngine().getRenderHeight();
+            var inverseWidth = 1 / effect.getEngine().engineFramebuffer.getRenderWidth();
+            var inverseHeight = 1 / effect.getEngine().engineFramebuffer.getRenderHeight();
             effect.setFloat2("vInverseScreenSize", inverseWidth, inverseHeight);
 
             let aspectRatio = overrideAspectRatio != null ? overrideAspectRatio : (inverseHeight / inverseWidth);

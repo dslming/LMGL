@@ -14,16 +14,16 @@ ThinEngine.prototype._readTexturePixels = function(texture: InternalTexture, wid
     if (!gl) {
         throw new Error ("Engine does not have gl rendering context.");
     }
-    if (!this._dummyFramebuffer) {
+    if (!this.engineFramebuffer._dummyFramebuffer) {
         let dummy = gl.createFramebuffer();
 
         if (!dummy) {
             throw new Error("Unable to create dummy framebuffer");
         }
 
-        this._dummyFramebuffer = dummy;
+        this.engineFramebuffer._dummyFramebuffer = dummy;
     }
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._dummyFramebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.engineFramebuffer._dummyFramebuffer);
 
     if (faceIndex > -1) {
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, texture._webGLTexture, level);
@@ -49,7 +49,7 @@ ThinEngine.prototype._readTexturePixels = function(texture: InternalTexture, wid
     }
 
     gl.readPixels(0, 0, width, height, gl.RGBA, readType, <DataView>buffer);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._currentFramebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.engineFramebuffer._currentFramebuffer);
 
     return buffer;
 };

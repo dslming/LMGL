@@ -380,8 +380,8 @@ export class RenderTargetTexture extends Texture {
             this._sizeRatio = (<{ ratio: number }>size).ratio;
             const engine = this._getEngine()!;
             this._size = {
-                width: this._bestReflectionRenderTargetDimension(engine.getRenderWidth(), this._sizeRatio),
-                height: this._bestReflectionRenderTargetDimension(engine.getRenderHeight(), this._sizeRatio)
+                width: this._bestReflectionRenderTargetDimension(engine.engineFramebuffer.getRenderWidth(), this._sizeRatio),
+                height: this._bestReflectionRenderTargetDimension(engine.engineFramebuffer.getRenderHeight(), this._sizeRatio)
             };
         } else {
             this._size = <number | { width: number, height: number, layers?: number }>size;
@@ -822,7 +822,7 @@ export class RenderTargetTexture extends Texture {
 
         var engine = scene.getEngine();
         if (this._texture) {
-            engine.bindFramebuffer(this._texture, this.isCube ? faceIndex : undefined, undefined, undefined, this.ignoreCameraViewport, 0, layer);
+            engine.engineFramebuffer.bindFramebuffer(this._texture, this.isCube ? faceIndex : undefined, undefined, undefined, this.ignoreCameraViewport, 0, layer);
         }
     }
 
@@ -830,7 +830,7 @@ export class RenderTargetTexture extends Texture {
         if (!this._texture) {
             return;
         }
-        engine.unBindFramebuffer(this._texture, this.isCube, () => {
+        engine.engineFramebuffer.unBindFramebuffer(this._texture, this.isCube, () => {
             this.onAfterRenderObservable.notifyObservers(faceIndex);
         });
     }

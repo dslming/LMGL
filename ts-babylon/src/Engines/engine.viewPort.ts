@@ -20,8 +20,8 @@ export class EngineViewPort {
      * @param requiredHeight defines the height required for rendering. If not provided the rendering canvas' height is used
      */
     public setViewport(viewport: IViewportLike, requiredWidth?: number, requiredHeight?: number): void {
-        var width = requiredWidth || this.engine.getRenderWidth();
-        var height = requiredHeight || this.engine.getRenderHeight();
+        var width = requiredWidth || this.engine.engineFramebuffer.getRenderWidth();
+        var height = requiredHeight || this.engine.engineFramebuffer.getRenderHeight();
         var x = viewport.x || 0;
         var y = viewport.y || 0;
 

@@ -514,8 +514,8 @@ export class Camera extends Node {
                 && this._cache.orthoRight === this.orthoRight
                 && this._cache.orthoBottom === this.orthoBottom
                 && this._cache.orthoTop === this.orthoTop
-                && this._cache.renderWidth === engine.getRenderWidth()
-                && this._cache.renderHeight === engine.getRenderHeight();
+                && this._cache.renderWidth === engine.engineFramebuffer.getRenderWidth()
+                && this._cache.renderHeight === engine.engineFramebuffer.getRenderHeight();
         }
 
         return check;
@@ -714,8 +714,8 @@ export class Camera extends Node {
                 this._projectionMatrix,
                 this.fovMode === Camera.FOVMODE_VERTICAL_FIXED);
         } else {
-            var halfWidth = engine.getRenderWidth() / 2.0;
-            var halfHeight = engine.getRenderHeight() / 2.0;
+            var halfWidth = engine.engineFramebuffer.getRenderWidth() / 2.0;
+            var halfHeight = engine.engineFramebuffer.getRenderHeight() / 2.0;
             if (scene.useRightHandedSystem) {
                 Matrix.OrthoOffCenterRHToRef(this.orthoLeft ?? -halfWidth,
                     this.orthoRight ?? halfWidth,
@@ -738,8 +738,8 @@ export class Camera extends Node {
             this._cache.orthoRight = this.orthoRight;
             this._cache.orthoBottom = this.orthoBottom;
             this._cache.orthoTop = this.orthoTop;
-            this._cache.renderWidth = engine.getRenderWidth();
-            this._cache.renderHeight = engine.getRenderHeight();
+            this._cache.renderWidth = engine.engineFramebuffer.getRenderWidth();
+            this._cache.renderHeight = engine.engineFramebuffer.getRenderHeight();
         }
 
         this.onProjectionMatrixChangedObservable.notifyObservers(this);

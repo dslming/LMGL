@@ -59,7 +59,7 @@ ThinEngine.prototype.createRenderTargetCubeTexture = function(size: number, opti
 
     // Create the framebuffer
     var framebuffer = gl.createFramebuffer();
-    this._bindUnboundFramebuffer(framebuffer);
+    this.engineFramebuffer._bindUnboundFramebuffer(framebuffer);
 
     texture._depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer, fullOptions.generateDepthBuffer, size, size);
 
@@ -70,7 +70,7 @@ ThinEngine.prototype.createRenderTargetCubeTexture = function(size: number, opti
 
     // Unbind
     this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
-    this._bindUnboundFramebuffer(null);
+    this.engineFramebuffer._bindUnboundFramebuffer(null);
 
     texture._framebuffer = framebuffer;
     texture.width = size;

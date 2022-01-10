@@ -640,13 +640,13 @@ export class SceneRender {
             } else {
                 var internalTexture = this.scene.activeCamera.outputRenderTarget.getInternalTexture();
                 if (internalTexture) {
-                    this.scene.getEngine().bindFramebuffer(internalTexture);
+                    this.scene.getEngine().engineFramebuffer.bindFramebuffer(internalTexture);
                 } else {
                     Logger.Error("Camera contains invalid customDefaultRenderTarget");
                 }
             }
         } else {
-            this.scene.getEngine().restoreDefaultFramebuffer(); // Restore back buffer if needed
+            this.scene.getEngine().engineFramebuffer.restoreDefaultFramebuffer(); // Restore back buffer if needed
         }
     }
 
