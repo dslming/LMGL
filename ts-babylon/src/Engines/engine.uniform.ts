@@ -29,7 +29,7 @@ export class EngineUniform {
 
 
   /** -------------------------------- uniform -------------------------------------- */
-   protected _rebuildBuffers(): void {
+   public _rebuildBuffers(): void {
         // Uniforms
         for (var uniformBuffer of this._uniformBuffers) {
             uniformBuffer._rebuild();

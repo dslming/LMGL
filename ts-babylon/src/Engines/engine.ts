@@ -1171,7 +1171,7 @@ export class Engine extends ThinEngine {
             scene.sceneNode._rebuildTextures();
         }
 
-        super._rebuildBuffers();
+        super.engineUniform._rebuildBuffers();
     }
 
     /** @hidden */
