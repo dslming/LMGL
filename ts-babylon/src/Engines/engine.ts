@@ -1134,7 +1134,7 @@ export class Engine extends ThinEngine {
         }
 
         if (uniform) {
-            this._boundUniforms[channel] = uniform;
+            this.engineUniform._boundUniforms[channel] = uniform;
         }
 
         if (!texture || !texture.depthStencilTexture) {

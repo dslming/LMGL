@@ -132,7 +132,7 @@ export class UniformBuffer {
      */
     constructor(engine: Engine, data?: number[], dynamic?: boolean) {
         this._engine = engine;
-        this._noUBO = !engine.supportsUniformBuffers;
+        this._noUBO = !engine.engineUniform.supportsUniformBuffers;
         this._dynamic = dynamic;
 
         this._data = data || [];
@@ -155,7 +155,7 @@ export class UniformBuffer {
             this.updateColor3 = this._updateColor3ForEffect;
             this.updateColor4 = this._updateColor4ForEffect;
         } else {
-            this._engine._uniformBuffers.push(this);
+            this._engine.engineUniform._uniformBuffers.push(this);
 
             this.updateMatrix3x3 = this._updateMatrix3x3ForUniform;
             this.updateMatrix2x2 = this._updateMatrix2x2ForUniform;
@@ -649,7 +649,7 @@ export class UniformBuffer {
             return;
         }
 
-        const uniformBuffers = this._engine._uniformBuffers;
+        const uniformBuffers = this._engine.engineUniform._uniformBuffers;
         let index = uniformBuffers.indexOf(this);
 
         if (index !== -1) {

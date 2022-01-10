@@ -671,7 +671,7 @@ export class Material {
         }
 
         this._uniformBuffer = new UniformBuffer(this._scene.getEngine());
-        this._useUBO = this.getScene().getEngine().supportsUniformBuffers;
+        this._useUBO = this.getScene().getEngine().engineUniform.supportsUniformBuffers;
 
         if (!doNotAdd) {
             this._scene.sceneNode.addMaterial(this);

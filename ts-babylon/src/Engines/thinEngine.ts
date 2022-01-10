@@ -26,6 +26,7 @@ import { EngineStore } from './engineStore';
 import { Logger } from '../Misc/logger';
 import { IEffectFallbacks } from '../Materials/iEffectFallbacks';
 import { VertexBuffer } from '../Meshes/buffer';
+import { EngineUniform } from './engine.uniform';
 
 
 declare type WebRequest = import("../Misc/webRequest").WebRequest;
@@ -43,21 +44,6 @@ export class ThinEngine {
   public _workingCanvas: Nullable<HTMLCanvasElement | OffscreenCanvas>;
   public _workingContext: Nullable<CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D>;
 
-  /** --------------------------------- uniform ---------------------------------- */
-   /**
-     * Gets or sets a boolean indicating that uniform buffers must be disabled even if they are supported
-     */
-    public disableUniformBuffers = false;
-  protected _boundUniforms: { [key: number]: WebGLUniformLocation } = {};
-    public _uniformBuffers = new Array<UniformBuffer>();
-/**
-     * Gets a boolean indicating that the engine supports uniform buffers
-     * @see https://doc.babylonjs.com/features/webgl2#uniform-buffer-objets
-     */
-    public get supportsUniformBuffers(): boolean {
-        return this.webGLVersion > 1 && !this.disableUniformBuffers;
-    }
-
   /** --------------------------------- gl ---------------------------------- */
   public _webGLVersion = 2.0;
   public _gl: WebGLRenderingContext;
@@ -67,6 +53,7 @@ export class ThinEngine {
   public _caps: EngineCapabilities;
   private _viewportCached = { x: 0, y: 0, z: 0, w: 0 };
   protected _highPrecisionShadersAllowed = true;
+    engineUniform: EngineUniform;
   public get _shouldUseHighPrecisionShader(): boolean {
       return !!(this._caps.highPrecisionShaderSupported && this._highPrecisionShadersAllowed);
   }
@@ -135,7 +122,7 @@ export class ThinEngine {
             var uniform = effect.getUniform(samplers[index]);
 
             if (uniform) {
-                this._boundUniforms[index] = uniform;
+                this.engineUniform._boundUniforms[index] = uniform;
             }
         }
         this._currentEffect = null;
@@ -514,6 +501,8 @@ export class ThinEngine {
         throw new Error("WebGL not supported");
       }
     }
+
+      this.engineUniform = new EngineUniform(this._gl)
 
     // Ensures a consistent color space unpacking of textures cross browser.
     this._gl.pixelStorei(this._gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, this._gl.NONE);
@@ -2175,13 +2164,13 @@ export class ThinEngine {
       }
 
       if (uniform) {
-          this._boundUniforms[channel] = uniform;
+          this.engineUniform._boundUniforms[channel] = uniform;
       }
 
       this._setTexture(channel, texture);
   }
   private _bindSamplerUniformToChannel(sourceSlot: number, destination: number) {
-      let uniform = this._boundUniforms[sourceSlot];
+      let uniform = this.engineUniform._boundUniforms[sourceSlot];
       if (!uniform || uniform._currentState === destination) {
           return;
       }
@@ -3384,7 +3373,7 @@ export class ThinEngine {
 
         // Unbind
         this.unbindAllAttributes();
-        this._boundUniforms = [];
+        this.engineUniform._boundUniforms = [];
 
         // Events
         if (DomManagement.IsWindowObjectExist()) {
@@ -3415,7 +3404,7 @@ export class ThinEngine {
   /** -------------------------------- uniform -------------------------------------- */
    protected _rebuildBuffers(): void {
         // Uniforms
-        for (var uniformBuffer of this._uniformBuffers) {
+        for (var uniformBuffer of this.engineUniform._uniformBuffers) {
             uniformBuffer._rebuild();
         }
    }

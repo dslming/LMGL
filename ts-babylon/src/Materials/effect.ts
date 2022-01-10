@@ -280,7 +280,7 @@ export class Effect implements IDisposable {
             isFragment: false,
             shouldUseHighPrecisionShader: this._engine._shouldUseHighPrecisionShader,
             processor: this._engine._shaderProcessor,
-            supportsUniformBuffers: this._engine.supportsUniformBuffers,
+            supportsUniformBuffers: this._engine.engineUniform.supportsUniformBuffers,
             shadersRepository: Effect.ShadersRepository,
             includesShadersStore: Effect.IncludesShadersStore,
             version: (this._engine.webGLVersion * 100).toString(),
@@ -634,7 +634,7 @@ export class Effect implements IDisposable {
             }
 
             engine._executeWhenRenderingStateIsCompiled(this._pipelineContext, () => {
-                if (engine.supportsUniformBuffers) {
+                if (engine.engineUniform.supportsUniformBuffers) {
                     for (var name in this._uniformBuffersNames) {
                         this.bindUniformBlock(name, this._uniformBuffersNames[name]);
                     }
