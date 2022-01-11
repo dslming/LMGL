@@ -197,8 +197,8 @@ export class Buffer {
 }
 
 /**
-     * Specialized buffer used to store vertex data
-     */
+ * Specialized buffer used to store vertex data
+ */
 export class VertexBuffer {
     /** @hidden */
     public _buffer: Buffer;

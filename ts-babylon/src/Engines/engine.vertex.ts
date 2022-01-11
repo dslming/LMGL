@@ -15,8 +15,10 @@ export class EngineVertex {
     public _currentBufferPointers = new Array<BufferPointer>();
 
     private _cachedVertexArrayObject: Nullable<WebGLVertexArrayObject>;
+    // 记录进行中
     private _vaoRecordInProgress = false;
     public _currentBoundBuffer = new Array<Nullable<WebGLBuffer>>();
+    // 必须擦除顶点属性
     public _mustWipeVertexAttributes = false;
     public _cachedEffectForVertexBuffers: Nullable<Effect>;
     public _uintIndicesCurrentlySet = false;
@@ -194,7 +196,7 @@ export class EngineVertex {
                 var order = effect.getAttributeLocation(index);
 
                 if (order >= 0) {
-                    var vertexBuffer = vertexBuffers[attributes[index]];
+                    var vertexBuffer: Nullable<VertexBuffer> = vertexBuffers[attributes[index]];
 
                     if (!vertexBuffer) {
                         continue;
