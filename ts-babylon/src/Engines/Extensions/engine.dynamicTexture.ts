@@ -1,6 +1,7 @@
 import { ThinEngine } from "../../Engines/thinEngine";
 import { InternalTexture, InternalTextureSource } from '../../Materials/Textures/internalTexture';
 import { Nullable } from '../../types';
+import { EngineTexture } from "../engine.texture";
 
 declare module "../../Engines/thinEngine" {
     export interface ThinEngine {
@@ -35,8 +36,8 @@ ThinEngine.prototype.createDynamicTexture = function(width: number, height: numb
     texture.baseHeight = height;
 
     if (generateMipMaps) {
-        width = this.needPOTTextures ? ThinEngine.GetExponentOfTwo(width, this._caps.maxTextureSize) : width;
-        height = this.needPOTTextures ? ThinEngine.GetExponentOfTwo(height, this._caps.maxTextureSize) : height;
+        width = this.engineTexture.needPOTTextures ? EngineTexture.GetExponentOfTwo(width, this._caps.maxTextureSize) : width;
+        height = this.engineTexture.needPOTTextures ? EngineTexture.GetExponentOfTwo(height, this._caps.maxTextureSize) : height;
     }
 
     //  this.resetTextureCache();
@@ -46,9 +47,9 @@ ThinEngine.prototype.createDynamicTexture = function(width: number, height: numb
     texture.generateMipMaps = generateMipMaps;
     texture.samplingMode = samplingMode;
 
-    this.updateTextureSamplingMode(samplingMode, texture);
+    this.engineTexture.updateTextureSamplingMode(samplingMode, texture);
 
-    this._internalTexturesCache.push(texture);
+    this.engineTexture._internalTexturesCache.push(texture);
 
     return texture;
 };
@@ -66,17 +67,17 @@ ThinEngine.prototype.updateDynamicTexture = function(texture: Nullable<InternalT
     const gl = this._gl;
     const target = gl.TEXTURE_2D;
 
-    const wasPreviouslyBound = this._bindTextureDirectly(target, texture, true, forceBindTexture);
+    const wasPreviouslyBound = this.engineTexture._bindTextureDirectly(target, texture, true, forceBindTexture);
 
-    this._unpackFlipY(invertY === undefined ? texture.invertY : invertY);
+    this.engineTexture._unpackFlipY(invertY === undefined ? texture.invertY : invertY);
 
     if (premulAlpha) {
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
     }
 
-    const textureType = this._getWebGLTextureType(texture.type);
-    const glformat = this._getInternalFormat(format ? format : texture.format);
-    const internalFormat = this._getRGBABufferInternalSizedFormat(texture.type, glformat);
+    const textureType = this.engineTexture._getWebGLTextureType(texture.type);
+    const glformat = this.engineTexture._getInternalFormat(format ? format : texture.format);
+    const internalFormat = this.engineTexture._getRGBABufferInternalSizedFormat(texture.type, glformat);
 
     gl.texImage2D(target, 0, internalFormat, glformat, textureType, source);
 
@@ -85,7 +86,7 @@ ThinEngine.prototype.updateDynamicTexture = function(texture: Nullable<InternalT
     }
 
     if (!wasPreviouslyBound) {
-        this._bindTextureDirectly(target, null);
+        this.engineTexture._bindTextureDirectly(target, null);
     }
 
     if (premulAlpha) {

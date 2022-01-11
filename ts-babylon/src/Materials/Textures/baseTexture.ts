@@ -520,7 +520,7 @@ export class BaseTexture extends ThinTexture {
             return null;
         }
 
-        var texturesCache = engine.getLoadedTexturesCache();
+        var texturesCache = engine.engineTexture.getLoadedTexturesCache();
         for (var index = 0; index < texturesCache.length; index++) {
             var texturesCacheEntry = texturesCache[index];
 

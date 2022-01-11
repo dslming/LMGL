@@ -31,7 +31,7 @@ ThinEngine.prototype._readTexturePixels = function(texture: InternalTexture, wid
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture._webGLTexture, level);
     }
 
-    let readType = (texture.type !== undefined) ? this._getWebGLTextureType(texture.type) : gl.UNSIGNED_BYTE;
+    let readType = (texture.type !== undefined) ? this.engineTexture._getWebGLTextureType(texture.type) : gl.UNSIGNED_BYTE;
 
     switch (readType) {
         case gl.UNSIGNED_BYTE:

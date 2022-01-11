@@ -20,26 +20,26 @@ ThinEngine.prototype.updateVideoTexture = function(texture: Nullable<InternalTex
         return;
     }
 
-    var wasPreviouslyBound = this._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
-    this._unpackFlipY(!invertY); // Video are upside down by default
+    var wasPreviouslyBound = this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
+    this.engineTexture._unpackFlipY(!invertY); // Video are upside down by default
 
     try {
         // Testing video texture support
-        if (this._videoTextureSupported === undefined) {
+        if (this.engineTexture._videoTextureSupported === undefined) {
             // clear old errors just in case.
             this._gl.getError();
 
             this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, video);
 
             if (this._gl.getError() !== 0) {
-                this._videoTextureSupported = false;
+                this.engineTexture._videoTextureSupported = false;
             } else {
-                this._videoTextureSupported = true;
+                this.engineTexture._videoTextureSupported = true;
             }
         }
 
         // Copy video through the current working canvas if video texture is not supported
-        if (!this._videoTextureSupported) {
+        if (!this.engineTexture._videoTextureSupported) {
             if (!texture._workingCanvas) {
                 texture._workingCanvas = CanvasGenerator.CreateCanvas(texture.width, texture.height);
                 let context = texture._workingCanvas.getContext("2d");
@@ -66,7 +66,7 @@ ThinEngine.prototype.updateVideoTexture = function(texture: Nullable<InternalTex
         }
 
         if (!wasPreviouslyBound) {
-            this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_2D, null);
         }
         //    this.resetTextureCache();
         texture.isReady = true;

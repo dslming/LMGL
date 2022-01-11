@@ -668,10 +668,10 @@ export class Engine extends ThinEngine {
     public generateMipMapsForCubemap(texture: InternalTexture, unbind = true) {
         if (texture.generateMipMaps) {
             var gl = this._gl;
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
             gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             if (unbind) {
-                this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+                this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
             }
         }
     }
@@ -1138,10 +1138,10 @@ export class Engine extends ThinEngine {
         }
 
         if (!texture || !texture.depthStencilTexture) {
-            this._setTexture(channel, null);
+            this.engineTexture._setTexture(channel, null);
         }
         else {
-            this._setTexture(channel, texture, false, true);
+            this.engineTexture._setTexture(channel, texture, false, true);
         }
     }
 
@@ -1397,7 +1397,7 @@ export class Engine extends ThinEngine {
     }
 
     public _releaseTexture(texture: InternalTexture): void {
-        super._releaseTexture(texture);
+        super.engineTexture._releaseTexture(texture);
 
         // Set output texture of post process to null if the texture has been released/disposed
         this.scenes.forEach((scene) => {
@@ -1501,14 +1501,14 @@ export class Engine extends ThinEngine {
     public _uploadImageToTexture(texture: InternalTexture, image: HTMLImageElement | ImageBitmap, faceIndex: number = 0, lod: number = 0) {
         var gl = this._gl;
 
-        var textureType = this._getWebGLTextureType(texture.type);
-        var format = this._getInternalFormat(texture.format);
-        var internalFormat = this._getRGBABufferInternalSizedFormat(texture.type, format);
+        var textureType = this.engineTexture._getWebGLTextureType(texture.type);
+        var format = this.engineTexture._getInternalFormat(texture.format);
+        var internalFormat = this.engineTexture._getRGBABufferInternalSizedFormat(texture.type, format);
 
         var bindTarget = texture.isCube ? gl.TEXTURE_CUBE_MAP : gl.TEXTURE_2D;
 
-        this._bindTextureDirectly(bindTarget, texture, true);
-        this._unpackFlipY(texture.invertY);
+        this.engineTexture._bindTextureDirectly(bindTarget, texture, true);
+        this.engineTexture._unpackFlipY(texture.invertY);
 
         var target = gl.TEXTURE_2D;
         if (texture.isCube) {
@@ -1516,7 +1516,7 @@ export class Engine extends ThinEngine {
         }
 
         gl.texImage2D(target, lod, internalFormat, format, textureType, image);
-        this._bindTextureDirectly(bindTarget, null, true);
+        this.engineTexture._bindTextureDirectly(bindTarget, null, true);
     }
 
     /**
@@ -1572,7 +1572,7 @@ export class Engine extends ThinEngine {
             }
 
             gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, this._getRGBAMultiSampleBufferFormat(texture.type), texture.width, texture.height);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, this.engineTexture._getRGBAMultiSampleBufferFormat(texture.type), texture.width, texture.height);
 
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
 
@@ -1605,7 +1605,7 @@ export class Engine extends ThinEngine {
         var gl = this._gl;
 
         if (texture.isCube) {
-            this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, texture, true);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, texture, true);
 
             if (comparisonFunction === 0) {
                 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_FUNC, Constants.LEQUAL);
@@ -1616,9 +1616,9 @@ export class Engine extends ThinEngine {
                 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
             }
 
-            this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
         } else {
-            this._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
 
             if (comparisonFunction === 0) {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, Constants.LEQUAL);
@@ -1629,7 +1629,7 @@ export class Engine extends ThinEngine {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
             }
 
-            this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_2D, null);
         }
 
         texture._comparisonFunction = comparisonFunction;

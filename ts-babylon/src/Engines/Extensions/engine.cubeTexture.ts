@@ -8,6 +8,7 @@ import { FileTools } from '../../Misc/fileTools';
 import { DepthTextureCreationOptions } from '../depthTextureCreationOptions';
 import { IWebRequest } from '../../Misc/interfaces/iWebRequest';
 import { Constants } from '../constants';
+import { EngineTexture } from "../engine.texture";
 
 declare module "../../Engines/thinEngine" {
     export interface ThinEngine {
@@ -112,9 +113,9 @@ ThinEngine.prototype._createDepthStencilCubeTexture = function(size: number, opt
     };
 
     var gl = this._gl;
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, internalTexture, true);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, internalTexture, true);
 
-    this._setupDepthStencilTexture(internalTexture, size, internalOptions.generateStencil, internalOptions.bilinearFiltering, internalOptions.comparisonFunction);
+    this.engineTexture._setupDepthStencilTexture(internalTexture, size, internalOptions.generateStencil, internalOptions.bilinearFiltering, internalOptions.comparisonFunction);
 
     // Create the depth/stencil buffer
     for (var face = 0; face < 6; face++) {
@@ -126,7 +127,7 @@ ThinEngine.prototype._createDepthStencilCubeTexture = function(size: number, opt
         }
     }
 
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
 
     return internalTexture;
 };
@@ -215,7 +216,7 @@ ThinEngine.prototype._setCubeMapTextureParams = function(texture: InternalTextur
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     texture.samplingMode = loadMipmap ? Constants.TEXTURE_TRILINEAR_SAMPLINGMODE : Constants.TEXTURE_LINEAR_LINEAR;
 
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
 };
 
 ThinEngine.prototype.createCubeTexture = function(rootUrl: string, scene: Nullable<Scene>, files: Nullable<string[]>, noMipmap?: boolean, onLoad: Nullable<(data?: any) => void> = null,
@@ -237,15 +238,15 @@ ThinEngine.prototype.createCubeTexture = function(rootUrl: string, scene: Nullab
     // }
 
     const originalRootUrl = rootUrl;
-    if (this._transformTextureUrl && !fallback) {
-        rootUrl = this._transformTextureUrl(rootUrl);
+    if (this.engineTexture._transformTextureUrl && !fallback) {
+        rootUrl = this.engineTexture._transformTextureUrl(rootUrl);
     }
 
     const lastDot = rootUrl.lastIndexOf('.');
     const extension = forcedExtension ? forcedExtension : (lastDot > -1 ? rootUrl.substring(lastDot).toLowerCase() : "");
 
     let loader: Nullable<IInternalTextureLoader> = null;
-    for (let availableLoader of ThinEngine._TextureLoaders) {
+    for (let availableLoader of EngineTexture._TextureLoaders) {
         if (availableLoader.canLoad(extension)) {
             loader = availableLoader;
             break;
@@ -267,7 +268,7 @@ ThinEngine.prototype.createCubeTexture = function(rootUrl: string, scene: Nullab
 
     if (loader) {
         const onloaddata = (data: ArrayBufferView | ArrayBufferView[]) => {
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
             loader!.loadCubeData(data, texture, createPolynomials, onLoad, onError);
         };
         if (files && files.length === 6) {
@@ -292,7 +293,7 @@ ThinEngine.prototype.createCubeTexture = function(rootUrl: string, scene: Nullab
         }
 
         this._cascadeLoadImgs(scene, (imgs) => {
-            const width = this.needPOTTextures ? ThinEngine.GetExponentOfTwo(imgs[0].width, this._caps.maxCubemapTextureSize) : imgs[0].width;
+            const width = this.engineTexture.needPOTTextures ? EngineTexture.GetExponentOfTwo(imgs[0].width, this._caps.maxCubemapTextureSize) : imgs[0].width;
             const height = width;
 
             const faces = [
@@ -300,10 +301,10 @@ ThinEngine.prototype.createCubeTexture = function(rootUrl: string, scene: Nullab
                 gl.TEXTURE_CUBE_MAP_NEGATIVE_X, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
             ];
 
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
-            this._unpackFlipY(false);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
+            this.engineTexture._unpackFlipY(false);
 
-            const internalFormat = format ? this._getInternalFormat(format) : this._gl.RGBA;
+            const internalFormat = format ? this.engineTexture._getInternalFormat(format) : this._gl.RGBA;
             for (var index = 0; index < faces.length; index++) {
                 if (imgs[index].width !== width || imgs[index].height !== height) {
 
@@ -345,7 +346,7 @@ ThinEngine.prototype.createCubeTexture = function(rootUrl: string, scene: Nullab
         }, files, onError);
     }
 
-    this._internalTexturesCache.push(texture);
+    this.engineTexture._internalTexturesCache.push(texture);
 
     return texture;
 };

@@ -283,7 +283,7 @@ export class InternalTexture {
         this._source = source;
 
         if (!delayAllocation) {
-            this._webGLTexture = engine._createTexture();
+            this._webGLTexture = engine.engineTexture._createTexture();
         }
     }
 
@@ -355,7 +355,7 @@ export class InternalTexture {
             target._irradianceTexture = this._irradianceTexture;
         }
 
-        let cache = this._engine.getLoadedTexturesCache();
+        let cache = this._engine.engineTexture.getLoadedTexturesCache();
         var index = cache.indexOf(this);
         if (index !== -1) {
             cache.splice(index, 1);
@@ -377,7 +377,7 @@ export class InternalTexture {
 
         this._references--;
         if (this._references === 0) {
-            this._engine._releaseTexture(this);
+            this._engine.engineTexture._releaseTexture(this);
             this._webGLTexture = null;
         }
     }

@@ -801,7 +801,7 @@ export class Effect implements IDisposable {
      * @hidden
      */
     public _bindTexture(channel: string, texture: Nullable<InternalTexture>): void {
-        this._engine._bindTexture(this._samplers[channel], texture);
+        this._engine.engineTexture._bindTexture(this._samplers[channel], texture);
     }
 
     /**
@@ -810,7 +810,7 @@ export class Effect implements IDisposable {
      * @param texture Texture to set.
      */
     public setTexture(channel: string, texture: Nullable<ThinTexture>): void {
-        this._engine.setTexture(this._samplers[channel], this._uniforms[channel], texture);
+        this._engine.engineTexture.setTexture(this._samplers[channel], this._uniforms[channel], texture);
     }
 
     /**
@@ -844,7 +844,7 @@ export class Effect implements IDisposable {
             }
         }
 
-        this._engine.setTextureArray(this._samplers[channel], this._uniforms[channel], textures);
+        this._engine.engineTexture.setTextureArray(this._samplers[channel], this._uniforms[channel], textures);
     }
 
     // /**

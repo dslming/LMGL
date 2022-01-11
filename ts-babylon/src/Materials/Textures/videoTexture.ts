@@ -140,7 +140,7 @@ export class VideoTexture extends Texture {
         const videoHasEnoughData = (this.video.readyState >= this.video.HAVE_CURRENT_DATA);
         if (settings.poster &&
             (!settings.autoPlay || !videoHasEnoughData)) {
-            this._texture = this._getEngine()!.createTexture(settings.poster!, false, !this.invertY, scene);
+            this._texture = this._getEngine()!.engineTexture.createTexture(settings.poster!, false, !this.invertY, scene);
             this._displayingPosterTexture = true;
         }
         else if (videoHasEnoughData) {
@@ -191,7 +191,7 @@ export class VideoTexture extends Texture {
             }
         }
 
-        if (!this._getEngine()!.needPOTTextures ||
+        if (!this._getEngine()!.engineTexture.needPOTTextures ||
             (Tools.IsExponentOfTwo(this.video.videoWidth) && Tools.IsExponentOfTwo(this.video.videoHeight))) {
             this.wrapU = Texture.WRAP_ADDRESSMODE;
             this.wrapV = Texture.WRAP_ADDRESSMODE;

@@ -39,9 +39,9 @@ ThinEngine.prototype.createRenderTargetCubeTexture = function(size: number, opti
     var gl = this._gl;
 
     var texture = new InternalTexture(this, InternalTextureSource.RenderTarget);
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
 
-    var filters = this._getSamplingParameters(fullOptions.samplingMode, fullOptions.generateMipMaps);
+    var filters = this.engineTexture._getSamplingParameters(fullOptions.samplingMode, fullOptions.generateMipMaps);
 
     if (fullOptions.type === Constants.TEXTURETYPE_FLOAT && !this._caps.textureFloat) {
         fullOptions.type = Constants.TEXTURETYPE_UNSIGNED_INT;
@@ -54,7 +54,7 @@ ThinEngine.prototype.createRenderTargetCubeTexture = function(size: number, opti
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     for (var face = 0; face < 6; face++) {
-        gl.texImage2D((gl.TEXTURE_CUBE_MAP_POSITIVE_X + face), 0, this._getRGBABufferInternalSizedFormat(fullOptions.type, fullOptions.format), size, size, 0, this._getInternalFormat(fullOptions.format), this._getWebGLTextureType(fullOptions.type), null);
+        gl.texImage2D((gl.TEXTURE_CUBE_MAP_POSITIVE_X + face), 0, this.engineTexture._getRGBABufferInternalSizedFormat(fullOptions.type, fullOptions.format), size, size, 0, this.engineTexture._getInternalFormat(fullOptions.format), this.engineTexture._getWebGLTextureType(fullOptions.type), null);
     }
 
     // Create the framebuffer
@@ -69,7 +69,7 @@ ThinEngine.prototype.createRenderTargetCubeTexture = function(size: number, opti
     }
 
     // Unbind
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
     this.engineFramebuffer._bindUnboundFramebuffer(null);
 
     texture._framebuffer = framebuffer;
@@ -85,7 +85,7 @@ ThinEngine.prototype.createRenderTargetCubeTexture = function(size: number, opti
     texture._generateDepthBuffer = fullOptions.generateDepthBuffer;
     texture._generateStencilBuffer = fullOptions.generateStencilBuffer;
 
-    this._internalTexturesCache.push(texture);
+    this.engineTexture._internalTexturesCache.push(texture);
 
     return texture;
 };

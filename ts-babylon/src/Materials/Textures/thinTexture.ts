@@ -260,7 +260,7 @@ export class ThinTexture {
      */
     public updateSamplingMode(samplingMode: number): void {
         if (this._texture && this._engine) {
-            this._engine.updateTextureSamplingMode(samplingMode, this._texture);
+            this._engine.engineTexture.updateTextureSamplingMode(samplingMode, this._texture);
         }
     }
 

@@ -96,7 +96,7 @@ export class EngineFramebuffer {
 
       let texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, this.engine._getRGBABufferInternalSizedFormat(type), 1, 1, 0, gl.RGBA, this.engine._getWebGLTextureType(type), null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, this.engine.engineTexture._getRGBABufferInternalSizedFormat(type), 1, 1, 0, gl.RGBA, this.engine.engineTexture._getWebGLTextureType(type), null);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
@@ -242,9 +242,9 @@ export class EngineFramebuffer {
         }
 
         if (texture.generateMipMaps && !disableGenerateMipMaps && !texture.isCube) {
-            this.engine._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
+            this.engine.engineTexture._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
             gl.generateMipmap(gl.TEXTURE_2D);
-            this.engine._bindTextureDirectly(gl.TEXTURE_2D, null);
+            this.engine.engineTexture._bindTextureDirectly(gl.TEXTURE_2D, null);
         }
 
         if (onBeforeUnbind) {

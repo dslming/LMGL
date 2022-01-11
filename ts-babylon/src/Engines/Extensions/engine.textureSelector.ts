@@ -103,7 +103,7 @@ Engine.prototype.setTextureFormatToUse = function(formatsAvailable: Array<string
     for (let i = 0, len1 = texturesSupported.length; i < len1; i++) {
         for (let j = 0, len2 = formatsAvailable.length; j < len2; j++) {
             if (texturesSupported[i] === formatsAvailable[j].toLowerCase()) {
-                this._transformTextureUrl = transformTextureUrl.bind(this);
+                this.engineTexture._transformTextureUrl = transformTextureUrl.bind(this);
                 return this._textureFormatInUse = texturesSupported[i];
             }
         }
@@ -111,6 +111,6 @@ Engine.prototype.setTextureFormatToUse = function(formatsAvailable: Array<string
     // actively set format to nothing, to allow this to be called more than once
     // and possibly fail the 2nd time
     this._textureFormatInUse = "";
-    this._transformTextureUrl = null;
+    this.engineTexture._transformTextureUrl = null;
     return null;
 };

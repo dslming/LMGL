@@ -320,7 +320,7 @@ export class Texture extends BaseTexture {
             return;
         }
 
-        engine.onBeforeTextureInitObservable.notifyObservers(this);
+        engine.engineTexture.onBeforeTextureInitObservable.notifyObservers(this);
 
         let load = () => {
             if (this._texture) {
@@ -366,7 +366,7 @@ export class Texture extends BaseTexture {
 
         if (!this._texture) {
             if (!scene || !scene.useDelayedTextureLoading) {
-                this._texture = engine.createTexture(this.url, noMipmap, invertY, scene, samplingMode, load, onError, this._buffer, undefined, this._format, null, mimeType, loaderOptions);
+                this._texture = engine.engineTexture.createTexture(this.url, noMipmap, invertY, scene, samplingMode, load, onError, this._buffer, undefined, this._format, null, mimeType, loaderOptions);
                 if (deleteBuffer) {
                     this._buffer = null;
                 }
@@ -428,7 +428,7 @@ export class Texture extends BaseTexture {
         this._texture = this._getFromCache(this.url, this._noMipmap, this.samplingMode, this._invertY);
 
         if (!this._texture) {
-            this._texture = scene.getEngine().createTexture(this.url, this._noMipmap, this._invertY, scene, this.samplingMode, this._delayedOnLoad, this._delayedOnError, this._buffer, null, this._format, null, this._mimeType, this._loaderOptions);
+            this._texture = scene.getEngine().engineTexture.createTexture(this.url, this._noMipmap, this._invertY, scene, this.samplingMode, this._delayedOnLoad, this._delayedOnError, this._buffer, null, this._format, null, this._mimeType, this._loaderOptions);
             if (this._deleteBuffer) {
                 this._buffer = null;
             }

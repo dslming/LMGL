@@ -785,4 +785,6 @@ export class SceneRender {
 
         this.scene.sceneEventTrigger.onAfterActiveMeshesEvaluationObservable.notifyObservers(this.scene);
     }
+
+
 }

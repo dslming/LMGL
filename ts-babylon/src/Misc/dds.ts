@@ -533,7 +533,7 @@ export class DDSTools {
         let aOffset = DDSTools._ExtractLongWordOrder(header[off_AMask]);
 
         if (computeFormats) {
-            internalCompressedFormat = engine._getRGBABufferInternalSizedFormat(info.textureType);
+            internalCompressedFormat = engine.engineTexture._getRGBABufferInternalSizedFormat(info.textureType);
         }
 
         mipmapCount = 1;
@@ -595,7 +595,7 @@ export class DDSTools {
                         }
 
                         if (floatArray) {
-                            engine._uploadDataToTextureDirectly(texture, floatArray, face, i);
+                            engine.engineTexture._uploadDataToTextureDirectly(texture, floatArray, face, i);
                         }
                     } else if (info.isRGB) {
                         texture.type = Constants.TEXTURETYPE_UNSIGNED_INT;
@@ -603,12 +603,12 @@ export class DDSTools {
                             texture.format = Constants.TEXTUREFORMAT_RGB;
                             dataLength = width * height * 3;
                             byteArray = DDSTools._GetRGBArrayBuffer(width, height, data.byteOffset + dataOffset, dataLength, data.buffer, rOffset, gOffset, bOffset);
-                            engine._uploadDataToTextureDirectly(texture, byteArray, face, i);
+                            engine.engineTexture._uploadDataToTextureDirectly(texture, byteArray, face, i);
                         } else { // 32
                             texture.format = Constants.TEXTUREFORMAT_RGBA;
                             dataLength = width * height * 4;
                             byteArray = DDSTools._GetRGBAArrayBuffer(width, height, data.byteOffset + dataOffset, dataLength, data.buffer, rOffset, gOffset, bOffset, aOffset);
-                            engine._uploadDataToTextureDirectly(texture, byteArray, face, i);
+                            engine.engineTexture._uploadDataToTextureDirectly(texture, byteArray, face, i);
                         }
                     } else if (info.isLuminance) {
                         var unpackAlignment = engine._getUnpackAlignement();
@@ -620,7 +620,7 @@ export class DDSTools {
                         texture.format = Constants.TEXTUREFORMAT_LUMINANCE;
                         texture.type = Constants.TEXTURETYPE_UNSIGNED_INT;
 
-                        engine._uploadDataToTextureDirectly(texture, byteArray, face, i);
+                        engine.engineTexture._uploadDataToTextureDirectly(texture, byteArray, face, i);
                     } else {
                         dataLength = Math.max(4, width) / 4 * Math.max(4, height) / 4 * blockBytes;
                         byteArray = new Uint8Array(data.buffer, data.byteOffset + dataOffset, dataLength);
@@ -753,7 +753,7 @@ ThinEngine.prototype.createPrefilteredCubeTexture = function(rootUrl: string, sc
             glTextureFromLod.width = Math.pow(2, Math.max(Scalar.Log2(width) - mipmapIndex, 0));
             glTextureFromLod.height = glTextureFromLod.width;
             glTextureFromLod.isCube = true;
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, glTextureFromLod, true);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, glTextureFromLod, true);
 
             glTextureFromLod.samplingMode = Constants.TEXTURE_LINEAR_LINEAR;
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -764,7 +764,7 @@ ThinEngine.prototype.createPrefilteredCubeTexture = function(rootUrl: string, sc
             if (loadData.isDDS) {
                 var info: DDSInfo = loadData.info;
                 var data: any = loadData.data;
-                this._unpackFlipY(info.isCompressed);
+                this.engineTexture._unpackFlipY(info.isCompressed);
 
                 DDSTools.UploadDDSLevels(this, glTextureFromLod, data, info, true, 6, mipmapIndex);
             }
@@ -772,7 +772,7 @@ ThinEngine.prototype.createPrefilteredCubeTexture = function(rootUrl: string, sc
                 Logger.Warn("DDS is the only prefiltered cube map supported so far.");
             }
 
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
 
             // Wrap in a base texture for easy binding.
             const lodTexture = new BaseTexture(scene);

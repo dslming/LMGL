@@ -19,6 +19,7 @@ import { Constants } from "../../Engines/constants";
 import "../../Engines/Extensions/engine.renderTarget";
 import "../../Engines/Extensions/engine.renderTargetCube";
 import { Engine } from '../../Engines/engine';
+import { EngineTexture } from "../../Engines/engine.texture";
 
 /**
  * This Helps creating a texture that will be created from a camera in your scene.
@@ -722,10 +723,10 @@ export class RenderTargetTexture extends Texture {
     private _bestReflectionRenderTargetDimension(renderDimension: number, scale: number): number {
         let minimum = 128;
         let x = renderDimension * scale;
-        let curved = Engine.NearestPOT(x + (minimum * minimum / (minimum + x)));
+        let curved = EngineTexture.NearestPOT(x + (minimum * minimum / (minimum + x)));
 
         // Ensure we don't exceed the render dimension (while staying POT)
-        return Math.min(Engine.FloorPOT(renderDimension), curved);
+        return Math.min(EngineTexture.FloorPOT(renderDimension), curved);
     }
 
     private _prepareRenderingManager(currentRenderList: Array<AbstractMesh>, currentRenderListLength: number, camera: Nullable<Camera>, checkLayerMask: boolean): void {
