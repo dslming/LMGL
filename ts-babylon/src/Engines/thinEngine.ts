@@ -15,31 +15,18 @@ import { ThinTexture } from '../Materials/Textures/thinTexture';
 import { IPipelineContext } from './IPipelineContext';
 import { WebGLPipelineContext } from './webGLPipelineContext';
 import { Effect, IEffectCreationOptions } from '../Materials/effect';
-import { WebGLDataBuffer } from '../Meshes/webGLDataBuffer';
 import { Nullable, DataArray, IndicesArray } from '../types';
 import { IWebRequest } from '../Misc/interfaces/iWebRequest';
-import { Observable } from '../Misc/observable';
-import { UniformBuffer } from '../Materials/uniformBuffer';
 import { CanvasGenerator } from '../Misc/canvasGenerator';
-import { IInternalTextureLoader } from '../Materials/Textures/internalTextureLoader';
-import { EngineStore } from './engineStore';
-import { Logger } from '../Misc/logger';
 import { IEffectFallbacks } from '../Materials/iEffectFallbacks';
-import { VertexBuffer } from '../Meshes/buffer';
 import { EngineUniform } from './engine.uniform';
 import { EngineVertex } from './engine.vertex';
 import { EngineViewPort } from './engine.viewPort';
 import { EngineFramebuffer } from './engine.framebuffer';
 import { EngineTexture } from './engine.texture';
 
-
-
 declare type WebRequest = import("../Misc/webRequest").WebRequest;
 declare type LoadFileError = import("../Misc/fileTools").LoadFileError;
-declare type Observer<T> = import("../Misc/observable").Observer<T>;
-declare type VideoTexture = import("../Materials/Textures/videoTexture").VideoTexture;
-declare type RenderTargetTexture = import("../Materials/Textures/renderTargetTexture").RenderTargetTexture;
-declare type Texture = import("../Materials/Textures/texture").Texture;
 
 export class ThinEngine {
   public _badOS: boolean = false;
