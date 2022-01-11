@@ -507,7 +507,7 @@ class Action {
     _executeCurrent(evt) {
         if (this._nextActiveAction._condition) {
             var condition = this._nextActiveAction._condition;
-            var currentRenderId = this._actionManager.getScene().getRenderId();
+            var currentRenderId = this._actionManager.getScene().sceneRender.getRenderId();
             // We cache the current evaluation for the current frame
             if (condition._evaluationId === currentRenderId) {
                 if (!condition._currentResult) {
@@ -706,7 +706,7 @@ class ActionEvent {
      */
     static CreateNew(source, evt, additionalData) {
         var scene = source.getScene();
-        return new ActionEvent(source, scene.pointerX, scene.pointerY, scene.meshUnderPointer || source, evt, additionalData);
+        return new ActionEvent(source, scene.sceneInputManagerApp.pointerX, scene.sceneInputManagerApp.pointerY, scene.sceneInputManagerApp.meshUnderPointer || source, evt, additionalData);
     }
     /**
      * Helper function to auto-create an ActionEvent from a source sprite
@@ -726,7 +726,7 @@ class ActionEvent {
      * @returns the new ActionEvent
      */
     static CreateNewFromScene(scene, evt) {
-        return new ActionEvent(null, scene.pointerX, scene.pointerY, scene.meshUnderPointer, evt);
+        return new ActionEvent(null, scene.sceneInputManagerApp.pointerX, scene.sceneInputManagerApp.pointerY, scene.sceneInputManagerApp.meshUnderPointer, evt);
     }
     /**
      * Helper function to auto-create an ActionEvent from a primitive
@@ -1116,11 +1116,11 @@ class ActionManager extends _abstractActionManager__WEBPACK_IMPORTED_MODULE_9__[
                             value = target = scene;
                         }
                         else {
-                            value = target = scene.getNodeByName(value);
+                            value = target = scene.sceneNode.getNodeByName(value);
                         }
                     }
                     else if (name === "parent") {
-                        value = scene.getNodeByName(value);
+                        value = scene.sceneNode.getNodeByName(value);
                     }
                     else if (name === "sound") {
                         // Can not externalize to component, so only checks for the presence off the API.
@@ -1194,9 +1194,9 @@ class ActionManager extends _abstractActionManager__WEBPACK_IMPORTED_MODULE_9__[
             var trigger = parsedActions.children[i];
             if (trigger.properties.length > 0) {
                 var param = trigger.properties[0].value;
-                var value = trigger.properties[0].targetType === null ? param : scene.getMeshByName(param);
+                var value = trigger.properties[0].targetType === null ? param : scene.sceneNode.getMeshByName(param);
                 if (value._meshId) {
-                    value.mesh = scene.getMeshByID(value._meshId);
+                    value.mesh = scene.sceneNode.getMeshByID(value._meshId);
                 }
                 triggerParams = { trigger: ActionManager[trigger.name], parameter: value };
             }
@@ -2336,7 +2336,7 @@ class AutoRotationBehavior {
     attach(camera) {
         this._attachedCamera = camera;
         let scene = this._attachedCamera.getScene();
-        this._onPrePointerObservableObserver = scene.onPrePointerObservable.add((pointerInfoPre) => {
+        this._onPrePointerObservableObserver = scene.sceneEventTrigger.onPrePointerObservable.add((pointerInfoPre) => {
             if (pointerInfoPre.type === _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOWN) {
                 this._isPointerDown = true;
                 return;
@@ -2372,7 +2372,7 @@ class AutoRotationBehavior {
         }
         let scene = this._attachedCamera.getScene();
         if (this._onPrePointerObservableObserver) {
-            scene.onPrePointerObservable.remove(this._onPrePointerObservableObserver);
+            scene.sceneEventTrigger.onPrePointerObservable.remove(this._onPrePointerObservableObserver);
         }
         this._attachedCamera.onAfterCheckInputsObservable.remove(this._onAfterCheckInputsObserver);
         this._attachedCamera = null;
@@ -2784,7 +2784,7 @@ class FramingBehavior {
         this._attachedCamera = camera;
         let scene = this._attachedCamera.getScene();
         // FramingBehavior.EasingFunction.setEasingMode(FramingBehavior.EasingMode);
-        this._onPrePointerObservableObserver = scene.onPrePointerObservable.add((pointerInfoPre) => {
+        this._onPrePointerObservableObserver = scene.sceneEventTrigger.onPrePointerObservable.add((pointerInfoPre) => {
             if (pointerInfoPre.type === _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOWN) {
                 this._isPointerDown = true;
                 return;
@@ -2815,7 +2815,7 @@ class FramingBehavior {
         }
         let scene = this._attachedCamera.getScene();
         if (this._onPrePointerObservableObserver) {
-            scene.onPrePointerObservable.remove(this._onPrePointerObservableObserver);
+            scene.sceneEventTrigger.onPrePointerObservable.remove(this._onPrePointerObservableObserver);
         }
         if (this._onAfterCheckInputsObserver) {
             this._attachedCamera.onAfterCheckInputsObservable.remove(this._onAfterCheckInputsObserver);
@@ -3327,7 +3327,7 @@ class BaseCameraPointersInput {
                 }
             }
         };
-        this._observer = this.camera.getScene().onPointerObservable.add(this._pointerInput, _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_3__["PointerEventTypes"].POINTERDOWN | _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_3__["PointerEventTypes"].POINTERUP |
+        this._observer = this.camera.getScene().sceneEventTrigger.onPointerObservable.add(this._pointerInput, _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_3__["PointerEventTypes"].POINTERDOWN | _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_3__["PointerEventTypes"].POINTERUP |
             _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_3__["PointerEventTypes"].POINTERMOVE);
         this._onLostFocus = () => {
             this.pointA = this.pointB = null;
@@ -3357,7 +3357,7 @@ class BaseCameraPointersInput {
             }
         }
         if (this._observer) {
-            this.camera.getScene().onPointerObservable.remove(this._observer);
+            this.camera.getScene().sceneEventTrigger.onPointerObservable.remove(this._observer);
             this._observer = null;
             if (this.onContextMenu) {
                 const inputElement = this.camera.getScene().getEngine().getInputElement();
@@ -3652,7 +3652,7 @@ class ArcRotateCameraKeyboardMoveInput {
         this._onCanvasBlurObserver = this._engine.onCanvasBlurObservable.add(() => {
             this._keys = [];
         });
-        this._onKeyboardObserver = this._scene.onKeyboardObservable.add((info) => {
+        this._onKeyboardObserver = this._scene.sceneEventTrigger.onKeyboardObservable.add((info) => {
             let evt = info.event;
             if (!evt.metaKey) {
                 if (info.type === _Events_keyboardEvents__WEBPACK_IMPORTED_MODULE_3__["KeyboardEventTypes"].KEYDOWN) {
@@ -3693,7 +3693,7 @@ class ArcRotateCameraKeyboardMoveInput {
     detachControl(ignored) {
         if (this._scene) {
             if (this._onKeyboardObserver) {
-                this._scene.onKeyboardObservable.remove(this._onKeyboardObserver);
+                this._scene.sceneEventTrigger.onKeyboardObservable.remove(this._onKeyboardObserver);
             }
             if (this._onCanvasBlurObserver) {
                 this._engine.onCanvasBlurObservable.remove(this._onCanvasBlurObserver);
@@ -3903,7 +3903,7 @@ class ArcRotateCameraMouseWheelInput {
                 }
             }
         };
-        this._observer = this.camera.getScene().onPointerObservable.add(this._wheel, _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_3__["PointerEventTypes"].POINTERWHEEL);
+        this._observer = this.camera.getScene().sceneEventTrigger.onPointerObservable.add(this._wheel, _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_3__["PointerEventTypes"].POINTERWHEEL);
     }
     /**
      * Detach the current controls from the specified dom element.
@@ -3911,7 +3911,7 @@ class ArcRotateCameraMouseWheelInput {
      */
     detachControl(ignored) {
         if (this._observer) {
-            this.camera.getScene().onPointerObservable.remove(this._observer);
+            this.camera.getScene().sceneEventTrigger.onPointerObservable.remove(this._observer);
             this._observer = null;
             this._wheel = null;
         }
@@ -5648,7 +5648,7 @@ class Camera extends _node__WEBPACK_IMPORTED_MODULE_6__["Node"] {
         this._isLeftCamera = false;
         /** @hidden */
         this._isRightCamera = false;
-        this.getScene().addCamera(this);
+        this.getScene().sceneNode.addCamera(this);
         if (setActiveOnSceneIfNoneActive && !this.getScene().activeCamera) {
             this.getScene().activeCamera = this;
         }
@@ -5821,8 +5821,8 @@ class Camera extends _node__WEBPACK_IMPORTED_MODULE_6__["Node"] {
                 && this._cache.orthoRight === this.orthoRight
                 && this._cache.orthoBottom === this.orthoBottom
                 && this._cache.orthoTop === this.orthoTop
-                && this._cache.renderWidth === engine.getRenderWidth()
-                && this._cache.renderHeight === engine.getRenderHeight();
+                && this._cache.renderWidth === engine.engineFramebuffer.getRenderWidth()
+                && this._cache.renderHeight === engine.engineFramebuffer.getRenderHeight();
         }
         return check;
     }
@@ -5900,7 +5900,7 @@ class Camera extends _node__WEBPACK_IMPORTED_MODULE_6__["Node"] {
         }
         this.updateCache();
         this._computedViewMatrix = this._getViewMatrix();
-        this._currentRenderId = this.getScene().getRenderId();
+        this._currentRenderId = this.getScene().sceneRender.getRenderId();
         this._childUpdateId++;
         this._refreshFrustumPlanes = true;
         if (this._cameraRigParams && this._cameraRigParams.vrPreViewMatrix) {
@@ -5968,8 +5968,8 @@ class Camera extends _node__WEBPACK_IMPORTED_MODULE_6__["Node"] {
             getProjectionMatrix(this.fov, engine.getAspectRatio(this), this.minZ, this.maxZ, this._projectionMatrix, this.fovMode === Camera.FOVMODE_VERTICAL_FIXED);
         }
         else {
-            var halfWidth = engine.getRenderWidth() / 2.0;
-            var halfHeight = engine.getRenderHeight() / 2.0;
+            var halfWidth = engine.engineFramebuffer.getRenderWidth() / 2.0;
+            var halfHeight = engine.engineFramebuffer.getRenderHeight() / 2.0;
             if (scene.useRightHandedSystem) {
                 _Maths_math_vector__WEBPACK_IMPORTED_MODULE_5__["Matrix"].OrthoOffCenterRHToRef((_a = this.orthoLeft) !== null && _a !== void 0 ? _a : -halfWidth, (_b = this.orthoRight) !== null && _b !== void 0 ? _b : halfWidth, (_c = this.orthoBottom) !== null && _c !== void 0 ? _c : -halfHeight, (_d = this.orthoTop) !== null && _d !== void 0 ? _d : halfHeight, this.minZ, this.maxZ, this._projectionMatrix);
             }
@@ -5980,8 +5980,8 @@ class Camera extends _node__WEBPACK_IMPORTED_MODULE_6__["Node"] {
             this._cache.orthoRight = this.orthoRight;
             this._cache.orthoBottom = this.orthoBottom;
             this._cache.orthoTop = this.orthoTop;
-            this._cache.renderWidth = engine.getRenderWidth();
-            this._cache.renderHeight = engine.getRenderHeight();
+            this._cache.renderWidth = engine.engineFramebuffer.getRenderWidth();
+            this._cache.renderHeight = engine.engineFramebuffer.getRenderHeight();
         }
         this.onProjectionMatrixChangedObservable.notifyObservers(this);
         return this._projectionMatrix;
@@ -6077,7 +6077,7 @@ class Camera extends _node__WEBPACK_IMPORTED_MODULE_6__["Node"] {
         // Animations
         // this.getScene().stopAnimation(this);
         // Remove from scene
-        this.getScene().removeCamera(this);
+        this.getScene().sceneNode.removeCamera(this);
         while (this._rigCameras.length > 0) {
             let camera = this._rigCameras.pop();
             if (camera) {
@@ -8472,7 +8472,7 @@ class OctreeSceneComponent {
      * Registers the component in a given scene
      */
     register() {
-        this.scene.onMeshRemovedObservable.add((mesh) => {
+        this.scene.sceneEventTrigger.onMeshRemovedObservable.add((mesh) => {
             const sceneOctree = this.scene.selectionOctree;
             if (sceneOctree !== undefined && sceneOctree !== null) {
                 var index = sceneOctree.dynamicContent.indexOf(mesh);
@@ -8481,7 +8481,7 @@ class OctreeSceneComponent {
                 }
             }
         });
-        this.scene.onMeshImportedObservable.add((mesh) => {
+        this.scene.sceneEventTrigger.onMeshImportedObservable.add((mesh) => {
             const sceneOctree = this.scene.selectionOctree;
             if (sceneOctree !== undefined && sceneOctree !== null) {
                 sceneOctree.addMesh(mesh);
@@ -8494,10 +8494,10 @@ class OctreeSceneComponent {
      */
     getActiveMeshCandidates() {
         if (this.scene._selectionOctree) {
-            var selection = this.scene._selectionOctree.select(this.scene.frustumPlanes);
+            var selection = this.scene._selectionOctree.select(this.scene.sceneClipPlane.frustumPlanes);
             return selection;
         }
-        return this.scene._getDefaultMeshCandidates();
+        return this.scene.sceneNode._getDefaultMeshCandidates();
     }
     /**
      * Return the list of active sub meshes
@@ -8506,10 +8506,10 @@ class OctreeSceneComponent {
      */
     getActiveSubMeshCandidates(mesh) {
         if (mesh._submeshesOctree && mesh.useOctreeForRenderingSelection) {
-            var intersections = mesh._submeshesOctree.select(this.scene.frustumPlanes);
+            var intersections = mesh._submeshesOctree.select(this.scene.sceneClipPlane.frustumPlanes);
             return intersections;
         }
-        return this.scene._getDefaultSubMeshCandidates(mesh);
+        return this.scene.sceneNode._getDefaultSubMeshCandidates(mesh);
     }
     /**
      * Return the list of sub meshes intersecting with a given local ray
@@ -8523,7 +8523,7 @@ class OctreeSceneComponent {
             var intersections = mesh._submeshesOctree.intersectsRay(this._tempRay);
             return intersections;
         }
-        return this.scene._getDefaultSubMeshCandidates(mesh);
+        return this.scene.sceneNode._getDefaultSubMeshCandidates(mesh);
     }
     /**
      * Return the list of sub meshes colliding with a collider
@@ -8537,7 +8537,7 @@ class OctreeSceneComponent {
             var intersections = mesh._submeshesOctree.intersects(collider._basePointWorld, radius);
             return intersections;
         }
-        return this.scene._getDefaultSubMeshCandidates(mesh);
+        return this.scene.sceneNode._getDefaultSubMeshCandidates(mesh);
     }
     /**
      * Rebuilds the elements related to this component in case of
@@ -9308,8 +9308,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Maths/math.vector */ "./src/Maths/math.vector.ts");
 /* harmony import */ var _Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Collisions/pickingInfo */ "./src/Collisions/pickingInfo.ts");
 /* harmony import */ var _Collisions_intersectionInfo__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Collisions/intersectionInfo */ "./src/Collisions/intersectionInfo.ts");
-/* harmony import */ var _Scene_scene__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Scene/scene */ "./src/Scene/scene.ts");
-/* harmony import */ var _Cameras_camera__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../Cameras/camera */ "./src/Cameras/camera.ts");
+/* harmony import */ var _Cameras_camera__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Cameras/camera */ "./src/Cameras/camera.ts");
+/* harmony import */ var _Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../Scene/scene.pick */ "./src/Scene/scene.pick.ts");
 
 
 
@@ -9815,53 +9815,53 @@ class Ray {
 Ray._TmpVector3 = _Misc_arrayTools__WEBPACK_IMPORTED_MODULE_0__["ArrayTools"].BuildArray(6, _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Vector3"].Zero);
 Ray.smallnum = 0.00000001;
 Ray.rayl = 10e8;
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.createPickingRay = function (x, y, world, camera, cameraViewSpace = false) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.createPickingRay = function (x, y, world, camera, cameraViewSpace = false) {
     let result = Ray.Zero();
     this.createPickingRayToRef(x, y, world, result, camera, cameraViewSpace);
     return result;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.createPickingRayToRef = function (x, y, world, result, camera, cameraViewSpace = false) {
-    var engine = this.getEngine();
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.createPickingRayToRef = function (x, y, world, result, camera, cameraViewSpace = false) {
+    var engine = this.scene.getEngine();
     if (!camera) {
-        if (!this.activeCamera) {
-            return this;
+        if (!this.scene.activeCamera) {
+            return this.scene;
         }
-        camera = this.activeCamera;
+        camera = this.scene.activeCamera;
     }
     var cameraViewport = camera.viewport;
-    var viewport = cameraViewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight());
+    var viewport = cameraViewport.toGlobal(engine.engineFramebuffer.getRenderWidth(), engine.engineFramebuffer.getRenderHeight());
     // Moving coordinates to local viewport world
     x = x / engine.getHardwareScalingLevel() - viewport.x;
-    y = y / engine.getHardwareScalingLevel() - (engine.getRenderHeight() - viewport.y - viewport.height);
+    y = y / engine.getHardwareScalingLevel() - (engine.engineFramebuffer.getRenderHeight() - viewport.y - viewport.height);
     result.update(x, y, viewport.width, viewport.height, world ? world : _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Matrix"].IdentityReadOnly, cameraViewSpace ? _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Matrix"].IdentityReadOnly : camera.getViewMatrix(), camera.getProjectionMatrix());
-    return this;
+    return this.scene;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.createPickingRayInCameraSpace = function (x, y, camera) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.createPickingRayInCameraSpace = function (x, y, camera) {
     let result = Ray.Zero();
     this.createPickingRayInCameraSpaceToRef(x, y, result, camera);
     return result;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.createPickingRayInCameraSpaceToRef = function (x, y, result, camera) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.createPickingRayInCameraSpaceToRef = function (x, y, result, camera) {
     if (!_Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_2__["PickingInfo"]) {
-        return this;
+        return this.scene;
     }
-    var engine = this.getEngine();
+    var engine = this.scene.getEngine();
     if (!camera) {
-        if (!this.activeCamera) {
+        if (!this.scene.activeCamera) {
             throw new Error("Active camera not set");
         }
-        camera = this.activeCamera;
+        camera = this.scene.activeCamera;
     }
     var cameraViewport = camera.viewport;
-    var viewport = cameraViewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight());
+    var viewport = cameraViewport.toGlobal(engine.engineFramebuffer.getRenderWidth(), engine.engineFramebuffer.getRenderHeight());
     var identity = _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Matrix"].Identity();
     // Moving coordinates to local viewport world
     x = x / engine.getHardwareScalingLevel() - viewport.x;
-    y = y / engine.getHardwareScalingLevel() - (engine.getRenderHeight() - viewport.y - viewport.height);
+    y = y / engine.getHardwareScalingLevel() - (engine.engineFramebuffer.getRenderHeight() - viewport.y - viewport.height);
     result.update(x, y, viewport.width, viewport.height, identity, identity, camera.getProjectionMatrix());
-    return this;
+    return this.scene;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype._internalPickForMesh = function (pickingInfo, rayFunction, mesh, world, fastCheck, onlyBoundingInfo, trianglePredicate, skipBoundingInfo) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype._internalPickForMesh = function (pickingInfo, rayFunction, mesh, world, fastCheck, onlyBoundingInfo, trianglePredicate, skipBoundingInfo) {
     let ray = rayFunction(world);
     let result = mesh.intersects(ray, fastCheck, trianglePredicate, onlyBoundingInfo, world, skipBoundingInfo);
     if (!result || !result.hit) {
@@ -9872,13 +9872,13 @@ _Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype._internalPickForMes
     }
     return result;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype._internalPick = function (rayFunction, predicate, fastCheck, onlyBoundingInfo, trianglePredicate) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype._internalPick = function (rayFunction, predicate, fastCheck, onlyBoundingInfo, trianglePredicate) {
     if (!_Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_2__["PickingInfo"]) {
         return null;
     }
     let pickingInfo = null;
-    for (let meshIndex = 0; meshIndex < this.meshes.length; meshIndex++) {
-        let mesh = this.meshes[meshIndex];
+    for (let meshIndex = 0; meshIndex < this.scene.meshes.length; meshIndex++) {
+        let mesh = this.scene.meshes[meshIndex];
         if (predicate) {
             if (!predicate(mesh)) {
                 continue;
@@ -9900,13 +9900,13 @@ _Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype._internalPick = fun
     }
     return pickingInfo || new _Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_2__["PickingInfo"]();
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype._internalMultiPick = function (rayFunction, predicate, trianglePredicate) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype._internalMultiPick = function (rayFunction, predicate, trianglePredicate) {
     if (!_Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_2__["PickingInfo"]) {
         return null;
     }
     let pickingInfos = new Array();
-    for (let meshIndex = 0; meshIndex < this.meshes.length; meshIndex++) {
-        let mesh = this.meshes[meshIndex];
+    for (let meshIndex = 0; meshIndex < this.scene.meshes.length; meshIndex++) {
+        let mesh = this.scene.meshes[meshIndex];
         if (predicate) {
             if (!predicate(mesh)) {
                 continue;
@@ -9925,7 +9925,7 @@ _Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype._internalMultiPick 
     }
     return pickingInfos;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.pickWithBoundingInfo = function (x, y, predicate, fastCheck, camera) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.pickWithBoundingInfo = function (x, y, predicate, fastCheck, camera) {
     if (!_Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_2__["PickingInfo"]) {
         return null;
     }
@@ -9941,7 +9941,7 @@ _Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.pickWithBoundingInf
     }
     return result;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.pick = function (x, y, predicate, fastCheck, camera, trianglePredicate) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.pick = function (x, y, predicate, fastCheck, camera, trianglePredicate) {
     if (!_Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_2__["PickingInfo"]) {
         return null;
     }
@@ -9957,7 +9957,7 @@ _Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.pick = function (x,
     }
     return result;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.pickWithRay = function (ray, predicate, fastCheck, trianglePredicate) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.pickWithRay = function (ray, predicate, fastCheck, trianglePredicate) {
     var result = this._internalPick((world) => {
         if (!this._pickWithRayInverseMatrix) {
             this._pickWithRayInverseMatrix = _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Matrix"].Identity();
@@ -9974,10 +9974,10 @@ _Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.pickWithRay = funct
     }
     return result;
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.multiPick = function (x, y, predicate, camera, trianglePredicate) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.multiPick = function (x, y, predicate, camera, trianglePredicate) {
     return this._internalMultiPick((world) => this.createPickingRay(x, y, world, camera || null), predicate, trianglePredicate);
 };
-_Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.multiPickWithRay = function (ray, predicate, trianglePredicate) {
+_Scene_scene_pick__WEBPACK_IMPORTED_MODULE_5__["ScenePick"].prototype.multiPickWithRay = function (ray, predicate, trianglePredicate) {
     return this._internalMultiPick((world) => {
         if (!this._pickWithRayInverseMatrix) {
             this._pickWithRayInverseMatrix = _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Matrix"].Identity();
@@ -9990,10 +9990,10 @@ _Scene_scene__WEBPACK_IMPORTED_MODULE_4__["Scene"].prototype.multiPickWithRay = 
         return this._cachedRayForTransform;
     }, predicate, trianglePredicate);
 };
-_Cameras_camera__WEBPACK_IMPORTED_MODULE_5__["Camera"].prototype.getForwardRay = function (length = 100, transform, origin) {
+_Cameras_camera__WEBPACK_IMPORTED_MODULE_4__["Camera"].prototype.getForwardRay = function (length = 100, transform, origin) {
     return this.getForwardRayToRef(new Ray(_Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Vector3"].Zero(), _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Vector3"].Zero(), length), length, transform, origin);
 };
-_Cameras_camera__WEBPACK_IMPORTED_MODULE_5__["Camera"].prototype.getForwardRayToRef = function (refRay, length = 100, transform, origin) {
+_Cameras_camera__WEBPACK_IMPORTED_MODULE_4__["Camera"].prototype.getForwardRayToRef = function (refRay, length = 100, transform, origin) {
     if (!transform) {
         transform = this.getWorldMatrix();
     }
@@ -10157,6 +10157,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Misc_logger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../Misc/logger */ "./src/Misc/logger.ts");
 /* harmony import */ var _Misc_fileTools__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../Misc/fileTools */ "./src/Misc/fileTools.ts");
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../constants */ "./src/Engines/constants.ts");
+/* harmony import */ var _engine_texture__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../engine.texture */ "./src/Engines/engine.texture.ts");
+
 
 
 
@@ -10171,8 +10173,8 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype._create
     }
     var internalOptions = Object.assign({ bilinearFiltering: false, comparisonFunction: 0, generateStencil: false }, options);
     var gl = this._gl;
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, internalTexture, true);
-    this._setupDepthStencilTexture(internalTexture, size, internalOptions.generateStencil, internalOptions.bilinearFiltering, internalOptions.comparisonFunction);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, internalTexture, true);
+    this.engineTexture._setupDepthStencilTexture(internalTexture, size, internalOptions.generateStencil, internalOptions.bilinearFiltering, internalOptions.comparisonFunction);
     // Create the depth/stencil buffer
     for (var face = 0; face < 6; face++) {
         if (internalOptions.generateStencil) {
@@ -10182,7 +10184,7 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype._create
             gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, gl.DEPTH_COMPONENT24, size, size, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
         }
     }
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
     return internalTexture;
 };
 _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype._partialLoadFile = function (url, index, loadedFiles, onfinish, onErrorCallBack = null) {
@@ -10248,7 +10250,7 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype._setCub
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     texture.samplingMode = loadMipmap ? _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_TRILINEAR_SAMPLINGMODE : _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_LINEAR;
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
 };
 _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.createCubeTexture = function (rootUrl, scene, files, noMipmap, onLoad = null, onError = null, format, forcedExtension = null, createPolynomials = false, lodScale = 0, lodOffset = 0, fallback = null, loaderOptions) {
     const gl = this._gl;
@@ -10263,13 +10265,13 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.createC
     //     texture._files = files;
     // }
     const originalRootUrl = rootUrl;
-    if (this._transformTextureUrl && !fallback) {
-        rootUrl = this._transformTextureUrl(rootUrl);
+    if (this.engineTexture._transformTextureUrl && !fallback) {
+        rootUrl = this.engineTexture._transformTextureUrl(rootUrl);
     }
     const lastDot = rootUrl.lastIndexOf('.');
     const extension = forcedExtension ? forcedExtension : (lastDot > -1 ? rootUrl.substring(lastDot).toLowerCase() : "");
     let loader = null;
-    for (let availableLoader of _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"]._TextureLoaders) {
+    for (let availableLoader of _engine_texture__WEBPACK_IMPORTED_MODULE_5__["EngineTexture"]._TextureLoaders) {
         if (availableLoader.canLoad(extension)) {
             loader = availableLoader;
             break;
@@ -10289,7 +10291,7 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.createC
     };
     if (loader) {
         const onloaddata = (data) => {
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
             loader.loadCubeData(data, texture, createPolynomials, onLoad, onError);
         };
         if (files && files.length === 6) {
@@ -10314,15 +10316,15 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.createC
             throw new Error("Cannot load cubemap because files were not defined");
         }
         this._cascadeLoadImgs(scene, (imgs) => {
-            const width = this.needPOTTextures ? _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].GetExponentOfTwo(imgs[0].width, this._caps.maxCubemapTextureSize) : imgs[0].width;
+            const width = this.engineTexture.needPOTTextures ? _engine_texture__WEBPACK_IMPORTED_MODULE_5__["EngineTexture"].GetExponentOfTwo(imgs[0].width, this._caps.maxCubemapTextureSize) : imgs[0].width;
             const height = width;
             const faces = [
                 gl.TEXTURE_CUBE_MAP_POSITIVE_X, gl.TEXTURE_CUBE_MAP_POSITIVE_Y, gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
                 gl.TEXTURE_CUBE_MAP_NEGATIVE_X, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
             ];
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
-            this._unpackFlipY(false);
-            const internalFormat = format ? this._getInternalFormat(format) : this._gl.RGBA;
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
+            this.engineTexture._unpackFlipY(false);
+            const internalFormat = format ? this.engineTexture._getInternalFormat(format) : this._gl.RGBA;
             for (var index = 0; index < faces.length; index++) {
                 if (imgs[index].width !== width || imgs[index].height !== height) {
                     this._prepareWorkingCanvas();
@@ -10356,7 +10358,7 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.createC
             }
         }, files, onError);
     }
-    this._internalTexturesCache.push(texture);
+    this.engineTexture._internalTexturesCache.push(texture);
     return texture;
 };
 
@@ -10376,8 +10378,8 @@ __webpack_require__.r(__webpack_exports__);
 
 _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.updateDynamicIndexBuffer = function (indexBuffer, indices, offset = 0) {
     // Force cache update
-    this._currentBoundBuffer[this._gl.ELEMENT_ARRAY_BUFFER] = null;
-    this.bindIndexBuffer(indexBuffer);
+    this.engineVertex._currentBoundBuffer[this._gl.ELEMENT_ARRAY_BUFFER] = null;
+    this.engineVertex.bindIndexBuffer(indexBuffer);
     var arrayBuffer;
     if (indices instanceof Uint16Array || indices instanceof Uint32Array) {
         arrayBuffer = indices;
@@ -10386,10 +10388,10 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.updateD
         arrayBuffer = indexBuffer.is32Bits ? new Uint32Array(indices) : new Uint16Array(indices);
     }
     this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, arrayBuffer, this._gl.DYNAMIC_DRAW);
-    this._resetIndexBufferBinding();
+    this.engineVertex._resetIndexBufferBinding();
 };
 _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.updateDynamicVertexBuffer = function (vertexBuffer, data, byteOffset, byteLength) {
-    this.bindArrayBuffer(vertexBuffer);
+    this.engineVertex.bindArrayBuffer(vertexBuffer);
     if (byteOffset === undefined) {
         byteOffset = 0;
     }
@@ -10416,7 +10418,7 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype.updateD
             this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, data);
         }
     }
-    this._resetVertexBufferBinding();
+    this.engineVertex._resetVertexBufferBinding();
 };
 
 
@@ -10438,21 +10440,21 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype._readTe
     if (!gl) {
         throw new Error("Engine does not have gl rendering context.");
     }
-    if (!this._dummyFramebuffer) {
+    if (!this.engineFramebuffer._dummyFramebuffer) {
         let dummy = gl.createFramebuffer();
         if (!dummy) {
             throw new Error("Unable to create dummy framebuffer");
         }
-        this._dummyFramebuffer = dummy;
+        this.engineFramebuffer._dummyFramebuffer = dummy;
     }
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._dummyFramebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.engineFramebuffer._dummyFramebuffer);
     if (faceIndex > -1) {
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, texture._webGLTexture, level);
     }
     else {
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture._webGLTexture, level);
     }
-    let readType = (texture.type !== undefined) ? this._getWebGLTextureType(texture.type) : gl.UNSIGNED_BYTE;
+    let readType = (texture.type !== undefined) ? this.engineTexture._getWebGLTextureType(texture.type) : gl.UNSIGNED_BYTE;
     switch (readType) {
         case gl.UNSIGNED_BYTE:
             if (!buffer) {
@@ -10468,7 +10470,7 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"].prototype._readTe
             break;
     }
     gl.readPixels(0, 0, width, height, gl.RGBA, readType, buffer);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._currentFramebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.engineFramebuffer._currentFramebuffer);
     return buffer;
 };
 
@@ -10529,13 +10531,13 @@ _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"].prototype.createRenderTar
     const width = size.width || size;
     const height = size.height || size;
     const layers = size.layers || 0;
-    const filters = this._getSamplingParameters(fullOptions.samplingMode, fullOptions.generateMipMaps ? true : false);
+    const filters = this.engineTexture._getSamplingParameters(fullOptions.samplingMode, fullOptions.generateMipMaps ? true : false);
     const target = layers !== 0 ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
-    const sizedFormat = this._getRGBABufferInternalSizedFormat(fullOptions.type, fullOptions.format);
-    const internalFormat = this._getInternalFormat(fullOptions.format);
-    const type = this._getWebGLTextureType(fullOptions.type);
+    const sizedFormat = this.engineTexture._getRGBABufferInternalSizedFormat(fullOptions.type, fullOptions.format);
+    const internalFormat = this.engineTexture._getInternalFormat(fullOptions.format);
+    const type = this.engineTexture._getWebGLTextureType(fullOptions.type);
     // Bind
-    this._bindTextureDirectly(target, texture);
+    this.engineTexture._bindTextureDirectly(target, texture);
     if (layers !== 0) {
         texture.is2DArray = true;
         gl.texImage3D(target, 0, sizedFormat, width, height, layers, 0, internalFormat, type, null);
@@ -10551,17 +10553,17 @@ _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"].prototype.createRenderTar
     if (fullOptions.generateMipMaps) {
         this._gl.generateMipmap(target);
     }
-    this._bindTextureDirectly(target, null);
-    const currentFrameBuffer = this._currentFramebuffer;
+    this.engineTexture._bindTextureDirectly(target, null);
+    const currentFrameBuffer = this.engineFramebuffer._currentFramebuffer;
     // Create the framebuffer
     const framebuffer = gl.createFramebuffer();
-    this._bindUnboundFramebuffer(framebuffer);
-    texture._depthStencilBuffer = this._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer ? true : false, fullOptions.generateDepthBuffer, width, height);
+    this.engineFramebuffer._bindUnboundFramebuffer(framebuffer);
+    texture._depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer ? true : false, fullOptions.generateDepthBuffer, width, height);
     // No need to rebind on every frame
     if (!texture.is2DArray) {
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture._webGLTexture, 0);
     }
-    this._bindUnboundFramebuffer(currentFrameBuffer);
+    this.engineFramebuffer._bindUnboundFramebuffer(currentFrameBuffer);
     texture._framebuffer = framebuffer;
     texture.baseWidth = width;
     texture.baseHeight = height;
@@ -10576,7 +10578,7 @@ _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"].prototype.createRenderTar
     texture.format = fullOptions.format;
     texture._generateDepthBuffer = fullOptions.generateDepthBuffer;
     texture._generateStencilBuffer = fullOptions.generateStencilBuffer ? true : false;
-    this._internalTexturesCache.push(texture);
+    this.engineTexture._internalTexturesCache.push(texture);
     return texture;
 };
 _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"].prototype.createDepthStencilTexture = function (size, options) {
@@ -10598,8 +10600,8 @@ _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"].prototype._createDepthSte
         return internalTexture;
     }
     const internalOptions = Object.assign({ bilinearFiltering: false, comparisonFunction: 0, generateStencil: false }, options);
-    this._bindTextureDirectly(target, internalTexture, true);
-    this._setupDepthStencilTexture(internalTexture, size, internalOptions.generateStencil, internalOptions.bilinearFiltering, internalOptions.comparisonFunction);
+    this.engineTexture._bindTextureDirectly(target, internalTexture, true);
+    this.engineTexture._setupDepthStencilTexture(internalTexture, size, internalOptions.generateStencil, internalOptions.bilinearFiltering, internalOptions.comparisonFunction);
     const type = internalOptions.generateStencil ? gl.UNSIGNED_INT_24_8 : gl.UNSIGNED_INT;
     const internalFormat = internalOptions.generateStencil ? gl.DEPTH_STENCIL : gl.DEPTH_COMPONENT;
     let sizedFormat = internalFormat;
@@ -10612,7 +10614,7 @@ _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"].prototype._createDepthSte
     else {
         gl.texImage2D(target, 0, sizedFormat, internalTexture.width, internalTexture.height, 0, internalFormat, type, null);
     }
-    this._bindTextureDirectly(target, null);
+    this.engineTexture._bindTextureDirectly(target, null);
     return internalTexture;
 };
 
@@ -10649,8 +10651,8 @@ _thinEngine__WEBPACK_IMPORTED_MODULE_3__["ThinEngine"].prototype.createRenderTar
     }
     var gl = this._gl;
     var texture = new _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_0__["InternalTexture"](this, _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_0__["InternalTextureSource"].RenderTarget);
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
-    var filters = this._getSamplingParameters(fullOptions.samplingMode, fullOptions.generateMipMaps);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
+    var filters = this.engineTexture._getSamplingParameters(fullOptions.samplingMode, fullOptions.generateMipMaps);
     if (fullOptions.type === _constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].TEXTURETYPE_FLOAT && !this._caps.textureFloat) {
         fullOptions.type = _constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].TEXTURETYPE_UNSIGNED_INT;
         _Misc_logger__WEBPACK_IMPORTED_MODULE_1__["Logger"].Warn("Float textures are not supported. Cube render target forced to TEXTURETYPE_UNESIGNED_BYTE type");
@@ -10660,19 +10662,19 @@ _thinEngine__WEBPACK_IMPORTED_MODULE_3__["ThinEngine"].prototype.createRenderTar
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     for (var face = 0; face < 6; face++) {
-        gl.texImage2D((gl.TEXTURE_CUBE_MAP_POSITIVE_X + face), 0, this._getRGBABufferInternalSizedFormat(fullOptions.type, fullOptions.format), size, size, 0, this._getInternalFormat(fullOptions.format), this._getWebGLTextureType(fullOptions.type), null);
+        gl.texImage2D((gl.TEXTURE_CUBE_MAP_POSITIVE_X + face), 0, this.engineTexture._getRGBABufferInternalSizedFormat(fullOptions.type, fullOptions.format), size, size, 0, this.engineTexture._getInternalFormat(fullOptions.format), this.engineTexture._getWebGLTextureType(fullOptions.type), null);
     }
     // Create the framebuffer
     var framebuffer = gl.createFramebuffer();
-    this._bindUnboundFramebuffer(framebuffer);
-    texture._depthStencilBuffer = this._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer, fullOptions.generateDepthBuffer, size, size);
+    this.engineFramebuffer._bindUnboundFramebuffer(framebuffer);
+    texture._depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer, fullOptions.generateDepthBuffer, size, size);
     // MipMaps
     if (fullOptions.generateMipMaps) {
         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
     }
     // Unbind
-    this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
-    this._bindUnboundFramebuffer(null);
+    this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+    this.engineFramebuffer._bindUnboundFramebuffer(null);
     texture._framebuffer = framebuffer;
     texture.width = size;
     texture.height = size;
@@ -10685,7 +10687,7 @@ _thinEngine__WEBPACK_IMPORTED_MODULE_3__["ThinEngine"].prototype.createRenderTar
     texture.format = fullOptions.format;
     texture._generateDepthBuffer = fullOptions.generateDepthBuffer;
     texture._generateStencilBuffer = fullOptions.generateStencilBuffer;
-    this._internalTexturesCache.push(texture);
+    this.engineTexture._internalTexturesCache.push(texture);
     return texture;
 };
 
@@ -12040,6 +12042,1509 @@ Constants.PREPASS_ALBEDO_TEXTURE_TYPE = 6;
 
 /***/ }),
 
+/***/ "./src/Engines/engine.framebuffer.ts":
+/*!*******************************************!*\
+  !*** ./src/Engines/engine.framebuffer.ts ***!
+  \*******************************************/
+/*! exports provided: EngineFramebuffer */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineFramebuffer", function() { return EngineFramebuffer; });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/Engines/constants.ts");
+
+class EngineFramebuffer {
+    constructor(_gl, engine) {
+        this._currentFramebuffer = null;
+        this._dummyFramebuffer = null;
+        this._webGLVersion = 2;
+        this._getDepthStencilBuffer = (width, height, samples, internalFormat, msInternalFormat, attachment) => {
+            var gl = this._gl;
+            const depthStencilBuffer = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilBuffer);
+            if (samples > 1 && gl.renderbufferStorageMultisample) {
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, msInternalFormat, width, height);
+            }
+            else {
+                gl.renderbufferStorage(gl.RENDERBUFFER, internalFormat, width, height);
+            }
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, depthStencilBuffer);
+            gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+            return depthStencilBuffer;
+        };
+        this._gl = _gl;
+        this.engine = engine;
+    }
+    /** ---------------------------------------- framebuffer--------------------------------------------------------- */
+    /** @hidden */
+    _setupFramebufferDepthAttachments(generateStencilBuffer, generateDepthBuffer, width, height, samples = 1) {
+        var gl = this._gl;
+        // Create the depth/stencil buffer
+        if (generateStencilBuffer && generateDepthBuffer) {
+            return this._getDepthStencilBuffer(width, height, samples, gl.DEPTH_STENCIL, gl.DEPTH24_STENCIL8, gl.DEPTH_STENCIL_ATTACHMENT);
+        }
+        if (generateDepthBuffer) {
+            let depthFormat = gl.DEPTH_COMPONENT16;
+            if (this._webGLVersion > 1) {
+                depthFormat = gl.DEPTH_COMPONENT32F;
+            }
+            return this._getDepthStencilBuffer(width, height, samples, depthFormat, depthFormat, gl.DEPTH_ATTACHMENT);
+        }
+        if (generateStencilBuffer) {
+            return this._getDepthStencilBuffer(width, height, samples, gl.STENCIL_INDEX8, gl.STENCIL_INDEX8, gl.STENCIL_ATTACHMENT);
+        }
+        return null;
+    }
+    /** @hidden */
+    _releaseFramebufferObjects(texture) {
+        var gl = this._gl;
+        if (texture._framebuffer) {
+            gl.deleteFramebuffer(texture._framebuffer);
+            texture._framebuffer = null;
+        }
+        if (texture._depthStencilBuffer) {
+            gl.deleteRenderbuffer(texture._depthStencilBuffer);
+            texture._depthStencilBuffer = null;
+        }
+        if (texture._MSAAFramebuffer) {
+            gl.deleteFramebuffer(texture._MSAAFramebuffer);
+            texture._MSAAFramebuffer = null;
+        }
+        if (texture._MSAARenderBuffer) {
+            gl.deleteRenderbuffer(texture._MSAARenderBuffer);
+            texture._MSAARenderBuffer = null;
+        }
+    }
+    // Thank you : http://stackoverflow.com/questions/28827511/webgl-ios-render-to-floating-point-texture
+    _canRenderToFramebuffer(type) {
+        let gl = this._gl;
+        //clear existing errors
+        while (gl.getError() !== gl.NO_ERROR) { }
+        let successful = true;
+        let texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, this.engine.engineTexture._getRGBABufferInternalSizedFormat(type), 1, 1, 0, gl.RGBA, this.engine.engineTexture._getWebGLTextureType(type), null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        let fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        let status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        successful = successful && (status === gl.FRAMEBUFFER_COMPLETE);
+        successful = successful && (gl.getError() === gl.NO_ERROR);
+        //try render by clearing frame buffer's color buffer
+        if (successful) {
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            successful = successful && (gl.getError() === gl.NO_ERROR);
+        }
+        //try reading from frame to ensure render occurs (just creating the FBO is not sufficient to determine if rendering is supported)
+        if (successful) {
+            //in practice it's sufficient to just read from the backbuffer rather than handle potentially issues reading from the texture
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            let readFormat = gl.RGBA;
+            let readType = gl.UNSIGNED_BYTE;
+            let buffer = new Uint8Array(4);
+            gl.readPixels(0, 0, 1, 1, readFormat, readType, buffer);
+            successful = successful && (gl.getError() === gl.NO_ERROR);
+        }
+        //clean up
+        gl.deleteTexture(texture);
+        gl.deleteFramebuffer(fb);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        //clear accumulated errors
+        while (!successful && (gl.getError() !== gl.NO_ERROR)) { }
+        return successful;
+    }
+    _canRenderToFloatFramebuffer() {
+        if (this._webGLVersion > 1) {
+            return this.engine._caps.colorBufferFloat;
+        }
+        return this._canRenderToFramebuffer(_constants__WEBPACK_IMPORTED_MODULE_0__["Constants"].TEXTURETYPE_FLOAT);
+    }
+    _canRenderToHalfFloatFramebuffer() {
+        if (this._webGLVersion > 1) {
+            return this.engine._caps.colorBufferFloat;
+        }
+        return this._canRenderToFramebuffer(_constants__WEBPACK_IMPORTED_MODULE_0__["Constants"].TEXTURETYPE_HALF_FLOAT);
+    }
+    /**
+    * Binds the frame buffer to the specified texture.
+    * @param texture The texture to render to or null for the default canvas
+    * @param faceIndex The face of the texture to render to in case of cube texture
+    * @param requiredWidth The width of the target to render to
+    * @param requiredHeight The height of the target to render to
+    * @param forceFullscreenViewport Forces the viewport to be the entire texture/screen if true
+    * @param lodLevel defines the lod level to bind to the frame buffer
+    * @param layer defines the 2d array index to bind to frame buffer to
+    */
+    bindFramebuffer(texture, faceIndex = 0, requiredWidth, requiredHeight, forceFullscreenViewport, lodLevel = 0, layer = 0) {
+        if (this._currentRenderTarget) {
+            this.unBindFramebuffer(this._currentRenderTarget);
+        }
+        this._currentRenderTarget = texture;
+        this._bindUnboundFramebuffer(texture._MSAAFramebuffer ? texture._MSAAFramebuffer : texture._framebuffer);
+        const gl = this._gl;
+        if (texture.is2DArray) {
+            gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture._webGLTexture, lodLevel, layer);
+        }
+        else if (texture.isCube) {
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, texture._webGLTexture, lodLevel);
+        }
+        const depthStencilTexture = texture._depthStencilTexture;
+        if (depthStencilTexture) {
+            const attachment = (depthStencilTexture._generateStencilBuffer) ? gl.DEPTH_STENCIL_ATTACHMENT : gl.DEPTH_ATTACHMENT;
+            if (texture.is2DArray) {
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, attachment, depthStencilTexture._webGLTexture, lodLevel, layer);
+            }
+            else if (texture.isCube) {
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, depthStencilTexture._webGLTexture, lodLevel);
+            }
+            else {
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, depthStencilTexture._webGLTexture, lodLevel);
+            }
+        }
+        if (this.engine.engineViewPort._cachedViewport && !forceFullscreenViewport) {
+            this.engine.engineViewPort.setViewport(this.engine.engineViewPort._cachedViewport, requiredWidth, requiredHeight);
+        }
+        else {
+            if (!requiredWidth) {
+                requiredWidth = texture.width;
+                if (lodLevel) {
+                    requiredWidth = requiredWidth / Math.pow(2, lodLevel);
+                }
+            }
+            if (!requiredHeight) {
+                requiredHeight = texture.height;
+                if (lodLevel) {
+                    requiredHeight = requiredHeight / Math.pow(2, lodLevel);
+                }
+            }
+            this.engine.engineViewPort._viewport(0, 0, requiredWidth, requiredHeight);
+        }
+        this.engine.wipeCaches();
+    }
+    /** @hidden */
+    _bindUnboundFramebuffer(framebuffer) {
+        if (this._currentFramebuffer !== framebuffer) {
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, framebuffer);
+            this._currentFramebuffer = framebuffer;
+        }
+    }
+    /**
+     * Unbind the current render target texture from the webGL context
+     * @param texture defines the render target texture to unbind
+     * @param disableGenerateMipMaps defines a boolean indicating that mipmaps must not be generated
+     * @param onBeforeUnbind defines a function which will be called before the effective unbind
+     */
+    unBindFramebuffer(texture, disableGenerateMipMaps = false, onBeforeUnbind) {
+        this._currentRenderTarget = null;
+        // If MSAA, we need to bitblt back to main texture
+        var gl = this._gl;
+        if (texture._MSAAFramebuffer) {
+            if (texture._textureArray) {
+                // This texture is part of a MRT texture, we need to treat all attachments
+                this.engine.unBindMultiColorAttachmentFramebuffer(texture._textureArray, disableGenerateMipMaps, onBeforeUnbind);
+                return;
+            }
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, texture._MSAAFramebuffer);
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, texture._framebuffer);
+            gl.blitFramebuffer(0, 0, texture.width, texture.height, 0, 0, texture.width, texture.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+        }
+        if (texture.generateMipMaps && !disableGenerateMipMaps && !texture.isCube) {
+            this.engine.engineTexture._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            this.engine.engineTexture._bindTextureDirectly(gl.TEXTURE_2D, null);
+        }
+        if (onBeforeUnbind) {
+            if (texture._MSAAFramebuffer) {
+                // Bind the correct framebuffer
+                this._bindUnboundFramebuffer(texture._framebuffer);
+            }
+            onBeforeUnbind();
+        }
+        this._bindUnboundFramebuffer(null);
+    }
+    /**
+  * Gets the current render width
+  * @param useScreen defines if screen size must be used (or the current render target if any)
+  * @returns a number defining the current render width
+  */
+    getRenderWidth(useScreen = false) {
+        if (!useScreen && this._currentRenderTarget) {
+            return this._currentRenderTarget.width;
+        }
+        return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferWidth : this._gl.drawingBufferWidth;
+    }
+    /**
+     * Gets the current render height
+     * @param useScreen defines if screen size must be used (or the current render target if any)
+     * @returns a number defining the current render height
+     */
+    getRenderHeight(useScreen = false) {
+        if (!useScreen && this._currentRenderTarget) {
+            return this._currentRenderTarget.height;
+        }
+        return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferHeight : this._gl.drawingBufferHeight;
+    }
+    /**
+   * Unbind the current render target and bind the default framebuffer
+   */
+    restoreDefaultFramebuffer() {
+        if (this._currentRenderTarget) {
+            this.unBindFramebuffer(this._currentRenderTarget);
+        }
+        else {
+            this._bindUnboundFramebuffer(null);
+        }
+        if (this.engine.engineViewPort._cachedViewport) {
+            this.engine.engineViewPort.setViewport(this.engine.engineViewPort._cachedViewport);
+        }
+        this.engine.wipeCaches();
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Engines/engine.texture.ts":
+/*!***************************************!*\
+  !*** ./src/Engines/engine.texture.ts ***!
+  \***************************************/
+/*! exports provided: EngineTexture */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineTexture", function() { return EngineTexture; });
+/* harmony import */ var _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Materials/Textures/internalTexture */ "./src/Materials/Textures/internalTexture.ts");
+/* harmony import */ var _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Misc/devTools */ "./src/Misc/devTools.ts");
+/* harmony import */ var _Misc_logger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Misc/logger */ "./src/Misc/logger.ts");
+/* harmony import */ var _Misc_observable__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Misc/observable */ "./src/Misc/observable.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./src/Engines/constants.ts");
+/* harmony import */ var _engineStore__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./engineStore */ "./src/Engines/engineStore.ts");
+/* harmony import */ var _thinEngine__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./thinEngine */ "./src/Engines/thinEngine.ts");
+
+
+
+
+
+
+
+class EngineTexture {
+    constructor(_gl, engine) {
+        this.webGLVersion = 2;
+        this.onBeforeTextureInitObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
+        this._transformTextureUrl = null;
+        /**
+          * In case you are sharing the context with other applications, it might
+          * be interested to not cache the unpack flip y state to ensure a consistent
+          * value would be set.
+          */
+        this.enableUnpackFlipYCached = true;
+        this._activeChannel = 0;
+        this._currentTextureChannel = -1;
+        this._maxSimultaneousTextures = 0;
+        this._nextFreeTextureSlots = new Array();
+        this._internalTexturesCache = new Array();
+        this._boundTexturesCache = {};
+        this._unpackFlipYCached = null;
+        this._supportsHardwareTextureRescaling = false;
+        this._gl = _gl;
+        this.engine = engine;
+    }
+    /**
+       * @hidden
+       */
+    _rescaleTexture(source, destination, scene, internalFormat, onComplete) {
+    }
+    /**
+       * Usually called from Texture.ts.
+       * Passed information to create a WebGLTexture
+       * @param url defines a value which contains one of the following:
+       * * A conventional http URL, e.g. 'http://...' or 'file://...'
+       * * A base64 string of in-line texture data, e.g. 'data:image/jpg;base64,/...'
+       * * An indicator that data being passed using the buffer parameter, e.g. 'data:mytexture.jpg'
+       * @param noMipmap defines a boolean indicating that no mipmaps shall be generated.  Ignored for compressed textures.  They must be in the file
+       * @param invertY when true, image is flipped when loaded.  You probably want true. Certain compressed textures may invert this if their default is inverted (eg. ktx)
+       * @param scene needed for loading to the correct scene
+       * @param samplingMode mode with should be used sample / access the texture (Default: Texture.TRILINEAR_SAMPLINGMODE)
+       * @param onLoad optional callback to be called upon successful completion
+       * @param onError optional callback to be called upon failure
+       * @param buffer a source of a file previously fetched as either a base64 string, an ArrayBuffer (compressed or image format), HTMLImageElement (image format), or a Blob
+       * @param fallback an internal argument in case the function must be called again, due to etc1 not having alpha capabilities
+       * @param format internal format.  Default: RGB when extension is '.jpg' else RGBA.  Ignored for compressed textures
+       * @param forcedExtension defines the extension to use to pick the right loader
+       * @param mimeType defines an optional mime type
+       * @param loaderOptions options to be passed to the loader
+       * @returns a InternalTexture for assignment back into BABYLON.Texture
+       */
+    createTexture(url, noMipmap, invertY, scene, samplingMode = _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_TRILINEAR_SAMPLINGMODE, onLoad = null, onError = null, buffer = null, fallback = null, format = null, forcedExtension = null, mimeType, loaderOptions) {
+        url = url || "";
+        const fromData = url.substr(0, 5) === "data:";
+        const fromBlob = url.substr(0, 5) === "blob:";
+        const isBase64 = fromData && url.indexOf(";base64,") !== -1;
+        let texture = fallback ? fallback : new _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_0__["InternalTexture"](this.engine, _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_0__["InternalTextureSource"].Url);
+        const originalUrl = url;
+        if (this._transformTextureUrl && !isBase64 && !fallback && !buffer) {
+            url = this._transformTextureUrl(url);
+        }
+        if (originalUrl !== url) {
+            texture._originalUrl = originalUrl;
+        }
+        // establish the file extension, if possible
+        const lastDot = url.lastIndexOf('.');
+        let extension = forcedExtension ? forcedExtension : (lastDot > -1 ? url.substring(lastDot).toLowerCase() : "");
+        let loader = null;
+        // Remove query string
+        let queryStringIndex = extension.indexOf("?");
+        if (queryStringIndex > -1) {
+            extension = extension.split("?")[0];
+        }
+        for (const availableLoader of EngineTexture._TextureLoaders) {
+            if (availableLoader.canLoad(extension, mimeType)) {
+                loader = availableLoader;
+                break;
+            }
+        }
+        if (scene) {
+            scene._addPendingData(texture);
+        }
+        texture.url = url;
+        texture.generateMipMaps = !noMipmap;
+        texture.samplingMode = samplingMode;
+        texture.invertY = invertY;
+        // if (!this._doNotHandleContextLost) {
+        //     // Keep a link to the buffer only if we plan to handle context lost
+        //     texture._buffer = buffer;
+        // }
+        let onLoadObserver = null;
+        if (onLoad && !fallback) {
+            onLoadObserver = texture.onLoadedObservable.add(onLoad);
+        }
+        if (!fallback) {
+            this._internalTexturesCache.push(texture);
+        }
+        const onInternalError = (message, exception) => {
+            if (scene) {
+                scene._removePendingData(texture);
+            }
+            if (url === originalUrl) {
+                if (onLoadObserver) {
+                    texture.onLoadedObservable.remove(onLoadObserver);
+                }
+                if (_engineStore__WEBPACK_IMPORTED_MODULE_5__["EngineStore"].UseFallbackTexture) {
+                    this.createTexture(_engineStore__WEBPACK_IMPORTED_MODULE_5__["EngineStore"].FallbackTexture, noMipmap, texture.invertY, scene, samplingMode, null, onError, buffer, texture);
+                }
+                if (onError) {
+                    onError((message || "Unknown error") + (_engineStore__WEBPACK_IMPORTED_MODULE_5__["EngineStore"].UseFallbackTexture ? " - Fallback texture was used" : ""), exception);
+                }
+            }
+            else {
+                // fall back to the original url if the transformed url fails to load
+                _Misc_logger__WEBPACK_IMPORTED_MODULE_2__["Logger"].Warn(`Failed to load ${url}, falling back to ${originalUrl}`);
+                this.createTexture(originalUrl, noMipmap, texture.invertY, scene, samplingMode, onLoad, onError, buffer, texture, format, forcedExtension, mimeType, loaderOptions);
+            }
+        };
+        // processing for non-image formats
+        if (loader) {
+            const callback = (data) => {
+                loader.loadData(data, texture, (width, height, loadMipmap, isCompressed, done, loadFailed) => {
+                    if (loadFailed) {
+                        onInternalError("TextureLoader failed to load data");
+                    }
+                    else {
+                        this._prepareWebGLTexture(texture, scene, width, height, texture.invertY, !loadMipmap, isCompressed, () => {
+                            done();
+                            return false;
+                        }, samplingMode);
+                    }
+                }, loaderOptions);
+            };
+            if (!buffer) {
+                this.engine._loadFile(url, (data) => callback(new Uint8Array(data)), undefined, true, (request, exception) => {
+                    onInternalError("Unable to load " + (request ? request.responseURL : url, exception));
+                });
+            }
+            else {
+                if (buffer instanceof ArrayBuffer) {
+                    callback(new Uint8Array(buffer));
+                }
+                else if (ArrayBuffer.isView(buffer)) {
+                    callback(buffer);
+                }
+                else {
+                    if (onError) {
+                        onError("Unable to load: only ArrayBuffer or ArrayBufferView is supported", null);
+                    }
+                }
+            }
+        }
+        else {
+            const onload = (img) => {
+                if (fromBlob && !this.engine._doNotHandleContextLost) {
+                    // We need to store the image if we need to rebuild the texture
+                    // in case of a webgl context lost
+                    texture._buffer = img;
+                }
+                this._prepareWebGLTexture(texture, scene, img.width, img.height, texture.invertY, noMipmap, false, (potWidth, potHeight, continuationCallback) => {
+                    let gl = this._gl;
+                    var isPot = (img.width === potWidth && img.height === potHeight);
+                    let internalFormat = format ? this._getInternalFormat(format) : ((extension === ".jpg") ? gl.RGB : gl.RGBA);
+                    if (isPot) {
+                        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, internalFormat, gl.UNSIGNED_BYTE, img);
+                        return false;
+                    }
+                    let maxTextureSize = this.engine._caps.maxTextureSize;
+                    if (img.width > maxTextureSize || img.height > maxTextureSize || !this._supportsHardwareTextureRescaling) {
+                        this.engine._prepareWorkingCanvas();
+                        if (!this.engine._workingCanvas || !this.engine._workingContext) {
+                            return false;
+                        }
+                        this.engine._workingCanvas.width = potWidth;
+                        this.engine._workingCanvas.height = potHeight;
+                        this.engine._workingContext.drawImage(img, 0, 0, img.width, img.height, 0, 0, potWidth, potHeight);
+                        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, internalFormat, gl.UNSIGNED_BYTE, this.engine._workingCanvas);
+                        texture.width = potWidth;
+                        texture.height = potHeight;
+                        return false;
+                    }
+                    else {
+                        // Using shaders when possible to rescale because canvas.drawImage is lossy
+                        let source = new _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_0__["InternalTexture"](this.engine, _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_0__["InternalTextureSource"].Temp);
+                        this._bindTextureDirectly(gl.TEXTURE_2D, source, true);
+                        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, internalFormat, gl.UNSIGNED_BYTE, img);
+                        this._rescaleTexture(source, texture, scene, internalFormat, () => {
+                            this._releaseTexture(source);
+                            this._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
+                            continuationCallback();
+                        });
+                    }
+                    return true;
+                }, samplingMode);
+            };
+            if (!fromData || isBase64) {
+                if (buffer && (buffer.decoding || buffer.close)) {
+                    onload(buffer);
+                }
+                else {
+                    _thinEngine__WEBPACK_IMPORTED_MODULE_6__["ThinEngine"]._FileToolsLoadImage(url, onload, onInternalError, mimeType);
+                }
+            }
+            else if (typeof buffer === "string" || buffer instanceof ArrayBuffer || ArrayBuffer.isView(buffer) || buffer instanceof Blob) {
+                _thinEngine__WEBPACK_IMPORTED_MODULE_6__["ThinEngine"]._FileToolsLoadImage(buffer, onload, onInternalError, mimeType);
+            }
+            else if (buffer) {
+                onload(buffer);
+            }
+        }
+        return texture;
+    }
+    /**
+       * Gets a boolean indicating that only power of 2 textures are supported
+       * Please note that you can still use non power of 2 textures but in this case the engine will forcefully convert them
+       */
+    get needPOTTextures() {
+        return this.engine._webGLVersion < 2;
+    }
+    _getRGBAMultiSampleBufferFormat(type) {
+        if (type === _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_FLOAT) {
+            return this._gl.RGBA32F;
+        }
+        else if (type === _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_HALF_FLOAT) {
+            return this._gl.RGBA16F;
+        }
+        return this._gl.RGBA8;
+    }
+    /** @hidden */
+    _releaseTexture(texture) {
+        this.engine.engineFramebuffer._releaseFramebufferObjects(texture);
+        this._deleteTexture(texture._webGLTexture);
+        // Unbind channels
+        this.unbindAllTextures();
+        var index = this._internalTexturesCache.indexOf(texture);
+        if (index !== -1) {
+            this._internalTexturesCache.splice(index, 1);
+        }
+        // Integrated fixed lod samplers.
+        if (texture._lodTextureHigh) {
+            texture._lodTextureHigh.dispose();
+        }
+        if (texture._lodTextureMid) {
+            texture._lodTextureMid.dispose();
+        }
+        if (texture._lodTextureLow) {
+            texture._lodTextureLow.dispose();
+        }
+        // Integrated irradiance map.
+        if (texture._irradianceTexture) {
+            texture._irradianceTexture.dispose();
+        }
+    }
+    _deleteTexture(texture) {
+        this._gl.deleteTexture(texture);
+    }
+    _unpackFlipY(value) {
+        if (this._unpackFlipYCached !== value) {
+            this._gl.pixelStorei(this._gl.UNPACK_FLIP_Y_WEBGL, value ? 1 : 0);
+            if (this.enableUnpackFlipYCached) {
+                this._unpackFlipYCached = value;
+            }
+        }
+    }
+    /** @hidden */
+    _uploadDataToTextureDirectly(texture, imageData, faceIndex = 0, lod = 0, babylonInternalFormat, useTextureWidthAndHeight = false) {
+        var gl = this._gl;
+        var textureType = this._getWebGLTextureType(texture.type);
+        var format = this._getInternalFormat(texture.format);
+        var internalFormat = babylonInternalFormat === undefined ? this._getRGBABufferInternalSizedFormat(texture.type, texture.format) : this._getInternalFormat(babylonInternalFormat);
+        this._unpackFlipY(texture.invertY);
+        var target = gl.TEXTURE_2D;
+        if (texture.isCube) {
+            target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex;
+        }
+        const lodMaxWidth = Math.round(Math.log(texture.width) * Math.LOG2E);
+        const lodMaxHeight = Math.round(Math.log(texture.height) * Math.LOG2E);
+        const width = useTextureWidthAndHeight ? texture.width : Math.pow(2, Math.max(lodMaxWidth - lod, 0));
+        const height = useTextureWidthAndHeight ? texture.height : Math.pow(2, Math.max(lodMaxHeight - lod, 0));
+        gl.texImage2D(target, lod, internalFormat, width, height, 0, format, textureType, imageData);
+    }
+    _getInternalFormat(format) {
+        var internalFormat = this._gl.RGBA;
+        switch (format) {
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_ALPHA:
+                internalFormat = this._gl.ALPHA;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_LUMINANCE:
+                internalFormat = this._gl.LUMINANCE;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_LUMINANCE_ALPHA:
+                internalFormat = this._gl.LUMINANCE_ALPHA;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED:
+                internalFormat = this._gl.RED;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG:
+                internalFormat = this._gl.RG;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB:
+                internalFormat = this._gl.RGB;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA:
+                internalFormat = this._gl.RGBA;
+                break;
+        }
+        if (this.engine._webGLVersion > 1) {
+            switch (format) {
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED_INTEGER:
+                    internalFormat = this._gl.RED_INTEGER;
+                    break;
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG_INTEGER:
+                    internalFormat = this._gl.RG_INTEGER;
+                    break;
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
+                    internalFormat = this._gl.RGB_INTEGER;
+                    break;
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
+                    internalFormat = this._gl.RGBA_INTEGER;
+                    break;
+            }
+        }
+        return internalFormat;
+    }
+    /**
+     * Update a portion of an internal texture
+     * @param texture defines the texture to update
+     * @param imageData defines the data to store into the texture
+     * @param xOffset defines the x coordinates of the update rectangle
+     * @param yOffset defines the y coordinates of the update rectangle
+     * @param width defines the width of the update rectangle
+     * @param height defines the height of the update rectangle
+     * @param faceIndex defines the face index if texture is a cube (0 by default)
+     * @param lod defines the lod level to update (0 by default)
+     */
+    updateTextureData(texture, imageData, xOffset, yOffset, width, height, faceIndex = 0, lod = 0) {
+        var gl = this._gl;
+        var textureType = this._getWebGLTextureType(texture.type);
+        var format = this._getInternalFormat(texture.format);
+        this._unpackFlipY(texture.invertY);
+        var target = gl.TEXTURE_2D;
+        if (texture.isCube) {
+            target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex;
+        }
+        gl.texSubImage2D(target, lod, xOffset, yOffset, width, height, format, textureType, imageData);
+    }
+    /** @hidden */
+    _uploadArrayBufferViewToTexture(texture, imageData, faceIndex = 0, lod = 0) {
+        var gl = this._gl;
+        var bindTarget = texture.isCube ? gl.TEXTURE_CUBE_MAP : gl.TEXTURE_2D;
+        this._bindTextureDirectly(bindTarget, texture, true);
+        this._uploadDataToTextureDirectly(texture, imageData, faceIndex, lod);
+        this._bindTextureDirectly(bindTarget, null, true);
+    }
+    _getSamplingParameters(samplingMode, generateMipMaps) {
+        var gl = this._gl;
+        var magFilter = gl.NEAREST;
+        var minFilter = gl.NEAREST;
+        switch (samplingMode) {
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_LINEAR_MIPNEAREST:
+                magFilter = gl.LINEAR;
+                if (generateMipMaps) {
+                    minFilter = gl.LINEAR_MIPMAP_NEAREST;
+                }
+                else {
+                    minFilter = gl.LINEAR;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_LINEAR_MIPLINEAR:
+                magFilter = gl.LINEAR;
+                if (generateMipMaps) {
+                    minFilter = gl.LINEAR_MIPMAP_LINEAR;
+                }
+                else {
+                    minFilter = gl.LINEAR;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_NEAREST_MIPLINEAR:
+                magFilter = gl.NEAREST;
+                if (generateMipMaps) {
+                    minFilter = gl.NEAREST_MIPMAP_LINEAR;
+                }
+                else {
+                    minFilter = gl.NEAREST;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_NEAREST_MIPNEAREST:
+                magFilter = gl.NEAREST;
+                if (generateMipMaps) {
+                    minFilter = gl.NEAREST_MIPMAP_NEAREST;
+                }
+                else {
+                    minFilter = gl.NEAREST;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_LINEAR_MIPNEAREST:
+                magFilter = gl.NEAREST;
+                if (generateMipMaps) {
+                    minFilter = gl.LINEAR_MIPMAP_NEAREST;
+                }
+                else {
+                    minFilter = gl.LINEAR;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_LINEAR_MIPLINEAR:
+                magFilter = gl.NEAREST;
+                if (generateMipMaps) {
+                    minFilter = gl.LINEAR_MIPMAP_LINEAR;
+                }
+                else {
+                    minFilter = gl.LINEAR;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_LINEAR:
+                magFilter = gl.NEAREST;
+                minFilter = gl.LINEAR;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_NEAREST:
+                magFilter = gl.NEAREST;
+                minFilter = gl.NEAREST;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_NEAREST_MIPNEAREST:
+                magFilter = gl.LINEAR;
+                if (generateMipMaps) {
+                    minFilter = gl.NEAREST_MIPMAP_NEAREST;
+                }
+                else {
+                    minFilter = gl.NEAREST;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_NEAREST_MIPLINEAR:
+                magFilter = gl.LINEAR;
+                if (generateMipMaps) {
+                    minFilter = gl.NEAREST_MIPMAP_LINEAR;
+                }
+                else {
+                    minFilter = gl.NEAREST;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_LINEAR:
+                magFilter = gl.LINEAR;
+                minFilter = gl.LINEAR;
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_NEAREST:
+                magFilter = gl.LINEAR;
+                minFilter = gl.NEAREST;
+                break;
+        }
+        return {
+            min: minFilter,
+            mag: magFilter
+        };
+    }
+    _prepareWebGLTextureContinuation(texture, scene, noMipmap, isCompressed, samplingMode) {
+        var gl = this._gl;
+        if (!gl) {
+            return;
+        }
+        var filters = this._getSamplingParameters(samplingMode, !noMipmap);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filters.mag);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filters.min);
+        if (!noMipmap && !isCompressed) {
+            gl.generateMipmap(gl.TEXTURE_2D);
+        }
+        this._bindTextureDirectly(gl.TEXTURE_2D, null);
+        // this.resetTextureCache();
+        if (scene) {
+            scene._removePendingData(texture);
+        }
+        texture.onLoadedObservable.notifyObservers(texture);
+        texture.onLoadedObservable.clear();
+    }
+    /**
+       * Find the next highest power of two.
+       * @param x Number to start search from.
+       * @return Next highest power of two.
+       */
+    static CeilingPOT(x) {
+        x--;
+        x |= x >> 1;
+        x |= x >> 2;
+        x |= x >> 4;
+        x |= x >> 8;
+        x |= x >> 16;
+        x++;
+        return x;
+    }
+    /**
+     * Find the next lowest power of two.
+     * @param x Number to start search from.
+     * @return Next lowest power of two.
+     */
+    static FloorPOT(x) {
+        x = x | (x >> 1);
+        x = x | (x >> 2);
+        x = x | (x >> 4);
+        x = x | (x >> 8);
+        x = x | (x >> 16);
+        return x - (x >> 1);
+    }
+    /**
+     * Find the nearest power of two.
+     * @param x Number to start search from.
+     * @return Next nearest power of two.
+     */
+    static NearestPOT(x) {
+        var c = EngineTexture.CeilingPOT(x);
+        var f = EngineTexture.FloorPOT(x);
+        return (c - x) > (x - f) ? f : c;
+    }
+    /**
+       * Get the closest exponent of two
+       * @param value defines the value to approximate
+       * @param max defines the maximum value to return
+       * @param mode defines how to define the closest value
+       * @returns closest exponent of two of the given value
+       */
+    static GetExponentOfTwo(value, max, mode = _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].SCALEMODE_NEAREST) {
+        let pot;
+        switch (mode) {
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].SCALEMODE_FLOOR:
+                pot = EngineTexture.FloorPOT(value);
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].SCALEMODE_NEAREST:
+                pot = EngineTexture.NearestPOT(value);
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].SCALEMODE_CEILING:
+            default:
+                pot = EngineTexture.CeilingPOT(value);
+                break;
+        }
+        return Math.min(pot, max);
+    }
+    _prepareWebGLTexture(texture, scene, width, height, invertY, noMipmap, isCompressed, processFunction, samplingMode = _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_TRILINEAR_SAMPLINGMODE) {
+        var maxTextureSize = this.engine.getCaps().maxTextureSize;
+        var potWidth = Math.min(maxTextureSize, this.needPOTTextures ? EngineTexture.GetExponentOfTwo(width, maxTextureSize) : width);
+        var potHeight = Math.min(maxTextureSize, this.needPOTTextures ? EngineTexture.GetExponentOfTwo(height, maxTextureSize) : height);
+        var gl = this._gl;
+        if (!gl) {
+            return;
+        }
+        if (!texture._webGLTexture) {
+            //  this.resetTextureCache();
+            if (scene) {
+                scene._removePendingData(texture);
+            }
+            return;
+        }
+        this._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
+        this._unpackFlipY(invertY === undefined ? true : (invertY ? true : false));
+        texture.baseWidth = width;
+        texture.baseHeight = height;
+        texture.width = potWidth;
+        texture.height = potHeight;
+        texture.isReady = true;
+        if (processFunction(potWidth, potHeight, () => {
+            this._prepareWebGLTextureContinuation(texture, scene, noMipmap, isCompressed, samplingMode);
+        })) {
+            // Returning as texture needs extra async steps
+            return;
+        }
+        this._prepareWebGLTextureContinuation(texture, scene, noMipmap, isCompressed, samplingMode);
+    }
+    /**
+     * Reset the texture cache to empty state
+     */
+    resetTextureCache() {
+        for (var key in this._boundTexturesCache) {
+            if (!this._boundTexturesCache.hasOwnProperty(key)) {
+                continue;
+            }
+            this._boundTexturesCache[key] = null;
+        }
+        this._currentTextureChannel = -1;
+    }
+    _getRGBABufferInternalSizedFormat(type, format) {
+        if (this.engine._webGLVersion === 1) {
+            if (format !== undefined) {
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_ALPHA:
+                        return this._gl.ALPHA;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_LUMINANCE:
+                        return this._gl.LUMINANCE;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_LUMINANCE_ALPHA:
+                        return this._gl.LUMINANCE_ALPHA;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB:
+                        return this._gl.RGB;
+                }
+            }
+            return this._gl.RGBA;
+        }
+        switch (type) {
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_BYTE:
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED:
+                        return this._gl.R8_SNORM;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG:
+                        return this._gl.RG8_SNORM;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB:
+                        return this._gl.RGB8_SNORM;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED_INTEGER:
+                        return this._gl.R8I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG_INTEGER:
+                        return this._gl.RG8I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
+                        return this._gl.RGB8I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
+                        return this._gl.RGBA8I;
+                    default:
+                        return this._gl.RGBA8_SNORM;
+                }
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_BYTE:
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED:
+                        return this._gl.R8;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG:
+                        return this._gl.RG8;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB:
+                        return this._gl.RGB8; // By default. Other possibilities are RGB565, SRGB8.
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA:
+                        return this._gl.RGBA8; // By default. Other possibilities are RGB5_A1, RGBA4, SRGB8_ALPHA8.
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED_INTEGER:
+                        return this._gl.R8UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG_INTEGER:
+                        return this._gl.RG8UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
+                        return this._gl.RGB8UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
+                        return this._gl.RGBA8UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_ALPHA:
+                        return this._gl.ALPHA;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_LUMINANCE:
+                        return this._gl.LUMINANCE;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_LUMINANCE_ALPHA:
+                        return this._gl.LUMINANCE_ALPHA;
+                    default:
+                        return this._gl.RGBA8;
+                }
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_SHORT:
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED_INTEGER:
+                        return this._gl.R16I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG_INTEGER:
+                        return this._gl.RG16I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
+                        return this._gl.RGB16I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
+                        return this._gl.RGBA16I;
+                    default:
+                        return this._gl.RGBA16I;
+                }
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT:
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED_INTEGER:
+                        return this._gl.R16UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG_INTEGER:
+                        return this._gl.RG16UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
+                        return this._gl.RGB16UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
+                        return this._gl.RGBA16UI;
+                    default:
+                        return this._gl.RGBA16UI;
+                }
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_INT:
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED_INTEGER:
+                        return this._gl.R32I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG_INTEGER:
+                        return this._gl.RG32I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
+                        return this._gl.RGB32I;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
+                        return this._gl.RGBA32I;
+                    default:
+                        return this._gl.RGBA32I;
+                }
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INTEGER: // Refers to UNSIGNED_INT
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED_INTEGER:
+                        return this._gl.R32UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG_INTEGER:
+                        return this._gl.RG32UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
+                        return this._gl.RGB32UI;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
+                        return this._gl.RGBA32UI;
+                    default:
+                        return this._gl.RGBA32UI;
+                }
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_FLOAT:
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED:
+                        return this._gl.R32F; // By default. Other possibility is R16F.
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG:
+                        return this._gl.RG32F; // By default. Other possibility is RG16F.
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB:
+                        return this._gl.RGB32F; // By default. Other possibilities are RGB16F, R11F_G11F_B10F, RGB9_E5.
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA:
+                        return this._gl.RGBA32F; // By default. Other possibility is RGBA16F.
+                    default:
+                        return this._gl.RGBA32F;
+                }
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_HALF_FLOAT:
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RED:
+                        return this._gl.R16F;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RG:
+                        return this._gl.RG16F;
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGB:
+                        return this._gl.RGB16F; // By default. Other possibilities are R11F_G11F_B10F, RGB9_E5.
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA:
+                        return this._gl.RGBA16F;
+                    default:
+                        return this._gl.RGBA16F;
+                }
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_6_5:
+                return this._gl.RGB565;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT_10F_11F_11F_REV:
+                return this._gl.R11F_G11F_B10F;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT_5_9_9_9_REV:
+                return this._gl.RGB9_E5;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_4_4_4_4:
+                return this._gl.RGBA4;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_5_5_1:
+                return this._gl.RGB5_A1;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT_2_10_10_10_REV:
+                switch (format) {
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA:
+                        return this._gl.RGB10_A2; // By default. Other possibility is RGB5_A1.
+                    case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
+                        return this._gl.RGB10_A2UI;
+                    default:
+                        return this._gl.RGB10_A2;
+                }
+        }
+        return this._gl.RGBA8;
+    }
+    _getWebGLTextureType(type) {
+        if (this.engine._webGLVersion === 1) {
+            switch (type) {
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_FLOAT:
+                    return this._gl.FLOAT;
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_HALF_FLOAT:
+                    return this._gl.HALF_FLOAT_OES;
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_BYTE:
+                    return this._gl.UNSIGNED_BYTE;
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_4_4_4_4:
+                    return this._gl.UNSIGNED_SHORT_4_4_4_4;
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_5_5_1:
+                    return this._gl.UNSIGNED_SHORT_5_5_5_1;
+                case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_6_5:
+                    return this._gl.UNSIGNED_SHORT_5_6_5;
+            }
+            return this._gl.UNSIGNED_BYTE;
+        }
+        switch (type) {
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_BYTE:
+                return this._gl.BYTE;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_BYTE:
+                return this._gl.UNSIGNED_BYTE;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_SHORT:
+                return this._gl.SHORT;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT:
+                return this._gl.UNSIGNED_SHORT;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_INT:
+                return this._gl.INT;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INTEGER: // Refers to UNSIGNED_INT
+                return this._gl.UNSIGNED_INT;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_FLOAT:
+                return this._gl.FLOAT;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_HALF_FLOAT:
+                return this._gl.HALF_FLOAT;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_4_4_4_4:
+                return this._gl.UNSIGNED_SHORT_4_4_4_4;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_5_5_1:
+                return this._gl.UNSIGNED_SHORT_5_5_5_1;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_6_5:
+                return this._gl.UNSIGNED_SHORT_5_6_5;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT_2_10_10_10_REV:
+                return this._gl.UNSIGNED_INT_2_10_10_10_REV;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT_24_8:
+                return this._gl.UNSIGNED_INT_24_8;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT_10F_11F_11F_REV:
+                return this._gl.UNSIGNED_INT_10F_11F_11F_REV;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT_5_9_9_9_REV:
+                return this._gl.UNSIGNED_INT_5_9_9_9_REV;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_FLOAT_32_UNSIGNED_INT_24_8_REV:
+                return this._gl.FLOAT_32_UNSIGNED_INT_24_8_REV;
+        }
+        return this._gl.UNSIGNED_BYTE;
+    }
+    _activateCurrentTexture() {
+        if (this._currentTextureChannel !== this._activeChannel) {
+            this._gl.activeTexture(this._gl.TEXTURE0 + this._activeChannel);
+            this._currentTextureChannel = this._activeChannel;
+        }
+    }
+    _bindTextureDirectly(target, texture, forTextureDataUpdate = false, force = false) {
+        var wasPreviouslyBound = false;
+        let isTextureForRendering = texture && texture._associatedChannel > -1;
+        if (forTextureDataUpdate && isTextureForRendering) {
+            this._activeChannel = texture._associatedChannel;
+        }
+        let currentTextureBound = this._boundTexturesCache[this._activeChannel];
+        if (currentTextureBound !== texture || force) {
+            this._activateCurrentTexture();
+            if (texture && texture.isMultiview) {
+                this._gl.bindTexture(target, texture ? texture._colorTextureArray : null);
+            }
+            else {
+                this._gl.bindTexture(target, texture ? texture._webGLTexture : null);
+            }
+            this._boundTexturesCache[this._activeChannel] = texture;
+            if (texture) {
+                texture._associatedChannel = this._activeChannel;
+            }
+        }
+        else if (forTextureDataUpdate) {
+            wasPreviouslyBound = true;
+            this._activateCurrentTexture();
+        }
+        if (isTextureForRendering && !forTextureDataUpdate) {
+            this._bindSamplerUniformToChannel(texture._associatedChannel, this._activeChannel);
+        }
+        return wasPreviouslyBound;
+    }
+    /** @hidden */
+    _bindTexture(channel, texture) {
+        if (channel === undefined) {
+            return;
+        }
+        if (texture) {
+            texture._associatedChannel = channel;
+        }
+        this._activeChannel = channel;
+        const target = texture ? this._getTextureTarget(texture) : this._gl.TEXTURE_2D;
+        this._bindTextureDirectly(target, texture);
+    }
+    /**
+     * Unbind all textures from the webGL context
+     */
+    unbindAllTextures() {
+        for (var channel = 0; channel < this._maxSimultaneousTextures; channel++) {
+            this._activeChannel = channel;
+            this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
+            this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
+            if (this.webGLVersion > 1) {
+                this._bindTextureDirectly(this._gl.TEXTURE_3D, null);
+                this._bindTextureDirectly(this._gl.TEXTURE_2D_ARRAY, null);
+            }
+        }
+    }
+    _getTextureTarget(texture) {
+        if (texture.isCube) {
+            return this._gl.TEXTURE_CUBE_MAP;
+        }
+        else if (texture.is3D) {
+            return this._gl.TEXTURE_3D;
+        }
+        else if (texture.is2DArray || texture.isMultiview) {
+            return this._gl.TEXTURE_2D_ARRAY;
+        }
+        return this._gl.TEXTURE_2D;
+    }
+    /**
+     * Sets a texture to the according uniform.
+     * @param channel The texture channel
+     * @param uniform The uniform to set
+     * @param texture The texture to apply
+     */
+    setTexture(channel, uniform, texture) {
+        if (channel === undefined) {
+            return;
+        }
+        if (uniform) {
+            this.engine.engineUniform._boundUniforms[channel] = uniform;
+        }
+        this._setTexture(channel, texture);
+    }
+    _bindSamplerUniformToChannel(sourceSlot, destination) {
+        let uniform = this.engine.engineUniform._boundUniforms[sourceSlot];
+        if (!uniform || uniform._currentState === destination) {
+            return;
+        }
+        this._gl.uniform1i(uniform, destination);
+        uniform._currentState = destination;
+    }
+    _getTextureWrapMode(mode) {
+        switch (mode) {
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_WRAP_ADDRESSMODE:
+                return this._gl.REPEAT;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_CLAMP_ADDRESSMODE:
+                return this._gl.CLAMP_TO_EDGE;
+            case _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_MIRROR_ADDRESSMODE:
+                return this._gl.MIRRORED_REPEAT;
+        }
+        return this._gl.REPEAT;
+    }
+    /**
+     * Creates a raw texture
+     * @param data defines the data to store in the texture
+     * @param width defines the width of the texture
+     * @param height defines the height of the texture
+     * @param format defines the format of the data
+     * @param generateMipMaps defines if the engine should generate the mip levels
+     * @param invertY defines if data must be stored with Y axis inverted
+     * @param samplingMode defines the required sampling mode (Texture.NEAREST_SAMPLINGMODE by default)
+     * @param compression defines the compression used (null by default)
+     * @param type defines the type fo the data (Engine.TEXTURETYPE_UNSIGNED_INT by default)
+     * @returns the raw texture inside an InternalTexture
+     */
+    createRawTexture(data, width, height, format, generateMipMaps, invertY, samplingMode, compression = null, type = _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Engine.RawTexture");
+    }
+    /**
+     * Creates a new raw cube texture
+     * @param data defines the array of data to use to create each face
+     * @param size defines the size of the textures
+     * @param format defines the format of the data
+     * @param type defines the type of the data (like Engine.TEXTURETYPE_UNSIGNED_INT)
+     * @param generateMipMaps  defines if the engine should generate the mip levels
+     * @param invertY defines if data must be stored with Y axis inverted
+     * @param samplingMode defines the required sampling mode (like Texture.NEAREST_SAMPLINGMODE)
+     * @param compression defines the compression used (null by default)
+     * @returns the cube texture as an InternalTexture
+     */
+    createRawCubeTexture(data, size, format, type, generateMipMaps, invertY, samplingMode, compression = null) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Engine.RawTexture");
+    }
+    /**
+     * Creates a new raw 3D texture
+     * @param data defines the data used to create the texture
+     * @param width defines the width of the texture
+     * @param height defines the height of the texture
+     * @param depth defines the depth of the texture
+     * @param format defines the format of the texture
+     * @param generateMipMaps defines if the engine must generate mip levels
+     * @param invertY defines if data must be stored with Y axis inverted
+     * @param samplingMode defines the required sampling mode (like Texture.NEAREST_SAMPLINGMODE)
+     * @param compression defines the compressed used (can be null)
+     * @param textureType defines the compressed used (can be null)
+     * @returns a new raw 3D texture (stored in an InternalTexture)
+     */
+    createRawTexture3D(data, width, height, depth, format, generateMipMaps, invertY, samplingMode, compression = null, textureType = _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Engine.RawTexture");
+    }
+    /**
+     * Creates a new raw 2D array texture
+     * @param data defines the data used to create the texture
+     * @param width defines the width of the texture
+     * @param height defines the height of the texture
+     * @param depth defines the number of layers of the texture
+     * @param format defines the format of the texture
+     * @param generateMipMaps defines if the engine must generate mip levels
+     * @param invertY defines if data must be stored with Y axis inverted
+     * @param samplingMode defines the required sampling mode (like Texture.NEAREST_SAMPLINGMODE)
+     * @param compression defines the compressed used (can be null)
+     * @param textureType defines the compressed used (can be null)
+     * @returns a new raw 2D array texture (stored in an InternalTexture)
+     */
+    createRawTexture2DArray(data, width, height, depth, format, generateMipMaps, invertY, samplingMode, compression = null, textureType = _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Engine.RawTexture");
+    }
+    /**
+     * Gets the default empty cube texture
+     */
+    get emptyCubeTexture() {
+        if (!this._emptyCubeTexture) {
+            var faceData = new Uint8Array(4);
+            var cubeData = [faceData, faceData, faceData, faceData, faceData, faceData];
+            this._emptyCubeTexture = this.createRawCubeTexture(cubeData, 1, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT, false, false, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE);
+        }
+        return this._emptyCubeTexture;
+    }
+    /**
+     * Gets the default empty 3D texture
+     */
+    get emptyTexture3D() {
+        if (!this._emptyTexture3D) {
+            this._emptyTexture3D = this.createRawTexture3D(new Uint8Array(4), 1, 1, 1, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA, false, false, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE);
+        }
+        return this._emptyTexture3D;
+    }
+    /**
+     * Gets the default empty texture
+     */
+    get emptyTexture() {
+        if (!this._emptyTexture) {
+            this._emptyTexture = this.createRawTexture(new Uint8Array(4), 1, 1, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA, false, false, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE);
+        }
+        return this._emptyTexture;
+    }
+    /**
+     * Gets the default empty 2D array texture
+     */
+    get emptyTexture2DArray() {
+        if (!this._emptyTexture2DArray) {
+            this._emptyTexture2DArray = this.createRawTexture2DArray(new Uint8Array(4), 1, 1, 1, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTUREFORMAT_RGBA, false, false, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE);
+        }
+        return this._emptyTexture2DArray;
+    }
+    _setTextureParameterFloat(target, parameter, value, texture) {
+        this._bindTextureDirectly(target, texture, true, true);
+        this._gl.texParameterf(target, parameter, value);
+    }
+    _setAnisotropicLevel(target, internalTexture, anisotropicFilteringLevel) {
+        var anisotropicFilterExtension = this.engine._caps.textureAnisotropicFilterExtension;
+        if (internalTexture.samplingMode !== _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_LINEAR_MIPNEAREST
+            && internalTexture.samplingMode !== _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_LINEAR_MIPLINEAR
+            && internalTexture.samplingMode !== _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_LINEAR_LINEAR) {
+            anisotropicFilteringLevel = 1; // Forcing the anisotropic to 1 because else webgl will force filters to linear
+        }
+        if (anisotropicFilterExtension && internalTexture._cachedAnisotropicFilteringLevel !== anisotropicFilteringLevel) {
+            this._setTextureParameterFloat(target, anisotropicFilterExtension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(anisotropicFilteringLevel, this.engine._caps.maxAnisotropy), internalTexture);
+            internalTexture._cachedAnisotropicFilteringLevel = anisotropicFilteringLevel;
+        }
+    }
+    _setTextureParameterInteger(target, parameter, value, texture) {
+        if (texture) {
+            this._bindTextureDirectly(target, texture, true, true);
+        }
+        this._gl.texParameteri(target, parameter, value);
+    }
+    _setTexture(channel, texture, isPartOfTextureArray = false, depthStencilTexture = false) {
+        // Not ready?
+        if (!texture) {
+            if (this._boundTexturesCache[channel] != null) {
+                this._activeChannel = channel;
+                this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
+                this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
+                if (this.webGLVersion > 1) {
+                    this._bindTextureDirectly(this._gl.TEXTURE_3D, null);
+                    this._bindTextureDirectly(this._gl.TEXTURE_2D_ARRAY, null);
+                }
+            }
+            return false;
+        }
+        // Video
+        if (texture.video) {
+            this._activeChannel = channel;
+            texture.update();
+        }
+        else if (texture.delayLoadState === _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].DELAYLOADSTATE_NOTLOADED) { // Delay loading
+            texture.delayLoad();
+            return false;
+        }
+        let internalTexture;
+        if (depthStencilTexture) {
+            internalTexture = texture.depthStencilTexture;
+        }
+        else if (texture.isReady()) {
+            internalTexture = texture.getInternalTexture();
+        }
+        else if (texture.isCube) {
+            internalTexture = this.emptyCubeTexture;
+        }
+        else if (texture.is3D) {
+            internalTexture = this.emptyTexture3D;
+        }
+        else if (texture.is2DArray) {
+            internalTexture = this.emptyTexture2DArray;
+        }
+        else {
+            internalTexture = this.emptyTexture;
+        }
+        if (!isPartOfTextureArray && internalTexture) {
+            internalTexture._associatedChannel = channel;
+        }
+        let needToBind = true;
+        if (this._boundTexturesCache[channel] === internalTexture) {
+            if (!isPartOfTextureArray) {
+                this._bindSamplerUniformToChannel(internalTexture._associatedChannel, channel);
+            }
+            needToBind = false;
+        }
+        this._activeChannel = channel;
+        const target = this._getTextureTarget(internalTexture);
+        if (needToBind) {
+            this._bindTextureDirectly(target, internalTexture, isPartOfTextureArray);
+        }
+        if (internalTexture && !internalTexture.isMultiview) {
+            // CUBIC_MODE and SKYBOX_MODE both require CLAMP_TO_EDGE.  All other modes use REPEAT.
+            if (internalTexture.isCube && internalTexture._cachedCoordinatesMode !== texture.coordinatesMode) {
+                internalTexture._cachedCoordinatesMode = texture.coordinatesMode;
+                var textureWrapMode = (texture.coordinatesMode !== _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_CUBIC_MODE && texture.coordinatesMode !== _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_SKYBOX_MODE) ? _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_WRAP_ADDRESSMODE : _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_CLAMP_ADDRESSMODE;
+                texture.wrapU = textureWrapMode;
+                texture.wrapV = textureWrapMode;
+            }
+            if (internalTexture._cachedWrapU !== texture.wrapU) {
+                internalTexture._cachedWrapU = texture.wrapU;
+                this._setTextureParameterInteger(target, this._gl.TEXTURE_WRAP_S, this._getTextureWrapMode(texture.wrapU), internalTexture);
+            }
+            if (internalTexture._cachedWrapV !== texture.wrapV) {
+                internalTexture._cachedWrapV = texture.wrapV;
+                this._setTextureParameterInteger(target, this._gl.TEXTURE_WRAP_T, this._getTextureWrapMode(texture.wrapV), internalTexture);
+            }
+            if (internalTexture.is3D && internalTexture._cachedWrapR !== texture.wrapR) {
+                internalTexture._cachedWrapR = texture.wrapR;
+                this._setTextureParameterInteger(target, this._gl.TEXTURE_WRAP_R, this._getTextureWrapMode(texture.wrapR), internalTexture);
+            }
+            this._setAnisotropicLevel(target, internalTexture, texture.anisotropicFilteringLevel);
+        }
+        return true;
+    }
+    _createTexture() {
+        let texture = this._gl.createTexture();
+        if (!texture) {
+            throw new Error("Unable to create texture");
+        }
+        return texture;
+    }
+    /**
+     * Gets the list of loaded textures
+     * @returns an array containing all loaded textures
+     */
+    getLoadedTexturesCache() {
+        return this._internalTexturesCache;
+    }
+    /** --------------------------------- texture ---------------------------------- */
+    /**
+       * Sets an array of texture to the webGL context
+       * @param channel defines the channel where the texture array must be set
+       * @param uniform defines the associated uniform location
+       * @param textures defines the array of textures to bind
+       */
+    setTextureArray(channel, uniform, textures) {
+        if (channel === undefined || !uniform) {
+            return;
+        }
+        if (!this._textureUnits || this._textureUnits.length !== textures.length) {
+            this._textureUnits = new Int32Array(textures.length);
+        }
+        for (let i = 0; i < textures.length; i++) {
+            let texture = textures[i].getInternalTexture();
+            if (texture) {
+                this._textureUnits[i] = channel + i;
+                texture._associatedChannel = channel + i;
+            }
+            else {
+                this._textureUnits[i] = -1;
+            }
+        }
+        this._gl.uniform1iv(uniform, this._textureUnits);
+        for (var index = 0; index < textures.length; index++) {
+            this._setTexture(this._textureUnits[index], textures[index], true);
+        }
+    }
+    /**
+        * Update the sampling mode of a given texture
+        * @param samplingMode defines the required sampling mode
+        * @param texture defines the texture to update
+        * @param generateMipMaps defines whether to generate mipmaps for the texture
+        */
+    updateTextureSamplingMode(samplingMode, texture, generateMipMaps = false) {
+        const target = this._getTextureTarget(texture);
+        var filters = this._getSamplingParameters(samplingMode, texture.generateMipMaps || generateMipMaps);
+        this._setTextureParameterInteger(target, this._gl.TEXTURE_MAG_FILTER, filters.mag, texture);
+        this._setTextureParameterInteger(target, this._gl.TEXTURE_MIN_FILTER, filters.min);
+        if (generateMipMaps) {
+            texture.generateMipMaps = true;
+            this._gl.generateMipmap(target);
+        }
+        this._bindTextureDirectly(target, null);
+        texture.samplingMode = samplingMode;
+    }
+    /** @hidden */
+    _setupDepthStencilTexture(internalTexture, size, generateStencil, bilinearFiltering, comparisonFunction) {
+        const width = size.width || size;
+        const height = size.height || size;
+        const layers = size.layers || 0;
+        internalTexture.baseWidth = width;
+        internalTexture.baseHeight = height;
+        internalTexture.width = width;
+        internalTexture.height = height;
+        internalTexture.is2DArray = layers > 0;
+        internalTexture.depth = layers;
+        internalTexture.isReady = true;
+        internalTexture.samples = 1;
+        internalTexture.generateMipMaps = false;
+        internalTexture._generateDepthBuffer = true;
+        internalTexture._generateStencilBuffer = generateStencil;
+        internalTexture.samplingMode = bilinearFiltering ? _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_BILINEAR_SAMPLINGMODE : _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE;
+        internalTexture.type = _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].TEXTURETYPE_UNSIGNED_INT;
+        internalTexture._comparisonFunction = comparisonFunction;
+        const gl = this._gl;
+        const target = this._getTextureTarget(internalTexture);
+        const samplingParameters = this._getSamplingParameters(internalTexture.samplingMode, false);
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, samplingParameters.mag);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, samplingParameters.min);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        if (comparisonFunction === 0) {
+            gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, _constants__WEBPACK_IMPORTED_MODULE_4__["Constants"].LEQUAL);
+            gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+        }
+        else {
+            gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, comparisonFunction);
+            gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+        }
+    }
+}
+/**
+  * Texture content used if a texture cannot loaded
+  * @ignorenaming
+  */
+EngineTexture.FallbackTexture = "";
+EngineTexture._TextureLoaders = [];
+/**
+  * Gets or sets a global variable indicating if fallback texture must be used when a texture cannot be loaded
+  * @ignorenaming
+  */
+EngineTexture.UseFallbackTexture = true;
+
+
+/***/ }),
+
 /***/ "./src/Engines/engine.ts":
 /*!*******************************!*\
   !*** ./src/Engines/engine.ts ***!
@@ -12337,14 +13842,14 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
      */
     getAspectRatio(viewportOwner, useScreen = false) {
         var viewport = viewportOwner.viewport;
-        return (this.getRenderWidth(useScreen) * viewport.width) / (this.getRenderHeight(useScreen) * viewport.height);
+        return (this.engineFramebuffer.getRenderWidth(useScreen) * viewport.width) / (this.engineFramebuffer.getRenderHeight(useScreen) * viewport.height);
     }
     /**
      * Gets current screen aspect ratio
      * @returns a number defining the aspect ratio
      */
     getScreenAspectRatio() {
-        return (this.getRenderWidth(true)) / (this.getRenderHeight(true));
+        return (this.engineFramebuffer.getRenderWidth(true)) / (this.engineFramebuffer.getRenderHeight(true));
     }
     /**
      * Gets the client rect of the HTML canvas attached with the current webGL context
@@ -12397,10 +13902,10 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
     generateMipMapsForCubemap(texture, unbind = true) {
         if (texture.generateMipMaps) {
             var gl = this._gl;
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
             gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             if (unbind) {
-                this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+                this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
             }
         }
     }
@@ -12672,9 +14177,9 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
      * @return the current viewport Object (if any) that is being replaced by this call. You can restore this viewport later on to go back to the original state
      */
     setDirectViewport(x, y, width, height) {
-        let currentViewport = this._cachedViewport;
-        this._cachedViewport = null;
-        this._viewport(x, y, width, height);
+        let currentViewport = this.engineViewPort._cachedViewport;
+        this.engineViewPort._cachedViewport = null;
+        this.engineViewPort._viewport(x, y, width, height);
         return currentViewport;
     }
     /**
@@ -12797,13 +14302,13 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
             return;
         }
         if (uniform) {
-            this._boundUniforms[channel] = uniform;
+            this.engineUniform._boundUniforms[channel] = uniform;
         }
         if (!texture || !texture.depthStencilTexture) {
-            this._setTexture(channel, null);
+            this.engineTexture._setTexture(channel, null);
         }
         else {
-            this._setTexture(channel, texture, false, true);
+            this.engineTexture._setTexture(channel, texture, false, true);
         }
     }
     /**
@@ -12825,11 +14330,11 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
     _rebuildBuffers() {
         // Index / Vertex
         for (var scene of this.scenes) {
-            scene.resetCachedMaterial();
-            scene._rebuildGeometries();
-            scene._rebuildTextures();
+            scene.sceneCatch.resetCachedMaterial();
+            scene.sceneNode._rebuildGeometries();
+            scene.sceneNode._rebuildTextures();
         }
-        super._rebuildBuffers();
+        super.engineUniform._rebuildBuffers();
     }
     /** @hidden */
     _renderFrame() {
@@ -13016,7 +14521,7 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
         return shaderProgram;
     }
     _releaseTexture(texture) {
-        super._releaseTexture(texture);
+        super.engineTexture._releaseTexture(texture);
         // Set output texture of post process to null if the texture has been released/disposed
         this.scenes.forEach((scene) => {
             // scene.postProcesses.forEach((postProcess) => {
@@ -13104,18 +14609,18 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
     /** @hidden */
     _uploadImageToTexture(texture, image, faceIndex = 0, lod = 0) {
         var gl = this._gl;
-        var textureType = this._getWebGLTextureType(texture.type);
-        var format = this._getInternalFormat(texture.format);
-        var internalFormat = this._getRGBABufferInternalSizedFormat(texture.type, format);
+        var textureType = this.engineTexture._getWebGLTextureType(texture.type);
+        var format = this.engineTexture._getInternalFormat(texture.format);
+        var internalFormat = this.engineTexture._getRGBABufferInternalSizedFormat(texture.type, format);
         var bindTarget = texture.isCube ? gl.TEXTURE_CUBE_MAP : gl.TEXTURE_2D;
-        this._bindTextureDirectly(bindTarget, texture, true);
-        this._unpackFlipY(texture.invertY);
+        this.engineTexture._bindTextureDirectly(bindTarget, texture, true);
+        this.engineTexture._unpackFlipY(texture.invertY);
         var target = gl.TEXTURE_2D;
         if (texture.isCube) {
             target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex;
         }
         gl.texImage2D(target, lod, internalFormat, format, textureType, image);
-        this._bindTextureDirectly(bindTarget, null, true);
+        this.engineTexture._bindTextureDirectly(bindTarget, null, true);
     }
     /**
      * Updates the sample count of a render target texture
@@ -13152,22 +14657,22 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
                 throw new Error("Unable to create multi sampled framebuffer");
             }
             texture._MSAAFramebuffer = framebuffer;
-            this._bindUnboundFramebuffer(texture._MSAAFramebuffer);
+            this.engineFramebuffer._bindUnboundFramebuffer(texture._MSAAFramebuffer);
             var colorRenderbuffer = gl.createRenderbuffer();
             if (!colorRenderbuffer) {
                 throw new Error("Unable to create multi sampled framebuffer");
             }
             gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, this._getRGBAMultiSampleBufferFormat(texture.type), texture.width, texture.height);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, this.engineTexture._getRGBAMultiSampleBufferFormat(texture.type), texture.width, texture.height);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
             texture._MSAARenderBuffer = colorRenderbuffer;
         }
         else {
-            this._bindUnboundFramebuffer(texture._framebuffer);
+            this.engineFramebuffer._bindUnboundFramebuffer(texture._framebuffer);
         }
         texture.samples = samples;
-        texture._depthStencilBuffer = this._setupFramebufferDepthAttachments(texture._generateStencilBuffer, texture._generateDepthBuffer, texture.width, texture.height, samples);
-        this._bindUnboundFramebuffer(null);
+        texture._depthStencilBuffer = this.engineFramebuffer._setupFramebufferDepthAttachments(texture._generateStencilBuffer, texture._generateDepthBuffer, texture.width, texture.height, samples);
+        this.engineFramebuffer._bindUnboundFramebuffer(null);
         return samples;
     }
     /**
@@ -13184,7 +14689,7 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
         }
         var gl = this._gl;
         if (texture.isCube) {
-            this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, texture, true);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, texture, true);
             if (comparisonFunction === 0) {
                 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_FUNC, _constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].LEQUAL);
                 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_MODE, gl.NONE);
@@ -13193,10 +14698,10 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
                 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_FUNC, comparisonFunction);
                 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
             }
-            this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
         }
         else {
-            this._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
             if (comparisonFunction === 0) {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, _constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].LEQUAL);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.NONE);
@@ -13205,7 +14710,7 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, comparisonFunction);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
             }
-            this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
+            this.engineTexture._bindTextureDirectly(this._gl.TEXTURE_2D, null);
         }
         texture._comparisonFunction = comparisonFunction;
     }
@@ -13221,7 +14726,7 @@ class Engine extends _thinEngine__WEBPACK_IMPORTED_MODULE_4__["ThinEngine"] {
         }
         var result = new _Meshes_webGLDataBuffer__WEBPACK_IMPORTED_MODULE_8__["WebGLDataBuffer"](buffer);
         result.capacity = capacity;
-        this.bindArrayBuffer(result);
+        this.engineVertex.bindArrayBuffer(result);
         this._gl.bufferData(this._gl.ARRAY_BUFFER, capacity, this._gl.DYNAMIC_DRAW);
         return result;
     }
@@ -13643,3103 +15148,34 @@ Engine.SCALEMODE_CEILING = _constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].
 
 /***/ }),
 
-/***/ "./src/Engines/engineStore.ts":
-/*!************************************!*\
-  !*** ./src/Engines/engineStore.ts ***!
-  \************************************/
-/*! exports provided: EngineStore */
+/***/ "./src/Engines/engine.uniform.ts":
+/*!***************************************!*\
+  !*** ./src/Engines/engine.uniform.ts ***!
+  \***************************************/
+/*! exports provided: EngineUniform */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineStore", function() { return EngineStore; });
-/**
- * The engine store class is responsible to hold all the instances of Engine and Scene created
- * during the life time of the application.
- */
-class EngineStore {
-    /**
-     * Gets the latest created engine
-     */
-    static get LastCreatedEngine() {
-        if (this.Instances.length === 0) {
-            return null;
-        }
-        return this.Instances[this.Instances.length - 1];
-    }
-    /**
-     * Gets the latest created scene
-     */
-    static get LastCreatedScene() {
-        return this._LastCreatedScene;
-    }
-}
-/** Gets the list of created engines */
-EngineStore.Instances = new Array();
-/** @hidden */
-EngineStore._LastCreatedScene = null;
-/**
- * Gets or sets a global variable indicating if fallback texture must be used when a texture cannot be loaded
- * @ignorenaming
- */
-EngineStore.UseFallbackTexture = true;
-/**
- * Texture content used if a texture cannot loaded
- * @ignorenaming
- */
-EngineStore.FallbackTexture = "";
-
-
-/***/ }),
-
-/***/ "./src/Engines/index.ts":
-/*!******************************!*\
-  !*** ./src/Engines/index.ts ***!
-  \******************************/
-/*! exports provided: ThinEngine, Engine */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _thinEngine__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./thinEngine */ "./src/Engines/thinEngine.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ThinEngine", function() { return _thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"]; });
-
-/* harmony import */ var _engine__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./engine */ "./src/Engines/engine.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Engine", function() { return _engine__WEBPACK_IMPORTED_MODULE_1__["Engine"]; });
-
-
-
-
-
-/***/ }),
-
-/***/ "./src/Engines/performanceConfigurator.ts":
-/*!************************************************!*\
-  !*** ./src/Engines/performanceConfigurator.ts ***!
-  \************************************************/
-/*! exports provided: PerformanceConfigurator */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PerformanceConfigurator", function() { return PerformanceConfigurator; });
-/** @hidden */
-class PerformanceConfigurator {
-    /** @hidden */
-    static SetMatrixPrecision(use64bits) {
-        PerformanceConfigurator.MatrixTrackPrecisionChange = false;
-        if (use64bits && !PerformanceConfigurator.MatrixUse64Bits) {
-            if (PerformanceConfigurator.MatrixTrackedMatrices) {
-                for (let m = 0; m < PerformanceConfigurator.MatrixTrackedMatrices.length; ++m) {
-                    const matrix = PerformanceConfigurator.MatrixTrackedMatrices[m];
-                    const values = matrix._m;
-                    matrix._m = new Array(16);
-                    for (let i = 0; i < 16; ++i) {
-                        matrix._m[i] = values[i];
-                    }
-                }
-            }
-        }
-        PerformanceConfigurator.MatrixUse64Bits = use64bits;
-        PerformanceConfigurator.MatrixCurrentType = PerformanceConfigurator.MatrixUse64Bits ? Array : Float32Array;
-        PerformanceConfigurator.MatrixTrackedMatrices = null; // reclaim some memory, as we don't need _TrackedMatrices anymore
-    }
-}
-/** @hidden */
-PerformanceConfigurator.MatrixUse64Bits = false;
-/** @hidden */
-PerformanceConfigurator.MatrixTrackPrecisionChange = true;
-/** @hidden */
-PerformanceConfigurator.MatrixCurrentType = Float32Array;
-/** @hidden */
-PerformanceConfigurator.MatrixTrackedMatrices = [];
-
-
-/***/ }),
-
-/***/ "./src/Engines/thinEngine.ts":
-/*!***********************************!*\
-  !*** ./src/Engines/thinEngine.ts ***!
-  \***********************************/
-/*! exports provided: ThinEngine */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ThinEngine", function() { return ThinEngine; });
-/* harmony import */ var _States__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../States */ "./src/States/index.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./src/Engines/constants.ts");
-/* harmony import */ var _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Materials/Textures/internalTexture */ "./src/Materials/Textures/internalTexture.ts");
-/* harmony import */ var _performanceConfigurator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./performanceConfigurator */ "./src/Engines/performanceConfigurator.ts");
-/* harmony import */ var _Misc_domManagement__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Misc/domManagement */ "./src/Misc/domManagement.ts");
-/* harmony import */ var _bufferPointer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./bufferPointer */ "./src/Engines/bufferPointer.ts");
-/* harmony import */ var _webGL2ShaderProcessors__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./webGL2ShaderProcessors */ "./src/Engines/webGL2ShaderProcessors.ts");
-/* harmony import */ var _Misc_devTools__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../Misc/devTools */ "./src/Misc/devTools.ts");
-/* harmony import */ var _webGLPipelineContext__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./webGLPipelineContext */ "./src/Engines/webGLPipelineContext.ts");
-/* harmony import */ var _Materials_effect__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../Materials/effect */ "./src/Materials/effect.ts");
-/* harmony import */ var _Meshes_webGLDataBuffer__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../Meshes/webGLDataBuffer */ "./src/Meshes/webGLDataBuffer.ts");
-/* harmony import */ var _Misc_observable__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../Misc/observable */ "./src/Misc/observable.ts");
-/* harmony import */ var _Misc_canvasGenerator__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../Misc/canvasGenerator */ "./src/Misc/canvasGenerator.ts");
-/* harmony import */ var _engineStore__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./engineStore */ "./src/Engines/engineStore.ts");
-/* harmony import */ var _Misc_logger__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../Misc/logger */ "./src/Misc/logger.ts");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class ThinEngine {
-    /**
-      * Creates a new engine
-      * @param canvasOrContext defines the canvas or WebGL context to use for rendering. If you provide a WebGL context, Babylon.js will not hook events on the canvas (like pointers, keyboards, etc...) so no event observables will be available. This is mostly used when Babylon.js is used as a plugin on a system which alreay used the WebGL context
-      * @param antialias defines enable antialiasing (default: false)
-      * @param options defines further options to be sent to the getContext() function
-      * @param adaptToDeviceRatio defines whether to adapt to the device's viewport characteristics (default: false)
-      */
-    constructor(canvasOrContext, antialias, options, adaptToDeviceRatio = false) {
-        this._badOS = false;
-        /** --------------------------------- uniform ---------------------------------- */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineUniform", function() { return EngineUniform; });
+class EngineUniform {
+    constructor(_gl) {
+        this.webGLVersion = 2;
         /**
-          * Gets or sets a boolean indicating that uniform buffers must be disabled even if they are supported
-          */
+         * Gets or sets a boolean indicating that uniform buffers must be disabled even if they are supported
+         */
         this.disableUniformBuffers = false;
         this._boundUniforms = {};
         this._uniformBuffers = new Array();
-        /** --------------------------------- gl ---------------------------------- */
-        this._webGLVersion = 2.0;
-        this._viewportCached = { x: 0, y: 0, z: 0, w: 0 };
-        this._highPrecisionShadersAllowed = true;
-        /** --------------------------------- renderer ---------------------------------- */
-        this._renderingQueueLaunched = false;
-        this._activeRenderLoops = new Array();
-        this._vaoRecordInProgress = false;
-        this._currentBoundBuffer = new Array();
-        this._mustWipeVertexAttributes = false;
-        this._currentInstanceLocations = new Array();
-        this._currentInstanceBuffers = new Array();
-        this._uintIndicesCurrentlySet = false;
-        this.onBeforeTextureInitObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_11__["Observable"]();
-        this._transformTextureUrl = null;
-        /**
-          * In case you are sharing the context with other applications, it might
-          * be interested to not cache the unpack flip y state to ensure a consistent
-          * value would be set.
-          */
-        this.enableUnpackFlipYCached = true;
-        this._activeChannel = 0;
-        this._currentTextureChannel = -1;
-        this._maxSimultaneousTextures = 0;
-        this._nextFreeTextureSlots = new Array();
-        this._internalTexturesCache = new Array();
-        this._boundTexturesCache = {};
-        this._unpackFlipYCached = null;
-        this._supportsHardwareTextureRescaling = false;
-        this._doNotHandleContextLost = false;
-        /** Gets or sets a boolean indicating if the engine should validate programs after compilation */
-        this.validateShaderPrograms = false;
-        /** --------------------------------- program ---------------------------------- */
-        this._compiledEffects = {};
-        this._currentFramebuffer = null;
-        this._dummyFramebuffer = null;
-        this._colorWrite = true;
-        this._colorWriteChanged = true;
-        this._depthCullingState = new _States__WEBPACK_IMPORTED_MODULE_0__["DepthCullingState"]();
-        this._stencilState = new _States__WEBPACK_IMPORTED_MODULE_0__["StencilState"]();
-        this._alphaState = new _States__WEBPACK_IMPORTED_MODULE_0__["AlphaState"]();
-        this._alphaMode = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].ALPHA_ADD;
-        this._alphaEquation = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].ALPHA_DISABLE;
-        // Defines whether the engine has been created with the premultipliedAlpha option on or not.
-        this.premultipliedAlpha = true;
-        /**
-         * Gets or sets a boolean indicating if depth buffer should be reverse, going from far to near.
-         * This can provide greater z depth for distant objects.
-         */
-        this.useReverseDepthBuffer = false;
-        // Cache
-        this._vertexAttribArraysEnabled = [];
-        this._currentBufferPointers = new Array();
-        /**
-         * Gets or sets a boolean indicating that cache can be kept between frames
-         */
-        this.preventCacheWipeBetweenFrames = false;
-        this._activeRequests = new Array();
-        /**
-         * Gets or sets a boolean indicating if back faces must be culled (true by default)
-         */
-        this.cullBackFaces = true;
-        this._contextWasLost = false;
-        this.hostInformation = {
-            isMobile: false
-        };
-        this._getDepthStencilBuffer = (width, height, samples, internalFormat, msInternalFormat, attachment) => {
-            var gl = this._gl;
-            const depthStencilBuffer = gl.createRenderbuffer();
-            gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilBuffer);
-            if (samples > 1 && gl.renderbufferStorageMultisample) {
-                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, msInternalFormat, width, height);
-            }
-            else {
-                gl.renderbufferStorage(gl.RENDERBUFFER, internalFormat, width, height);
-            }
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, depthStencilBuffer);
-            gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-            return depthStencilBuffer;
-        };
-        let canvas = null;
-        if (!canvasOrContext) {
-            return;
-        }
-        options = options || {};
-        _performanceConfigurator__WEBPACK_IMPORTED_MODULE_3__["PerformanceConfigurator"].SetMatrixPrecision(!!options.useHighPrecisionMatrix);
-        if (canvasOrContext.getContext) {
-            canvas = canvasOrContext;
-            this._renderingCanvas = canvas;
-            if (antialias != null) {
-                options.antialias = antialias;
-            }
-            if (options.preserveDrawingBuffer === undefined) {
-                options.preserveDrawingBuffer = false;
-            }
-            if (options.stencil === undefined) {
-                options.stencil = true;
-            }
-            if (options.premultipliedAlpha === false) {
-                this.premultipliedAlpha = false;
-            }
-            if (navigator && navigator.userAgent) {
-                let ua = navigator.userAgent;
-                this.hostInformation.isMobile = ua.indexOf("Mobile") !== -1;
-            }
-            // GL
-            try {
-                this._gl = canvas.getContext("webgl2", options);
-                if (this._gl) {
-                    this._webGLVersion = 2.0;
-                    // Prevent weird browsers to lie (yeah that happens!)
-                    if (!this._gl.deleteQuery) {
-                        this._webGLVersion = 1.0;
-                    }
-                }
-            }
-            catch (e) {
-                // Do nothing
-            }
-            if (!this._gl) {
-                throw new Error("WebGL not supported");
-            }
-        }
-        // Ensures a consistent color space unpacking of textures cross browser.
-        this._gl.pixelStorei(this._gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, this._gl.NONE);
-        // Viewport
-        const devicePixelRatio = _Misc_domManagement__WEBPACK_IMPORTED_MODULE_4__["DomManagement"].IsWindowObjectExist() ? (window.devicePixelRatio || 1.0) : 1.0;
-        var limitDeviceRatio = devicePixelRatio;
-        this._hardwareScalingLevel = adaptToDeviceRatio ? 1.0 / Math.min(limitDeviceRatio, devicePixelRatio) : 1.0;
-        this.resize();
-        // this._isStencilEnable = options.stencil ? true : false;
-        this._initGLContext();
-        // Prepare buffer pointers
-        for (var i = 0; i < this._caps.maxVertexAttribs; i++) {
-            this._currentBufferPointers[i] = new _bufferPointer__WEBPACK_IMPORTED_MODULE_5__["BufferPointer"]();
-        }
-        // Shader processor
-        this._shaderProcessor = new _webGL2ShaderProcessors__WEBPACK_IMPORTED_MODULE_6__["WebGL2ShaderProcessor"]();
-        this._creationOptions = options;
-        console.log(`lmgl2 base Babylon.js v${ThinEngine.Version} - ${this.description}`);
+        this._gl = _gl;
     }
     /**
-         * Gets a boolean indicating that the engine supports uniform buffers
-         * @see https://doc.babylonjs.com/features/webgl2#uniform-buffer-objets
-         */
+     * Gets a boolean indicating that the engine supports uniform buffers
+     * @see https://doc.babylonjs.com/features/webgl2#uniform-buffer-objets
+     */
     get supportsUniformBuffers() {
         return this.webGLVersion > 1 && !this.disableUniformBuffers;
     }
-    get _shouldUseHighPrecisionShader() {
-        return !!(this._caps.highPrecisionShaderSupported && this._highPrecisionShadersAllowed);
-    }
-    /** --------------------------------- texture ---------------------------------- */
-    /**
-       * Sets an array of texture to the webGL context
-       * @param channel defines the channel where the texture array must be set
-       * @param uniform defines the associated uniform location
-       * @param textures defines the array of textures to bind
-       */
-    setTextureArray(channel, uniform, textures) {
-        if (channel === undefined || !uniform) {
-            return;
-        }
-        if (!this._textureUnits || this._textureUnits.length !== textures.length) {
-            this._textureUnits = new Int32Array(textures.length);
-        }
-        for (let i = 0; i < textures.length; i++) {
-            let texture = textures[i].getInternalTexture();
-            if (texture) {
-                this._textureUnits[i] = channel + i;
-                texture._associatedChannel = channel + i;
-            }
-            else {
-                this._textureUnits[i] = -1;
-            }
-        }
-        this._gl.uniform1iv(uniform, this._textureUnits);
-        for (var index = 0; index < textures.length; index++) {
-            this._setTexture(this._textureUnits[index], textures[index], true);
-        }
-    }
-    /**
-       * Binds an effect to the webGL context
-       * @param effect defines the effect to bind
-       */
-    bindSamplers(effect) {
-        let webGLPipelineContext = effect.getPipelineContext();
-        this._setProgram(webGLPipelineContext.program);
-        var samplers = effect.getSamplers();
-        for (var index = 0; index < samplers.length; index++) {
-            var uniform = effect.getUniform(samplers[index]);
-            if (uniform) {
-                this._boundUniforms[index] = uniform;
-            }
-        }
-        this._currentEffect = null;
-    }
-    /**
-       * Update the sampling mode of a given texture
-       * @param samplingMode defines the required sampling mode
-       * @param texture defines the texture to update
-       * @param generateMipMaps defines whether to generate mipmaps for the texture
-       */
-    updateTextureSamplingMode(samplingMode, texture, generateMipMaps = false) {
-        const target = this._getTextureTarget(texture);
-        var filters = this._getSamplingParameters(samplingMode, texture.generateMipMaps || generateMipMaps);
-        this._setTextureParameterInteger(target, this._gl.TEXTURE_MAG_FILTER, filters.mag, texture);
-        this._setTextureParameterInteger(target, this._gl.TEXTURE_MIN_FILTER, filters.min);
-        if (generateMipMaps) {
-            texture.generateMipMaps = true;
-            this._gl.generateMipmap(target);
-        }
-        this._bindTextureDirectly(target, null);
-        texture.samplingMode = samplingMode;
-    }
-    /** --------------------------------- program ---------------------------------- */
-    _setProgram(program) {
-        if (this._currentProgram !== program) {
-            this._gl.useProgram(program);
-            this._currentProgram = program;
-        }
-    }
-    /** @hidden */
-    _executeWhenRenderingStateIsCompiled(pipelineContext, action) {
-        let webGLPipelineContext = pipelineContext;
-        if (!webGLPipelineContext.isParallelCompiled) {
-            action();
-            return;
-        }
-        let oldHandler = webGLPipelineContext.onCompiled;
-        if (oldHandler) {
-            webGLPipelineContext.onCompiled = () => {
-                oldHandler();
-                action();
-            };
-        }
-        else {
-            webGLPipelineContext.onCompiled = action;
-        }
-    }
-    /** @hidden */
-    _preparePipelineContext(pipelineContext, vertexSourceCode, fragmentSourceCode, createAsRaw, rebuildRebind, defines, transformFeedbackVaryings) {
-        let webGLRenderingState = pipelineContext;
-        if (createAsRaw) {
-            webGLRenderingState.program = this.createRawShaderProgram(webGLRenderingState, vertexSourceCode, fragmentSourceCode, undefined, transformFeedbackVaryings);
-        }
-        else {
-            webGLRenderingState.program = this.createShaderProgram(webGLRenderingState, vertexSourceCode, fragmentSourceCode, defines, undefined, transformFeedbackVaryings);
-        }
-        webGLRenderingState.program.__SPECTOR_rebuildProgram = rebuildRebind;
-    }
-    /**
-       * Creates a new pipeline context
-       * @returns the new pipeline
-       */
-    createPipelineContext() {
-        var pipelineContext = new _webGLPipelineContext__WEBPACK_IMPORTED_MODULE_8__["WebGLPipelineContext"]();
-        pipelineContext.engine = this;
-        if (this._caps.parallelShaderCompile) {
-            pipelineContext.isParallelCompiled = true;
-        }
-        return pipelineContext;
-    }
-    /**
-       * Directly creates a webGL program
-       * @param pipelineContext  defines the pipeline context to attach to
-       * @param vertexCode defines the vertex shader code to use
-       * @param fragmentCode defines the fragment shader code to use
-       * @param context defines the webGL context to use (if not set, the current one will be used)
-       * @param transformFeedbackVaryings defines the list of transform feedback varyings to use
-       * @returns the new webGL program
-       */
-    createRawShaderProgram(pipelineContext, vertexCode, fragmentCode, context, transformFeedbackVaryings = null) {
-        context = context || this._gl;
-        var vertexShader = this._compileRawShader(vertexCode, "vertex");
-        var fragmentShader = this._compileRawShader(fragmentCode, "fragment");
-        return this._createShaderProgram(pipelineContext, vertexShader, fragmentShader, context, transformFeedbackVaryings);
-    }
-    _createShaderProgram(pipelineContext, vertexShader, fragmentShader, context, transformFeedbackVaryings = null) {
-        var shaderProgram = context.createProgram();
-        pipelineContext.program = shaderProgram;
-        if (!shaderProgram) {
-            throw new Error("Unable to create program");
-        }
-        context.attachShader(shaderProgram, vertexShader);
-        context.attachShader(shaderProgram, fragmentShader);
-        context.linkProgram(shaderProgram);
-        pipelineContext.context = context;
-        pipelineContext.vertexShader = vertexShader;
-        pipelineContext.fragmentShader = fragmentShader;
-        if (!pipelineContext.isParallelCompiled) {
-            this._finalizePipelineContext(pipelineContext);
-        }
-        return shaderProgram;
-    }
-    /**
-     * Creates a webGL program
-     * @param pipelineContext  defines the pipeline context to attach to
-     * @param vertexCode  defines the vertex shader code to use
-     * @param fragmentCode defines the fragment shader code to use
-     * @param defines defines the string containing the defines to use to compile the shaders
-     * @param context defines the webGL context to use (if not set, the current one will be used)
-     * @param transformFeedbackVaryings defines the list of transform feedback varyings to use
-     * @returns the new webGL program
-     */
-    createShaderProgram(pipelineContext, vertexCode, fragmentCode, defines, context, transformFeedbackVaryings = null) {
-        context = context || this._gl;
-        var shaderVersion = (this._webGLVersion > 1) ? "#version 300 es\n#define WEBGL2 \n" : "";
-        var vertexShader = this._compileShader(vertexCode, "vertex", defines, shaderVersion);
-        var fragmentShader = this._compileShader(fragmentCode, "fragment", defines, shaderVersion);
-        return this._createShaderProgram(pipelineContext, vertexShader, fragmentShader, context, transformFeedbackVaryings);
-    }
-    /** @hidden */
-    _deletePipelineContext(pipelineContext) {
-        let webGLPipelineContext = pipelineContext;
-        if (webGLPipelineContext && webGLPipelineContext.program) {
-            webGLPipelineContext.program.__SPECTOR_rebuildProgram = null;
-            this._gl.deleteProgram(webGLPipelineContext.program);
-        }
-    }
-    _isRenderingStateCompiled(pipelineContext) {
-        let webGLPipelineContext = pipelineContext;
-        if (this._gl.getProgramParameter(webGLPipelineContext.program, this._caps.parallelShaderCompile.COMPLETION_STATUS_KHR)) {
-            this._finalizePipelineContext(webGLPipelineContext);
-            return true;
-        }
-        return false;
-    }
-    /** --------------------------------- engine info ---------------------------------- */
-    /**
-     * Gets version of the current webGL context
-     */
-    get webGLVersion() {
-        return this._webGLVersion;
-    }
-    /**
-       * Returns the current version of the framework
-       */
-    static get Version() {
-        return "4.2.0";
-    }
-    /**
-     * Returns a string describing the current engine
-     */
-    get description() {
-        let description = "WebGL" + this.webGLVersion;
-        if (this._caps.parallelShaderCompile) {
-            description += " - Parallel shader compilation";
-        }
-        return description;
-    }
-    /**
-     * Returns the current npm package of the sdk
-     */
-    // Not mixed with Version for tooling purpose.
-    static get NpmPackage() {
-        return "babylonjs@4.2.0";
-    }
-    /**
-     * Gets a string identifying the name of the class
-     * @returns "Engine" string
-     */
-    getClassName() {
-        return "ThinEngine";
-    }
-    /**------------------------------------------ document ----------------------------------------------------------- */
-    /** @hidden */
-    _renderLoop() {
-        if (!this._contextWasLost) {
-            var shouldRender = true;
-            // if (!this.renderEvenInBackground && this._windowIsBackground) {
-            //     shouldRender = false;
-            // }
-            if (shouldRender) {
-                // Start new frame
-                this.beginFrame();
-                for (var index = 0; index < this._activeRenderLoops.length; index++) {
-                    var renderFunction = this._activeRenderLoops[index];
-                    renderFunction();
-                }
-                // Present
-                this.endFrame();
-            }
-        }
-        if (this._activeRenderLoops.length > 0) {
-            this._frameHandler = this._queueNewFrame(this._boundRenderFunction, this.getHostWindow());
-        }
-        else {
-            this._renderingQueueLaunched = false;
-        }
-    }
-    /**
-       * Register and execute a render loop. The engine can have more than one render function
-       * @param renderFunction defines the function to continuously execute
-       */
-    runRenderLoop(renderFunction) {
-        if (this._activeRenderLoops.indexOf(renderFunction) !== -1) {
-            return;
-        }
-        this._activeRenderLoops.push(renderFunction);
-        if (!this._renderingQueueLaunched) {
-            this._renderingQueueLaunched = true;
-            this._boundRenderFunction = this._renderLoop.bind(this);
-            this._frameHandler = this._queueNewFrame(this._boundRenderFunction, this.getHostWindow());
-        }
-    }
-    /**
-       * Gets the HTML canvas attached with the current webGL context
-       * @returns a HTML canvas
-       */
-    getRenderingCanvas() {
-        return this._renderingCanvas;
-    }
-    /**
-       * Gets host document
-       * @returns the host document object
-       */
-    getHostDocument() {
-        if (this._renderingCanvas && this._renderingCanvas.ownerDocument) {
-            return this._renderingCanvas.ownerDocument;
-        }
-        return document;
-    }
-    /** @hidden */
-    _prepareWorkingCanvas() {
-        if (this._workingCanvas) {
-            return;
-        }
-        this._workingCanvas = _Misc_canvasGenerator__WEBPACK_IMPORTED_MODULE_12__["CanvasGenerator"].CreateCanvas(1, 1);
-        let context = this._workingCanvas.getContext("2d");
-        if (context) {
-            this._workingContext = context;
-        }
-    }
-    /**
-       * Queue a new function into the requested animation frame pool (ie. this function will be executed byt the browser for the next frame)
-       * @param func - the function to be called
-       * @param requester - the object that will request the next frame. Falls back to window.
-       * @returns frame number
-       */
-    static QueueNewFrame(func, requester) {
-        if (!_Misc_domManagement__WEBPACK_IMPORTED_MODULE_4__["DomManagement"].IsWindowObjectExist()) {
-            if (typeof requestAnimationFrame !== "undefined") {
-                return requestAnimationFrame(func);
-            }
-            return setTimeout(func, 16);
-        }
-        if (!requester) {
-            requester = window;
-        }
-        if (requester.requestPostAnimationFrame) {
-            return requester.requestPostAnimationFrame(func);
-        }
-        else if (requester.requestAnimationFrame) {
-            return requester.requestAnimationFrame(func);
-        }
-        else if (requester.msRequestAnimationFrame) {
-            return requester.msRequestAnimationFrame(func);
-        }
-        else if (requester.webkitRequestAnimationFrame) {
-            return requester.webkitRequestAnimationFrame(func);
-        }
-        else if (requester.mozRequestAnimationFrame) {
-            return requester.mozRequestAnimationFrame(func);
-        }
-        else if (requester.oRequestAnimationFrame) {
-            return requester.oRequestAnimationFrame(func);
-        }
-        else {
-            return window.setTimeout(func, 16);
-        }
-    }
-    /**
-      * Can be used to override the current requestAnimationFrame requester.
-      * @hidden
-      */
-    _queueNewFrame(bindedRenderFunction, requester) {
-        return ThinEngine.QueueNewFrame(bindedRenderFunction, requester);
-    }
-    /**
-       * Gets the current hardware scaling level.
-       * By default the hardware scaling level is computed from the window device ratio.
-       * if level = 1 then the engine will render at the exact resolution of the canvas. If level = 0.5 then the engine will render at twice the size of the canvas.
-       * @returns a number indicating the current hardware scaling level
-       */
-    getHardwareScalingLevel() {
-        return 1.0;
-    }
-    /**
-     * Gets the current render width
-     * @param useScreen defines if screen size must be used (or the current render target if any)
-     * @returns a number defining the current render width
-     */
-    getRenderWidth(useScreen = false) {
-        if (!useScreen && this._currentRenderTarget) {
-            return this._currentRenderTarget.width;
-        }
-        return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferWidth : this._gl.drawingBufferWidth;
-    }
-    /**
-     * Gets the current viewport
-     */
-    get currentViewport() {
-        return this._cachedViewport;
-    }
-    /**
-     * Gets the current render height
-     * @param useScreen defines if screen size must be used (or the current render target if any)
-     * @returns a number defining the current render height
-     */
-    getRenderHeight(useScreen = false) {
-        if (!useScreen && this._currentRenderTarget) {
-            return this._currentRenderTarget.height;
-        }
-        return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferHeight : this._gl.drawingBufferHeight;
-    }
-    /**
-      * Resize the view according to the canvas' size
-      */
-    resize() {
-        let width;
-        let height;
-        if (_Misc_domManagement__WEBPACK_IMPORTED_MODULE_4__["DomManagement"].IsWindowObjectExist()) {
-            width = this._renderingCanvas ? (this._renderingCanvas.clientWidth || this._renderingCanvas.width) : window.innerWidth;
-            height = this._renderingCanvas ? (this._renderingCanvas.clientHeight || this._renderingCanvas.height) : window.innerHeight;
-        }
-        else {
-            width = this._renderingCanvas ? this._renderingCanvas.width : 100;
-            height = this._renderingCanvas ? this._renderingCanvas.height : 100;
-        }
-        this.setSize(width / this._hardwareScalingLevel, height / this._hardwareScalingLevel);
-    }
-    /**
-   * Force a specific size of the canvas
-   * @param width defines the new canvas' width
-   * @param height defines the new canvas' height
-   * @returns true if the size was changed
-   */
-    setSize(width, height) {
-        if (!this._renderingCanvas) {
-            return false;
-        }
-        width = width | 0;
-        height = height | 0;
-        if (this._renderingCanvas.width === width && this._renderingCanvas.height === height) {
-            return false;
-        }
-        this._renderingCanvas.width = width;
-        this._renderingCanvas.height = height;
-        return true;
-    }
-    /**
-     * Gets host window
-     * @returns the host window object
-     */
-    getHostWindow() {
-        if (!_Misc_domManagement__WEBPACK_IMPORTED_MODULE_4__["DomManagement"].IsWindowObjectExist()) {
-            return null;
-        }
-        if (this._renderingCanvas && this._renderingCanvas.ownerDocument && this._renderingCanvas.ownerDocument.defaultView) {
-            return this._renderingCanvas.ownerDocument.defaultView;
-        }
-        return window;
-    }
-    /**------------------------------------------ gl ----------------------------------------------------------- */
-    /** @hidden */
-    _getUnpackAlignement() {
-        return this._gl.getParameter(this._gl.UNPACK_ALIGNMENT);
-    }
-    /**
-       * Send a draw order
-       * @param useTriangles defines if triangles must be used to draw (else wireframe will be used)
-       * @param indexStart defines the starting index
-       * @param indexCount defines the number of index to draw
-       * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
-       */
-    draw(useTriangles, indexStart, indexCount, instancesCount) {
-        this.drawElementsType(useTriangles ? _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleFillMode : _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_WireFrameFillMode, indexStart, indexCount, instancesCount);
-    }
-    /**
-     * Draw a list of points
-     * @param verticesStart defines the index of first vertex to draw
-     * @param verticesCount defines the count of vertices to draw
-     * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
-     */
-    drawPointClouds(verticesStart, verticesCount, instancesCount) {
-        this.drawArraysType(_constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_PointFillMode, verticesStart, verticesCount, instancesCount);
-    }
-    /**
-     * Draw a list of unindexed primitives
-     * @param useTriangles defines if triangles must be used to draw (else wireframe will be used)
-     * @param verticesStart defines the index of first vertex to draw
-     * @param verticesCount defines the count of vertices to draw
-     * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
-     */
-    drawUnIndexed(useTriangles, verticesStart, verticesCount, instancesCount) {
-        this.drawArraysType(useTriangles ? _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleFillMode : _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_WireFrameFillMode, verticesStart, verticesCount, instancesCount);
-    }
-    /**
-     * Draw a list of indexed primitives
-     * @param fillMode defines the primitive to use
-     * @param indexStart defines the starting index
-     * @param indexCount defines the number of index to draw
-     * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
-     */
-    drawElementsType(fillMode, indexStart, indexCount, instancesCount) {
-        // Apply states
-        this.applyStates();
-        this._reportDrawCall();
-        // Render
-        const drawMode = this._drawMode(fillMode);
-        var indexFormat = this._uintIndicesCurrentlySet ? this._gl.UNSIGNED_INT : this._gl.UNSIGNED_SHORT;
-        var mult = this._uintIndicesCurrentlySet ? 4 : 2;
-        if (instancesCount) {
-            this._gl.drawElementsInstanced(drawMode, indexCount, indexFormat, indexStart * mult, instancesCount);
-        }
-        else {
-            this._gl.drawElements(drawMode, indexCount, indexFormat, indexStart * mult);
-        }
-    }
-    /**
-     * Draw a list of unindexed primitives
-     * @param fillMode defines the primitive to use
-     * @param verticesStart defines the index of first vertex to draw
-     * @param verticesCount defines the count of vertices to draw
-     * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
-     */
-    drawArraysType(fillMode, verticesStart, verticesCount, instancesCount) {
-        // Apply states
-        this.applyStates();
-        this._reportDrawCall();
-        const drawMode = this._drawMode(fillMode);
-        if (instancesCount) {
-            this._gl.drawArraysInstanced(drawMode, verticesStart, verticesCount, instancesCount);
-        }
-        else {
-            this._gl.drawArrays(drawMode, verticesStart, verticesCount);
-        }
-    }
-    _drawMode(fillMode) {
-        switch (fillMode) {
-            // Triangle views
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleFillMode:
-                return this._gl.TRIANGLES;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_PointFillMode:
-                return this._gl.POINTS;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_WireFrameFillMode:
-                return this._gl.LINES;
-            // Draw modes
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_PointListDrawMode:
-                return this._gl.POINTS;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_LineListDrawMode:
-                return this._gl.LINES;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_LineLoopDrawMode:
-                return this._gl.LINE_LOOP;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_LineStripDrawMode:
-                return this._gl.LINE_STRIP;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleStripDrawMode:
-                return this._gl.TRIANGLE_STRIP;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleFanDrawMode:
-                return this._gl.TRIANGLE_FAN;
-            default:
-                return this._gl.TRIANGLES;
-        }
-    }
-    /** @hidden */
-    _reportDrawCall() {
-        // Will be implemented by children
-    }
-    /** @hidden */
-    _setupDepthStencilTexture(internalTexture, size, generateStencil, bilinearFiltering, comparisonFunction) {
-        const width = size.width || size;
-        const height = size.height || size;
-        const layers = size.layers || 0;
-        internalTexture.baseWidth = width;
-        internalTexture.baseHeight = height;
-        internalTexture.width = width;
-        internalTexture.height = height;
-        internalTexture.is2DArray = layers > 0;
-        internalTexture.depth = layers;
-        internalTexture.isReady = true;
-        internalTexture.samples = 1;
-        internalTexture.generateMipMaps = false;
-        internalTexture._generateDepthBuffer = true;
-        internalTexture._generateStencilBuffer = generateStencil;
-        internalTexture.samplingMode = bilinearFiltering ? _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_BILINEAR_SAMPLINGMODE : _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE;
-        internalTexture.type = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT;
-        internalTexture._comparisonFunction = comparisonFunction;
-        const gl = this._gl;
-        const target = this._getTextureTarget(internalTexture);
-        const samplingParameters = this._getSamplingParameters(internalTexture.samplingMode, false);
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, samplingParameters.mag);
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, samplingParameters.min);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        if (comparisonFunction === 0) {
-            gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].LEQUAL);
-            gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, gl.NONE);
-        }
-        else {
-            gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, comparisonFunction);
-            gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
-        }
-    }
-    /**
-     * Enable or disable color writing
-     * @param enable defines the state to set
-     */
-    setColorWrite(enable) {
-        if (enable !== this._colorWrite) {
-            this._colorWriteChanged = true;
-            this._colorWrite = enable;
-        }
-    }
-    /**
-     * Gets a boolean indicating if color writing is enabled
-     * @returns the current color writing state
-     */
-    getColorWrite() {
-        return this._colorWrite;
-    }
-    /**
-     * Apply all cached states (depth, culling, stencil and alpha)
-      */
-    applyStates() {
-        this._depthCullingState.apply(this._gl);
-        this._stencilState.apply(this._gl);
-        this._alphaState.apply(this._gl);
-        if (this._colorWriteChanged) {
-            this._colorWriteChanged = false;
-            const enable = this._colorWrite;
-            this._gl.colorMask(enable, enable, enable, enable);
-        }
-    }
-    /**
-       * Clear the current render buffer or the current render target (if any is set up)
-       * @param color defines the color to use
-       * @param backBuffer defines if the back buffer must be cleared
-       * @param depth defines if the depth buffer must be cleared
-       * @param stencil defines if the stencil buffer must be cleared
-       */
-    clear(color, backBuffer, depth, stencil = false) {
-        this.applyStates();
-        var mode = 0;
-        if (backBuffer && color) {
-            this._gl.clearColor(color.r, color.g, color.b, color.a !== undefined ? color.a : 1.0);
-            mode |= this._gl.COLOR_BUFFER_BIT;
-        }
-        if (depth) {
-            if (this.useReverseDepthBuffer) {
-                this._depthCullingState.depthFunc = this._gl.GREATER;
-                this._gl.clearDepth(0.0);
-            }
-            else {
-                this._gl.clearDepth(1.0);
-            }
-            mode |= this._gl.DEPTH_BUFFER_BIT;
-        }
-        if (stencil) {
-            this._gl.clearStencil(0);
-            mode |= this._gl.STENCIL_BUFFER_BIT;
-        }
-        this._gl.clear(mode);
-    }
-    /**
-       * Set the WebGL's viewport
-       * @param viewport defines the viewport element to be used
-       * @param requiredWidth defines the width required for rendering. If not provided the rendering canvas' width is used
-       * @param requiredHeight defines the height required for rendering. If not provided the rendering canvas' height is used
-       */
-    setViewport(viewport, requiredWidth, requiredHeight) {
-        var width = requiredWidth || this.getRenderWidth();
-        var height = requiredHeight || this.getRenderHeight();
-        var x = viewport.x || 0;
-        var y = viewport.y || 0;
-        this._cachedViewport = viewport;
-        this._viewport(x * width, y * height, width * viewport.width, height * viewport.height);
-    }
-    _viewport(x, y, width, height) {
-        if (x !== this._viewportCached.x ||
-            y !== this._viewportCached.y ||
-            width !== this._viewportCached.z ||
-            height !== this._viewportCached.w) {
-            this._viewportCached.x = x;
-            this._viewportCached.y = y;
-            this._viewportCached.z = width;
-            this._viewportCached.w = height;
-            this._gl.viewport(x, y, width, height);
-        }
-    }
-    /**
-       * Gets the object containing all engine capabilities
-       * @returns the EngineCapabilities object
-       */
-    getCaps() {
-        return this._caps;
-    }
-    /**
-     * Get the current error code of the webGL context
-     * @returns the error code
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getError
-     */
-    getError() {
-        return this._gl.getError();
-    }
-    _initGLContext() {
-        // Caps
-        this._caps = {
-            maxTexturesImageUnits: this._gl.getParameter(this._gl.MAX_TEXTURE_IMAGE_UNITS),
-            maxCombinedTexturesImageUnits: this._gl.getParameter(this._gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS),
-            maxVertexTextureImageUnits: this._gl.getParameter(this._gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-            maxTextureSize: this._gl.getParameter(this._gl.MAX_TEXTURE_SIZE),
-            maxSamples: this._webGLVersion > 1 ? this._gl.getParameter(this._gl.MAX_SAMPLES) : 1,
-            maxCubemapTextureSize: this._gl.getParameter(this._gl.MAX_CUBE_MAP_TEXTURE_SIZE),
-            maxRenderTextureSize: this._gl.getParameter(this._gl.MAX_RENDERBUFFER_SIZE),
-            maxVertexAttribs: this._gl.getParameter(this._gl.MAX_VERTEX_ATTRIBS),
-            maxVaryingVectors: this._gl.getParameter(this._gl.MAX_VARYING_VECTORS),
-            maxFragmentUniformVectors: this._gl.getParameter(this._gl.MAX_FRAGMENT_UNIFORM_VECTORS),
-            maxVertexUniformVectors: this._gl.getParameter(this._gl.MAX_VERTEX_UNIFORM_VECTORS),
-            parallelShaderCompile: this._gl.getExtension('KHR_parallel_shader_compile'),
-            standardDerivatives: this._webGLVersion > 1 || (this._gl.getExtension('OES_standard_derivatives') !== null),
-            maxAnisotropy: 1,
-            astc: this._gl.getExtension('WEBGL_compressed_texture_astc') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_astc'),
-            bptc: this._gl.getExtension('EXT_texture_compression_bptc') || this._gl.getExtension('WEBKIT_EXT_texture_compression_bptc'),
-            s3tc: this._gl.getExtension('WEBGL_compressed_texture_s3tc') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc'),
-            pvrtc: this._gl.getExtension('WEBGL_compressed_texture_pvrtc') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc'),
-            etc1: this._gl.getExtension('WEBGL_compressed_texture_etc1') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_etc1'),
-            etc2: this._gl.getExtension('WEBGL_compressed_texture_etc') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_etc') ||
-                this._gl.getExtension('WEBGL_compressed_texture_es3_0'),
-            textureAnisotropicFilterExtension: this._gl.getExtension('EXT_texture_filter_anisotropic') || this._gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic') || this._gl.getExtension('MOZ_EXT_texture_filter_anisotropic'),
-            uintIndices: this._webGLVersion > 1 || this._gl.getExtension('OES_element_index_uint') !== null,
-            fragmentDepthSupported: this._webGLVersion > 1 || this._gl.getExtension('EXT_frag_depth') !== null,
-            highPrecisionShaderSupported: false,
-            timerQuery: this._gl.getExtension('EXT_disjoint_timer_query_webgl2') || this._gl.getExtension("EXT_disjoint_timer_query"),
-            canUseTimestampForTimerQuery: false,
-            drawBuffersExtension: false,
-            maxMSAASamples: 1,
-            colorBufferFloat: this._webGLVersion > 1 && this._gl.getExtension('EXT_color_buffer_float'),
-            textureFloat: (this._webGLVersion > 1 || this._gl.getExtension('OES_texture_float')) ? true : false,
-            textureHalfFloat: (this._webGLVersion > 1 || this._gl.getExtension('OES_texture_half_float')) ? true : false,
-            textureHalfFloatRender: false,
-            textureFloatLinearFiltering: false,
-            textureFloatRender: false,
-            textureHalfFloatLinearFiltering: false,
-            vertexArrayObject: false,
-            instancedArrays: false,
-            textureLOD: (this._webGLVersion > 1 || this._gl.getExtension('EXT_shader_texture_lod')) ? true : false,
-            blendMinMax: false,
-            multiview: this._gl.getExtension('OVR_multiview2'),
-            oculusMultiview: this._gl.getExtension('OCULUS_multiview'),
-            depthTextureExtension: false
-        };
-        // Infos
-        this._glVersion = this._gl.getParameter(this._gl.VERSION);
-        var rendererInfo = this._gl.getExtension("WEBGL_debug_renderer_info");
-        if (rendererInfo != null) {
-            this._glRenderer = this._gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL);
-            this._glVendor = this._gl.getParameter(rendererInfo.UNMASKED_VENDOR_WEBGL);
-        }
-        if (!this._glVendor) {
-            this._glVendor = "Unknown vendor";
-        }
-        if (!this._glRenderer) {
-            this._glRenderer = "Unknown renderer";
-        }
-        // Constants
-        if (this._gl.HALF_FLOAT_OES !== 0x8D61) {
-            this._gl.HALF_FLOAT_OES = 0x8D61; // Half floating-point type (16-bit).
-        }
-        if (this._gl.RGBA16F !== 0x881A) {
-            this._gl.RGBA16F = 0x881A; // RGBA 16-bit floating-point color-renderable internal sized format.
-        }
-        if (this._gl.RGBA32F !== 0x8814) {
-            this._gl.RGBA32F = 0x8814; // RGBA 32-bit floating-point color-renderable internal sized format.
-        }
-        if (this._gl.DEPTH24_STENCIL8 !== 35056) {
-            this._gl.DEPTH24_STENCIL8 = 35056;
-        }
-        // Extensions
-        if (this._caps.timerQuery) {
-            if (this._webGLVersion === 1) {
-                this._gl.getQuery = this._caps.timerQuery.getQueryEXT.bind(this._caps.timerQuery);
-            }
-            this._caps.canUseTimestampForTimerQuery = this._gl.getQuery(this._caps.timerQuery.TIMESTAMP_EXT, this._caps.timerQuery.QUERY_COUNTER_BITS_EXT) > 0;
-        }
-        this._caps.maxAnisotropy = this._caps.textureAnisotropicFilterExtension ? this._gl.getParameter(this._caps.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
-        this._caps.textureFloatLinearFiltering = this._caps.textureFloat && this._gl.getExtension('OES_texture_float_linear') ? true : false;
-        this._caps.textureFloatRender = this._caps.textureFloat && this._canRenderToFloatFramebuffer() ? true : false;
-        this._caps.textureHalfFloatLinearFiltering = (this._webGLVersion > 1 || (this._caps.textureHalfFloat && this._gl.getExtension('OES_texture_half_float_linear'))) ? true : false;
-        // Checks if some of the format renders first to allow the use of webgl inspector.
-        if (this._webGLVersion > 1) {
-            if (this._gl.HALF_FLOAT_OES !== 0x140B) {
-                this._gl.HALF_FLOAT_OES = 0x140B;
-            }
-        }
-        this._caps.textureHalfFloatRender = this._caps.textureHalfFloat && this._canRenderToHalfFloatFramebuffer();
-        // Draw buffers
-        if (this._webGLVersion > 1) {
-            this._caps.drawBuffersExtension = true;
-            this._caps.maxMSAASamples = this._gl.getParameter(this._gl.MAX_SAMPLES);
-        }
-        else {
-            var drawBuffersExtension = this._gl.getExtension('WEBGL_draw_buffers');
-            if (drawBuffersExtension !== null) {
-                this._caps.drawBuffersExtension = true;
-                this._gl.drawBuffers = drawBuffersExtension.drawBuffersWEBGL.bind(drawBuffersExtension);
-                this._gl.DRAW_FRAMEBUFFER = this._gl.FRAMEBUFFER;
-                for (var i = 0; i < 16; i++) {
-                    this._gl["COLOR_ATTACHMENT" + i + "_WEBGL"] = drawBuffersExtension["COLOR_ATTACHMENT" + i + "_WEBGL"];
-                }
-            }
-        }
-        // Depth Texture
-        if (this._webGLVersion > 1) {
-            this._caps.depthTextureExtension = true;
-        }
-        else {
-            var depthTextureExtension = this._gl.getExtension('WEBGL_depth_texture');
-            if (depthTextureExtension != null) {
-                this._caps.depthTextureExtension = true;
-                this._gl.UNSIGNED_INT_24_8 = depthTextureExtension.UNSIGNED_INT_24_8_WEBGL;
-            }
-        }
-        // Vertex array object
-        this._caps.vertexArrayObject = true;
-        // Instances count
-        if (this._webGLVersion > 1) {
-            this._caps.instancedArrays = true;
-        }
-        else {
-            var instanceExtension = this._gl.getExtension('ANGLE_instanced_arrays');
-            if (instanceExtension != null) {
-                this._caps.instancedArrays = true;
-                this._gl.drawArraysInstanced = instanceExtension.drawArraysInstancedANGLE.bind(instanceExtension);
-                this._gl.drawElementsInstanced = instanceExtension.drawElementsInstancedANGLE.bind(instanceExtension);
-                this._gl.vertexAttribDivisor = instanceExtension.vertexAttribDivisorANGLE.bind(instanceExtension);
-            }
-            else {
-                this._caps.instancedArrays = false;
-            }
-        }
-        if (this._gl.getShaderPrecisionFormat) {
-            var vertex_highp = this._gl.getShaderPrecisionFormat(this._gl.VERTEX_SHADER, this._gl.HIGH_FLOAT);
-            var fragment_highp = this._gl.getShaderPrecisionFormat(this._gl.FRAGMENT_SHADER, this._gl.HIGH_FLOAT);
-            if (vertex_highp && fragment_highp) {
-                this._caps.highPrecisionShaderSupported = vertex_highp.precision !== 0 && fragment_highp.precision !== 0;
-            }
-        }
-        if (this._webGLVersion > 1) {
-            this._caps.blendMinMax = true;
-        }
-        else {
-            const blendMinMaxExtension = this._gl.getExtension('EXT_blend_minmax');
-            if (blendMinMaxExtension != null) {
-                this._caps.blendMinMax = true;
-                this._gl.MAX = blendMinMaxExtension.MAX_EXT;
-                this._gl.MIN = blendMinMaxExtension.MIN_EXT;
-            }
-        }
-        // Depth buffer
-        this._depthCullingState.depthTest = true;
-        this._depthCullingState.depthFunc = this._gl.LEQUAL;
-        this._depthCullingState.depthMask = true;
-        // Texture maps
-        this._maxSimultaneousTextures = this._caps.maxCombinedTexturesImageUnits;
-        for (let slot = 0; slot < this._maxSimultaneousTextures; slot++) {
-            this._nextFreeTextureSlots.push(slot);
-        }
-    }
-    /**
-     * Reads pixels from the current frame buffer. Please note that this function can be slow
-     * @param x defines the x coordinate of the rectangle where pixels must be read
-     * @param y defines the y coordinate of the rectangle where pixels must be read
-     * @param width defines the width of the rectangle where pixels must be read
-     * @param height defines the height of the rectangle where pixels must be read
-     * @param hasAlpha defines whether the output should have alpha or not (defaults to true)
-     * @returns a Uint8Array containing RGBA colors
-     */
-    readPixels(x, y, width, height, hasAlpha = true) {
-        const numChannels = hasAlpha ? 4 : 3;
-        const format = hasAlpha ? this._gl.RGBA : this._gl.RGB;
-        const data = new Uint8Array(height * width * numChannels);
-        this._gl.readPixels(x, y, width, height, format, this._gl.UNSIGNED_BYTE, data);
-        return data;
-    }
-    /**
-       * @hidden
-       */
-    _rescaleTexture(source, destination, scene, internalFormat, onComplete) {
-    }
-    /**
-       * Usually called from Texture.ts.
-       * Passed information to create a WebGLTexture
-       * @param url defines a value which contains one of the following:
-       * * A conventional http URL, e.g. 'http://...' or 'file://...'
-       * * A base64 string of in-line texture data, e.g. 'data:image/jpg;base64,/...'
-       * * An indicator that data being passed using the buffer parameter, e.g. 'data:mytexture.jpg'
-       * @param noMipmap defines a boolean indicating that no mipmaps shall be generated.  Ignored for compressed textures.  They must be in the file
-       * @param invertY when true, image is flipped when loaded.  You probably want true. Certain compressed textures may invert this if their default is inverted (eg. ktx)
-       * @param scene needed for loading to the correct scene
-       * @param samplingMode mode with should be used sample / access the texture (Default: Texture.TRILINEAR_SAMPLINGMODE)
-       * @param onLoad optional callback to be called upon successful completion
-       * @param onError optional callback to be called upon failure
-       * @param buffer a source of a file previously fetched as either a base64 string, an ArrayBuffer (compressed or image format), HTMLImageElement (image format), or a Blob
-       * @param fallback an internal argument in case the function must be called again, due to etc1 not having alpha capabilities
-       * @param format internal format.  Default: RGB when extension is '.jpg' else RGBA.  Ignored for compressed textures
-       * @param forcedExtension defines the extension to use to pick the right loader
-       * @param mimeType defines an optional mime type
-       * @param loaderOptions options to be passed to the loader
-       * @returns a InternalTexture for assignment back into BABYLON.Texture
-       */
-    createTexture(url, noMipmap, invertY, scene, samplingMode = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_TRILINEAR_SAMPLINGMODE, onLoad = null, onError = null, buffer = null, fallback = null, format = null, forcedExtension = null, mimeType, loaderOptions) {
-        url = url || "";
-        const fromData = url.substr(0, 5) === "data:";
-        const fromBlob = url.substr(0, 5) === "blob:";
-        const isBase64 = fromData && url.indexOf(";base64,") !== -1;
-        let texture = fallback ? fallback : new _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_2__["InternalTexture"](this, _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_2__["InternalTextureSource"].Url);
-        const originalUrl = url;
-        if (this._transformTextureUrl && !isBase64 && !fallback && !buffer) {
-            url = this._transformTextureUrl(url);
-        }
-        if (originalUrl !== url) {
-            texture._originalUrl = originalUrl;
-        }
-        // establish the file extension, if possible
-        const lastDot = url.lastIndexOf('.');
-        let extension = forcedExtension ? forcedExtension : (lastDot > -1 ? url.substring(lastDot).toLowerCase() : "");
-        let loader = null;
-        // Remove query string
-        let queryStringIndex = extension.indexOf("?");
-        if (queryStringIndex > -1) {
-            extension = extension.split("?")[0];
-        }
-        for (const availableLoader of ThinEngine._TextureLoaders) {
-            if (availableLoader.canLoad(extension, mimeType)) {
-                loader = availableLoader;
-                break;
-            }
-        }
-        if (scene) {
-            scene._addPendingData(texture);
-        }
-        texture.url = url;
-        texture.generateMipMaps = !noMipmap;
-        texture.samplingMode = samplingMode;
-        texture.invertY = invertY;
-        // if (!this._doNotHandleContextLost) {
-        //     // Keep a link to the buffer only if we plan to handle context lost
-        //     texture._buffer = buffer;
-        // }
-        let onLoadObserver = null;
-        if (onLoad && !fallback) {
-            onLoadObserver = texture.onLoadedObservable.add(onLoad);
-        }
-        if (!fallback) {
-            this._internalTexturesCache.push(texture);
-        }
-        const onInternalError = (message, exception) => {
-            if (scene) {
-                scene._removePendingData(texture);
-            }
-            if (url === originalUrl) {
-                if (onLoadObserver) {
-                    texture.onLoadedObservable.remove(onLoadObserver);
-                }
-                if (_engineStore__WEBPACK_IMPORTED_MODULE_13__["EngineStore"].UseFallbackTexture) {
-                    this.createTexture(_engineStore__WEBPACK_IMPORTED_MODULE_13__["EngineStore"].FallbackTexture, noMipmap, texture.invertY, scene, samplingMode, null, onError, buffer, texture);
-                }
-                if (onError) {
-                    onError((message || "Unknown error") + (_engineStore__WEBPACK_IMPORTED_MODULE_13__["EngineStore"].UseFallbackTexture ? " - Fallback texture was used" : ""), exception);
-                }
-            }
-            else {
-                // fall back to the original url if the transformed url fails to load
-                _Misc_logger__WEBPACK_IMPORTED_MODULE_14__["Logger"].Warn(`Failed to load ${url}, falling back to ${originalUrl}`);
-                this.createTexture(originalUrl, noMipmap, texture.invertY, scene, samplingMode, onLoad, onError, buffer, texture, format, forcedExtension, mimeType, loaderOptions);
-            }
-        };
-        // processing for non-image formats
-        if (loader) {
-            const callback = (data) => {
-                loader.loadData(data, texture, (width, height, loadMipmap, isCompressed, done, loadFailed) => {
-                    if (loadFailed) {
-                        onInternalError("TextureLoader failed to load data");
-                    }
-                    else {
-                        this._prepareWebGLTexture(texture, scene, width, height, texture.invertY, !loadMipmap, isCompressed, () => {
-                            done();
-                            return false;
-                        }, samplingMode);
-                    }
-                }, loaderOptions);
-            };
-            if (!buffer) {
-                this._loadFile(url, (data) => callback(new Uint8Array(data)), undefined, true, (request, exception) => {
-                    onInternalError("Unable to load " + (request ? request.responseURL : url, exception));
-                });
-            }
-            else {
-                if (buffer instanceof ArrayBuffer) {
-                    callback(new Uint8Array(buffer));
-                }
-                else if (ArrayBuffer.isView(buffer)) {
-                    callback(buffer);
-                }
-                else {
-                    if (onError) {
-                        onError("Unable to load: only ArrayBuffer or ArrayBufferView is supported", null);
-                    }
-                }
-            }
-        }
-        else {
-            const onload = (img) => {
-                if (fromBlob && !this._doNotHandleContextLost) {
-                    // We need to store the image if we need to rebuild the texture
-                    // in case of a webgl context lost
-                    texture._buffer = img;
-                }
-                this._prepareWebGLTexture(texture, scene, img.width, img.height, texture.invertY, noMipmap, false, (potWidth, potHeight, continuationCallback) => {
-                    let gl = this._gl;
-                    var isPot = (img.width === potWidth && img.height === potHeight);
-                    let internalFormat = format ? this._getInternalFormat(format) : ((extension === ".jpg") ? gl.RGB : gl.RGBA);
-                    if (isPot) {
-                        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, internalFormat, gl.UNSIGNED_BYTE, img);
-                        return false;
-                    }
-                    let maxTextureSize = this._caps.maxTextureSize;
-                    if (img.width > maxTextureSize || img.height > maxTextureSize || !this._supportsHardwareTextureRescaling) {
-                        this._prepareWorkingCanvas();
-                        if (!this._workingCanvas || !this._workingContext) {
-                            return false;
-                        }
-                        this._workingCanvas.width = potWidth;
-                        this._workingCanvas.height = potHeight;
-                        this._workingContext.drawImage(img, 0, 0, img.width, img.height, 0, 0, potWidth, potHeight);
-                        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, internalFormat, gl.UNSIGNED_BYTE, this._workingCanvas);
-                        texture.width = potWidth;
-                        texture.height = potHeight;
-                        return false;
-                    }
-                    else {
-                        // Using shaders when possible to rescale because canvas.drawImage is lossy
-                        let source = new _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_2__["InternalTexture"](this, _Materials_Textures_internalTexture__WEBPACK_IMPORTED_MODULE_2__["InternalTextureSource"].Temp);
-                        this._bindTextureDirectly(gl.TEXTURE_2D, source, true);
-                        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, internalFormat, gl.UNSIGNED_BYTE, img);
-                        this._rescaleTexture(source, texture, scene, internalFormat, () => {
-                            this._releaseTexture(source);
-                            this._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
-                            continuationCallback();
-                        });
-                    }
-                    return true;
-                }, samplingMode);
-            };
-            if (!fromData || isBase64) {
-                if (buffer && (buffer.decoding || buffer.close)) {
-                    onload(buffer);
-                }
-                else {
-                    ThinEngine._FileToolsLoadImage(url, onload, onInternalError, mimeType);
-                }
-            }
-            else if (typeof buffer === "string" || buffer instanceof ArrayBuffer || ArrayBuffer.isView(buffer) || buffer instanceof Blob) {
-                ThinEngine._FileToolsLoadImage(buffer, onload, onInternalError, mimeType);
-            }
-            else if (buffer) {
-                onload(buffer);
-            }
-        }
-        return texture;
-    }
-    /**
-       * Gets a boolean indicating that only power of 2 textures are supported
-       * Please note that you can still use non power of 2 textures but in this case the engine will forcefully convert them
-       */
-    get needPOTTextures() {
-        return this._webGLVersion < 2;
-    }
-    _getRGBAMultiSampleBufferFormat(type) {
-        if (type === _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_FLOAT) {
-            return this._gl.RGBA32F;
-        }
-        else if (type === _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_HALF_FLOAT) {
-            return this._gl.RGBA16F;
-        }
-        return this._gl.RGBA8;
-    }
-    /** @hidden */
-    _releaseTexture(texture) {
-        this._releaseFramebufferObjects(texture);
-        this._deleteTexture(texture._webGLTexture);
-        // Unbind channels
-        this.unbindAllTextures();
-        var index = this._internalTexturesCache.indexOf(texture);
-        if (index !== -1) {
-            this._internalTexturesCache.splice(index, 1);
-        }
-        // Integrated fixed lod samplers.
-        if (texture._lodTextureHigh) {
-            texture._lodTextureHigh.dispose();
-        }
-        if (texture._lodTextureMid) {
-            texture._lodTextureMid.dispose();
-        }
-        if (texture._lodTextureLow) {
-            texture._lodTextureLow.dispose();
-        }
-        // Integrated irradiance map.
-        if (texture._irradianceTexture) {
-            texture._irradianceTexture.dispose();
-        }
-    }
-    _deleteTexture(texture) {
-        this._gl.deleteTexture(texture);
-    }
-    _unpackFlipY(value) {
-        if (this._unpackFlipYCached !== value) {
-            this._gl.pixelStorei(this._gl.UNPACK_FLIP_Y_WEBGL, value ? 1 : 0);
-            if (this.enableUnpackFlipYCached) {
-                this._unpackFlipYCached = value;
-            }
-        }
-    }
-    /** @hidden */
-    _uploadDataToTextureDirectly(texture, imageData, faceIndex = 0, lod = 0, babylonInternalFormat, useTextureWidthAndHeight = false) {
-        var gl = this._gl;
-        var textureType = this._getWebGLTextureType(texture.type);
-        var format = this._getInternalFormat(texture.format);
-        var internalFormat = babylonInternalFormat === undefined ? this._getRGBABufferInternalSizedFormat(texture.type, texture.format) : this._getInternalFormat(babylonInternalFormat);
-        this._unpackFlipY(texture.invertY);
-        var target = gl.TEXTURE_2D;
-        if (texture.isCube) {
-            target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex;
-        }
-        const lodMaxWidth = Math.round(Math.log(texture.width) * Math.LOG2E);
-        const lodMaxHeight = Math.round(Math.log(texture.height) * Math.LOG2E);
-        const width = useTextureWidthAndHeight ? texture.width : Math.pow(2, Math.max(lodMaxWidth - lod, 0));
-        const height = useTextureWidthAndHeight ? texture.height : Math.pow(2, Math.max(lodMaxHeight - lod, 0));
-        gl.texImage2D(target, lod, internalFormat, width, height, 0, format, textureType, imageData);
-    }
-    _getInternalFormat(format) {
-        var internalFormat = this._gl.RGBA;
-        switch (format) {
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_ALPHA:
-                internalFormat = this._gl.ALPHA;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_LUMINANCE:
-                internalFormat = this._gl.LUMINANCE;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_LUMINANCE_ALPHA:
-                internalFormat = this._gl.LUMINANCE_ALPHA;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED:
-                internalFormat = this._gl.RED;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG:
-                internalFormat = this._gl.RG;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB:
-                internalFormat = this._gl.RGB;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA:
-                internalFormat = this._gl.RGBA;
-                break;
-        }
-        if (this._webGLVersion > 1) {
-            switch (format) {
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED_INTEGER:
-                    internalFormat = this._gl.RED_INTEGER;
-                    break;
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG_INTEGER:
-                    internalFormat = this._gl.RG_INTEGER;
-                    break;
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
-                    internalFormat = this._gl.RGB_INTEGER;
-                    break;
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
-                    internalFormat = this._gl.RGBA_INTEGER;
-                    break;
-            }
-        }
-        return internalFormat;
-    }
-    /**
-     * Update a portion of an internal texture
-     * @param texture defines the texture to update
-     * @param imageData defines the data to store into the texture
-     * @param xOffset defines the x coordinates of the update rectangle
-     * @param yOffset defines the y coordinates of the update rectangle
-     * @param width defines the width of the update rectangle
-     * @param height defines the height of the update rectangle
-     * @param faceIndex defines the face index if texture is a cube (0 by default)
-     * @param lod defines the lod level to update (0 by default)
-     */
-    updateTextureData(texture, imageData, xOffset, yOffset, width, height, faceIndex = 0, lod = 0) {
-        var gl = this._gl;
-        var textureType = this._getWebGLTextureType(texture.type);
-        var format = this._getInternalFormat(texture.format);
-        this._unpackFlipY(texture.invertY);
-        var target = gl.TEXTURE_2D;
-        if (texture.isCube) {
-            target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex;
-        }
-        gl.texSubImage2D(target, lod, xOffset, yOffset, width, height, format, textureType, imageData);
-    }
-    /** @hidden */
-    _uploadArrayBufferViewToTexture(texture, imageData, faceIndex = 0, lod = 0) {
-        var gl = this._gl;
-        var bindTarget = texture.isCube ? gl.TEXTURE_CUBE_MAP : gl.TEXTURE_2D;
-        this._bindTextureDirectly(bindTarget, texture, true);
-        this._uploadDataToTextureDirectly(texture, imageData, faceIndex, lod);
-        this._bindTextureDirectly(bindTarget, null, true);
-    }
-    _getSamplingParameters(samplingMode, generateMipMaps) {
-        var gl = this._gl;
-        var magFilter = gl.NEAREST;
-        var minFilter = gl.NEAREST;
-        switch (samplingMode) {
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_LINEAR_MIPNEAREST:
-                magFilter = gl.LINEAR;
-                if (generateMipMaps) {
-                    minFilter = gl.LINEAR_MIPMAP_NEAREST;
-                }
-                else {
-                    minFilter = gl.LINEAR;
-                }
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_LINEAR_MIPLINEAR:
-                magFilter = gl.LINEAR;
-                if (generateMipMaps) {
-                    minFilter = gl.LINEAR_MIPMAP_LINEAR;
-                }
-                else {
-                    minFilter = gl.LINEAR;
-                }
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_NEAREST_MIPLINEAR:
-                magFilter = gl.NEAREST;
-                if (generateMipMaps) {
-                    minFilter = gl.NEAREST_MIPMAP_LINEAR;
-                }
-                else {
-                    minFilter = gl.NEAREST;
-                }
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_NEAREST_MIPNEAREST:
-                magFilter = gl.NEAREST;
-                if (generateMipMaps) {
-                    minFilter = gl.NEAREST_MIPMAP_NEAREST;
-                }
-                else {
-                    minFilter = gl.NEAREST;
-                }
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_LINEAR_MIPNEAREST:
-                magFilter = gl.NEAREST;
-                if (generateMipMaps) {
-                    minFilter = gl.LINEAR_MIPMAP_NEAREST;
-                }
-                else {
-                    minFilter = gl.LINEAR;
-                }
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_LINEAR_MIPLINEAR:
-                magFilter = gl.NEAREST;
-                if (generateMipMaps) {
-                    minFilter = gl.LINEAR_MIPMAP_LINEAR;
-                }
-                else {
-                    minFilter = gl.LINEAR;
-                }
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_LINEAR:
-                magFilter = gl.NEAREST;
-                minFilter = gl.LINEAR;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_NEAREST:
-                magFilter = gl.NEAREST;
-                minFilter = gl.NEAREST;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_NEAREST_MIPNEAREST:
-                magFilter = gl.LINEAR;
-                if (generateMipMaps) {
-                    minFilter = gl.NEAREST_MIPMAP_NEAREST;
-                }
-                else {
-                    minFilter = gl.NEAREST;
-                }
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_NEAREST_MIPLINEAR:
-                magFilter = gl.LINEAR;
-                if (generateMipMaps) {
-                    minFilter = gl.NEAREST_MIPMAP_LINEAR;
-                }
-                else {
-                    minFilter = gl.NEAREST;
-                }
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_LINEAR:
-                magFilter = gl.LINEAR;
-                minFilter = gl.LINEAR;
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_NEAREST:
-                magFilter = gl.LINEAR;
-                minFilter = gl.NEAREST;
-                break;
-        }
-        return {
-            min: minFilter,
-            mag: magFilter
-        };
-    }
-    _prepareWebGLTextureContinuation(texture, scene, noMipmap, isCompressed, samplingMode) {
-        var gl = this._gl;
-        if (!gl) {
-            return;
-        }
-        var filters = this._getSamplingParameters(samplingMode, !noMipmap);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filters.mag);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filters.min);
-        if (!noMipmap && !isCompressed) {
-            gl.generateMipmap(gl.TEXTURE_2D);
-        }
-        this._bindTextureDirectly(gl.TEXTURE_2D, null);
-        // this.resetTextureCache();
-        if (scene) {
-            scene._removePendingData(texture);
-        }
-        texture.onLoadedObservable.notifyObservers(texture);
-        texture.onLoadedObservable.clear();
-    }
-    /**
-       * Find the next highest power of two.
-       * @param x Number to start search from.
-       * @return Next highest power of two.
-       */
-    static CeilingPOT(x) {
-        x--;
-        x |= x >> 1;
-        x |= x >> 2;
-        x |= x >> 4;
-        x |= x >> 8;
-        x |= x >> 16;
-        x++;
-        return x;
-    }
-    /**
-     * Find the next lowest power of two.
-     * @param x Number to start search from.
-     * @return Next lowest power of two.
-     */
-    static FloorPOT(x) {
-        x = x | (x >> 1);
-        x = x | (x >> 2);
-        x = x | (x >> 4);
-        x = x | (x >> 8);
-        x = x | (x >> 16);
-        return x - (x >> 1);
-    }
-    /**
-     * Find the nearest power of two.
-     * @param x Number to start search from.
-     * @return Next nearest power of two.
-     */
-    static NearestPOT(x) {
-        var c = ThinEngine.CeilingPOT(x);
-        var f = ThinEngine.FloorPOT(x);
-        return (c - x) > (x - f) ? f : c;
-    }
-    /**
-       * Get the closest exponent of two
-       * @param value defines the value to approximate
-       * @param max defines the maximum value to return
-       * @param mode defines how to define the closest value
-       * @returns closest exponent of two of the given value
-       */
-    static GetExponentOfTwo(value, max, mode = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].SCALEMODE_NEAREST) {
-        let pot;
-        switch (mode) {
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].SCALEMODE_FLOOR:
-                pot = ThinEngine.FloorPOT(value);
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].SCALEMODE_NEAREST:
-                pot = ThinEngine.NearestPOT(value);
-                break;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].SCALEMODE_CEILING:
-            default:
-                pot = ThinEngine.CeilingPOT(value);
-                break;
-        }
-        return Math.min(pot, max);
-    }
-    _prepareWebGLTexture(texture, scene, width, height, invertY, noMipmap, isCompressed, processFunction, samplingMode = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_TRILINEAR_SAMPLINGMODE) {
-        var maxTextureSize = this.getCaps().maxTextureSize;
-        var potWidth = Math.min(maxTextureSize, this.needPOTTextures ? ThinEngine.GetExponentOfTwo(width, maxTextureSize) : width);
-        var potHeight = Math.min(maxTextureSize, this.needPOTTextures ? ThinEngine.GetExponentOfTwo(height, maxTextureSize) : height);
-        var gl = this._gl;
-        if (!gl) {
-            return;
-        }
-        if (!texture._webGLTexture) {
-            //  this.resetTextureCache();
-            if (scene) {
-                scene._removePendingData(texture);
-            }
-            return;
-        }
-        this._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
-        this._unpackFlipY(invertY === undefined ? true : (invertY ? true : false));
-        texture.baseWidth = width;
-        texture.baseHeight = height;
-        texture.width = potWidth;
-        texture.height = potHeight;
-        texture.isReady = true;
-        if (processFunction(potWidth, potHeight, () => {
-            this._prepareWebGLTextureContinuation(texture, scene, noMipmap, isCompressed, samplingMode);
-        })) {
-            // Returning as texture needs extra async steps
-            return;
-        }
-        this._prepareWebGLTextureContinuation(texture, scene, noMipmap, isCompressed, samplingMode);
-    }
-    /**
-     * Reset the texture cache to empty state
-     */
-    resetTextureCache() {
-        for (var key in this._boundTexturesCache) {
-            if (!this._boundTexturesCache.hasOwnProperty(key)) {
-                continue;
-            }
-            this._boundTexturesCache[key] = null;
-        }
-        this._currentTextureChannel = -1;
-    }
-    _getRGBABufferInternalSizedFormat(type, format) {
-        if (this._webGLVersion === 1) {
-            if (format !== undefined) {
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_ALPHA:
-                        return this._gl.ALPHA;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_LUMINANCE:
-                        return this._gl.LUMINANCE;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_LUMINANCE_ALPHA:
-                        return this._gl.LUMINANCE_ALPHA;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB:
-                        return this._gl.RGB;
-                }
-            }
-            return this._gl.RGBA;
-        }
-        switch (type) {
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_BYTE:
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED:
-                        return this._gl.R8_SNORM;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG:
-                        return this._gl.RG8_SNORM;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB:
-                        return this._gl.RGB8_SNORM;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED_INTEGER:
-                        return this._gl.R8I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG_INTEGER:
-                        return this._gl.RG8I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
-                        return this._gl.RGB8I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
-                        return this._gl.RGBA8I;
-                    default:
-                        return this._gl.RGBA8_SNORM;
-                }
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_BYTE:
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED:
-                        return this._gl.R8;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG:
-                        return this._gl.RG8;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB:
-                        return this._gl.RGB8; // By default. Other possibilities are RGB565, SRGB8.
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA:
-                        return this._gl.RGBA8; // By default. Other possibilities are RGB5_A1, RGBA4, SRGB8_ALPHA8.
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED_INTEGER:
-                        return this._gl.R8UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG_INTEGER:
-                        return this._gl.RG8UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
-                        return this._gl.RGB8UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
-                        return this._gl.RGBA8UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_ALPHA:
-                        return this._gl.ALPHA;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_LUMINANCE:
-                        return this._gl.LUMINANCE;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_LUMINANCE_ALPHA:
-                        return this._gl.LUMINANCE_ALPHA;
-                    default:
-                        return this._gl.RGBA8;
-                }
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_SHORT:
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED_INTEGER:
-                        return this._gl.R16I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG_INTEGER:
-                        return this._gl.RG16I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
-                        return this._gl.RGB16I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
-                        return this._gl.RGBA16I;
-                    default:
-                        return this._gl.RGBA16I;
-                }
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT:
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED_INTEGER:
-                        return this._gl.R16UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG_INTEGER:
-                        return this._gl.RG16UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
-                        return this._gl.RGB16UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
-                        return this._gl.RGBA16UI;
-                    default:
-                        return this._gl.RGBA16UI;
-                }
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_INT:
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED_INTEGER:
-                        return this._gl.R32I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG_INTEGER:
-                        return this._gl.RG32I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
-                        return this._gl.RGB32I;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
-                        return this._gl.RGBA32I;
-                    default:
-                        return this._gl.RGBA32I;
-                }
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INTEGER: // Refers to UNSIGNED_INT
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED_INTEGER:
-                        return this._gl.R32UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG_INTEGER:
-                        return this._gl.RG32UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB_INTEGER:
-                        return this._gl.RGB32UI;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
-                        return this._gl.RGBA32UI;
-                    default:
-                        return this._gl.RGBA32UI;
-                }
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_FLOAT:
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED:
-                        return this._gl.R32F; // By default. Other possibility is R16F.
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG:
-                        return this._gl.RG32F; // By default. Other possibility is RG16F.
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB:
-                        return this._gl.RGB32F; // By default. Other possibilities are RGB16F, R11F_G11F_B10F, RGB9_E5.
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA:
-                        return this._gl.RGBA32F; // By default. Other possibility is RGBA16F.
-                    default:
-                        return this._gl.RGBA32F;
-                }
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_HALF_FLOAT:
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RED:
-                        return this._gl.R16F;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RG:
-                        return this._gl.RG16F;
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGB:
-                        return this._gl.RGB16F; // By default. Other possibilities are R11F_G11F_B10F, RGB9_E5.
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA:
-                        return this._gl.RGBA16F;
-                    default:
-                        return this._gl.RGBA16F;
-                }
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_6_5:
-                return this._gl.RGB565;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT_10F_11F_11F_REV:
-                return this._gl.R11F_G11F_B10F;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT_5_9_9_9_REV:
-                return this._gl.RGB9_E5;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_4_4_4_4:
-                return this._gl.RGBA4;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_5_5_1:
-                return this._gl.RGB5_A1;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT_2_10_10_10_REV:
-                switch (format) {
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA:
-                        return this._gl.RGB10_A2; // By default. Other possibility is RGB5_A1.
-                    case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA_INTEGER:
-                        return this._gl.RGB10_A2UI;
-                    default:
-                        return this._gl.RGB10_A2;
-                }
-        }
-        return this._gl.RGBA8;
-    }
-    _getWebGLTextureType(type) {
-        if (this._webGLVersion === 1) {
-            switch (type) {
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_FLOAT:
-                    return this._gl.FLOAT;
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_HALF_FLOAT:
-                    return this._gl.HALF_FLOAT_OES;
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_BYTE:
-                    return this._gl.UNSIGNED_BYTE;
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_4_4_4_4:
-                    return this._gl.UNSIGNED_SHORT_4_4_4_4;
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_5_5_1:
-                    return this._gl.UNSIGNED_SHORT_5_5_5_1;
-                case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_6_5:
-                    return this._gl.UNSIGNED_SHORT_5_6_5;
-            }
-            return this._gl.UNSIGNED_BYTE;
-        }
-        switch (type) {
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_BYTE:
-                return this._gl.BYTE;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_BYTE:
-                return this._gl.UNSIGNED_BYTE;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_SHORT:
-                return this._gl.SHORT;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT:
-                return this._gl.UNSIGNED_SHORT;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_INT:
-                return this._gl.INT;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INTEGER: // Refers to UNSIGNED_INT
-                return this._gl.UNSIGNED_INT;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_FLOAT:
-                return this._gl.FLOAT;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_HALF_FLOAT:
-                return this._gl.HALF_FLOAT;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_4_4_4_4:
-                return this._gl.UNSIGNED_SHORT_4_4_4_4;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_5_5_1:
-                return this._gl.UNSIGNED_SHORT_5_5_5_1;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_SHORT_5_6_5:
-                return this._gl.UNSIGNED_SHORT_5_6_5;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT_2_10_10_10_REV:
-                return this._gl.UNSIGNED_INT_2_10_10_10_REV;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT_24_8:
-                return this._gl.UNSIGNED_INT_24_8;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT_10F_11F_11F_REV:
-                return this._gl.UNSIGNED_INT_10F_11F_11F_REV;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT_5_9_9_9_REV:
-                return this._gl.UNSIGNED_INT_5_9_9_9_REV;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_FLOAT_32_UNSIGNED_INT_24_8_REV:
-                return this._gl.FLOAT_32_UNSIGNED_INT_24_8_REV;
-        }
-        return this._gl.UNSIGNED_BYTE;
-    }
-    _activateCurrentTexture() {
-        if (this._currentTextureChannel !== this._activeChannel) {
-            this._gl.activeTexture(this._gl.TEXTURE0 + this._activeChannel);
-            this._currentTextureChannel = this._activeChannel;
-        }
-    }
-    _bindTextureDirectly(target, texture, forTextureDataUpdate = false, force = false) {
-        var wasPreviouslyBound = false;
-        let isTextureForRendering = texture && texture._associatedChannel > -1;
-        if (forTextureDataUpdate && isTextureForRendering) {
-            this._activeChannel = texture._associatedChannel;
-        }
-        let currentTextureBound = this._boundTexturesCache[this._activeChannel];
-        if (currentTextureBound !== texture || force) {
-            this._activateCurrentTexture();
-            if (texture && texture.isMultiview) {
-                this._gl.bindTexture(target, texture ? texture._colorTextureArray : null);
-            }
-            else {
-                this._gl.bindTexture(target, texture ? texture._webGLTexture : null);
-            }
-            this._boundTexturesCache[this._activeChannel] = texture;
-            if (texture) {
-                texture._associatedChannel = this._activeChannel;
-            }
-        }
-        else if (forTextureDataUpdate) {
-            wasPreviouslyBound = true;
-            this._activateCurrentTexture();
-        }
-        if (isTextureForRendering && !forTextureDataUpdate) {
-            this._bindSamplerUniformToChannel(texture._associatedChannel, this._activeChannel);
-        }
-        return wasPreviouslyBound;
-    }
-    /** @hidden */
-    _bindTexture(channel, texture) {
-        if (channel === undefined) {
-            return;
-        }
-        if (texture) {
-            texture._associatedChannel = channel;
-        }
-        this._activeChannel = channel;
-        const target = texture ? this._getTextureTarget(texture) : this._gl.TEXTURE_2D;
-        this._bindTextureDirectly(target, texture);
-    }
-    /**
-     * Unbind all textures from the webGL context
-     */
-    unbindAllTextures() {
-        for (var channel = 0; channel < this._maxSimultaneousTextures; channel++) {
-            this._activeChannel = channel;
-            this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
-            this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
-            if (this.webGLVersion > 1) {
-                this._bindTextureDirectly(this._gl.TEXTURE_3D, null);
-                this._bindTextureDirectly(this._gl.TEXTURE_2D_ARRAY, null);
-            }
-        }
-    }
-    _getTextureTarget(texture) {
-        if (texture.isCube) {
-            return this._gl.TEXTURE_CUBE_MAP;
-        }
-        else if (texture.is3D) {
-            return this._gl.TEXTURE_3D;
-        }
-        else if (texture.is2DArray || texture.isMultiview) {
-            return this._gl.TEXTURE_2D_ARRAY;
-        }
-        return this._gl.TEXTURE_2D;
-    }
-    /**
-     * Sets a texture to the according uniform.
-     * @param channel The texture channel
-     * @param uniform The uniform to set
-     * @param texture The texture to apply
-     */
-    setTexture(channel, uniform, texture) {
-        if (channel === undefined) {
-            return;
-        }
-        if (uniform) {
-            this._boundUniforms[channel] = uniform;
-        }
-        this._setTexture(channel, texture);
-    }
-    _bindSamplerUniformToChannel(sourceSlot, destination) {
-        let uniform = this._boundUniforms[sourceSlot];
-        if (!uniform || uniform._currentState === destination) {
-            return;
-        }
-        this._gl.uniform1i(uniform, destination);
-        uniform._currentState = destination;
-    }
-    _getTextureWrapMode(mode) {
-        switch (mode) {
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_WRAP_ADDRESSMODE:
-                return this._gl.REPEAT;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_CLAMP_ADDRESSMODE:
-                return this._gl.CLAMP_TO_EDGE;
-            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_MIRROR_ADDRESSMODE:
-                return this._gl.MIRRORED_REPEAT;
-        }
-        return this._gl.REPEAT;
-    }
-    /**
-     * Creates a raw texture
-     * @param data defines the data to store in the texture
-     * @param width defines the width of the texture
-     * @param height defines the height of the texture
-     * @param format defines the format of the data
-     * @param generateMipMaps defines if the engine should generate the mip levels
-     * @param invertY defines if data must be stored with Y axis inverted
-     * @param samplingMode defines the required sampling mode (Texture.NEAREST_SAMPLINGMODE by default)
-     * @param compression defines the compression used (null by default)
-     * @param type defines the type fo the data (Engine.TEXTURETYPE_UNSIGNED_INT by default)
-     * @returns the raw texture inside an InternalTexture
-     */
-    createRawTexture(data, width, height, format, generateMipMaps, invertY, samplingMode, compression = null, type = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_7__["_DevTools"].WarnImport("Engine.RawTexture");
-    }
-    /**
-     * Creates a new raw cube texture
-     * @param data defines the array of data to use to create each face
-     * @param size defines the size of the textures
-     * @param format defines the format of the data
-     * @param type defines the type of the data (like Engine.TEXTURETYPE_UNSIGNED_INT)
-     * @param generateMipMaps  defines if the engine should generate the mip levels
-     * @param invertY defines if data must be stored with Y axis inverted
-     * @param samplingMode defines the required sampling mode (like Texture.NEAREST_SAMPLINGMODE)
-     * @param compression defines the compression used (null by default)
-     * @returns the cube texture as an InternalTexture
-     */
-    createRawCubeTexture(data, size, format, type, generateMipMaps, invertY, samplingMode, compression = null) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_7__["_DevTools"].WarnImport("Engine.RawTexture");
-    }
-    /**
-     * Creates a new raw 3D texture
-     * @param data defines the data used to create the texture
-     * @param width defines the width of the texture
-     * @param height defines the height of the texture
-     * @param depth defines the depth of the texture
-     * @param format defines the format of the texture
-     * @param generateMipMaps defines if the engine must generate mip levels
-     * @param invertY defines if data must be stored with Y axis inverted
-     * @param samplingMode defines the required sampling mode (like Texture.NEAREST_SAMPLINGMODE)
-     * @param compression defines the compressed used (can be null)
-     * @param textureType defines the compressed used (can be null)
-     * @returns a new raw 3D texture (stored in an InternalTexture)
-     */
-    createRawTexture3D(data, width, height, depth, format, generateMipMaps, invertY, samplingMode, compression = null, textureType = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_7__["_DevTools"].WarnImport("Engine.RawTexture");
-    }
-    /**
-     * Creates a new raw 2D array texture
-     * @param data defines the data used to create the texture
-     * @param width defines the width of the texture
-     * @param height defines the height of the texture
-     * @param depth defines the number of layers of the texture
-     * @param format defines the format of the texture
-     * @param generateMipMaps defines if the engine must generate mip levels
-     * @param invertY defines if data must be stored with Y axis inverted
-     * @param samplingMode defines the required sampling mode (like Texture.NEAREST_SAMPLINGMODE)
-     * @param compression defines the compressed used (can be null)
-     * @param textureType defines the compressed used (can be null)
-     * @returns a new raw 2D array texture (stored in an InternalTexture)
-     */
-    createRawTexture2DArray(data, width, height, depth, format, generateMipMaps, invertY, samplingMode, compression = null, textureType = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_7__["_DevTools"].WarnImport("Engine.RawTexture");
-    }
-    /**
-     * Gets the default empty cube texture
-     */
-    get emptyCubeTexture() {
-        if (!this._emptyCubeTexture) {
-            var faceData = new Uint8Array(4);
-            var cubeData = [faceData, faceData, faceData, faceData, faceData, faceData];
-            this._emptyCubeTexture = this.createRawCubeTexture(cubeData, 1, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_UNSIGNED_INT, false, false, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE);
-        }
-        return this._emptyCubeTexture;
-    }
-    /**
-     * Gets the default empty 3D texture
-     */
-    get emptyTexture3D() {
-        if (!this._emptyTexture3D) {
-            this._emptyTexture3D = this.createRawTexture3D(new Uint8Array(4), 1, 1, 1, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA, false, false, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE);
-        }
-        return this._emptyTexture3D;
-    }
-    /**
-     * Gets the default empty texture
-     */
-    get emptyTexture() {
-        if (!this._emptyTexture) {
-            this._emptyTexture = this.createRawTexture(new Uint8Array(4), 1, 1, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA, false, false, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE);
-        }
-        return this._emptyTexture;
-    }
-    /**
-     * Gets the default empty 2D array texture
-     */
-    get emptyTexture2DArray() {
-        if (!this._emptyTexture2DArray) {
-            this._emptyTexture2DArray = this.createRawTexture2DArray(new Uint8Array(4), 1, 1, 1, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTUREFORMAT_RGBA, false, false, _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_NEAREST_SAMPLINGMODE);
-        }
-        return this._emptyTexture2DArray;
-    }
-    _setTextureParameterFloat(target, parameter, value, texture) {
-        this._bindTextureDirectly(target, texture, true, true);
-        this._gl.texParameterf(target, parameter, value);
-    }
-    _setAnisotropicLevel(target, internalTexture, anisotropicFilteringLevel) {
-        var anisotropicFilterExtension = this._caps.textureAnisotropicFilterExtension;
-        if (internalTexture.samplingMode !== _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_LINEAR_MIPNEAREST
-            && internalTexture.samplingMode !== _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_LINEAR_MIPLINEAR
-            && internalTexture.samplingMode !== _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_LINEAR_LINEAR) {
-            anisotropicFilteringLevel = 1; // Forcing the anisotropic to 1 because else webgl will force filters to linear
-        }
-        if (anisotropicFilterExtension && internalTexture._cachedAnisotropicFilteringLevel !== anisotropicFilteringLevel) {
-            this._setTextureParameterFloat(target, anisotropicFilterExtension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(anisotropicFilteringLevel, this._caps.maxAnisotropy), internalTexture);
-            internalTexture._cachedAnisotropicFilteringLevel = anisotropicFilteringLevel;
-        }
-    }
-    _setTextureParameterInteger(target, parameter, value, texture) {
-        if (texture) {
-            this._bindTextureDirectly(target, texture, true, true);
-        }
-        this._gl.texParameteri(target, parameter, value);
-    }
-    _setTexture(channel, texture, isPartOfTextureArray = false, depthStencilTexture = false) {
-        // Not ready?
-        if (!texture) {
-            if (this._boundTexturesCache[channel] != null) {
-                this._activeChannel = channel;
-                this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
-                this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
-                if (this.webGLVersion > 1) {
-                    this._bindTextureDirectly(this._gl.TEXTURE_3D, null);
-                    this._bindTextureDirectly(this._gl.TEXTURE_2D_ARRAY, null);
-                }
-            }
-            return false;
-        }
-        // Video
-        if (texture.video) {
-            this._activeChannel = channel;
-            texture.update();
-        }
-        else if (texture.delayLoadState === _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].DELAYLOADSTATE_NOTLOADED) { // Delay loading
-            texture.delayLoad();
-            return false;
-        }
-        let internalTexture;
-        if (depthStencilTexture) {
-            internalTexture = texture.depthStencilTexture;
-        }
-        else if (texture.isReady()) {
-            internalTexture = texture.getInternalTexture();
-        }
-        else if (texture.isCube) {
-            internalTexture = this.emptyCubeTexture;
-        }
-        else if (texture.is3D) {
-            internalTexture = this.emptyTexture3D;
-        }
-        else if (texture.is2DArray) {
-            internalTexture = this.emptyTexture2DArray;
-        }
-        else {
-            internalTexture = this.emptyTexture;
-        }
-        if (!isPartOfTextureArray && internalTexture) {
-            internalTexture._associatedChannel = channel;
-        }
-        let needToBind = true;
-        if (this._boundTexturesCache[channel] === internalTexture) {
-            if (!isPartOfTextureArray) {
-                this._bindSamplerUniformToChannel(internalTexture._associatedChannel, channel);
-            }
-            needToBind = false;
-        }
-        this._activeChannel = channel;
-        const target = this._getTextureTarget(internalTexture);
-        if (needToBind) {
-            this._bindTextureDirectly(target, internalTexture, isPartOfTextureArray);
-        }
-        if (internalTexture && !internalTexture.isMultiview) {
-            // CUBIC_MODE and SKYBOX_MODE both require CLAMP_TO_EDGE.  All other modes use REPEAT.
-            if (internalTexture.isCube && internalTexture._cachedCoordinatesMode !== texture.coordinatesMode) {
-                internalTexture._cachedCoordinatesMode = texture.coordinatesMode;
-                var textureWrapMode = (texture.coordinatesMode !== _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_CUBIC_MODE && texture.coordinatesMode !== _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_SKYBOX_MODE) ? _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_WRAP_ADDRESSMODE : _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURE_CLAMP_ADDRESSMODE;
-                texture.wrapU = textureWrapMode;
-                texture.wrapV = textureWrapMode;
-            }
-            if (internalTexture._cachedWrapU !== texture.wrapU) {
-                internalTexture._cachedWrapU = texture.wrapU;
-                this._setTextureParameterInteger(target, this._gl.TEXTURE_WRAP_S, this._getTextureWrapMode(texture.wrapU), internalTexture);
-            }
-            if (internalTexture._cachedWrapV !== texture.wrapV) {
-                internalTexture._cachedWrapV = texture.wrapV;
-                this._setTextureParameterInteger(target, this._gl.TEXTURE_WRAP_T, this._getTextureWrapMode(texture.wrapV), internalTexture);
-            }
-            if (internalTexture.is3D && internalTexture._cachedWrapR !== texture.wrapR) {
-                internalTexture._cachedWrapR = texture.wrapR;
-                this._setTextureParameterInteger(target, this._gl.TEXTURE_WRAP_R, this._getTextureWrapMode(texture.wrapR), internalTexture);
-            }
-            this._setAnisotropicLevel(target, internalTexture, texture.anisotropicFilteringLevel);
-        }
-        return true;
-    }
-    /** ---------------------------------------- framebuffer--------------------------------------------------------- */
-    /** @hidden */
-    _setupFramebufferDepthAttachments(generateStencilBuffer, generateDepthBuffer, width, height, samples = 1) {
-        var gl = this._gl;
-        // Create the depth/stencil buffer
-        if (generateStencilBuffer && generateDepthBuffer) {
-            return this._getDepthStencilBuffer(width, height, samples, gl.DEPTH_STENCIL, gl.DEPTH24_STENCIL8, gl.DEPTH_STENCIL_ATTACHMENT);
-        }
-        if (generateDepthBuffer) {
-            let depthFormat = gl.DEPTH_COMPONENT16;
-            if (this._webGLVersion > 1) {
-                depthFormat = gl.DEPTH_COMPONENT32F;
-            }
-            return this._getDepthStencilBuffer(width, height, samples, depthFormat, depthFormat, gl.DEPTH_ATTACHMENT);
-        }
-        if (generateStencilBuffer) {
-            return this._getDepthStencilBuffer(width, height, samples, gl.STENCIL_INDEX8, gl.STENCIL_INDEX8, gl.STENCIL_ATTACHMENT);
-        }
-        return null;
-    }
-    /** @hidden */
-    _releaseFramebufferObjects(texture) {
-        var gl = this._gl;
-        if (texture._framebuffer) {
-            gl.deleteFramebuffer(texture._framebuffer);
-            texture._framebuffer = null;
-        }
-        if (texture._depthStencilBuffer) {
-            gl.deleteRenderbuffer(texture._depthStencilBuffer);
-            texture._depthStencilBuffer = null;
-        }
-        if (texture._MSAAFramebuffer) {
-            gl.deleteFramebuffer(texture._MSAAFramebuffer);
-            texture._MSAAFramebuffer = null;
-        }
-        if (texture._MSAARenderBuffer) {
-            gl.deleteRenderbuffer(texture._MSAARenderBuffer);
-            texture._MSAARenderBuffer = null;
-        }
-    }
-    // Thank you : http://stackoverflow.com/questions/28827511/webgl-ios-render-to-floating-point-texture
-    _canRenderToFramebuffer(type) {
-        let gl = this._gl;
-        //clear existing errors
-        while (gl.getError() !== gl.NO_ERROR) { }
-        let successful = true;
-        let texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, this._getRGBABufferInternalSizedFormat(type), 1, 1, 0, gl.RGBA, this._getWebGLTextureType(type), null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        let fb = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-        let status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-        successful = successful && (status === gl.FRAMEBUFFER_COMPLETE);
-        successful = successful && (gl.getError() === gl.NO_ERROR);
-        //try render by clearing frame buffer's color buffer
-        if (successful) {
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            successful = successful && (gl.getError() === gl.NO_ERROR);
-        }
-        //try reading from frame to ensure render occurs (just creating the FBO is not sufficient to determine if rendering is supported)
-        if (successful) {
-            //in practice it's sufficient to just read from the backbuffer rather than handle potentially issues reading from the texture
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            let readFormat = gl.RGBA;
-            let readType = gl.UNSIGNED_BYTE;
-            let buffer = new Uint8Array(4);
-            gl.readPixels(0, 0, 1, 1, readFormat, readType, buffer);
-            successful = successful && (gl.getError() === gl.NO_ERROR);
-        }
-        //clean up
-        gl.deleteTexture(texture);
-        gl.deleteFramebuffer(fb);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        //clear accumulated errors
-        while (!successful && (gl.getError() !== gl.NO_ERROR)) { }
-        return successful;
-    }
-    _canRenderToFloatFramebuffer() {
-        if (this._webGLVersion > 1) {
-            return this._caps.colorBufferFloat;
-        }
-        return this._canRenderToFramebuffer(_constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_FLOAT);
-    }
-    _canRenderToHalfFloatFramebuffer() {
-        if (this._webGLVersion > 1) {
-            return this._caps.colorBufferFloat;
-        }
-        return this._canRenderToFramebuffer(_constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].TEXTURETYPE_HALF_FLOAT);
-    }
-    _createTexture() {
-        let texture = this._gl.createTexture();
-        if (!texture) {
-            throw new Error("Unable to create texture");
-        }
-        return texture;
-    }
-    /**
-     * Gets the list of loaded textures
-     * @returns an array containing all loaded textures
-     */
-    getLoadedTexturesCache() {
-        return this._internalTexturesCache;
-    }
-    /**
-       * Binds the frame buffer to the specified texture.
-       * @param texture The texture to render to or null for the default canvas
-       * @param faceIndex The face of the texture to render to in case of cube texture
-       * @param requiredWidth The width of the target to render to
-       * @param requiredHeight The height of the target to render to
-       * @param forceFullscreenViewport Forces the viewport to be the entire texture/screen if true
-       * @param lodLevel defines the lod level to bind to the frame buffer
-       * @param layer defines the 2d array index to bind to frame buffer to
-       */
-    bindFramebuffer(texture, faceIndex = 0, requiredWidth, requiredHeight, forceFullscreenViewport, lodLevel = 0, layer = 0) {
-        if (this._currentRenderTarget) {
-            this.unBindFramebuffer(this._currentRenderTarget);
-        }
-        this._currentRenderTarget = texture;
-        this._bindUnboundFramebuffer(texture._MSAAFramebuffer ? texture._MSAAFramebuffer : texture._framebuffer);
-        const gl = this._gl;
-        if (texture.is2DArray) {
-            gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture._webGLTexture, lodLevel, layer);
-        }
-        else if (texture.isCube) {
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, texture._webGLTexture, lodLevel);
-        }
-        const depthStencilTexture = texture._depthStencilTexture;
-        if (depthStencilTexture) {
-            const attachment = (depthStencilTexture._generateStencilBuffer) ? gl.DEPTH_STENCIL_ATTACHMENT : gl.DEPTH_ATTACHMENT;
-            if (texture.is2DArray) {
-                gl.framebufferTextureLayer(gl.FRAMEBUFFER, attachment, depthStencilTexture._webGLTexture, lodLevel, layer);
-            }
-            else if (texture.isCube) {
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, depthStencilTexture._webGLTexture, lodLevel);
-            }
-            else {
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, depthStencilTexture._webGLTexture, lodLevel);
-            }
-        }
-        if (this._cachedViewport && !forceFullscreenViewport) {
-            this.setViewport(this._cachedViewport, requiredWidth, requiredHeight);
-        }
-        else {
-            if (!requiredWidth) {
-                requiredWidth = texture.width;
-                if (lodLevel) {
-                    requiredWidth = requiredWidth / Math.pow(2, lodLevel);
-                }
-            }
-            if (!requiredHeight) {
-                requiredHeight = texture.height;
-                if (lodLevel) {
-                    requiredHeight = requiredHeight / Math.pow(2, lodLevel);
-                }
-            }
-            this._viewport(0, 0, requiredWidth, requiredHeight);
-        }
-        this.wipeCaches();
-    }
-    /** @hidden */
-    _bindUnboundFramebuffer(framebuffer) {
-        if (this._currentFramebuffer !== framebuffer) {
-            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, framebuffer);
-            this._currentFramebuffer = framebuffer;
-        }
-    }
-    /**
-     * Unbind the current render target texture from the webGL context
-     * @param texture defines the render target texture to unbind
-     * @param disableGenerateMipMaps defines a boolean indicating that mipmaps must not be generated
-     * @param onBeforeUnbind defines a function which will be called before the effective unbind
-     */
-    unBindFramebuffer(texture, disableGenerateMipMaps = false, onBeforeUnbind) {
-        this._currentRenderTarget = null;
-        // If MSAA, we need to bitblt back to main texture
-        var gl = this._gl;
-        if (texture._MSAAFramebuffer) {
-            if (texture._textureArray) {
-                // This texture is part of a MRT texture, we need to treat all attachments
-                this.unBindMultiColorAttachmentFramebuffer(texture._textureArray, disableGenerateMipMaps, onBeforeUnbind);
-                return;
-            }
-            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, texture._MSAAFramebuffer);
-            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, texture._framebuffer);
-            gl.blitFramebuffer(0, 0, texture.width, texture.height, 0, 0, texture.width, texture.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
-        }
-        if (texture.generateMipMaps && !disableGenerateMipMaps && !texture.isCube) {
-            this._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            this._bindTextureDirectly(gl.TEXTURE_2D, null);
-        }
-        if (onBeforeUnbind) {
-            if (texture._MSAAFramebuffer) {
-                // Bind the correct framebuffer
-                this._bindUnboundFramebuffer(texture._framebuffer);
-            }
-            onBeforeUnbind();
-        }
-        this._bindUnboundFramebuffer(null);
-    }
-    /**
-     * Force a webGL flush (ie. a flush of all waiting webGL commands)
-     */
-    flushFramebuffer() {
-        this._gl.flush();
-    }
-    /**
-     * Unbind the current render target and bind the default framebuffer
-     */
-    restoreDefaultFramebuffer() {
-        if (this._currentRenderTarget) {
-            this.unBindFramebuffer(this._currentRenderTarget);
-        }
-        else {
-            this._bindUnboundFramebuffer(null);
-        }
-        if (this._cachedViewport) {
-            this.setViewport(this._cachedViewport);
-        }
-        this.wipeCaches();
-    }
-    // VBOs
-    /** @hidden */
-    _resetVertexBufferBinding() {
-        this.bindArrayBuffer(null);
-        this._cachedVertexBuffers = null;
-    }
-    /** ---------------------------------------- shader --------------------------------------------------------- */
-    static _ConcatenateShader(source, defines, shaderVersion = "") {
-        return shaderVersion + (defines ? defines + "\n" : "") + source;
-    }
-    _compileShader(source, type, defines, shaderVersion) {
-        return this._compileRawShader(ThinEngine._ConcatenateShader(source, defines, shaderVersion), type);
-    }
-    _compileRawShader(source, type) {
-        var gl = this._gl;
-        var shader = gl.createShader(type === "vertex" ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
-        if (!shader) {
-            throw new Error("Something went wrong while compile the shader.");
-        }
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        return shader;
-    }
-    _getShaderSource(shader) {
-        return this._gl.getShaderSource(shader);
-    }
-    _finalizePipelineContext(pipelineContext) {
-        const context = pipelineContext.context;
-        const vertexShader = pipelineContext.vertexShader;
-        const fragmentShader = pipelineContext.fragmentShader;
-        const program = pipelineContext.program;
-        var linked = context.getProgramParameter(program, context.LINK_STATUS);
-        if (!linked) { // Get more info
-            // Vertex
-            if (!this._gl.getShaderParameter(vertexShader, this._gl.COMPILE_STATUS)) {
-                const log = this._gl.getShaderInfoLog(vertexShader);
-                if (log) {
-                    pipelineContext.vertexCompilationError = log;
-                    throw new Error("VERTEX SHADER " + log);
-                }
-            }
-            // Fragment
-            if (!this._gl.getShaderParameter(fragmentShader, this._gl.COMPILE_STATUS)) {
-                const log = this._gl.getShaderInfoLog(fragmentShader);
-                if (log) {
-                    pipelineContext.fragmentCompilationError = log;
-                    throw new Error("FRAGMENT SHADER " + log);
-                }
-            }
-            var error = context.getProgramInfoLog(program);
-            if (error) {
-                pipelineContext.programLinkError = error;
-                throw new Error(error);
-            }
-        }
-        if (this.validateShaderPrograms) {
-            context.validateProgram(program);
-            var validated = context.getProgramParameter(program, context.VALIDATE_STATUS);
-            if (!validated) {
-                var error = context.getProgramInfoLog(program);
-                if (error) {
-                    pipelineContext.programValidationError = error;
-                    throw new Error(error);
-                }
-            }
-        }
-        context.deleteShader(vertexShader);
-        context.deleteShader(fragmentShader);
-        pipelineContext.vertexShader = undefined;
-        pipelineContext.fragmentShader = undefined;
-        if (pipelineContext.onCompiled) {
-            pipelineContext.onCompiled();
-            pipelineContext.onCompiled = undefined;
-        }
-    }
-    /** ---------------------------------------- 抽象接口 --------------------------------------------------------- */
-    /**
-     * Loads an image as an HTMLImageElement.
-     * @param input url string, ArrayBuffer, or Blob to load
-     * @param onLoad callback called when the image successfully loads
-     * @param onError callback called when the image fails to load
-     * @param offlineProvider offline provider for caching
-     * @param mimeType optional mime type
-     * @returns the HTMLImageElement of the loaded image
-     * @hidden
-     */
-    static _FileToolsLoadImage(input, onLoad, onError, mimeType) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_7__["_DevTools"].WarnImport("FileTools");
-    }
-    /**
-     * Loads a file from a url
-     * @param url url to load
-     * @param onSuccess callback called when the file successfully loads
-     * @param onProgress callback called while file is loading (if the server supports this mode)
-     * @param offlineProvider defines the offline provider for caching
-     * @param useArrayBuffer defines a boolean indicating that date must be returned as ArrayBuffer
-     * @param onError callback called when the file fails to load
-     * @returns a file request object
-     * @hidden
-     */
-    static _FileToolsLoadFile(url, onSuccess, onProgress, useArrayBuffer, onError) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_7__["_DevTools"].WarnImport("FileTools");
-    }
-    /** --------------------------------depth-------------------------------------- */
-    /**
-     * Gets the depth culling state manager
-     */
-    get depthCullingState() {
-        return this._depthCullingState;
-    }
-    /** -------------------------------- effect -------------------------------------- */
-    /**
-       * Create a new effect (used to store vertex/fragment shaders)
-       * @param baseName defines the base name of the effect (The name of file without .fragment.fx or .vertex.fx)
-       * @param attributesNamesOrOptions defines either a list of attribute names or an IEffectCreationOptions object
-       * @param uniformsNamesOrEngine defines either a list of uniform names or the engine to use
-       * @param samplers defines an array of string used to represent textures
-       * @param defines defines the string containing the defines to use to compile the shaders
-       * @param fallbacks defines the list of potential fallbacks to use if shader conmpilation fails
-       * @param onCompiled defines a function to call when the effect creation is successful
-       * @param onError defines a function to call when the effect creation has failed
-       * @param indexParameters defines an object containing the index values to use to compile shaders (like the maximum number of simultaneous lights)
-       * @returns the new Effect
-       */
-    createEffect(baseName, attributesNamesOrOptions, uniformsNamesOrEngine, samplers, defines, fallbacks, onCompiled, onError, indexParameters) {
-        var vertex = baseName.vertexElement || baseName.vertex || baseName.vertexToken || baseName.vertexSource || baseName;
-        var fragment = baseName.fragmentElement || baseName.fragment || baseName.fragmentToken || baseName.fragmentSource || baseName;
-        var name = vertex + "+" + fragment + "@" + (defines ? defines : attributesNamesOrOptions.defines);
-        if (this._compiledEffects[name]) {
-            var compiledEffect = this._compiledEffects[name];
-            if (onCompiled && compiledEffect.isReady()) {
-                onCompiled(compiledEffect);
-            }
-            return compiledEffect;
-        }
-        var effect = new _Materials_effect__WEBPACK_IMPORTED_MODULE_9__["Effect"](baseName, attributesNamesOrOptions, uniformsNamesOrEngine, samplers, this, defines, fallbacks, onCompiled, onError, indexParameters);
-        effect._key = name;
-        this._compiledEffects[name] = effect;
-        return effect;
-    }
-    /**
-       * Activates an effect, mkaing it the current one (ie. the one used for rendering)
-       * @param effect defines the effect to activate
-       */
-    enableEffect(effect) {
-        if (!effect || effect === this._currentEffect) {
-            return;
-        }
-        // Use program
-        this.bindSamplers(effect);
-        this._currentEffect = effect;
-        if (effect.onBind) {
-            effect.onBind(effect);
-        }
-        if (effect._onBindObservable) {
-            effect._onBindObservable.notifyObservers(effect);
-        }
-    }
-    /** @hidden */
-    _releaseEffect(effect) {
-        if (this._compiledEffects[effect._key]) {
-            delete this._compiledEffects[effect._key];
-            this._deletePipelineContext(effect.getPipelineContext());
-        }
-    }
-    /**
-       * Force the engine to release all cached effects. This means that next effect compilation will have to be done completely even if a similar effect was already compiled
-       */
-    releaseEffects() {
-        for (var name in this._compiledEffects) {
-            let webGLPipelineContext = this._compiledEffects[name].getPipelineContext();
-            this._deletePipelineContext(webGLPipelineContext);
-        }
-        this._compiledEffects = {};
-    }
-    /**
-     * Gets a boolean indicating if all created effects are ready
-     * @returns true if all effects are ready
-     */
-    areAllEffectsReady() {
-        for (var key in this._compiledEffects) {
-            let effect = this._compiledEffects[key];
-            if (!effect.isReady()) {
-                return false;
-            }
-        }
-        return true;
-    }
-    /** -------------------------------- vao -------------------------------------- */
-    /**
-       * Unbind all instance attributes
-       */
-    unbindInstanceAttributes() {
-        var boundBuffer;
-        for (var i = 0, ul = this._currentInstanceLocations.length; i < ul; i++) {
-            var instancesBuffer = this._currentInstanceBuffers[i];
-            if (boundBuffer != instancesBuffer && instancesBuffer.references) {
-                boundBuffer = instancesBuffer;
-                this.bindArrayBuffer(instancesBuffer);
-            }
-            var offsetLocation = this._currentInstanceLocations[i];
-            this._gl.vertexAttribDivisor(offsetLocation, 0);
-        }
-        this._currentInstanceBuffers.length = 0;
-        this._currentInstanceLocations.length = 0;
-    }
-    /**
-       * Records a vertex array object
-       * @see https://doc.babylonjs.com/features/webgl2#vertex-array-objects
-       * @param vertexBuffers defines the list of vertex buffers to store
-       * @param indexBuffer defines the index buffer to store
-       * @param effect defines the effect to store
-       * @returns the new vertex array object
-       */
-    recordVertexArrayObject(vertexBuffers, indexBuffer, effect) {
-        var vao = this._gl.createVertexArray();
-        this._vaoRecordInProgress = true;
-        this._gl.bindVertexArray(vao);
-        this._mustWipeVertexAttributes = true;
-        this._bindVertexBuffersAttributes(vertexBuffers, effect);
-        this.bindIndexBuffer(indexBuffer);
-        this._vaoRecordInProgress = false;
-        this._gl.bindVertexArray(null);
-        return vao;
-    }
-    /**
-     * Bind a specific vertex array object
-     * @see https://doc.babylonjs.com/features/webgl2#vertex-array-objects
-     * @param vertexArrayObject defines the vertex array object to bind
-     * @param indexBuffer defines the index buffer to bind
-     */
-    bindVertexArrayObject(vertexArrayObject, indexBuffer) {
-        if (this._cachedVertexArrayObject !== vertexArrayObject) {
-            this._cachedVertexArrayObject = vertexArrayObject;
-            this._gl.bindVertexArray(vertexArrayObject);
-            this._cachedVertexBuffers = null;
-            this._cachedIndexBuffer = null;
-            this._uintIndicesCurrentlySet = indexBuffer != null && indexBuffer.is32Bits;
-            this._mustWipeVertexAttributes = true;
-        }
-    }
-    /** @hidden */
-    _bindIndexBufferWithCache(indexBuffer) {
-        if (indexBuffer == null) {
-            return;
-        }
-        if (this._cachedIndexBuffer !== indexBuffer) {
-            this._cachedIndexBuffer = indexBuffer;
-            this.bindIndexBuffer(indexBuffer);
-            this._uintIndicesCurrentlySet = indexBuffer.is32Bits;
-        }
-    }
-    _vertexAttribPointer(buffer, indx, size, type, normalized, stride, offset) {
-        var pointer = this._currentBufferPointers[indx];
-        if (!pointer) {
-            return;
-        }
-        var changed = false;
-        if (!pointer.active) {
-            changed = true;
-            pointer.active = true;
-            pointer.index = indx;
-            pointer.size = size;
-            pointer.type = type;
-            pointer.normalized = normalized;
-            pointer.stride = stride;
-            pointer.offset = offset;
-            pointer.buffer = buffer;
-        }
-        else {
-            if (pointer.buffer !== buffer) {
-                pointer.buffer = buffer;
-                changed = true;
-            }
-            if (pointer.size !== size) {
-                pointer.size = size;
-                changed = true;
-            }
-            if (pointer.type !== type) {
-                pointer.type = type;
-                changed = true;
-            }
-            if (pointer.normalized !== normalized) {
-                pointer.normalized = normalized;
-                changed = true;
-            }
-            if (pointer.stride !== stride) {
-                pointer.stride = stride;
-                changed = true;
-            }
-            if (pointer.offset !== offset) {
-                pointer.offset = offset;
-                changed = true;
-            }
-        }
-        if (changed || this._vaoRecordInProgress) {
-            this.bindArrayBuffer(buffer);
-            this._gl.vertexAttribPointer(indx, size, type, normalized, stride, offset);
-        }
-    }
-    _bindVertexBuffersAttributes(vertexBuffers, effect) {
-        var attributes = effect.getAttributesNames();
-        if (!this._vaoRecordInProgress) {
-            this._unbindVertexArrayObject();
-        }
-        this.unbindAllAttributes();
-        for (var index = 0; index < attributes.length; index++) {
-            var order = effect.getAttributeLocation(index);
-            if (order >= 0) {
-                var vertexBuffer = vertexBuffers[attributes[index]];
-                if (!vertexBuffer) {
-                    continue;
-                }
-                this._gl.enableVertexAttribArray(order);
-                if (!this._vaoRecordInProgress) {
-                    this._vertexAttribArraysEnabled[order] = true;
-                }
-                var buffer = vertexBuffer.getBuffer();
-                if (buffer) {
-                    this._vertexAttribPointer(buffer, order, vertexBuffer.getSize(), vertexBuffer.type, vertexBuffer.normalized, vertexBuffer.byteStride, vertexBuffer.byteOffset);
-                    if (vertexBuffer.getIsInstanced()) {
-                        this._gl.vertexAttribDivisor(order, vertexBuffer.getInstanceDivisor());
-                        if (!this._vaoRecordInProgress) {
-                            this._currentInstanceLocations.push(order);
-                            this._currentInstanceBuffers.push(buffer);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-       * Bind a list of vertex buffers to the webGL context
-       * @param vertexBuffers defines the list of vertex buffers to bind
-       * @param indexBuffer defines the index buffer to bind
-       * @param effect defines the effect associated with the vertex buffers
-       */
-    bindBuffers(vertexBuffers, indexBuffer, effect) {
-        if (this._cachedVertexBuffers !== vertexBuffers || this._cachedEffectForVertexBuffers !== effect) {
-            this._cachedVertexBuffers = vertexBuffers;
-            this._cachedEffectForVertexBuffers = effect;
-            this._bindVertexBuffersAttributes(vertexBuffers, effect);
-        }
-        this._bindIndexBufferWithCache(indexBuffer);
-    }
-    /**
-       * Release and free the memory of a vertex array object
-       * @param vao defines the vertex array object to delete
-       */
-    releaseVertexArrayObject(vao) {
-        this._gl.deleteVertexArray(vao);
-    }
-    /**
-      * Creates a vertex buffer
-      * @param data the data for the vertex buffer
-      * @returns the new WebGL static buffer
-      */
-    createVertexBuffer(data) {
-        return this._createVertexBuffer(data, this._gl.STATIC_DRAW);
-    }
-    _deleteBuffer(buffer) {
-        this._gl.deleteBuffer(buffer.underlyingResource);
-    }
-    /** @hidden */
-    _releaseBuffer(buffer) {
-        buffer.references--;
-        if (buffer.references === 0) {
-            this._deleteBuffer(buffer);
-            return true;
-        }
-        return false;
-    }
-    /**
-       * Gets the lsit of active attributes for a given webGL program
-       * @param pipelineContext defines the pipeline context to use
-       * @param attributesNames defines the list of attribute names to get
-       * @returns an array of indices indicating the offset of each attribute
-       */
-    getAttributes(pipelineContext, attributesNames) {
-        var results = [];
-        let webGLPipelineContext = pipelineContext;
-        for (var index = 0; index < attributesNames.length; index++) {
-            try {
-                results.push(this._gl.getAttribLocation(webGLPipelineContext.program, attributesNames[index]));
-            }
-            catch (e) {
-                results.push(-1);
-            }
-        }
-        return results;
-    }
-    _unbindVertexArrayObject() {
-        if (!this._cachedVertexArrayObject) {
-            return;
-        }
-        this._cachedVertexArrayObject = null;
-        this._gl.bindVertexArray(null);
-    }
-    /**
-       * Bind a webGL buffer to the webGL context
-       * @param buffer defines the buffer to bind
-       */
-    bindArrayBuffer(buffer) {
-        if (!this._vaoRecordInProgress) {
-            this._unbindVertexArrayObject();
-        }
-        this.bindBuffer(buffer, this._gl.ARRAY_BUFFER);
-    }
-    /**
-      * Creates a new index buffer
-      * @param indices defines the content of the index buffer
-      * @param updatable defines if the index buffer must be updatable
-      * @returns a new webGL buffer
-      */
-    createIndexBuffer(indices, updatable) {
-        var vbo = this._gl.createBuffer();
-        let dataBuffer = new _Meshes_webGLDataBuffer__WEBPACK_IMPORTED_MODULE_10__["WebGLDataBuffer"](vbo);
-        if (!vbo) {
-            throw new Error("Unable to create index buffer");
-        }
-        this.bindIndexBuffer(dataBuffer);
-        const data = this._normalizeIndexData(indices);
-        this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, data, updatable ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW);
-        this._resetIndexBufferBinding();
-        dataBuffer.references = 1;
-        dataBuffer.is32Bits = (data.BYTES_PER_ELEMENT === 4);
-        return dataBuffer;
-    }
-    _createVertexBuffer(data, usage) {
-        var vbo = this._gl.createBuffer();
-        if (!vbo) {
-            throw new Error("Unable to create vertex buffer");
-        }
-        let dataBuffer = new _Meshes_webGLDataBuffer__WEBPACK_IMPORTED_MODULE_10__["WebGLDataBuffer"](vbo);
-        this.bindArrayBuffer(dataBuffer);
-        if (data instanceof Array) {
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(data), this._gl.STATIC_DRAW);
-        }
-        else {
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, this._gl.STATIC_DRAW);
-        }
-        this._resetVertexBufferBinding();
-        dataBuffer.references = 1;
-        return dataBuffer;
-    }
-    /**
-       * Creates a dynamic vertex buffer
-       * @param data the data for the dynamic vertex buffer
-       * @returns the new WebGL dynamic buffer
-       */
-    createDynamicVertexBuffer(data) {
-        return this._createVertexBuffer(data, this._gl.DYNAMIC_DRAW);
-    }
-    _resetIndexBufferBinding() {
-        this.bindIndexBuffer(null);
-        this._cachedIndexBuffer = null;
-    }
-    _normalizeIndexData(indices) {
-        if (indices instanceof Uint16Array) {
-            return indices;
-        }
-        // Check 32 bit support
-        if (this._caps.uintIndices) {
-            if (indices instanceof Uint32Array) {
-                return indices;
-            }
-            else {
-                // number[] or Int32Array, check if 32 bit is necessary
-                for (var index = 0; index < indices.length; index++) {
-                    if (indices[index] >= 65535) {
-                        return new Uint32Array(indices);
-                    }
-                }
-                return new Uint16Array(indices);
-            }
-        }
-        // No 32 bit support, force conversion to 16 bit (values greater 16 bit are lost)
-        return new Uint16Array(indices);
-    }
-    /**
-     * Bind a specific block at a given index in a specific shader program
-     * @param pipelineContext defines the pipeline context to use
-     * @param blockName defines the block name
-     * @param index defines the index where to bind the block
-     */
-    bindUniformBlock(pipelineContext, blockName, index) {
-        let program = pipelineContext.program;
-        var uniformLocation = this._gl.getUniformBlockIndex(program, blockName);
-        this._gl.uniformBlockBinding(program, uniformLocation, index);
-    }
-    bindIndexBuffer(buffer) {
-        if (!this._vaoRecordInProgress) {
-            this._unbindVertexArrayObject();
-        }
-        this.bindBuffer(buffer, this._gl.ELEMENT_ARRAY_BUFFER);
-    }
-    bindBuffer(buffer, target) {
-        if (this._vaoRecordInProgress || this._currentBoundBuffer[target] !== buffer) {
-            this._gl.bindBuffer(target, buffer ? buffer.underlyingResource : null);
-            this._currentBoundBuffer[target] = buffer;
-        }
-    }
-    /**
-       * Force the entire cache to be cleared
-       * You should not have to use this function unless your engine needs to share the webGL context with another engine
-       * @param bruteForce defines a boolean to force clearing ALL caches (including stencil, detoh and alpha states)
-       */
-    wipeCaches(bruteForce) {
-        if (this.preventCacheWipeBetweenFrames && !bruteForce) {
-            return;
-        }
-        this._currentEffect = null;
-        this._viewportCached.x = 0;
-        this._viewportCached.y = 0;
-        this._viewportCached.z = 0;
-        this._viewportCached.w = 0;
-        // Done before in case we clean the attributes
-        this._unbindVertexArrayObject();
-        if (bruteForce) {
-            this._currentProgram = null;
-            this.resetTextureCache();
-            this._stencilState.reset();
-            this._depthCullingState.reset();
-            this._depthCullingState.depthFunc = this._gl.LEQUAL;
-            this._alphaState.reset();
-            this._alphaMode = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].ALPHA_ADD;
-            this._alphaEquation = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].ALPHA_DISABLE;
-            this._colorWrite = true;
-            this._colorWriteChanged = true;
-            this._unpackFlipYCached = null;
-            this._gl.pixelStorei(this._gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, this._gl.NONE);
-            this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
-            this._mustWipeVertexAttributes = true;
-            this.unbindAllAttributes();
-        }
-        this._resetVertexBufferBinding();
-        this._cachedIndexBuffer = null;
-        this._cachedEffectForVertexBuffers = null;
-        this.bindIndexBuffer(null);
-    }
-    /**
-       * Disable the attribute corresponding to the location in parameter
-       * @param attributeLocation defines the attribute location of the attribute to disable
-       */
-    disableAttributeByIndex(attributeLocation) {
-        this._gl.disableVertexAttribArray(attributeLocation);
-        this._vertexAttribArraysEnabled[attributeLocation] = false;
-        this._currentBufferPointers[attributeLocation].active = false;
-    }
-    /**
-       * Unbind all vertex attributes from the webGL context
-       */
-    unbindAllAttributes() {
-        if (this._mustWipeVertexAttributes) {
-            this._mustWipeVertexAttributes = false;
-            for (var i = 0; i < this._caps.maxVertexAttribs; i++) {
-                this.disableAttributeByIndex(i);
-            }
-            return;
-        }
-        for (var i = 0, ul = this._vertexAttribArraysEnabled.length; i < ul; i++) {
-            if (i >= this._caps.maxVertexAttribs || !this._vertexAttribArraysEnabled[i]) {
-                continue;
-            }
-            this.disableAttributeByIndex(i);
-        }
-    }
-    /** @hidden */
-    _loadFile(url, onSuccess, onProgress, useArrayBuffer, onError) {
-        let request = ThinEngine._FileToolsLoadFile(url, onSuccess, onProgress, useArrayBuffer, onError);
-        this._activeRequests.push(request);
-        request.onCompleteObservable.add((request) => {
-            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
-        });
-        return request;
-    }
-    /**
-       * stop executing a render loop function and remove it from the execution array
-       * @param renderFunction defines the function to be removed. If not provided all functions will be removed.
-       */
-    stopRenderLoop(renderFunction) {
-        if (!renderFunction) {
-            this._activeRenderLoops = [];
-            return;
-        }
-        var index = this._activeRenderLoops.indexOf(renderFunction);
-        if (index >= 0) {
-            this._activeRenderLoops.splice(index, 1);
-        }
-    }
-    /**
-       * Dispose and release all associated resources
-       */
-    dispose() {
-        this.stopRenderLoop();
-        // Clear observables
-        if (this.onBeforeTextureInitObservable) {
-            this.onBeforeTextureInitObservable.clear();
-        }
-        // Empty texture
-        if (this._emptyTexture) {
-            this._releaseTexture(this._emptyTexture);
-            this._emptyTexture = null;
-        }
-        if (this._emptyCubeTexture) {
-            this._releaseTexture(this._emptyCubeTexture);
-            this._emptyCubeTexture = null;
-        }
-        if (this._dummyFramebuffer) {
-            this._gl.deleteFramebuffer(this._dummyFramebuffer);
-        }
-        // Release effects
-        this.releaseEffects();
-        // Unbind
-        this.unbindAllAttributes();
-        this._boundUniforms = [];
-        // Events
-        if (_Misc_domManagement__WEBPACK_IMPORTED_MODULE_4__["DomManagement"].IsWindowObjectExist()) {
-            if (this._renderingCanvas) {
-                // if (!this._doNotHandleContextLost) {
-                //     this._renderingCanvas.removeEventListener("webglcontextlost", this._onContextLost);
-                //     this._renderingCanvas.removeEventListener("webglcontextrestored", this._onContextRestored);
-                // }
-            }
-        }
-        this._workingCanvas = null;
-        this._workingContext = null;
-        this._currentBufferPointers = [];
-        this._renderingCanvas = null;
-        this._currentProgram = null;
-        // this._boundRenderFunction = null;
-        _Materials_effect__WEBPACK_IMPORTED_MODULE_9__["Effect"].ResetCache();
-        // Abort active requests
-        for (let request of this._activeRequests) {
-            request.abort();
-        }
-    }
-    /** -------------------------------- uniform -------------------------------------- */
     _rebuildBuffers() {
         // Uniforms
         for (var uniformBuffer of this._uniformBuffers) {
@@ -16747,11 +15183,11 @@ class ThinEngine {
         }
     }
     /**
-       * Gets the list of webGL uniform locations associated with a specific program based on a list of uniform names
-       * @param pipelineContext defines the pipeline context to use
-       * @param uniformsNames defines the list of uniform names
-       * @returns an array of webGL uniform locations
-       */
+     * Gets the list of webGL uniform locations associated with a specific program based on a list of uniform names
+     * @param pipelineContext defines the pipeline context to use
+     * @param uniformsNames defines the list of uniform names
+     * @returns an array of webGL uniform locations
+     */
     getUniforms(pipelineContext, uniformsNames) {
         var results = new Array();
         let webGLPipelineContext = pipelineContext;
@@ -16761,11 +15197,11 @@ class ThinEngine {
         return results;
     }
     /**
-      * Set the value of an uniform to an array of int32
-      * @param uniform defines the webGL uniform location where to store the value
-      * @param array defines the array of int32 to store
-      * @returns true if the value was set
-      */
+     * Set the value of an uniform to an array of int32
+     * @param uniform defines the webGL uniform location where to store the value
+     * @param array defines the array of int32 to store
+     * @returns true if the value was set
+     */
     setIntArray(uniform, array) {
         if (!uniform) {
             return false;
@@ -16974,6 +15410,1707 @@ class ThinEngine {
         this._gl.uniform4f(uniform, x, y, z, w);
         return true;
     }
+}
+
+
+/***/ }),
+
+/***/ "./src/Engines/engine.vertex.ts":
+/*!**************************************!*\
+  !*** ./src/Engines/engine.vertex.ts ***!
+  \**************************************/
+/*! exports provided: EngineVertex */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineVertex", function() { return EngineVertex; });
+/* harmony import */ var _Meshes_webGLDataBuffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Meshes/webGLDataBuffer */ "./src/Meshes/webGLDataBuffer.ts");
+
+class EngineVertex {
+    constructor(_gl, _caps) {
+        // Cache
+        this._vertexAttribArraysEnabled = [];
+        this._currentBufferPointers = new Array();
+        // 记录进行中
+        this._vaoRecordInProgress = false;
+        this._currentBoundBuffer = new Array();
+        // 必须擦除顶点属性
+        this._mustWipeVertexAttributes = false;
+        this._uintIndicesCurrentlySet = false;
+        this._currentInstanceLocations = new Array();
+        this._currentInstanceBuffers = new Array();
+        this.webGLVersion = 2;
+        this._gl = _gl;
+        this._caps = _caps;
+    }
+    _unbindVertexArrayObject() {
+        if (!this._cachedVertexArrayObject) {
+            return;
+        }
+        this._cachedVertexArrayObject = null;
+        this._gl.bindVertexArray(null);
+    }
+    /**
+    * Bind a webGL buffer to the webGL context
+    * @param buffer defines the buffer to bind
+    */
+    bindArrayBuffer(buffer) {
+        if (!this._vaoRecordInProgress) {
+            this._unbindVertexArrayObject();
+        }
+        this.bindBuffer(buffer, this._gl.ARRAY_BUFFER);
+    }
+    bindBuffer(buffer, target) {
+        if (this._vaoRecordInProgress || this._currentBoundBuffer[target] !== buffer) {
+            this._gl.bindBuffer(target, buffer ? buffer.underlyingResource : null);
+            this._currentBoundBuffer[target] = buffer;
+        }
+    }
+    /**
+     * Records a vertex array object
+     * @see https://doc.babylonjs.com/features/webgl2#vertex-array-objects
+     * @param vertexBuffers defines the list of vertex buffers to store
+     * @param indexBuffer defines the index buffer to store
+     * @param effect defines the effect to store
+     * @returns the new vertex array object
+     */
+    recordVertexArrayObject(vertexBuffers, indexBuffer, effect) {
+        var vao = this._gl.createVertexArray();
+        this._vaoRecordInProgress = true;
+        this._gl.bindVertexArray(vao);
+        this._mustWipeVertexAttributes = true;
+        this._bindVertexBuffersAttributes(vertexBuffers, effect);
+        this.bindIndexBuffer(indexBuffer);
+        this._vaoRecordInProgress = false;
+        this._gl.bindVertexArray(null);
+        return vao;
+    }
+    /**
+     * Bind a specific vertex array object
+     * @see https://doc.babylonjs.com/features/webgl2#vertex-array-objects
+     * @param vertexArrayObject defines the vertex array object to bind
+     * @param indexBuffer defines the index buffer to bind
+     */
+    bindVertexArrayObject(vertexArrayObject, indexBuffer) {
+        if (this._cachedVertexArrayObject !== vertexArrayObject) {
+            this._cachedVertexArrayObject = vertexArrayObject;
+            this._gl.bindVertexArray(vertexArrayObject);
+            this._cachedVertexBuffers = null;
+            this._cachedIndexBuffer = null;
+            this._uintIndicesCurrentlySet = indexBuffer != null && indexBuffer.is32Bits;
+            this._mustWipeVertexAttributes = true;
+        }
+    }
+    /** @hidden */
+    _bindIndexBufferWithCache(indexBuffer) {
+        if (indexBuffer == null) {
+            return;
+        }
+        if (this._cachedIndexBuffer !== indexBuffer) {
+            this._cachedIndexBuffer = indexBuffer;
+            this.bindIndexBuffer(indexBuffer);
+            this._uintIndicesCurrentlySet = indexBuffer.is32Bits;
+        }
+    }
+    _vertexAttribPointer(buffer, indx, size, type, normalized, stride, offset) {
+        var pointer = this._currentBufferPointers[indx];
+        if (!pointer) {
+            return;
+        }
+        var changed = false;
+        if (!pointer.active) {
+            changed = true;
+            pointer.active = true;
+            pointer.index = indx;
+            pointer.size = size;
+            pointer.type = type;
+            pointer.normalized = normalized;
+            pointer.stride = stride;
+            pointer.offset = offset;
+            pointer.buffer = buffer;
+        }
+        else {
+            if (pointer.buffer !== buffer) {
+                pointer.buffer = buffer;
+                changed = true;
+            }
+            if (pointer.size !== size) {
+                pointer.size = size;
+                changed = true;
+            }
+            if (pointer.type !== type) {
+                pointer.type = type;
+                changed = true;
+            }
+            if (pointer.normalized !== normalized) {
+                pointer.normalized = normalized;
+                changed = true;
+            }
+            if (pointer.stride !== stride) {
+                pointer.stride = stride;
+                changed = true;
+            }
+            if (pointer.offset !== offset) {
+                pointer.offset = offset;
+                changed = true;
+            }
+        }
+        if (changed || this._vaoRecordInProgress) {
+            this.bindArrayBuffer(buffer);
+            this._gl.vertexAttribPointer(indx, size, type, normalized, stride, offset);
+        }
+    }
+    /**
+      * Disable the attribute corresponding to the location in parameter
+      * @param attributeLocation defines the attribute location of the attribute to disable
+      */
+    disableAttributeByIndex(attributeLocation) {
+        this._gl.disableVertexAttribArray(attributeLocation);
+        this._vertexAttribArraysEnabled[attributeLocation] = false;
+        this._currentBufferPointers[attributeLocation].active = false;
+    }
+    /**
+     * Unbind all vertex attributes from the webGL context
+     */
+    unbindAllAttributes() {
+        if (this._mustWipeVertexAttributes) {
+            this._mustWipeVertexAttributes = false;
+            for (var i = 0; i < this._caps.maxVertexAttribs; i++) {
+                this.disableAttributeByIndex(i);
+            }
+            return;
+        }
+        for (var i = 0, ul = this._vertexAttribArraysEnabled.length; i < ul; i++) {
+            if (i >= this._caps.maxVertexAttribs || !this._vertexAttribArraysEnabled[i]) {
+                continue;
+            }
+            this.disableAttributeByIndex(i);
+        }
+    }
+    _bindVertexBuffersAttributes(vertexBuffers, effect) {
+        var attributes = effect.getAttributesNames();
+        if (!this._vaoRecordInProgress) {
+            this._unbindVertexArrayObject();
+        }
+        this.unbindAllAttributes();
+        for (var index = 0; index < attributes.length; index++) {
+            var order = effect.getAttributeLocation(index);
+            if (order >= 0) {
+                var vertexBuffer = vertexBuffers[attributes[index]];
+                if (!vertexBuffer) {
+                    continue;
+                }
+                this._gl.enableVertexAttribArray(order);
+                if (!this._vaoRecordInProgress) {
+                    this._vertexAttribArraysEnabled[order] = true;
+                }
+                var buffer = vertexBuffer.getBuffer();
+                if (buffer) {
+                    this._vertexAttribPointer(buffer, order, vertexBuffer.getSize(), vertexBuffer.type, vertexBuffer.normalized, vertexBuffer.byteStride, vertexBuffer.byteOffset);
+                    if (vertexBuffer.getIsInstanced()) {
+                        this._gl.vertexAttribDivisor(order, vertexBuffer.getInstanceDivisor());
+                        if (!this._vaoRecordInProgress) {
+                            this._currentInstanceLocations.push(order);
+                            this._currentInstanceBuffers.push(buffer);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Bind a list of vertex buffers to the webGL context
+     * @param vertexBuffers defines the list of vertex buffers to bind
+     * @param indexBuffer defines the index buffer to bind
+     * @param effect defines the effect associated with the vertex buffers
+     */
+    bindBuffers(vertexBuffers, indexBuffer, effect) {
+        if (this._cachedVertexBuffers !== vertexBuffers || this._cachedEffectForVertexBuffers !== effect) {
+            this._cachedVertexBuffers = vertexBuffers;
+            this._cachedEffectForVertexBuffers = effect;
+            this._bindVertexBuffersAttributes(vertexBuffers, effect);
+        }
+        this._bindIndexBufferWithCache(indexBuffer);
+    }
+    // VBOs
+    /** @hidden */
+    _resetVertexBufferBinding() {
+        this.bindArrayBuffer(null);
+        this._cachedVertexBuffers = null;
+    }
+    _normalizeIndexData(indices) {
+        if (indices instanceof Uint16Array) {
+            return indices;
+        }
+        // Check 32 bit support
+        if (this._caps.uintIndices) {
+            if (indices instanceof Uint32Array) {
+                return indices;
+            }
+            else {
+                // number[] or Int32Array, check if 32 bit is necessary
+                for (var index = 0; index < indices.length; index++) {
+                    if (indices[index] >= 65535) {
+                        return new Uint32Array(indices);
+                    }
+                }
+                return new Uint16Array(indices);
+            }
+        }
+        // No 32 bit support, force conversion to 16 bit (values greater 16 bit are lost)
+        return new Uint16Array(indices);
+    }
+    /**
+     * Creates a new index buffer
+     * @param indices defines the content of the index buffer
+     * @param updatable defines if the index buffer must be updatable
+     * @returns a new webGL buffer
+     */
+    createIndexBuffer(indices, updatable) {
+        var vbo = this._gl.createBuffer();
+        let dataBuffer = new _Meshes_webGLDataBuffer__WEBPACK_IMPORTED_MODULE_0__["WebGLDataBuffer"](vbo);
+        if (!vbo) {
+            throw new Error("Unable to create index buffer");
+        }
+        this.bindIndexBuffer(dataBuffer);
+        const data = this._normalizeIndexData(indices);
+        this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, data, updatable ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW);
+        this._resetIndexBufferBinding();
+        dataBuffer.references = 1;
+        dataBuffer.is32Bits = (data.BYTES_PER_ELEMENT === 4);
+        return dataBuffer;
+    }
+    _createVertexBuffer(data, usage) {
+        var vbo = this._gl.createBuffer();
+        if (!vbo) {
+            throw new Error("Unable to create vertex buffer");
+        }
+        let dataBuffer = new _Meshes_webGLDataBuffer__WEBPACK_IMPORTED_MODULE_0__["WebGLDataBuffer"](vbo);
+        this.bindArrayBuffer(dataBuffer);
+        if (data instanceof Array) {
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(data), this._gl.STATIC_DRAW);
+        }
+        else {
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, this._gl.STATIC_DRAW);
+        }
+        this._resetVertexBufferBinding();
+        dataBuffer.references = 1;
+        return dataBuffer;
+    }
+    /**
+     * Creates a dynamic vertex buffer
+     * @param data the data for the dynamic vertex buffer
+     * @returns the new WebGL dynamic buffer
+     */
+    createDynamicVertexBuffer(data) {
+        return this._createVertexBuffer(data, this._gl.DYNAMIC_DRAW);
+    }
+    _resetIndexBufferBinding() {
+        this.bindIndexBuffer(null);
+        this._cachedIndexBuffer = null;
+    }
+    /**
+     * Release and free the memory of a vertex array object
+     * @param vao defines the vertex array object to delete
+     */
+    releaseVertexArrayObject(vao) {
+        this._gl.deleteVertexArray(vao);
+    }
+    /**
+     * Creates a vertex buffer
+     * @param data the data for the vertex buffer
+     * @returns the new WebGL static buffer
+     */
+    createVertexBuffer(data) {
+        return this._createVertexBuffer(data, this._gl.STATIC_DRAW);
+    }
+    bindIndexBuffer(buffer) {
+        if (!this._vaoRecordInProgress) {
+            this._unbindVertexArrayObject();
+        }
+        this.bindBuffer(buffer, this._gl.ELEMENT_ARRAY_BUFFER);
+    }
+    /**
+     * Unbind all instance attributes
+     */
+    unbindInstanceAttributes() {
+        var boundBuffer;
+        for (var i = 0, ul = this._currentInstanceLocations.length; i < ul; i++) {
+            var instancesBuffer = this._currentInstanceBuffers[i];
+            if (boundBuffer != instancesBuffer && instancesBuffer.references) {
+                boundBuffer = instancesBuffer;
+                this.bindArrayBuffer(instancesBuffer);
+            }
+            var offsetLocation = this._currentInstanceLocations[i];
+            this._gl.vertexAttribDivisor(offsetLocation, 0);
+        }
+        this._currentInstanceBuffers.length = 0;
+        this._currentInstanceLocations.length = 0;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Engines/engine.viewPort.ts":
+/*!****************************************!*\
+  !*** ./src/Engines/engine.viewPort.ts ***!
+  \****************************************/
+/*! exports provided: EngineViewPort */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineViewPort", function() { return EngineViewPort; });
+class EngineViewPort {
+    constructor(engine) {
+        this._viewportCached = { x: 0, y: 0, z: 0, w: 0 };
+        this.engine = engine;
+    }
+    /**
+      * Set the WebGL's viewport
+      * @param viewport defines the viewport element to be used
+      * @param requiredWidth defines the width required for rendering. If not provided the rendering canvas' width is used
+      * @param requiredHeight defines the height required for rendering. If not provided the rendering canvas' height is used
+      */
+    setViewport(viewport, requiredWidth, requiredHeight) {
+        var width = requiredWidth || this.engine.engineFramebuffer.getRenderWidth();
+        var height = requiredHeight || this.engine.engineFramebuffer.getRenderHeight();
+        var x = viewport.x || 0;
+        var y = viewport.y || 0;
+        this._cachedViewport = viewport;
+        this._viewport(x * width, y * height, width * viewport.width, height * viewport.height);
+    }
+    _viewport(x, y, width, height) {
+        if (x !== this._viewportCached.x ||
+            y !== this._viewportCached.y ||
+            width !== this._viewportCached.z ||
+            height !== this._viewportCached.w) {
+            this._viewportCached.x = x;
+            this._viewportCached.y = y;
+            this._viewportCached.z = width;
+            this._viewportCached.w = height;
+            this.engine._gl.viewport(x, y, width, height);
+        }
+    }
+    /**
+    * Gets the current viewport
+    */
+    get currentViewport() {
+        return this._cachedViewport;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Engines/engineStore.ts":
+/*!************************************!*\
+  !*** ./src/Engines/engineStore.ts ***!
+  \************************************/
+/*! exports provided: EngineStore */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineStore", function() { return EngineStore; });
+/**
+ * The engine store class is responsible to hold all the instances of Engine and Scene created
+ * during the life time of the application.
+ */
+class EngineStore {
+    /**
+     * Gets the latest created engine
+     */
+    static get LastCreatedEngine() {
+        if (this.Instances.length === 0) {
+            return null;
+        }
+        return this.Instances[this.Instances.length - 1];
+    }
+    /**
+     * Gets the latest created scene
+     */
+    static get LastCreatedScene() {
+        return this._LastCreatedScene;
+    }
+}
+/** Gets the list of created engines */
+EngineStore.Instances = new Array();
+/** @hidden */
+EngineStore._LastCreatedScene = null;
+/**
+ * Gets or sets a global variable indicating if fallback texture must be used when a texture cannot be loaded
+ * @ignorenaming
+ */
+EngineStore.UseFallbackTexture = true;
+/**
+ * Texture content used if a texture cannot loaded
+ * @ignorenaming
+ */
+EngineStore.FallbackTexture = "";
+
+
+/***/ }),
+
+/***/ "./src/Engines/index.ts":
+/*!******************************!*\
+  !*** ./src/Engines/index.ts ***!
+  \******************************/
+/*! exports provided: ThinEngine, Engine */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _thinEngine__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./thinEngine */ "./src/Engines/thinEngine.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ThinEngine", function() { return _thinEngine__WEBPACK_IMPORTED_MODULE_0__["ThinEngine"]; });
+
+/* harmony import */ var _engine__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./engine */ "./src/Engines/engine.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Engine", function() { return _engine__WEBPACK_IMPORTED_MODULE_1__["Engine"]; });
+
+
+
+
+
+/***/ }),
+
+/***/ "./src/Engines/performanceConfigurator.ts":
+/*!************************************************!*\
+  !*** ./src/Engines/performanceConfigurator.ts ***!
+  \************************************************/
+/*! exports provided: PerformanceConfigurator */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PerformanceConfigurator", function() { return PerformanceConfigurator; });
+/** @hidden */
+class PerformanceConfigurator {
+    /** @hidden */
+    static SetMatrixPrecision(use64bits) {
+        PerformanceConfigurator.MatrixTrackPrecisionChange = false;
+        if (use64bits && !PerformanceConfigurator.MatrixUse64Bits) {
+            if (PerformanceConfigurator.MatrixTrackedMatrices) {
+                for (let m = 0; m < PerformanceConfigurator.MatrixTrackedMatrices.length; ++m) {
+                    const matrix = PerformanceConfigurator.MatrixTrackedMatrices[m];
+                    const values = matrix._m;
+                    matrix._m = new Array(16);
+                    for (let i = 0; i < 16; ++i) {
+                        matrix._m[i] = values[i];
+                    }
+                }
+            }
+        }
+        PerformanceConfigurator.MatrixUse64Bits = use64bits;
+        PerformanceConfigurator.MatrixCurrentType = PerformanceConfigurator.MatrixUse64Bits ? Array : Float32Array;
+        PerformanceConfigurator.MatrixTrackedMatrices = null; // reclaim some memory, as we don't need _TrackedMatrices anymore
+    }
+}
+/** @hidden */
+PerformanceConfigurator.MatrixUse64Bits = false;
+/** @hidden */
+PerformanceConfigurator.MatrixTrackPrecisionChange = true;
+/** @hidden */
+PerformanceConfigurator.MatrixCurrentType = Float32Array;
+/** @hidden */
+PerformanceConfigurator.MatrixTrackedMatrices = [];
+
+
+/***/ }),
+
+/***/ "./src/Engines/thinEngine.ts":
+/*!***********************************!*\
+  !*** ./src/Engines/thinEngine.ts ***!
+  \***********************************/
+/*! exports provided: ThinEngine */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ThinEngine", function() { return ThinEngine; });
+/* harmony import */ var _States__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../States */ "./src/States/index.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./src/Engines/constants.ts");
+/* harmony import */ var _performanceConfigurator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./performanceConfigurator */ "./src/Engines/performanceConfigurator.ts");
+/* harmony import */ var _Misc_domManagement__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Misc/domManagement */ "./src/Misc/domManagement.ts");
+/* harmony import */ var _bufferPointer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./bufferPointer */ "./src/Engines/bufferPointer.ts");
+/* harmony import */ var _webGL2ShaderProcessors__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./webGL2ShaderProcessors */ "./src/Engines/webGL2ShaderProcessors.ts");
+/* harmony import */ var _Misc_devTools__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../Misc/devTools */ "./src/Misc/devTools.ts");
+/* harmony import */ var _webGLPipelineContext__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./webGLPipelineContext */ "./src/Engines/webGLPipelineContext.ts");
+/* harmony import */ var _Materials_effect__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../Materials/effect */ "./src/Materials/effect.ts");
+/* harmony import */ var _Misc_canvasGenerator__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../Misc/canvasGenerator */ "./src/Misc/canvasGenerator.ts");
+/* harmony import */ var _engine_uniform__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./engine.uniform */ "./src/Engines/engine.uniform.ts");
+/* harmony import */ var _engine_vertex__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./engine.vertex */ "./src/Engines/engine.vertex.ts");
+/* harmony import */ var _engine_viewPort__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./engine.viewPort */ "./src/Engines/engine.viewPort.ts");
+/* harmony import */ var _engine_framebuffer__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./engine.framebuffer */ "./src/Engines/engine.framebuffer.ts");
+/* harmony import */ var _engine_texture__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./engine.texture */ "./src/Engines/engine.texture.ts");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class ThinEngine {
+    /**
+      * Creates a new engine
+      * @param canvasOrContext defines the canvas or WebGL context to use for rendering. If you provide a WebGL context, Babylon.js will not hook events on the canvas (like pointers, keyboards, etc...) so no event observables will be available. This is mostly used when Babylon.js is used as a plugin on a system which alreay used the WebGL context
+      * @param antialias defines enable antialiasing (default: false)
+      * @param options defines further options to be sent to the getContext() function
+      * @param adaptToDeviceRatio defines whether to adapt to the device's viewport characteristics (default: false)
+      */
+    constructor(canvasOrContext, antialias, options, adaptToDeviceRatio = false) {
+        this._badOS = false;
+        /** --------------------------------- gl ---------------------------------- */
+        this._webGLVersion = 2.0;
+        this._highPrecisionShadersAllowed = true;
+        /** --------------------------------- renderer ---------------------------------- */
+        this._renderingQueueLaunched = false;
+        this._activeRenderLoops = new Array();
+        this._doNotHandleContextLost = false;
+        /** Gets or sets a boolean indicating if the engine should validate programs after compilation */
+        this.validateShaderPrograms = false;
+        /** --------------------------------- program ---------------------------------- */
+        this._compiledEffects = {};
+        this._colorWrite = true;
+        this._colorWriteChanged = true;
+        this._depthCullingState = new _States__WEBPACK_IMPORTED_MODULE_0__["DepthCullingState"]();
+        this._stencilState = new _States__WEBPACK_IMPORTED_MODULE_0__["StencilState"]();
+        this._alphaState = new _States__WEBPACK_IMPORTED_MODULE_0__["AlphaState"]();
+        this._alphaMode = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].ALPHA_ADD;
+        this._alphaEquation = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].ALPHA_DISABLE;
+        // Defines whether the engine has been created with the premultipliedAlpha option on or not.
+        this.premultipliedAlpha = true;
+        /**
+         * Gets or sets a boolean indicating if depth buffer should be reverse, going from far to near.
+         * This can provide greater z depth for distant objects.
+         */
+        this.useReverseDepthBuffer = false;
+        /**
+         * Gets or sets a boolean indicating that cache can be kept between frames
+         */
+        this.preventCacheWipeBetweenFrames = false;
+        this._activeRequests = new Array();
+        /**
+         * Gets or sets a boolean indicating if back faces must be culled (true by default)
+         */
+        this.cullBackFaces = true;
+        this._contextWasLost = false;
+        this.hostInformation = {
+            isMobile: false
+        };
+        let canvas = null;
+        if (!canvasOrContext) {
+            return;
+        }
+        options = options || {};
+        _performanceConfigurator__WEBPACK_IMPORTED_MODULE_2__["PerformanceConfigurator"].SetMatrixPrecision(!!options.useHighPrecisionMatrix);
+        if (canvasOrContext.getContext) {
+            canvas = canvasOrContext;
+            this._renderingCanvas = canvas;
+            if (antialias != null) {
+                options.antialias = antialias;
+            }
+            if (options.preserveDrawingBuffer === undefined) {
+                options.preserveDrawingBuffer = false;
+            }
+            if (options.stencil === undefined) {
+                options.stencil = true;
+            }
+            if (options.premultipliedAlpha === false) {
+                this.premultipliedAlpha = false;
+            }
+            if (navigator && navigator.userAgent) {
+                let ua = navigator.userAgent;
+                this.hostInformation.isMobile = ua.indexOf("Mobile") !== -1;
+            }
+            // GL
+            try {
+                this._gl = canvas.getContext("webgl2", options);
+                if (this._gl) {
+                    this._webGLVersion = 2.0;
+                    // Prevent weird browsers to lie (yeah that happens!)
+                    if (!this._gl.deleteQuery) {
+                        this._webGLVersion = 1.0;
+                    }
+                }
+            }
+            catch (e) {
+                // Do nothing
+            }
+            if (!this._gl) {
+                throw new Error("WebGL not supported");
+            }
+        }
+        this.engineUniform = new _engine_uniform__WEBPACK_IMPORTED_MODULE_10__["EngineUniform"](this._gl);
+        // Ensures a consistent color space unpacking of textures cross browser.
+        this._gl.pixelStorei(this._gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, this._gl.NONE);
+        // Viewport
+        const devicePixelRatio = _Misc_domManagement__WEBPACK_IMPORTED_MODULE_3__["DomManagement"].IsWindowObjectExist() ? (window.devicePixelRatio || 1.0) : 1.0;
+        var limitDeviceRatio = devicePixelRatio;
+        this._hardwareScalingLevel = adaptToDeviceRatio ? 1.0 / Math.min(limitDeviceRatio, devicePixelRatio) : 1.0;
+        this.resize();
+        this.engineTexture = new _engine_texture__WEBPACK_IMPORTED_MODULE_14__["EngineTexture"](this._gl, this);
+        this.engineFramebuffer = new _engine_framebuffer__WEBPACK_IMPORTED_MODULE_13__["EngineFramebuffer"](this._gl, this);
+        // this._isStencilEnable = options.stencil ? true : false;
+        this._initGLContext();
+        this.engineVertex = new _engine_vertex__WEBPACK_IMPORTED_MODULE_11__["EngineVertex"](this._gl, this._caps);
+        this.engineViewPort = new _engine_viewPort__WEBPACK_IMPORTED_MODULE_12__["EngineViewPort"](this);
+        // Prepare buffer pointers
+        for (var i = 0; i < this._caps.maxVertexAttribs; i++) {
+            this.engineVertex._currentBufferPointers[i] = new _bufferPointer__WEBPACK_IMPORTED_MODULE_4__["BufferPointer"]();
+        }
+        // Shader processor
+        this._shaderProcessor = new _webGL2ShaderProcessors__WEBPACK_IMPORTED_MODULE_5__["WebGL2ShaderProcessor"]();
+        this._creationOptions = options;
+        console.log(`lmgl2 base Babylon.js v${ThinEngine.Version} - ${this.description}`);
+    }
+    get _shouldUseHighPrecisionShader() {
+        return !!(this._caps.highPrecisionShaderSupported && this._highPrecisionShadersAllowed);
+    }
+    /**
+       * Binds an effect to the webGL context
+       * @param effect defines the effect to bind
+       */
+    bindSamplers(effect) {
+        let webGLPipelineContext = effect.getPipelineContext();
+        this._setProgram(webGLPipelineContext.program);
+        var samplers = effect.getSamplers();
+        for (var index = 0; index < samplers.length; index++) {
+            var uniform = effect.getUniform(samplers[index]);
+            if (uniform) {
+                this.engineUniform._boundUniforms[index] = uniform;
+            }
+        }
+        this._currentEffect = null;
+    }
+    /** --------------------------------- program ---------------------------------- */
+    _setProgram(program) {
+        if (this._currentProgram !== program) {
+            this._gl.useProgram(program);
+            this._currentProgram = program;
+        }
+    }
+    /** @hidden */
+    _executeWhenRenderingStateIsCompiled(pipelineContext, action) {
+        let webGLPipelineContext = pipelineContext;
+        if (!webGLPipelineContext.isParallelCompiled) {
+            action();
+            return;
+        }
+        let oldHandler = webGLPipelineContext.onCompiled;
+        if (oldHandler) {
+            webGLPipelineContext.onCompiled = () => {
+                oldHandler();
+                action();
+            };
+        }
+        else {
+            webGLPipelineContext.onCompiled = action;
+        }
+    }
+    /** @hidden */
+    _preparePipelineContext(pipelineContext, vertexSourceCode, fragmentSourceCode, createAsRaw, rebuildRebind, defines, transformFeedbackVaryings) {
+        let webGLRenderingState = pipelineContext;
+        if (createAsRaw) {
+            webGLRenderingState.program = this.createRawShaderProgram(webGLRenderingState, vertexSourceCode, fragmentSourceCode, undefined, transformFeedbackVaryings);
+        }
+        else {
+            webGLRenderingState.program = this.createShaderProgram(webGLRenderingState, vertexSourceCode, fragmentSourceCode, defines, undefined, transformFeedbackVaryings);
+        }
+        webGLRenderingState.program.__SPECTOR_rebuildProgram = rebuildRebind;
+    }
+    /**
+       * Creates a new pipeline context
+       * @returns the new pipeline
+       */
+    createPipelineContext() {
+        var pipelineContext = new _webGLPipelineContext__WEBPACK_IMPORTED_MODULE_7__["WebGLPipelineContext"]();
+        pipelineContext.engine = this;
+        if (this._caps.parallelShaderCompile) {
+            pipelineContext.isParallelCompiled = true;
+        }
+        return pipelineContext;
+    }
+    /**
+       * Directly creates a webGL program
+       * @param pipelineContext  defines the pipeline context to attach to
+       * @param vertexCode defines the vertex shader code to use
+       * @param fragmentCode defines the fragment shader code to use
+       * @param context defines the webGL context to use (if not set, the current one will be used)
+       * @param transformFeedbackVaryings defines the list of transform feedback varyings to use
+       * @returns the new webGL program
+       */
+    createRawShaderProgram(pipelineContext, vertexCode, fragmentCode, context, transformFeedbackVaryings = null) {
+        context = context || this._gl;
+        var vertexShader = this._compileRawShader(vertexCode, "vertex");
+        var fragmentShader = this._compileRawShader(fragmentCode, "fragment");
+        return this._createShaderProgram(pipelineContext, vertexShader, fragmentShader, context, transformFeedbackVaryings);
+    }
+    _createShaderProgram(pipelineContext, vertexShader, fragmentShader, context, transformFeedbackVaryings = null) {
+        var shaderProgram = context.createProgram();
+        pipelineContext.program = shaderProgram;
+        if (!shaderProgram) {
+            throw new Error("Unable to create program");
+        }
+        context.attachShader(shaderProgram, vertexShader);
+        context.attachShader(shaderProgram, fragmentShader);
+        context.linkProgram(shaderProgram);
+        pipelineContext.context = context;
+        pipelineContext.vertexShader = vertexShader;
+        pipelineContext.fragmentShader = fragmentShader;
+        if (!pipelineContext.isParallelCompiled) {
+            this._finalizePipelineContext(pipelineContext);
+        }
+        return shaderProgram;
+    }
+    /**
+     * Creates a webGL program
+     * @param pipelineContext  defines the pipeline context to attach to
+     * @param vertexCode  defines the vertex shader code to use
+     * @param fragmentCode defines the fragment shader code to use
+     * @param defines defines the string containing the defines to use to compile the shaders
+     * @param context defines the webGL context to use (if not set, the current one will be used)
+     * @param transformFeedbackVaryings defines the list of transform feedback varyings to use
+     * @returns the new webGL program
+     */
+    createShaderProgram(pipelineContext, vertexCode, fragmentCode, defines, context, transformFeedbackVaryings = null) {
+        context = context || this._gl;
+        var shaderVersion = (this._webGLVersion > 1) ? "#version 300 es\n#define WEBGL2 \n" : "";
+        var vertexShader = this._compileShader(vertexCode, "vertex", defines, shaderVersion);
+        var fragmentShader = this._compileShader(fragmentCode, "fragment", defines, shaderVersion);
+        return this._createShaderProgram(pipelineContext, vertexShader, fragmentShader, context, transformFeedbackVaryings);
+    }
+    /** @hidden */
+    _deletePipelineContext(pipelineContext) {
+        let webGLPipelineContext = pipelineContext;
+        if (webGLPipelineContext && webGLPipelineContext.program) {
+            webGLPipelineContext.program.__SPECTOR_rebuildProgram = null;
+            this._gl.deleteProgram(webGLPipelineContext.program);
+        }
+    }
+    _isRenderingStateCompiled(pipelineContext) {
+        let webGLPipelineContext = pipelineContext;
+        if (this._gl.getProgramParameter(webGLPipelineContext.program, this._caps.parallelShaderCompile.COMPLETION_STATUS_KHR)) {
+            this._finalizePipelineContext(webGLPipelineContext);
+            return true;
+        }
+        return false;
+    }
+    /** --------------------------------- engine info ---------------------------------- */
+    /**
+     * Gets version of the current webGL context
+     */
+    get webGLVersion() {
+        return this._webGLVersion;
+    }
+    /**
+       * Returns the current version of the framework
+       */
+    static get Version() {
+        return "4.2.0";
+    }
+    /**
+     * Returns a string describing the current engine
+     */
+    get description() {
+        let description = "WebGL" + this.webGLVersion;
+        if (this._caps.parallelShaderCompile) {
+            description += " - Parallel shader compilation";
+        }
+        return description;
+    }
+    /**
+     * Returns the current npm package of the sdk
+     */
+    // Not mixed with Version for tooling purpose.
+    static get NpmPackage() {
+        return "babylonjs@4.2.0";
+    }
+    /**
+     * Gets a string identifying the name of the class
+     * @returns "Engine" string
+     */
+    getClassName() {
+        return "ThinEngine";
+    }
+    /**------------------------------------------ document ----------------------------------------------------------- */
+    /** @hidden */
+    _renderLoop() {
+        if (!this._contextWasLost) {
+            var shouldRender = true;
+            // if (!this.renderEvenInBackground && this._windowIsBackground) {
+            //     shouldRender = false;
+            // }
+            if (shouldRender) {
+                // Start new frame
+                this.beginFrame();
+                for (var index = 0; index < this._activeRenderLoops.length; index++) {
+                    var renderFunction = this._activeRenderLoops[index];
+                    renderFunction();
+                }
+                // Present
+                this.endFrame();
+            }
+        }
+        if (this._activeRenderLoops.length > 0) {
+            this._frameHandler = this._queueNewFrame(this._boundRenderFunction, this.getHostWindow());
+        }
+        else {
+            this._renderingQueueLaunched = false;
+        }
+    }
+    /**
+       * Register and execute a render loop. The engine can have more than one render function
+       * @param renderFunction defines the function to continuously execute
+       */
+    runRenderLoop(renderFunction) {
+        if (this._activeRenderLoops.indexOf(renderFunction) !== -1) {
+            return;
+        }
+        this._activeRenderLoops.push(renderFunction);
+        if (!this._renderingQueueLaunched) {
+            this._renderingQueueLaunched = true;
+            this._boundRenderFunction = this._renderLoop.bind(this);
+            this._frameHandler = this._queueNewFrame(this._boundRenderFunction, this.getHostWindow());
+        }
+    }
+    /**
+       * Gets the HTML canvas attached with the current webGL context
+       * @returns a HTML canvas
+       */
+    getRenderingCanvas() {
+        return this._renderingCanvas;
+    }
+    /**
+       * Gets host document
+       * @returns the host document object
+       */
+    getHostDocument() {
+        if (this._renderingCanvas && this._renderingCanvas.ownerDocument) {
+            return this._renderingCanvas.ownerDocument;
+        }
+        return document;
+    }
+    /** @hidden */
+    _prepareWorkingCanvas() {
+        if (this._workingCanvas) {
+            return;
+        }
+        this._workingCanvas = _Misc_canvasGenerator__WEBPACK_IMPORTED_MODULE_9__["CanvasGenerator"].CreateCanvas(1, 1);
+        let context = this._workingCanvas.getContext("2d");
+        if (context) {
+            this._workingContext = context;
+        }
+    }
+    /**
+       * Queue a new function into the requested animation frame pool (ie. this function will be executed byt the browser for the next frame)
+       * @param func - the function to be called
+       * @param requester - the object that will request the next frame. Falls back to window.
+       * @returns frame number
+       */
+    static QueueNewFrame(func, requester) {
+        if (!_Misc_domManagement__WEBPACK_IMPORTED_MODULE_3__["DomManagement"].IsWindowObjectExist()) {
+            if (typeof requestAnimationFrame !== "undefined") {
+                return requestAnimationFrame(func);
+            }
+            return setTimeout(func, 16);
+        }
+        if (!requester) {
+            requester = window;
+        }
+        if (requester.requestPostAnimationFrame) {
+            return requester.requestPostAnimationFrame(func);
+        }
+        else if (requester.requestAnimationFrame) {
+            return requester.requestAnimationFrame(func);
+        }
+        else if (requester.msRequestAnimationFrame) {
+            return requester.msRequestAnimationFrame(func);
+        }
+        else if (requester.webkitRequestAnimationFrame) {
+            return requester.webkitRequestAnimationFrame(func);
+        }
+        else if (requester.mozRequestAnimationFrame) {
+            return requester.mozRequestAnimationFrame(func);
+        }
+        else if (requester.oRequestAnimationFrame) {
+            return requester.oRequestAnimationFrame(func);
+        }
+        else {
+            return window.setTimeout(func, 16);
+        }
+    }
+    /**
+      * Can be used to override the current requestAnimationFrame requester.
+      * @hidden
+      */
+    _queueNewFrame(bindedRenderFunction, requester) {
+        return ThinEngine.QueueNewFrame(bindedRenderFunction, requester);
+    }
+    /**
+       * Gets the current hardware scaling level.
+       * By default the hardware scaling level is computed from the window device ratio.
+       * if level = 1 then the engine will render at the exact resolution of the canvas. If level = 0.5 then the engine will render at twice the size of the canvas.
+       * @returns a number indicating the current hardware scaling level
+       */
+    getHardwareScalingLevel() {
+        return 1.0;
+    }
+    /**
+      * Resize the view according to the canvas' size
+      */
+    resize() {
+        let width;
+        let height;
+        if (_Misc_domManagement__WEBPACK_IMPORTED_MODULE_3__["DomManagement"].IsWindowObjectExist()) {
+            width = this._renderingCanvas ? (this._renderingCanvas.clientWidth || this._renderingCanvas.width) : window.innerWidth;
+            height = this._renderingCanvas ? (this._renderingCanvas.clientHeight || this._renderingCanvas.height) : window.innerHeight;
+        }
+        else {
+            width = this._renderingCanvas ? this._renderingCanvas.width : 100;
+            height = this._renderingCanvas ? this._renderingCanvas.height : 100;
+        }
+        this.setSize(width / this._hardwareScalingLevel, height / this._hardwareScalingLevel);
+    }
+    /**
+   * Force a specific size of the canvas
+   * @param width defines the new canvas' width
+   * @param height defines the new canvas' height
+   * @returns true if the size was changed
+   */
+    setSize(width, height) {
+        if (!this._renderingCanvas) {
+            return false;
+        }
+        width = width | 0;
+        height = height | 0;
+        if (this._renderingCanvas.width === width && this._renderingCanvas.height === height) {
+            return false;
+        }
+        this._renderingCanvas.width = width;
+        this._renderingCanvas.height = height;
+        return true;
+    }
+    /**
+     * Gets host window
+     * @returns the host window object
+     */
+    getHostWindow() {
+        if (!_Misc_domManagement__WEBPACK_IMPORTED_MODULE_3__["DomManagement"].IsWindowObjectExist()) {
+            return null;
+        }
+        if (this._renderingCanvas && this._renderingCanvas.ownerDocument && this._renderingCanvas.ownerDocument.defaultView) {
+            return this._renderingCanvas.ownerDocument.defaultView;
+        }
+        return window;
+    }
+    /**------------------------------------------ gl ----------------------------------------------------------- */
+    /** @hidden */
+    _getUnpackAlignement() {
+        return this._gl.getParameter(this._gl.UNPACK_ALIGNMENT);
+    }
+    /**
+       * Send a draw order
+       * @param useTriangles defines if triangles must be used to draw (else wireframe will be used)
+       * @param indexStart defines the starting index
+       * @param indexCount defines the number of index to draw
+       * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+       */
+    draw(useTriangles, indexStart, indexCount, instancesCount) {
+        this.drawElementsType(useTriangles ? _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleFillMode : _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_WireFrameFillMode, indexStart, indexCount, instancesCount);
+    }
+    /**
+     * Draw a list of points
+     * @param verticesStart defines the index of first vertex to draw
+     * @param verticesCount defines the count of vertices to draw
+     * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+     */
+    drawPointClouds(verticesStart, verticesCount, instancesCount) {
+        this.drawArraysType(_constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_PointFillMode, verticesStart, verticesCount, instancesCount);
+    }
+    /**
+     * Draw a list of unindexed primitives
+     * @param useTriangles defines if triangles must be used to draw (else wireframe will be used)
+     * @param verticesStart defines the index of first vertex to draw
+     * @param verticesCount defines the count of vertices to draw
+     * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+     */
+    drawUnIndexed(useTriangles, verticesStart, verticesCount, instancesCount) {
+        this.drawArraysType(useTriangles ? _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleFillMode : _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_WireFrameFillMode, verticesStart, verticesCount, instancesCount);
+    }
+    /**
+     * Draw a list of indexed primitives
+     * @param fillMode defines the primitive to use
+     * @param indexStart defines the starting index
+     * @param indexCount defines the number of index to draw
+     * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+     */
+    drawElementsType(fillMode, indexStart, indexCount, instancesCount) {
+        // Apply states
+        this.applyStates();
+        this._reportDrawCall();
+        // Render
+        const drawMode = this._drawMode(fillMode);
+        var indexFormat = this.engineVertex._uintIndicesCurrentlySet ? this._gl.UNSIGNED_INT : this._gl.UNSIGNED_SHORT;
+        var mult = this.engineVertex._uintIndicesCurrentlySet ? 4 : 2;
+        if (instancesCount) {
+            this._gl.drawElementsInstanced(drawMode, indexCount, indexFormat, indexStart * mult, instancesCount);
+        }
+        else {
+            this._gl.drawElements(drawMode, indexCount, indexFormat, indexStart * mult);
+        }
+    }
+    /**
+     * Draw a list of unindexed primitives
+     * @param fillMode defines the primitive to use
+     * @param verticesStart defines the index of first vertex to draw
+     * @param verticesCount defines the count of vertices to draw
+     * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+     */
+    drawArraysType(fillMode, verticesStart, verticesCount, instancesCount) {
+        // Apply states
+        this.applyStates();
+        this._reportDrawCall();
+        const drawMode = this._drawMode(fillMode);
+        if (instancesCount) {
+            this._gl.drawArraysInstanced(drawMode, verticesStart, verticesCount, instancesCount);
+        }
+        else {
+            this._gl.drawArrays(drawMode, verticesStart, verticesCount);
+        }
+    }
+    _drawMode(fillMode) {
+        switch (fillMode) {
+            // Triangle views
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleFillMode:
+                return this._gl.TRIANGLES;
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_PointFillMode:
+                return this._gl.POINTS;
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_WireFrameFillMode:
+                return this._gl.LINES;
+            // Draw modes
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_PointListDrawMode:
+                return this._gl.POINTS;
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_LineListDrawMode:
+                return this._gl.LINES;
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_LineLoopDrawMode:
+                return this._gl.LINE_LOOP;
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_LineStripDrawMode:
+                return this._gl.LINE_STRIP;
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleStripDrawMode:
+                return this._gl.TRIANGLE_STRIP;
+            case _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].MATERIAL_TriangleFanDrawMode:
+                return this._gl.TRIANGLE_FAN;
+            default:
+                return this._gl.TRIANGLES;
+        }
+    }
+    /** @hidden */
+    _reportDrawCall() {
+        // Will be implemented by children
+    }
+    /**
+     * Enable or disable color writing
+     * @param enable defines the state to set
+     */
+    setColorWrite(enable) {
+        if (enable !== this._colorWrite) {
+            this._colorWriteChanged = true;
+            this._colorWrite = enable;
+        }
+    }
+    /**
+     * Gets a boolean indicating if color writing is enabled
+     * @returns the current color writing state
+     */
+    getColorWrite() {
+        return this._colorWrite;
+    }
+    /**
+     * Apply all cached states (depth, culling, stencil and alpha)
+      */
+    applyStates() {
+        this._depthCullingState.apply(this._gl);
+        this._stencilState.apply(this._gl);
+        this._alphaState.apply(this._gl);
+        if (this._colorWriteChanged) {
+            this._colorWriteChanged = false;
+            const enable = this._colorWrite;
+            this._gl.colorMask(enable, enable, enable, enable);
+        }
+    }
+    /**
+       * Clear the current render buffer or the current render target (if any is set up)
+       * @param color defines the color to use
+       * @param backBuffer defines if the back buffer must be cleared
+       * @param depth defines if the depth buffer must be cleared
+       * @param stencil defines if the stencil buffer must be cleared
+       */
+    clear(color, backBuffer, depth, stencil = false) {
+        this.applyStates();
+        var mode = 0;
+        if (backBuffer && color) {
+            this._gl.clearColor(color.r, color.g, color.b, color.a !== undefined ? color.a : 1.0);
+            mode |= this._gl.COLOR_BUFFER_BIT;
+        }
+        if (depth) {
+            if (this.useReverseDepthBuffer) {
+                this._depthCullingState.depthFunc = this._gl.GREATER;
+                this._gl.clearDepth(0.0);
+            }
+            else {
+                this._gl.clearDepth(1.0);
+            }
+            mode |= this._gl.DEPTH_BUFFER_BIT;
+        }
+        if (stencil) {
+            this._gl.clearStencil(0);
+            mode |= this._gl.STENCIL_BUFFER_BIT;
+        }
+        this._gl.clear(mode);
+    }
+    /**
+       * Gets the object containing all engine capabilities
+       * @returns the EngineCapabilities object
+       */
+    getCaps() {
+        return this._caps;
+    }
+    /**
+     * Get the current error code of the webGL context
+     * @returns the error code
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getError
+     */
+    getError() {
+        return this._gl.getError();
+    }
+    _initGLContext() {
+        // Caps
+        this._caps = {
+            maxTexturesImageUnits: this._gl.getParameter(this._gl.MAX_TEXTURE_IMAGE_UNITS),
+            maxCombinedTexturesImageUnits: this._gl.getParameter(this._gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+            maxVertexTextureImageUnits: this._gl.getParameter(this._gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
+            maxTextureSize: this._gl.getParameter(this._gl.MAX_TEXTURE_SIZE),
+            maxSamples: this._webGLVersion > 1 ? this._gl.getParameter(this._gl.MAX_SAMPLES) : 1,
+            maxCubemapTextureSize: this._gl.getParameter(this._gl.MAX_CUBE_MAP_TEXTURE_SIZE),
+            maxRenderTextureSize: this._gl.getParameter(this._gl.MAX_RENDERBUFFER_SIZE),
+            maxVertexAttribs: this._gl.getParameter(this._gl.MAX_VERTEX_ATTRIBS),
+            maxVaryingVectors: this._gl.getParameter(this._gl.MAX_VARYING_VECTORS),
+            maxFragmentUniformVectors: this._gl.getParameter(this._gl.MAX_FRAGMENT_UNIFORM_VECTORS),
+            maxVertexUniformVectors: this._gl.getParameter(this._gl.MAX_VERTEX_UNIFORM_VECTORS),
+            parallelShaderCompile: this._gl.getExtension('KHR_parallel_shader_compile'),
+            standardDerivatives: this._webGLVersion > 1 || (this._gl.getExtension('OES_standard_derivatives') !== null),
+            maxAnisotropy: 1,
+            astc: this._gl.getExtension('WEBGL_compressed_texture_astc') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_astc'),
+            bptc: this._gl.getExtension('EXT_texture_compression_bptc') || this._gl.getExtension('WEBKIT_EXT_texture_compression_bptc'),
+            s3tc: this._gl.getExtension('WEBGL_compressed_texture_s3tc') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc'),
+            pvrtc: this._gl.getExtension('WEBGL_compressed_texture_pvrtc') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc'),
+            etc1: this._gl.getExtension('WEBGL_compressed_texture_etc1') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_etc1'),
+            etc2: this._gl.getExtension('WEBGL_compressed_texture_etc') || this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_etc') ||
+                this._gl.getExtension('WEBGL_compressed_texture_es3_0'),
+            textureAnisotropicFilterExtension: this._gl.getExtension('EXT_texture_filter_anisotropic') || this._gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic') || this._gl.getExtension('MOZ_EXT_texture_filter_anisotropic'),
+            uintIndices: this._webGLVersion > 1 || this._gl.getExtension('OES_element_index_uint') !== null,
+            fragmentDepthSupported: this._webGLVersion > 1 || this._gl.getExtension('EXT_frag_depth') !== null,
+            highPrecisionShaderSupported: false,
+            timerQuery: this._gl.getExtension('EXT_disjoint_timer_query_webgl2') || this._gl.getExtension("EXT_disjoint_timer_query"),
+            canUseTimestampForTimerQuery: false,
+            drawBuffersExtension: false,
+            maxMSAASamples: 1,
+            colorBufferFloat: this._webGLVersion > 1 && this._gl.getExtension('EXT_color_buffer_float'),
+            textureFloat: (this._webGLVersion > 1 || this._gl.getExtension('OES_texture_float')) ? true : false,
+            textureHalfFloat: (this._webGLVersion > 1 || this._gl.getExtension('OES_texture_half_float')) ? true : false,
+            textureHalfFloatRender: false,
+            textureFloatLinearFiltering: false,
+            textureFloatRender: false,
+            textureHalfFloatLinearFiltering: false,
+            vertexArrayObject: false,
+            instancedArrays: false,
+            textureLOD: (this._webGLVersion > 1 || this._gl.getExtension('EXT_shader_texture_lod')) ? true : false,
+            blendMinMax: false,
+            multiview: this._gl.getExtension('OVR_multiview2'),
+            oculusMultiview: this._gl.getExtension('OCULUS_multiview'),
+            depthTextureExtension: false
+        };
+        // Infos
+        this._glVersion = this._gl.getParameter(this._gl.VERSION);
+        var rendererInfo = this._gl.getExtension("WEBGL_debug_renderer_info");
+        if (rendererInfo != null) {
+            this._glRenderer = this._gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL);
+            this._glVendor = this._gl.getParameter(rendererInfo.UNMASKED_VENDOR_WEBGL);
+        }
+        if (!this._glVendor) {
+            this._glVendor = "Unknown vendor";
+        }
+        if (!this._glRenderer) {
+            this._glRenderer = "Unknown renderer";
+        }
+        // Constants
+        if (this._gl.HALF_FLOAT_OES !== 0x8D61) {
+            this._gl.HALF_FLOAT_OES = 0x8D61; // Half floating-point type (16-bit).
+        }
+        if (this._gl.RGBA16F !== 0x881A) {
+            this._gl.RGBA16F = 0x881A; // RGBA 16-bit floating-point color-renderable internal sized format.
+        }
+        if (this._gl.RGBA32F !== 0x8814) {
+            this._gl.RGBA32F = 0x8814; // RGBA 32-bit floating-point color-renderable internal sized format.
+        }
+        if (this._gl.DEPTH24_STENCIL8 !== 35056) {
+            this._gl.DEPTH24_STENCIL8 = 35056;
+        }
+        // Extensions
+        if (this._caps.timerQuery) {
+            if (this._webGLVersion === 1) {
+                this._gl.getQuery = this._caps.timerQuery.getQueryEXT.bind(this._caps.timerQuery);
+            }
+            this._caps.canUseTimestampForTimerQuery = this._gl.getQuery(this._caps.timerQuery.TIMESTAMP_EXT, this._caps.timerQuery.QUERY_COUNTER_BITS_EXT) > 0;
+        }
+        this._caps.maxAnisotropy = this._caps.textureAnisotropicFilterExtension ? this._gl.getParameter(this._caps.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
+        this._caps.textureFloatLinearFiltering = this._caps.textureFloat && this._gl.getExtension('OES_texture_float_linear') ? true : false;
+        this._caps.textureFloatRender = this._caps.textureFloat && this.engineFramebuffer._canRenderToFloatFramebuffer() ? true : false;
+        this._caps.textureHalfFloatLinearFiltering = (this._webGLVersion > 1 || (this._caps.textureHalfFloat && this._gl.getExtension('OES_texture_half_float_linear'))) ? true : false;
+        // Checks if some of the format renders first to allow the use of webgl inspector.
+        if (this._webGLVersion > 1) {
+            if (this._gl.HALF_FLOAT_OES !== 0x140B) {
+                this._gl.HALF_FLOAT_OES = 0x140B;
+            }
+        }
+        this._caps.textureHalfFloatRender = this._caps.textureHalfFloat && this.engineFramebuffer._canRenderToHalfFloatFramebuffer();
+        // Draw buffers
+        if (this._webGLVersion > 1) {
+            this._caps.drawBuffersExtension = true;
+            this._caps.maxMSAASamples = this._gl.getParameter(this._gl.MAX_SAMPLES);
+        }
+        else {
+            var drawBuffersExtension = this._gl.getExtension('WEBGL_draw_buffers');
+            if (drawBuffersExtension !== null) {
+                this._caps.drawBuffersExtension = true;
+                this._gl.drawBuffers = drawBuffersExtension.drawBuffersWEBGL.bind(drawBuffersExtension);
+                this._gl.DRAW_FRAMEBUFFER = this._gl.FRAMEBUFFER;
+                for (var i = 0; i < 16; i++) {
+                    this._gl["COLOR_ATTACHMENT" + i + "_WEBGL"] = drawBuffersExtension["COLOR_ATTACHMENT" + i + "_WEBGL"];
+                }
+            }
+        }
+        // Depth Texture
+        if (this._webGLVersion > 1) {
+            this._caps.depthTextureExtension = true;
+        }
+        else {
+            var depthTextureExtension = this._gl.getExtension('WEBGL_depth_texture');
+            if (depthTextureExtension != null) {
+                this._caps.depthTextureExtension = true;
+                this._gl.UNSIGNED_INT_24_8 = depthTextureExtension.UNSIGNED_INT_24_8_WEBGL;
+            }
+        }
+        // Vertex array object
+        this._caps.vertexArrayObject = true;
+        // Instances count
+        if (this._webGLVersion > 1) {
+            this._caps.instancedArrays = true;
+        }
+        else {
+            var instanceExtension = this._gl.getExtension('ANGLE_instanced_arrays');
+            if (instanceExtension != null) {
+                this._caps.instancedArrays = true;
+                this._gl.drawArraysInstanced = instanceExtension.drawArraysInstancedANGLE.bind(instanceExtension);
+                this._gl.drawElementsInstanced = instanceExtension.drawElementsInstancedANGLE.bind(instanceExtension);
+                this._gl.vertexAttribDivisor = instanceExtension.vertexAttribDivisorANGLE.bind(instanceExtension);
+            }
+            else {
+                this._caps.instancedArrays = false;
+            }
+        }
+        if (this._gl.getShaderPrecisionFormat) {
+            var vertex_highp = this._gl.getShaderPrecisionFormat(this._gl.VERTEX_SHADER, this._gl.HIGH_FLOAT);
+            var fragment_highp = this._gl.getShaderPrecisionFormat(this._gl.FRAGMENT_SHADER, this._gl.HIGH_FLOAT);
+            if (vertex_highp && fragment_highp) {
+                this._caps.highPrecisionShaderSupported = vertex_highp.precision !== 0 && fragment_highp.precision !== 0;
+            }
+        }
+        if (this._webGLVersion > 1) {
+            this._caps.blendMinMax = true;
+        }
+        else {
+            const blendMinMaxExtension = this._gl.getExtension('EXT_blend_minmax');
+            if (blendMinMaxExtension != null) {
+                this._caps.blendMinMax = true;
+                this._gl.MAX = blendMinMaxExtension.MAX_EXT;
+                this._gl.MIN = blendMinMaxExtension.MIN_EXT;
+            }
+        }
+        // Depth buffer
+        this._depthCullingState.depthTest = true;
+        this._depthCullingState.depthFunc = this._gl.LEQUAL;
+        this._depthCullingState.depthMask = true;
+        // Texture maps
+        this.engineTexture._maxSimultaneousTextures = this._caps.maxCombinedTexturesImageUnits;
+        for (let slot = 0; slot < this.engineTexture._maxSimultaneousTextures; slot++) {
+            this.engineTexture._nextFreeTextureSlots.push(slot);
+        }
+    }
+    /**
+     * Reads pixels from the current frame buffer. Please note that this function can be slow
+     * @param x defines the x coordinate of the rectangle where pixels must be read
+     * @param y defines the y coordinate of the rectangle where pixels must be read
+     * @param width defines the width of the rectangle where pixels must be read
+     * @param height defines the height of the rectangle where pixels must be read
+     * @param hasAlpha defines whether the output should have alpha or not (defaults to true)
+     * @returns a Uint8Array containing RGBA colors
+     */
+    readPixels(x, y, width, height, hasAlpha = true) {
+        const numChannels = hasAlpha ? 4 : 3;
+        const format = hasAlpha ? this._gl.RGBA : this._gl.RGB;
+        const data = new Uint8Array(height * width * numChannels);
+        this._gl.readPixels(x, y, width, height, format, this._gl.UNSIGNED_BYTE, data);
+        return data;
+    }
+    /**
+     * Force a webGL flush (ie. a flush of all waiting webGL commands)
+     */
+    flushFramebuffer() {
+        this._gl.flush();
+    }
+    /** ---------------------------------------- shader --------------------------------------------------------- */
+    static _ConcatenateShader(source, defines, shaderVersion = "") {
+        return shaderVersion + (defines ? defines + "\n" : "") + source;
+    }
+    _compileShader(source, type, defines, shaderVersion) {
+        return this._compileRawShader(ThinEngine._ConcatenateShader(source, defines, shaderVersion), type);
+    }
+    _compileRawShader(source, type) {
+        var gl = this._gl;
+        var shader = gl.createShader(type === "vertex" ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
+        if (!shader) {
+            throw new Error("Something went wrong while compile the shader.");
+        }
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return shader;
+    }
+    _getShaderSource(shader) {
+        return this._gl.getShaderSource(shader);
+    }
+    _finalizePipelineContext(pipelineContext) {
+        const context = pipelineContext.context;
+        const vertexShader = pipelineContext.vertexShader;
+        const fragmentShader = pipelineContext.fragmentShader;
+        const program = pipelineContext.program;
+        var linked = context.getProgramParameter(program, context.LINK_STATUS);
+        if (!linked) { // Get more info
+            // Vertex
+            if (!this._gl.getShaderParameter(vertexShader, this._gl.COMPILE_STATUS)) {
+                const log = this._gl.getShaderInfoLog(vertexShader);
+                if (log) {
+                    pipelineContext.vertexCompilationError = log;
+                    throw new Error("VERTEX SHADER " + log);
+                }
+            }
+            // Fragment
+            if (!this._gl.getShaderParameter(fragmentShader, this._gl.COMPILE_STATUS)) {
+                const log = this._gl.getShaderInfoLog(fragmentShader);
+                if (log) {
+                    pipelineContext.fragmentCompilationError = log;
+                    throw new Error("FRAGMENT SHADER " + log);
+                }
+            }
+            var error = context.getProgramInfoLog(program);
+            if (error) {
+                pipelineContext.programLinkError = error;
+                throw new Error(error);
+            }
+        }
+        if (this.validateShaderPrograms) {
+            context.validateProgram(program);
+            var validated = context.getProgramParameter(program, context.VALIDATE_STATUS);
+            if (!validated) {
+                var error = context.getProgramInfoLog(program);
+                if (error) {
+                    pipelineContext.programValidationError = error;
+                    throw new Error(error);
+                }
+            }
+        }
+        context.deleteShader(vertexShader);
+        context.deleteShader(fragmentShader);
+        pipelineContext.vertexShader = undefined;
+        pipelineContext.fragmentShader = undefined;
+        if (pipelineContext.onCompiled) {
+            pipelineContext.onCompiled();
+            pipelineContext.onCompiled = undefined;
+        }
+    }
+    /** ---------------------------------------- 抽象接口 --------------------------------------------------------- */
+    /**
+     * Loads an image as an HTMLImageElement.
+     * @param input url string, ArrayBuffer, or Blob to load
+     * @param onLoad callback called when the image successfully loads
+     * @param onError callback called when the image fails to load
+     * @param offlineProvider offline provider for caching
+     * @param mimeType optional mime type
+     * @returns the HTMLImageElement of the loaded image
+     * @hidden
+     */
+    static _FileToolsLoadImage(input, onLoad, onError, mimeType) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_6__["_DevTools"].WarnImport("FileTools");
+    }
+    /**
+     * Loads a file from a url
+     * @param url url to load
+     * @param onSuccess callback called when the file successfully loads
+     * @param onProgress callback called while file is loading (if the server supports this mode)
+     * @param offlineProvider defines the offline provider for caching
+     * @param useArrayBuffer defines a boolean indicating that date must be returned as ArrayBuffer
+     * @param onError callback called when the file fails to load
+     * @returns a file request object
+     * @hidden
+     */
+    static _FileToolsLoadFile(url, onSuccess, onProgress, useArrayBuffer, onError) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_6__["_DevTools"].WarnImport("FileTools");
+    }
+    /** --------------------------------depth-------------------------------------- */
+    /**
+     * Gets the depth culling state manager
+     */
+    get depthCullingState() {
+        return this._depthCullingState;
+    }
+    /** -------------------------------- effect -------------------------------------- */
+    /**
+       * Create a new effect (used to store vertex/fragment shaders)
+       * @param baseName defines the base name of the effect (The name of file without .fragment.fx or .vertex.fx)
+       * @param attributesNamesOrOptions defines either a list of attribute names or an IEffectCreationOptions object
+       * @param uniformsNamesOrEngine defines either a list of uniform names or the engine to use
+       * @param samplers defines an array of string used to represent textures
+       * @param defines defines the string containing the defines to use to compile the shaders
+       * @param fallbacks defines the list of potential fallbacks to use if shader conmpilation fails
+       * @param onCompiled defines a function to call when the effect creation is successful
+       * @param onError defines a function to call when the effect creation has failed
+       * @param indexParameters defines an object containing the index values to use to compile shaders (like the maximum number of simultaneous lights)
+       * @returns the new Effect
+       */
+    createEffect(baseName, attributesNamesOrOptions, uniformsNamesOrEngine, samplers, defines, fallbacks, onCompiled, onError, indexParameters) {
+        var vertex = baseName.vertexElement || baseName.vertex || baseName.vertexToken || baseName.vertexSource || baseName;
+        var fragment = baseName.fragmentElement || baseName.fragment || baseName.fragmentToken || baseName.fragmentSource || baseName;
+        var name = vertex + "+" + fragment + "@" + (defines ? defines : attributesNamesOrOptions.defines);
+        if (this._compiledEffects[name]) {
+            var compiledEffect = this._compiledEffects[name];
+            if (onCompiled && compiledEffect.isReady()) {
+                onCompiled(compiledEffect);
+            }
+            return compiledEffect;
+        }
+        var effect = new _Materials_effect__WEBPACK_IMPORTED_MODULE_8__["Effect"](baseName, attributesNamesOrOptions, uniformsNamesOrEngine, samplers, this, defines, fallbacks, onCompiled, onError, indexParameters);
+        effect._key = name;
+        this._compiledEffects[name] = effect;
+        return effect;
+    }
+    /**
+       * Activates an effect, mkaing it the current one (ie. the one used for rendering)
+       * @param effect defines the effect to activate
+       */
+    enableEffect(effect) {
+        if (!effect || effect === this._currentEffect) {
+            return;
+        }
+        // Use program
+        this.bindSamplers(effect);
+        this._currentEffect = effect;
+        if (effect.onBind) {
+            effect.onBind(effect);
+        }
+        if (effect._onBindObservable) {
+            effect._onBindObservable.notifyObservers(effect);
+        }
+    }
+    /** @hidden */
+    _releaseEffect(effect) {
+        if (this._compiledEffects[effect._key]) {
+            delete this._compiledEffects[effect._key];
+            this._deletePipelineContext(effect.getPipelineContext());
+        }
+    }
+    /**
+       * Force the engine to release all cached effects. This means that next effect compilation will have to be done completely even if a similar effect was already compiled
+       */
+    releaseEffects() {
+        for (var name in this._compiledEffects) {
+            let webGLPipelineContext = this._compiledEffects[name].getPipelineContext();
+            this._deletePipelineContext(webGLPipelineContext);
+        }
+        this._compiledEffects = {};
+    }
+    /**
+     * Gets a boolean indicating if all created effects are ready
+     * @returns true if all effects are ready
+     */
+    areAllEffectsReady() {
+        for (var key in this._compiledEffects) {
+            let effect = this._compiledEffects[key];
+            if (!effect.isReady()) {
+                return false;
+            }
+        }
+        return true;
+    }
+    _deleteBuffer(buffer) {
+        this._gl.deleteBuffer(buffer.underlyingResource);
+    }
+    /** @hidden */
+    _releaseBuffer(buffer) {
+        buffer.references--;
+        if (buffer.references === 0) {
+            this._deleteBuffer(buffer);
+            return true;
+        }
+        return false;
+    }
+    /**
+       * Gets the lsit of active attributes for a given webGL program
+       * @param pipelineContext defines the pipeline context to use
+       * @param attributesNames defines the list of attribute names to get
+       * @returns an array of indices indicating the offset of each attribute
+       */
+    getAttributes(pipelineContext, attributesNames) {
+        var results = [];
+        let webGLPipelineContext = pipelineContext;
+        for (var index = 0; index < attributesNames.length; index++) {
+            try {
+                results.push(this._gl.getAttribLocation(webGLPipelineContext.program, attributesNames[index]));
+            }
+            catch (e) {
+                results.push(-1);
+            }
+        }
+        return results;
+    }
+    /**
+     * Bind a specific block at a given index in a specific shader program
+     * @param pipelineContext defines the pipeline context to use
+     * @param blockName defines the block name
+     * @param index defines the index where to bind the block
+     */
+    bindUniformBlock(pipelineContext, blockName, index) {
+        let program = pipelineContext.program;
+        var uniformLocation = this._gl.getUniformBlockIndex(program, blockName);
+        this._gl.uniformBlockBinding(program, uniformLocation, index);
+    }
+    /**
+       * Force the entire cache to be cleared
+       * You should not have to use this function unless your engine needs to share the webGL context with another engine
+       * @param bruteForce defines a boolean to force clearing ALL caches (including stencil, detoh and alpha states)
+       */
+    wipeCaches(bruteForce) {
+        if (this.preventCacheWipeBetweenFrames && !bruteForce) {
+            return;
+        }
+        this._currentEffect = null;
+        this.engineViewPort._viewportCached.x = 0;
+        this.engineViewPort._viewportCached.y = 0;
+        this.engineViewPort._viewportCached.z = 0;
+        this.engineViewPort._viewportCached.w = 0;
+        // Done before in case we clean the attributes
+        this.engineVertex._unbindVertexArrayObject();
+        if (bruteForce) {
+            this._currentProgram = null;
+            this.engineTexture.resetTextureCache();
+            this._stencilState.reset();
+            this._depthCullingState.reset();
+            this._depthCullingState.depthFunc = this._gl.LEQUAL;
+            this._alphaState.reset();
+            this._alphaMode = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].ALPHA_ADD;
+            this._alphaEquation = _constants__WEBPACK_IMPORTED_MODULE_1__["Constants"].ALPHA_DISABLE;
+            this._colorWrite = true;
+            this._colorWriteChanged = true;
+            this.engineTexture._unpackFlipYCached = null;
+            this._gl.pixelStorei(this._gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, this._gl.NONE);
+            this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
+            this.engineVertex._mustWipeVertexAttributes = true;
+            this.engineVertex.unbindAllAttributes();
+        }
+        this.engineVertex._resetVertexBufferBinding();
+        this.engineVertex._cachedIndexBuffer = null;
+        this.engineVertex._cachedEffectForVertexBuffers = null;
+        this.engineVertex.bindIndexBuffer(null);
+    }
+    /** @hidden */
+    _loadFile(url, onSuccess, onProgress, useArrayBuffer, onError) {
+        let request = ThinEngine._FileToolsLoadFile(url, onSuccess, onProgress, useArrayBuffer, onError);
+        this._activeRequests.push(request);
+        request.onCompleteObservable.add((request) => {
+            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
+        });
+        return request;
+    }
+    /**
+       * stop executing a render loop function and remove it from the execution array
+       * @param renderFunction defines the function to be removed. If not provided all functions will be removed.
+       */
+    stopRenderLoop(renderFunction) {
+        if (!renderFunction) {
+            this._activeRenderLoops = [];
+            return;
+        }
+        var index = this._activeRenderLoops.indexOf(renderFunction);
+        if (index >= 0) {
+            this._activeRenderLoops.splice(index, 1);
+        }
+    }
+    /**
+       * Dispose and release all associated resources
+       */
+    dispose() {
+        this.stopRenderLoop();
+        // Clear observables
+        if (this.engineTexture.onBeforeTextureInitObservable) {
+            this.engineTexture.onBeforeTextureInitObservable.clear();
+        }
+        // Empty texture
+        if (this.engineTexture._emptyTexture) {
+            this.engineTexture._releaseTexture(this.engineTexture._emptyTexture);
+            this.engineTexture._emptyTexture = null;
+        }
+        if (this.engineTexture._emptyCubeTexture) {
+            this.engineTexture._releaseTexture(this.engineTexture._emptyCubeTexture);
+            this.engineTexture._emptyCubeTexture = null;
+        }
+        if (this.engineFramebuffer._dummyFramebuffer) {
+            this._gl.deleteFramebuffer(this.engineFramebuffer._dummyFramebuffer);
+        }
+        // Release effects
+        this.releaseEffects();
+        // Unbind
+        this.engineVertex.unbindAllAttributes();
+        this.engineUniform._boundUniforms = [];
+        // Events
+        if (_Misc_domManagement__WEBPACK_IMPORTED_MODULE_3__["DomManagement"].IsWindowObjectExist()) {
+            if (this._renderingCanvas) {
+                // if (!this._doNotHandleContextLost) {
+                //     this._renderingCanvas.removeEventListener("webglcontextlost", this._onContextLost);
+                //     this._renderingCanvas.removeEventListener("webglcontextrestored", this._onContextRestored);
+                // }
+            }
+        }
+        this._workingCanvas = null;
+        this._workingContext = null;
+        this.engineVertex._currentBufferPointers = [];
+        this._renderingCanvas = null;
+        this._currentProgram = null;
+        // this._boundRenderFunction = null;
+        _Materials_effect__WEBPACK_IMPORTED_MODULE_8__["Effect"].ResetCache();
+        // Abort active requests
+        for (let request of this._activeRequests) {
+            request.abort();
+        }
+    }
     /**
        * Begin a new frame
        */
@@ -16991,17 +17128,6 @@ class ThinEngine {
     _uploadCompressedDataToTextureDirectly(texture, internalFormat, width, height, data, faceIndex = 0, lod = 0) {
     }
 }
-/**
-  * Gets or sets a global variable indicating if fallback texture must be used when a texture cannot be loaded
-  * @ignorenaming
-  */
-ThinEngine.UseFallbackTexture = true;
-/**
- * Texture content used if a texture cannot loaded
- * @ignorenaming
- */
-ThinEngine.FallbackTexture = "";
-ThinEngine._TextureLoaders = [];
 /**
  * Gets or sets the epsilon value used by collision engine
  */
@@ -18658,7 +18784,7 @@ class GamepadSystemSceneComponent {
      * Registers the component in a given scene
      */
     register() {
-        this.scene._beforeCameraUpdateStage.registerStep(_Scene_sceneComponent__WEBPACK_IMPORTED_MODULE_1__["SceneComponentConstants"].STEP_BEFORECAMERAUPDATE_GAMEPAD, this, this._beforeCameraUpdate);
+        this.scene.sceneStage._beforeCameraUpdateStage.registerStep(_Scene_sceneComponent__WEBPACK_IMPORTED_MODULE_1__["SceneComponentConstants"].STEP_BEFORECAMERAUPDATE_GAMEPAD, this, this._beforeCameraUpdate);
     }
     /**
      * Rebuilds the elements related to this component in case of
@@ -19182,7 +19308,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// import { IShadowGenerator } from "./Shadows/shadowGenerator";
 _node__WEBPACK_IMPORTED_MODULE_4__["Node"].AddNodeConstructor("Light_Type_3", (name, scene) => {
     return () => new HemisphericLight(name, _Maths_math_vector__WEBPACK_IMPORTED_MODULE_2__["Vector3"].Zero(), scene);
 });
@@ -19235,13 +19360,6 @@ class HemisphericLight extends _light__WEBPACK_IMPORTED_MODULE_5__["Light"] {
         this.direction = _Maths_math_vector__WEBPACK_IMPORTED_MODULE_2__["Vector3"].Normalize(target.subtract(_Maths_math_vector__WEBPACK_IMPORTED_MODULE_2__["Vector3"].Zero()));
         return this.direction;
     }
-    /**
-     * Returns the shadow generator associated to the light.
-     * @returns Always null for hemispheric lights because it does not support shadows.
-     */
-    // public getShadowGenerator(): Nullable<IShadowGenerator> {
-    //     return null;
-    // }
     /**
      * Sets the passed Effect object with the HemisphericLight normalized direction and color and the passed name (string).
      * @param effect The effect to update
@@ -19411,7 +19529,7 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
         this._includedOnlyMeshesIds = new Array();
         /** @hidden */
         this._isLight = true;
-        this.getScene().addLight(this);
+        this.getScene().sceneNode.addLight(this);
         this._uniformBuffer = new _Materials_uniformBuffer__WEBPACK_IMPORTED_MODULE_5__["UniformBuffer"](this.getScene().getEngine());
         this._buildUniformLayout();
         this.includedOnlyMeshes = new Array();
@@ -19576,8 +19694,8 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
             return;
         }
         this._uniformBuffer.bindToEffect(effect, "Light" + iAsString);
-        if (this._renderId !== scene.getRenderId() || !this._uniformBuffer.useUbo) {
-            this._renderId = scene.getRenderId();
+        if (this._renderId !== scene.sceneRender.getRenderId() || !this._uniformBuffer.useUbo) {
+            this._renderId = scene.sceneRender.getRenderId();
             let scaledIntensity = this.getScaledIntensity();
             this.transferToEffect(effect, iAsString);
             this.diffuse.scaleToRef(scaledIntensity, _Maths_math_color__WEBPACK_IMPORTED_MODULE_3__["TmpColors"].Color3[0]);
@@ -19590,14 +19708,6 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
         }
         // Textures might still need to be rebound.
         this.transferTexturesToEffect(effect, iAsString);
-        // Shadows
-        // if (scene.shadowsEnabled && this.shadowEnabled) {
-        //     var shadowGenerator = this.getShadowGenerator();
-        //     if (shadowGenerator) {
-        //         shadowGenerator.bindShadowLight(iAsString, effect);
-        //         needUpdate = true;
-        //     }
-        // }
         if (needUpdate) {
             this._uniformBuffer.update();
         }
@@ -19617,11 +19727,6 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
     toString(fullDetails) {
         var ret = "Name: " + this.name;
         ret += ", type: " + (["Point", "Directional", "Spot", "Hemispheric"])[this.getTypeID()];
-        // if (this.animations) {
-        //     for (var i = 0; i < this.animations.length; i++) {
-        //         ret += ", animation[0]: " + this.animations[i].toString(fullDetails);
-        //     }
-        // }
         if (fullDetails) {
         }
         return ret;
@@ -19641,13 +19746,6 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
         super.setEnabled(value);
         this._resyncMeshes();
     }
-    /**
-     * Returns the Light associated shadow generator if any.
-     * @return the associated shadow generator.
-     */
-    // public getShadowGenerator(): Nullable<IShadowGenerator> {
-    //     return this._shadowGenerator;
-    // }
     /**
      * Returns a Vector3, the absolute light position in the World.
      * @returns the world space position of the light
@@ -19698,19 +19796,13 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
      * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
      */
     dispose(doNotRecurse, disposeMaterialAndTextures = false) {
-        // if (this._shadowGenerator) {
-        //     this._shadowGenerator.dispose();
-        //     this._shadowGenerator = null;
-        // }
-        // Animations
-        // this.getScene().stopAnimation(this);
         // Remove from meshes
         for (var mesh of this.getScene().meshes) {
             mesh._removeLightSource(this, true);
         }
         this._uniformBuffer.dispose();
         // Remove from scene
-        this.getScene().removeLight(this);
+        this.getScene().sceneNode.removeLight(this);
         super.dispose(doNotRecurse, disposeMaterialAndTextures);
     }
     /**
@@ -19770,9 +19862,6 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
                 serializationObject.includedOnlyMeshesIds.push(mesh.id);
             });
         }
-        // Animations
-        // SerializationHelper.AppendSerializedAnimations(this, serializationObject);
-        // serializationObject.ranges = this.serializeAnimationRanges();
         return serializationObject;
     }
     /**
@@ -19822,20 +19911,6 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
         if (parsedLight.lightmapMode !== undefined) {
             light.lightmapMode = parsedLight.lightmapMode;
         }
-        // Animations
-        // if (parsedLight.animations) {
-        //     for (var animationIndex = 0; animationIndex < parsedLight.animations.length; animationIndex++) {
-        //         var parsedAnimation = parsedLight.animations[animationIndex];
-        //         const internalClass = _TypeStore.GetClass("BABYLON.Animation");
-        //         if (internalClass) {
-        //             light.animations.push(internalClass.Parse(parsedAnimation));
-        //         }
-        //     }
-        //     Node.ParseAnimationRanges(light, parsedLight, scene);
-        // }
-        // if (parsedLight.autoAnimate) {
-        //     scene.beginAnimation(light, parsedLight.autoAnimateFrom, parsedLight.autoAnimateTo, parsedLight.autoAnimateLoop, parsedLight.autoAnimateSpeed || 1.0);
-        // }
         return light;
     }
     _hookArrayForExcluded(array) {
@@ -19895,7 +19970,7 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
      */
     _computePhotometricScale() {
         this._photometricScale = this._getPhotometricScale();
-        this.getScene().resetCachedMaterial();
+        this.getScene().sceneCatch.resetCachedMaterial();
     }
     /**
      * Returns the Photometric Scale according to the light type and intensity mode.
@@ -19961,7 +20036,7 @@ class Light extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
         if (this._renderPriority != 0) {
             scene.requireLightSorting = true;
         }
-        this.getScene().sortLightsByPriority();
+        this.getScene().sceneNode.sortLightsByPriority();
     }
 }
 /**
@@ -20514,7 +20589,7 @@ class SceneLoader {
             };
             request = plugin.requestFile
                 ? plugin.requestFile(scene, fileInfo.url, successCallback, onProgress, useArrayBuffer, errorCallback)
-                : scene._requestFile(fileInfo.url, successCallback, onProgress, true, useArrayBuffer, errorCallback);
+                : scene.sceneFile._requestFile(fileInfo.url, successCallback, onProgress, true, useArrayBuffer, errorCallback);
         };
         const file = fileInfo.file || _Misc_filesInputStore__WEBPACK_IMPORTED_MODULE_2__["FilesInputStore"].FilesToLoad[fileInfo.name.toLowerCase()];
         if (fileInfo.rootUrl.indexOf("file:") === -1 || (fileInfo.rootUrl.indexOf("file:") !== -1 && !file)) {
@@ -20547,7 +20622,7 @@ class SceneLoader {
                 };
                 request = plugin.readFile
                     ? plugin.readFile(scene, file, dataCallback, onProgress, useArrayBuffer, errorCallback)
-                    : scene._readFile(file, dataCallback, onProgress, useArrayBuffer, errorCallback);
+                    : scene.sceneFile._readFile(file, dataCallback, onProgress, useArrayBuffer, errorCallback);
             }
             else {
                 onError("Unable to find file named " + fileInfo.name);
@@ -21033,7 +21108,7 @@ class SceneLoader {
         let onAssetContainerLoaded = (container) => {
             // container.mergeAnimationsTo(scene, scene.animatables.slice(startingIndexForNewAnimatables), targetConverter);
             container.dispose();
-            scene.onAnimationFileImportedObservable.notifyObservers(scene);
+            scene.sceneEventTrigger.onAnimationFileImportedObservable.notifyObservers(scene);
             if (onSuccess) {
                 onSuccess(scene);
             }
@@ -21280,7 +21355,7 @@ class BaseTexture extends _thinTexture__WEBPACK_IMPORTED_MODULE_8__["ThinTexture
         }
         if (this._scene) {
             this.uniqueId = this._scene.getUniqueId();
-            this._scene.addTexture(this);
+            this._scene.sceneNode.addTexture(this);
             this._engine = this._scene.getEngine();
         }
         this._uid = null;
@@ -21607,7 +21682,7 @@ class BaseTexture extends _thinTexture__WEBPACK_IMPORTED_MODULE_8__["ThinTexture
         if (!engine) {
             return null;
         }
-        var texturesCache = engine.getLoadedTexturesCache();
+        var texturesCache = engine.engineTexture.getLoadedTexturesCache();
         for (var index = 0; index < texturesCache.length; index++) {
             var texturesCacheEntry = texturesCache[index];
             if (invertY === undefined || invertY === texturesCacheEntry.invertY) {
@@ -21731,7 +21806,7 @@ class BaseTexture extends _thinTexture__WEBPACK_IMPORTED_MODULE_8__["ThinTexture
             if (index >= 0) {
                 this._scene.textures.splice(index, 1);
             }
-            this._scene.onTextureRemovedObservable.notifyObservers(this);
+            this._scene.sceneEventTrigger.onTextureRemovedObservable.notifyObservers(this);
             this._scene = null;
         }
         // Callback
@@ -22121,7 +22196,7 @@ class InternalTexture {
         this._engine = engine;
         this._source = source;
         if (!delayAllocation) {
-            this._webGLTexture = engine._createTexture();
+            this._webGLTexture = engine.engineTexture._createTexture();
         }
     }
     /**
@@ -22193,7 +22268,7 @@ class InternalTexture {
             }
             target._irradianceTexture = this._irradianceTexture;
         }
-        let cache = this._engine.getLoadedTexturesCache();
+        let cache = this._engine.engineTexture.getLoadedTexturesCache();
         var index = cache.indexOf(this);
         if (index !== -1) {
             cache.splice(index, 1);
@@ -22212,7 +22287,7 @@ class InternalTexture {
         }
         this._references--;
         if (this._references === 0) {
-            this._engine._releaseTexture(this);
+            this._engine.engineTexture._releaseTexture(this);
             this._webGLTexture = null;
         }
     }
@@ -22262,7 +22337,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Engines_constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../Engines/constants */ "./src/Engines/constants.ts");
 /* harmony import */ var _Engines_Extensions_engine_renderTarget__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../Engines/Extensions/engine.renderTarget */ "./src/Engines/Extensions/engine.renderTarget.ts");
 /* harmony import */ var _Engines_Extensions_engine_renderTargetCube__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../Engines/Extensions/engine.renderTargetCube */ "./src/Engines/Extensions/engine.renderTargetCube.ts");
-/* harmony import */ var _Engines_engine__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../Engines/engine */ "./src/Engines/engine.ts");
+/* harmony import */ var _Engines_engine_texture__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../Engines/engine.texture */ "./src/Engines/engine.texture.ts");
 
 
 
@@ -22525,8 +22600,8 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
             this._sizeRatio = size.ratio;
             const engine = this._getEngine();
             this._size = {
-                width: this._bestReflectionRenderTargetDimension(engine.getRenderWidth(), this._sizeRatio),
-                height: this._bestReflectionRenderTargetDimension(engine.getRenderHeight(), this._sizeRatio)
+                width: this._bestReflectionRenderTargetDimension(engine.engineFramebuffer.getRenderWidth(), this._sizeRatio),
+                height: this._bestReflectionRenderTargetDimension(engine.engineFramebuffer.getRenderHeight(), this._sizeRatio)
             };
         }
         else {
@@ -22735,7 +22810,7 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
             this.renderList = [];
             for (var index = 0; index < this._waitingRenderList.length; index++) {
                 var id = this._waitingRenderList[index];
-                let mesh = scene.getMeshByID(id);
+                let mesh = scene.sceneNode.getMeshByID(id);
                 if (mesh) {
                     this.renderList.push(mesh);
                 }
@@ -22768,30 +22843,30 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
         let camera;
         if (this.activeCamera) {
             camera = this.activeCamera;
-            engine.setViewport(this.activeCamera.viewport, this.getRenderWidth(), this.getRenderHeight());
+            engine.engineViewPort.setViewport(this.activeCamera.viewport, this.getRenderWidth(), this.getRenderHeight());
             if (this.activeCamera !== scene.activeCamera) {
-                scene.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(true));
+                scene.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(true));
             }
         }
         else {
             camera = scene.activeCamera;
             if (camera) {
-                engine.setViewport(camera.viewport, this.getRenderWidth(), this.getRenderHeight());
+                engine.engineViewPort.setViewport(camera.viewport, this.getRenderWidth(), this.getRenderHeight());
             }
         }
         this._defaultRenderListPrepared = false;
         if (this.is2DArray) {
             for (let layer = 0; layer < this.getRenderLayers(); layer++) {
                 this.renderToTarget(0, useCameraPostProcess, dumpForDebug, layer, camera);
-                scene.incrementRenderId();
-                scene.resetCachedMaterial();
+                scene.sceneRender.incrementRenderId();
+                scene.sceneCatch.resetCachedMaterial();
             }
         }
         else if (this.isCube) {
             for (var face = 0; face < 6; face++) {
                 this.renderToTarget(face, useCameraPostProcess, dumpForDebug, undefined, camera);
-                scene.incrementRenderId();
-                scene.resetCachedMaterial();
+                scene.sceneRender.incrementRenderId();
+                scene.sceneCatch.resetCachedMaterial();
             }
         }
         else {
@@ -22801,18 +22876,18 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
         if (scene.activeCamera) {
             // Do not avoid setting uniforms when multiple scenes are active as another camera may have overwrite these
             if (scene.getEngine().scenes.length > 1 || (this.activeCamera && this.activeCamera !== scene.activeCamera)) {
-                scene.setTransformMatrix(scene.activeCamera.getViewMatrix(), scene.activeCamera.getProjectionMatrix(true));
+                scene.sceneMatrix.setTransformMatrix(scene.activeCamera.getViewMatrix(), scene.activeCamera.getProjectionMatrix(true));
             }
-            engine.setViewport(scene.activeCamera.viewport);
+            engine.engineViewPort.setViewport(scene.activeCamera.viewport);
         }
-        scene.resetCachedMaterial();
+        scene.sceneCatch.resetCachedMaterial();
     }
     _bestReflectionRenderTargetDimension(renderDimension, scale) {
         let minimum = 128;
         let x = renderDimension * scale;
-        let curved = _Engines_engine__WEBPACK_IMPORTED_MODULE_8__["Engine"].NearestPOT(x + (minimum * minimum / (minimum + x)));
+        let curved = _Engines_engine_texture__WEBPACK_IMPORTED_MODULE_8__["EngineTexture"].NearestPOT(x + (minimum * minimum / (minimum + x)));
         // Ensure we don't exceed the render dimension (while staying POT)
-        return Math.min(_Engines_engine__WEBPACK_IMPORTED_MODULE_8__["Engine"].FloorPOT(renderDimension), curved);
+        return Math.min(_Engines_engine_texture__WEBPACK_IMPORTED_MODULE_8__["EngineTexture"].FloorPOT(renderDimension), curved);
     }
     _prepareRenderingManager(currentRenderList, currentRenderListLength, camera, checkLayerMask) {
         var scene = this.getScene();
@@ -22820,7 +22895,7 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
             return;
         }
         this._renderingManager.reset();
-        var sceneRenderId = scene.getRenderId();
+        var sceneRenderId = scene.sceneRender.getRenderId();
         for (var meshIndex = 0; meshIndex < currentRenderListLength; meshIndex++) {
             var mesh = currentRenderList[meshIndex];
             if (mesh && !mesh.isBlocked) {
@@ -22895,14 +22970,14 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
         }
         var engine = scene.getEngine();
         if (this._texture) {
-            engine.bindFramebuffer(this._texture, this.isCube ? faceIndex : undefined, undefined, undefined, this.ignoreCameraViewport, 0, layer);
+            engine.engineFramebuffer.bindFramebuffer(this._texture, this.isCube ? faceIndex : undefined, undefined, undefined, this.ignoreCameraViewport, 0, layer);
         }
     }
     unbindFrameBuffer(engine, faceIndex) {
         if (!this._texture) {
             return;
         }
-        engine.unBindFramebuffer(this._texture, this.isCube, () => {
+        engine.engineFramebuffer.unBindFramebuffer(this._texture, this.isCube, () => {
             this.onAfterRenderObservable.notifyObservers(faceIndex);
         });
     }
@@ -22953,19 +23028,19 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
             this.onClearObservable.notifyObservers(engine);
         }
         else {
-            engine.clear(this.clearColor || scene.clearColor, true, true, true);
+            engine.clear(this.clearColor || scene.sceneRender.clearColor, true, true, true);
         }
         if (!this._doNotChangeAspectRatio) {
-            scene.updateTransformMatrix(true);
+            scene.sceneMatrix.updateTransformMatrix(true);
         }
         // Before Camera Draw
-        for (let step of scene._beforeRenderTargetDrawStage) {
+        for (let step of scene.sceneStage._beforeRenderTargetDrawStage) {
             step.action(this);
         }
         // Render
         this._renderingManager.render(this.customRenderFunction, currentRenderList, this.renderParticles, this.renderSprites);
         // After Camera Draw
-        for (let step of scene._afterRenderTargetDrawStage) {
+        for (let step of scene.sceneStage._afterRenderTargetDrawStage) {
             step.action(this);
         }
         // if (this._postProcessManager) {
@@ -22975,7 +23050,7 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
         //     scene.postProcessManager._finalizeFrame(false, this._texture, faceIndex);
         // }
         if (!this._doNotChangeAspectRatio) {
-            scene.updateTransformMatrix(true);
+            scene.sceneMatrix.updateTransformMatrix(true);
         }
         // Dump ?
         if (dumpForDebug) {
@@ -23058,7 +23133,7 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
         let objBuffer = this.getInternalTexture();
         let scene = this.getScene();
         if (objBuffer && scene) {
-            scene.getEngine()._releaseFramebufferObjects(objBuffer);
+            scene.getEngine().engineFramebuffer._releaseFramebufferObjects(objBuffer);
         }
     }
     /**
@@ -23086,9 +23161,9 @@ class RenderTargetTexture extends _texture__WEBPACK_IMPORTED_MODULE_3__["Texture
         if (!scene) {
             return;
         }
-        var index = scene.customRenderTargets.indexOf(this);
+        var index = scene.sceneRender.customRenderTargets.indexOf(this);
         if (index >= 0) {
-            scene.customRenderTargets.splice(index, 1);
+            scene.sceneRender.customRenderTargets.splice(index, 1);
         }
         for (var camera of scene.cameras) {
             index = camera.customRenderTargets.indexOf(this);
@@ -23260,11 +23335,6 @@ class Texture extends _baseTexture__WEBPACK_IMPORTED_MODULE_4__["BaseTexture"] {
          * Sets this property to true to avoid deformations when rotating the texture with non-uniform scaling
          */
         this.homogeneousRotationInUVTransform = false;
-        /**
-         * List of inspectable custom properties (used by the Inspector)
-         * @see https://doc.babylonjs.com/how_to/debug_layer#extensibility
-         */
-        this.inspectableCustomProperties = null;
         this._noMipmap = false;
         /** @hidden */
         this._invertY = false;
@@ -23317,7 +23387,7 @@ class Texture extends _baseTexture__WEBPACK_IMPORTED_MODULE_4__["BaseTexture"] {
         if (!engine) {
             return;
         }
-        engine.onBeforeTextureInitObservable.notifyObservers(this);
+        engine.engineTexture.onBeforeTextureInitObservable.notifyObservers(this);
         let load = () => {
             if (this._texture) {
                 if (this._texture._invertVScale) {
@@ -23345,7 +23415,7 @@ class Texture extends _baseTexture__WEBPACK_IMPORTED_MODULE_4__["BaseTexture"] {
                 onLoad();
             }
             if (!this.isBlocking && scene) {
-                scene.resetCachedMaterial();
+                scene.sceneCatch.resetCachedMaterial();
             }
         };
         if (!this.url) {
@@ -23356,7 +23426,7 @@ class Texture extends _baseTexture__WEBPACK_IMPORTED_MODULE_4__["BaseTexture"] {
         this._texture = this._getFromCache(this.url, noMipmap, samplingMode, invertY);
         if (!this._texture) {
             if (!scene || !scene.useDelayedTextureLoading) {
-                this._texture = engine.createTexture(this.url, noMipmap, invertY, scene, samplingMode, load, onError, this._buffer, undefined, this._format, null, mimeType, loaderOptions);
+                this._texture = engine.engineTexture.createTexture(this.url, noMipmap, invertY, scene, samplingMode, load, onError, this._buffer, undefined, this._format, null, mimeType, loaderOptions);
                 if (deleteBuffer) {
                     this._buffer = null;
                 }
@@ -23448,7 +23518,7 @@ class Texture extends _baseTexture__WEBPACK_IMPORTED_MODULE_4__["BaseTexture"] {
         this.delayLoadState = _Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].DELAYLOADSTATE_LOADED;
         this._texture = this._getFromCache(this.url, this._noMipmap, this.samplingMode, this._invertY);
         if (!this._texture) {
-            this._texture = scene.getEngine().createTexture(this.url, this._noMipmap, this._invertY, scene, this.samplingMode, this._delayedOnLoad, this._delayedOnError, this._buffer, null, this._format, null, this._mimeType, this._loaderOptions);
+            this._texture = scene.getEngine().engineTexture.createTexture(this.url, this._noMipmap, this._invertY, scene, this.samplingMode, this._delayedOnLoad, this._delayedOnError, this._buffer, null, this._format, null, this._mimeType, this._loaderOptions);
             if (this._deleteBuffer) {
                 this._buffer = null;
             }
@@ -23573,7 +23643,7 @@ class Texture extends _baseTexture__WEBPACK_IMPORTED_MODULE_4__["BaseTexture"] {
             this.vScale === this._cachedVScale &&
             this.coordinatesMode === this._cachedCoordinatesMode) {
             if (this.coordinatesMode === Texture.PROJECTION_MODE) {
-                if (this._cachedProjectionMatrixId === scene.getProjectionMatrix().updateFlag) {
+                if (this._cachedProjectionMatrixId === scene.sceneMatrix.getProjectionMatrix().updateFlag) {
                     return this._cachedTextureMatrix;
                 }
             }
@@ -23602,7 +23672,7 @@ class Texture extends _baseTexture__WEBPACK_IMPORTED_MODULE_4__["BaseTexture"] {
                 break;
             case Texture.PROJECTION_MODE:
                 _Maths_math_vector__WEBPACK_IMPORTED_MODULE_3__["Matrix"].FromValuesToRef(0.5, 0.0, 0.0, 0.0, 0.0, -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 1.0, 1.0, this._projectionModeMatrix);
-                let projectionMatrix = scene.getProjectionMatrix();
+                let projectionMatrix = scene.sceneMatrix.getProjectionMatrix();
                 this._cachedProjectionMatrixId = projectionMatrix.updateFlag;
                 projectionMatrix.multiplyToRef(this._projectionModeMatrix, this._cachedTextureMatrix);
                 break;
@@ -24148,7 +24218,7 @@ class ThinTexture {
      */
     updateSamplingMode(samplingMode) {
         if (this._texture && this._engine) {
-            this._engine.updateTextureSamplingMode(samplingMode, this._texture);
+            this._engine.engineTexture.updateTextureSamplingMode(samplingMode, this._texture);
         }
     }
     /**
@@ -24876,7 +24946,7 @@ class Effect {
             isFragment: false,
             shouldUseHighPrecisionShader: this._engine._shouldUseHighPrecisionShader,
             processor: this._engine._shaderProcessor,
-            supportsUniformBuffers: this._engine.supportsUniformBuffers,
+            supportsUniformBuffers: this._engine.engineUniform.supportsUniformBuffers,
             shadersRepository: Effect.ShadersRepository,
             includesShadersStore: Effect.IncludesShadersStore,
             version: (this._engine.webGLVersion * 100).toString(),
@@ -25196,12 +25266,12 @@ class Effect {
                 engine._preparePipelineContext(this._pipelineContext, this._vertexSourceCode, this._fragmentSourceCode, false, rebuildRebind, defines, this._transformFeedbackVaryings);
             }
             engine._executeWhenRenderingStateIsCompiled(this._pipelineContext, () => {
-                if (engine.supportsUniformBuffers) {
+                if (engine.engineUniform.supportsUniformBuffers) {
                     for (var name in this._uniformBuffersNames) {
                         this.bindUniformBlock(name, this._uniformBuffersNames[name]);
                     }
                 }
-                let uniforms = engine.getUniforms(this._pipelineContext, this._uniformsNames);
+                let uniforms = engine.engineUniform.getUniforms(this._pipelineContext, this._uniformsNames);
                 uniforms.forEach((uniform, index) => {
                     this._uniforms[this._uniformsNames[index]] = uniform;
                 });
@@ -25346,7 +25416,7 @@ class Effect {
      * @hidden
      */
     _bindTexture(channel, texture) {
-        this._engine._bindTexture(this._samplers[channel], texture);
+        this._engine.engineTexture._bindTexture(this._samplers[channel], texture);
     }
     /**
      * Sets a texture on the engine to be used in the shader.
@@ -25354,7 +25424,7 @@ class Effect {
      * @param texture Texture to set.
      */
     setTexture(channel, texture) {
-        this._engine.setTexture(this._samplers[channel], this._uniforms[channel], texture);
+        this._engine.engineTexture.setTexture(this._samplers[channel], this._uniforms[channel], texture);
     }
     /**
      * Sets a depth stencil texture from a render target on the engine to be used in the shader.
@@ -25384,7 +25454,7 @@ class Effect {
                 channelIndex += 1;
             }
         }
-        this._engine.setTextureArray(this._samplers[channel], this._uniforms[channel], textures);
+        this._engine.engineTexture.setTextureArray(this._samplers[channel], this._uniforms[channel], textures);
     }
     // /**
     //  * Sets a texture to be the input of the specified post process. (To use the output, pass in the next post process in the pipeline)
@@ -25514,7 +25584,7 @@ class Effect {
         if (cache !== undefined && cache === value) {
             return this;
         }
-        if (this._engine.setInt(this._uniforms[uniformName], value)) {
+        if (this._engine.engineUniform.setInt(this._uniforms[uniformName], value)) {
             this._valueCache[uniformName] = value;
         }
         return this;
@@ -25527,7 +25597,7 @@ class Effect {
      */
     setIntArray(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setIntArray(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setIntArray(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25538,7 +25608,7 @@ class Effect {
      */
     setIntArray2(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setIntArray2(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setIntArray2(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25549,7 +25619,7 @@ class Effect {
      */
     setIntArray3(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setIntArray3(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setIntArray3(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25560,7 +25630,7 @@ class Effect {
      */
     setIntArray4(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setIntArray4(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setIntArray4(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25571,7 +25641,7 @@ class Effect {
      */
     setFloatArray(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setArray(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setArray(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25582,7 +25652,7 @@ class Effect {
      */
     setFloatArray2(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setArray2(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setArray2(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25593,7 +25663,7 @@ class Effect {
      */
     setFloatArray3(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setArray3(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setArray3(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25604,7 +25674,7 @@ class Effect {
      */
     setFloatArray4(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setArray4(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setArray4(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25615,7 +25685,7 @@ class Effect {
      */
     setArray(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setArray(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setArray(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25626,7 +25696,7 @@ class Effect {
      */
     setArray2(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setArray2(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setArray2(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25637,7 +25707,7 @@ class Effect {
      */
     setArray3(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setArray3(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setArray3(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25648,7 +25718,7 @@ class Effect {
      */
     setArray4(uniformName, array) {
         this._valueCache[uniformName] = null;
-        this._engine.setArray4(this._uniforms[uniformName], array);
+        this._engine.engineUniform.setArray4(this._uniforms[uniformName], array);
         return this;
     }
     /**
@@ -25662,7 +25732,7 @@ class Effect {
             return this;
         }
         this._valueCache[uniformName] = null;
-        this._engine.setMatrices(this._uniforms[uniformName], matrices); // the cast is ok because it is gl.uniformMatrix4fv() which is called at the end, and this function accepts Float32Array and Array<number>
+        this._engine.engineUniform.setMatrices(this._uniforms[uniformName], matrices); // the cast is ok because it is gl.uniformMatrix4fv() which is called at the end, and this function accepts Float32Array and Array<number>
         return this;
     }
     /**
@@ -25673,7 +25743,7 @@ class Effect {
      */
     setMatrix(uniformName, matrix) {
         if (this._cacheMatrix(uniformName, matrix)) {
-            if (!this._engine.setMatrices(this._uniforms[uniformName], matrix.toArray())) {
+            if (!this._engine.engineUniform.setMatrices(this._uniforms[uniformName], matrix.toArray())) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25687,7 +25757,7 @@ class Effect {
      */
     setMatrix3x3(uniformName, matrix) {
         this._valueCache[uniformName] = null;
-        this._engine.setMatrix3x3(this._uniforms[uniformName], matrix); // the cast is ok because it is gl.uniformMatrix3fv() which is called at the end, and this function accepts Float32Array and Array<number>
+        this._engine.engineUniform.setMatrix3x3(this._uniforms[uniformName], matrix); // the cast is ok because it is gl.uniformMatrix3fv() which is called at the end, and this function accepts Float32Array and Array<number>
         return this;
     }
     /**
@@ -25698,7 +25768,7 @@ class Effect {
      */
     setMatrix2x2(uniformName, matrix) {
         this._valueCache[uniformName] = null;
-        this._engine.setMatrix2x2(this._uniforms[uniformName], matrix); // the cast is ok because it is gl.uniformMatrix2fv() which is called at the end, and this function accepts Float32Array and Array<number>
+        this._engine.engineUniform.setMatrix2x2(this._uniforms[uniformName], matrix); // the cast is ok because it is gl.uniformMatrix2fv() which is called at the end, and this function accepts Float32Array and Array<number>
         return this;
     }
     /**
@@ -25712,7 +25782,7 @@ class Effect {
         if (cache !== undefined && cache === value) {
             return this;
         }
-        if (this._engine.setFloat(this._uniforms[uniformName], value)) {
+        if (this._engine.engineUniform.setFloat(this._uniforms[uniformName], value)) {
             this._valueCache[uniformName] = value;
         }
         return this;
@@ -25728,7 +25798,7 @@ class Effect {
         if (cache !== undefined && cache === bool) {
             return this;
         }
-        if (this._engine.setInt(this._uniforms[uniformName], bool ? 1 : 0)) {
+        if (this._engine.engineUniform.setInt(this._uniforms[uniformName], bool ? 1 : 0)) {
             this._valueCache[uniformName] = bool;
         }
         return this;
@@ -25741,7 +25811,7 @@ class Effect {
      */
     setVector2(uniformName, vector2) {
         if (this._cacheFloat2(uniformName, vector2.x, vector2.y)) {
-            if (!this._engine.setFloat2(this._uniforms[uniformName], vector2.x, vector2.y)) {
+            if (!this._engine.engineUniform.setFloat2(this._uniforms[uniformName], vector2.x, vector2.y)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25756,7 +25826,7 @@ class Effect {
      */
     setFloat2(uniformName, x, y) {
         if (this._cacheFloat2(uniformName, x, y)) {
-            if (!this._engine.setFloat2(this._uniforms[uniformName], x, y)) {
+            if (!this._engine.engineUniform.setFloat2(this._uniforms[uniformName], x, y)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25770,7 +25840,7 @@ class Effect {
      */
     setVector3(uniformName, vector3) {
         if (this._cacheFloat3(uniformName, vector3.x, vector3.y, vector3.z)) {
-            if (!this._engine.setFloat3(this._uniforms[uniformName], vector3.x, vector3.y, vector3.z)) {
+            if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], vector3.x, vector3.y, vector3.z)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25786,7 +25856,7 @@ class Effect {
      */
     setFloat3(uniformName, x, y, z) {
         if (this._cacheFloat3(uniformName, x, y, z)) {
-            if (!this._engine.setFloat3(this._uniforms[uniformName], x, y, z)) {
+            if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], x, y, z)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25800,7 +25870,7 @@ class Effect {
      */
     setVector4(uniformName, vector4) {
         if (this._cacheFloat4(uniformName, vector4.x, vector4.y, vector4.z, vector4.w)) {
-            if (!this._engine.setFloat4(this._uniforms[uniformName], vector4.x, vector4.y, vector4.z, vector4.w)) {
+            if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], vector4.x, vector4.y, vector4.z, vector4.w)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25817,7 +25887,7 @@ class Effect {
      */
     setFloat4(uniformName, x, y, z, w) {
         if (this._cacheFloat4(uniformName, x, y, z, w)) {
-            if (!this._engine.setFloat4(this._uniforms[uniformName], x, y, z, w)) {
+            if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], x, y, z, w)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25831,7 +25901,7 @@ class Effect {
      */
     setColor3(uniformName, color3) {
         if (this._cacheFloat3(uniformName, color3.r, color3.g, color3.b)) {
-            if (!this._engine.setFloat3(this._uniforms[uniformName], color3.r, color3.g, color3.b)) {
+            if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], color3.r, color3.g, color3.b)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25846,7 +25916,7 @@ class Effect {
      */
     setColor4(uniformName, color3, alpha) {
         if (this._cacheFloat4(uniformName, color3.r, color3.g, color3.b, alpha)) {
-            if (!this._engine.setFloat4(this._uniforms[uniformName], color3.r, color3.g, color3.b, alpha)) {
+            if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], color3.r, color3.g, color3.b, alpha)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -25860,7 +25930,7 @@ class Effect {
      */
     setDirectColor4(uniformName, color4) {
         if (this._cacheFloat4(uniformName, color4.r, color4.g, color4.b, color4.a)) {
-            if (!this._engine.setFloat4(this._uniforms[uniformName], color4.r, color4.g, color4.b, color4.a)) {
+            if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], color4.r, color4.g, color4.b, color4.a)) {
                 this._valueCache[uniformName] = null;
             }
         }
@@ -26454,8 +26524,8 @@ class ImageProcessingConfiguration {
         }
         // Vignette
         if (this._vignetteEnabled) {
-            var inverseWidth = 1 / effect.getEngine().getRenderWidth();
-            var inverseHeight = 1 / effect.getEngine().getRenderHeight();
+            var inverseWidth = 1 / effect.getEngine().engineFramebuffer.getRenderWidth();
+            var inverseHeight = 1 / effect.getEngine().engineFramebuffer.getRenderHeight();
             effect.setFloat2("vInverseScreenSize", inverseWidth, inverseHeight);
             let aspectRatio = overrideAspectRatio != null ? overrideAspectRatio : (inverseHeight / inverseWidth);
             let vignetteScaleY = Math.tan(this.vignetteCameraFov * 0.5);
@@ -27068,7 +27138,7 @@ class Material {
         let idSubscript = 1;
         this._scene = scene || _Engines_engineStore__WEBPACK_IMPORTED_MODULE_4__["EngineStore"].LastCreatedScene;
         this.id = name || _Misc_tools__WEBPACK_IMPORTED_MODULE_2__["Tools"].RandomId();
-        while (this._scene.getMaterialByID(this.id)) {
+        while (this._scene.sceneNode.getMaterialByID(this.id)) {
             this.id = name + " " + idSubscript++;
         }
         this.uniqueId = this._scene.getUniqueId();
@@ -27079,9 +27149,9 @@ class Material {
             this.sideOrientation = Material.CounterClockWiseSideOrientation;
         }
         this._uniformBuffer = new _uniformBuffer__WEBPACK_IMPORTED_MODULE_6__["UniformBuffer"](this._scene.getEngine());
-        this._useUBO = this.getScene().getEngine().supportsUniformBuffers;
+        this._useUBO = this.getScene().getEngine().engineUniform.supportsUniformBuffers;
         if (!doNotAdd) {
-            this._scene.addMaterial(this);
+            this._scene.sceneNode.addMaterial(this);
         }
         if (this._scene.useMaterialMeshMap) {
             this.meshMap = {};
@@ -27251,7 +27321,7 @@ class Material {
             case Material.LineStripDrawMode:
                 return true;
         }
-        return this._scene.forceWireframe;
+        return this._scene.sceneRender.forceWireframe;
     }
     /**
      * Sets the state of wireframe mode
@@ -27504,10 +27574,10 @@ class Material {
      */
     bindView(effect) {
         if (!this._useUBO) {
-            effect.setMatrix("view", this.getScene().getViewMatrix());
+            effect.setMatrix("view", this.getScene().sceneMatrix.getViewMatrix());
         }
         else {
-            this.bindSceneUniformBuffer(effect, this.getScene().getSceneUniformBuffer());
+            this.bindSceneUniformBuffer(effect, this.getScene().sceneMatrix.getSceneUniformBuffer());
         }
     }
     /**
@@ -27516,10 +27586,10 @@ class Material {
      */
     bindViewProjection(effect) {
         if (!this._useUBO) {
-            effect.setMatrix("viewProjection", this.getScene().getTransformMatrix());
+            effect.setMatrix("viewProjection", this.getScene().sceneMatrix.getTransformMatrix());
         }
         else {
-            this.bindSceneUniformBuffer(effect, this.getScene().getSceneUniformBuffer());
+            this.bindSceneUniformBuffer(effect, this.getScene().sceneMatrix.getSceneUniformBuffer());
         }
     }
     /**
@@ -27527,12 +27597,12 @@ class Material {
      * @param mesh defines the rendered mesh
      */
     _afterBind(mesh) {
-        this._scene._cachedMaterial = this;
+        this._scene.sceneCatch._cachedMaterial = this;
         if (mesh) {
-            this._scene._cachedVisibility = mesh.visibility;
+            this._scene.sceneCatch._cachedVisibility = mesh.visibility;
         }
         else {
-            this._scene._cachedVisibility = 1;
+            this._scene.sceneCatch._cachedVisibility = 1;
         }
         if (this._onBindObservable && mesh) {
             this._onBindObservable.notifyObservers(mesh);
@@ -27632,9 +27702,9 @@ class Material {
             if (!this._scene || !this._scene.getEngine()) {
                 return;
             }
-            var clipPlaneState = scene.clipPlane;
+            var clipPlaneState = scene.sceneClipPlane.clipPlane;
             if (localOptions.clipPlane) {
-                scene.clipPlane = new _Maths_math_plane__WEBPACK_IMPORTED_MODULE_9__["Plane"](0, 0, 0, 1);
+                scene.sceneClipPlane.clipPlane = new _Maths_math_plane__WEBPACK_IMPORTED_MODULE_9__["Plane"](0, 0, 0, 1);
             }
             if (this._storeEffectOnSubMeshes) {
                 var allDone = true, lastError = null;
@@ -27677,7 +27747,7 @@ class Material {
                 }
             }
             if (localOptions.clipPlane) {
-                scene.clipPlane = clipPlaneState;
+                scene.sceneClipPlane.clipPlane = clipPlaneState;
             }
         };
         checkReady();
@@ -27727,7 +27797,7 @@ class Material {
         if (Material._DirtyCallbackArray.length) {
             this._markAllSubMeshesAsDirty(Material._RunDirtyCallBacks);
         }
-        this.getScene().resetCachedMaterial();
+        this.getScene().sceneCatch.resetCachedMaterial();
     }
     /**
      * Marks all submeshes of a material to indicate that their material defines need to be re-calculated
@@ -27846,7 +27916,7 @@ class Material {
         // scene.stopAnimation(this);
         scene.freeProcessedMaterials();
         // Remove from scene
-        scene.removeMaterial(this);
+        scene.sceneNode.removeMaterial(this);
         if (notBoundToMesh !== true) {
             // Remove from meshes
             if (this.meshMap) {
@@ -28711,7 +28781,7 @@ class MaterialHelper {
      * @returns true if fog must be enabled
      */
     static GetFogState(mesh, scene) {
-        return (scene.fogEnabled && mesh.applyFog && scene.fogMode !== _Scene_scene__WEBPACK_IMPORTED_MODULE_0__["Scene"].FOGMODE_NONE);
+        return (scene.sceneFog.fogEnabled && mesh.applyFog && scene.sceneFog.fogMode !== _Scene_scene__WEBPACK_IMPORTED_MODULE_0__["Scene"].FOGMODE_NONE);
     }
     /**
      * Helper used to prepare the list of defines associated with misc. values for shader compilation
@@ -28750,12 +28820,12 @@ class MaterialHelper {
         let useClipPlane4 = false;
         let useClipPlane5 = false;
         let useClipPlane6 = false;
-        useClipPlane1 = useClipPlane == null ? (scene.clipPlane !== undefined && scene.clipPlane !== null) : useClipPlane;
-        useClipPlane2 = useClipPlane == null ? (scene.clipPlane2 !== undefined && scene.clipPlane2 !== null) : useClipPlane;
-        useClipPlane3 = useClipPlane == null ? (scene.clipPlane3 !== undefined && scene.clipPlane3 !== null) : useClipPlane;
-        useClipPlane4 = useClipPlane == null ? (scene.clipPlane4 !== undefined && scene.clipPlane4 !== null) : useClipPlane;
-        useClipPlane5 = useClipPlane == null ? (scene.clipPlane5 !== undefined && scene.clipPlane5 !== null) : useClipPlane;
-        useClipPlane6 = useClipPlane == null ? (scene.clipPlane6 !== undefined && scene.clipPlane6 !== null) : useClipPlane;
+        useClipPlane1 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane !== undefined && scene.sceneClipPlane.clipPlane !== null) : useClipPlane;
+        useClipPlane2 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane2 !== undefined && scene.sceneClipPlane.clipPlane2 !== null) : useClipPlane;
+        useClipPlane3 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane3 !== undefined && scene.sceneClipPlane.clipPlane3 !== null) : useClipPlane;
+        useClipPlane4 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane4 !== undefined && scene.sceneClipPlane.clipPlane4 !== null) : useClipPlane;
+        useClipPlane5 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane5 !== undefined && scene.sceneClipPlane.clipPlane5 !== null) : useClipPlane;
+        useClipPlane6 = useClipPlane == null ? (scene.sceneClipPlane.clipPlane6 !== undefined && scene.sceneClipPlane.clipPlane6 !== null) : useClipPlane;
         if (defines["CLIPPLANE"] !== useClipPlane1) {
             defines["CLIPPLANE"] = useClipPlane1;
             changed = true;
@@ -29416,7 +29486,7 @@ class MaterialHelper {
      * @param effect The effect we are binding the data to
      */
     static BindClipPlane(effect, scene) {
-        _thinMaterialHelper__WEBPACK_IMPORTED_MODULE_4__["ThinMaterialHelper"].BindClipPlane(effect, scene);
+        _thinMaterialHelper__WEBPACK_IMPORTED_MODULE_4__["ThinMaterialHelper"].BindClipPlane(effect, scene.sceneClipPlane);
     }
 }
 MaterialHelper._TmpMorphInfluencers = { "NUM_MORPH_INFLUENCERS": 0 };
@@ -29533,7 +29603,7 @@ class PushMaterial extends _Materials_material__WEBPACK_IMPORTED_MODULE_1__["Mat
     _isReadyForSubMesh(subMesh) {
         const defines = subMesh._materialDefines;
         if (!this.checkReadyOnEveryCall && subMesh.effect && defines) {
-            if (defines._renderId === this.getScene().getRenderId()) {
+            if (defines._renderId === this.getScene().sceneRender.getRenderId()) {
                 return true;
             }
         }
@@ -29563,10 +29633,10 @@ class PushMaterial extends _Materials_material__WEBPACK_IMPORTED_MODULE_1__["Mat
     }
     _afterBind(mesh, effect = null) {
         super._afterBind(mesh);
-        this.getScene()._cachedEffect = effect;
+        this.getScene().sceneCatch._cachedEffect = effect;
     }
     _mustRebind(scene, effect, visibility = 1) {
-        return scene.isCachedMaterialInvalid(this, effect, visibility);
+        return scene.sceneCatch.isCachedMaterialInvalid(this, effect, visibility);
     }
 }
 
@@ -29962,7 +30032,7 @@ class ShaderMaterial extends _material__WEBPACK_IMPORTED_MODULE_5__["Material"] 
         var scene = this.getScene();
         var engine = scene.getEngine();
         if (!this.checkReadyOnEveryCall) {
-            if (this._renderId === scene.getRenderId()) {
+            if (this._renderId === scene.sceneRender.getRenderId()) {
                 if (this._checkCache(mesh, useInstances)) {
                     return true;
                 }
@@ -30044,9 +30114,9 @@ class ShaderMaterial extends _material__WEBPACK_IMPORTED_MODULE_5__["Material"] 
             return false;
         }
         if (previousEffect !== this._effect) {
-            scene.resetCachedMaterial();
+            scene.sceneCatch.resetCachedMaterial();
         }
-        this._renderId = scene.getRenderId();
+        this._renderId = scene.sceneRender.getRenderId();
         this._effect._wasPreviouslyReady = true;
         return true;
     }
@@ -30065,11 +30135,11 @@ class ShaderMaterial extends _material__WEBPACK_IMPORTED_MODULE_5__["Material"] 
             effect.setMatrix("world", world);
         }
         if (this._options.uniforms.indexOf("worldView") !== -1) {
-            world.multiplyToRef(scene.getViewMatrix(), this._cachedWorldViewMatrix);
+            world.multiplyToRef(scene.sceneMatrix.getViewMatrix(), this._cachedWorldViewMatrix);
             effect.setMatrix("worldView", this._cachedWorldViewMatrix);
         }
         if (this._options.uniforms.indexOf("worldViewProjection") !== -1) {
-            world.multiplyToRef(scene.getTransformMatrix(), this._cachedWorldViewProjectionMatrix);
+            world.multiplyToRef(scene.sceneMatrix.getTransformMatrix(), this._cachedWorldViewProjectionMatrix);
             effect.setMatrix("worldViewProjection", this._cachedWorldViewProjectionMatrix);
         }
     }
@@ -30092,15 +30162,15 @@ class ShaderMaterial extends _material__WEBPACK_IMPORTED_MODULE_5__["Material"] 
         // Std values
         this.bindOnlyWorldMatrix(world, effectOverride);
         const effect = effectOverride !== null && effectOverride !== void 0 ? effectOverride : this._effect;
-        if (effect && this.getScene().getCachedMaterial() !== this) {
+        if (effect && this.getScene().sceneCatch.getCachedMaterial() !== this) {
             if (this._options.uniforms.indexOf("view") !== -1) {
-                effect.setMatrix("view", this.getScene().getViewMatrix());
+                effect.setMatrix("view", this.getScene().sceneMatrix.getViewMatrix());
             }
             if (this._options.uniforms.indexOf("projection") !== -1) {
-                effect.setMatrix("projection", this.getScene().getProjectionMatrix());
+                effect.setMatrix("projection", this.getScene().sceneMatrix.getProjectionMatrix());
             }
             if (this._options.uniforms.indexOf("viewProjection") !== -1) {
-                effect.setMatrix("viewProjection", this.getScene().getTransformMatrix());
+                effect.setMatrix("viewProjection", this.getScene().sceneMatrix.getTransformMatrix());
                 // if (this._multiview) {
                 //     effect.setMatrix("viewProjectionR", this.getScene()._transformMatrixR);
                 // }
@@ -30196,7 +30266,7 @@ class ShaderMaterial extends _material__WEBPACK_IMPORTED_MODULE_5__["Material"] 
     }
     _afterBind(mesh) {
         super._afterBind(mesh);
-        this.getScene()._cachedEffect = this._effect;
+        this.getScene().sceneCatch._cachedEffect = this._effect;
     }
     /**
      * Gets the active textures from the material
@@ -30945,7 +31015,7 @@ class StandardMaterial extends _pushMaterial__WEBPACK_IMPORTED_MODULE_11__["Push
         }
         // Pick the scene configuration if needed
         if (!configuration) {
-            this._imageProcessingConfiguration = this.getScene().imageProcessingConfiguration;
+            this._imageProcessingConfiguration = this.getScene().sceneRender.imageProcessingConfiguration;
         }
         else {
             this._imageProcessingConfiguration = configuration;
@@ -31509,7 +31579,7 @@ class StandardMaterial extends _pushMaterial__WEBPACK_IMPORTED_MODULE_11__["Push
                 }
                 else {
                     this._rebuildInParallel = false;
-                    scene.resetCachedMaterial();
+                    scene.sceneCatch.resetCachedMaterial();
                     subMesh.setEffect(effect, defines);
                     this.buildUniformLayout();
                 }
@@ -31518,7 +31588,7 @@ class StandardMaterial extends _pushMaterial__WEBPACK_IMPORTED_MODULE_11__["Push
         if (!subMesh.effect || !subMesh.effect.isReady()) {
             return false;
         }
-        defines._renderId = scene.getRenderId();
+        defines._renderId = scene.sceneRender.getRenderId();
         subMesh.effect._wasPreviouslyReady = true;
         return true;
     }
@@ -31762,7 +31832,7 @@ class StandardMaterial extends _pushMaterial__WEBPACK_IMPORTED_MODULE_11__["Push
             // Clip plane
             _materialHelper__WEBPACK_IMPORTED_MODULE_12__["MaterialHelper"].BindClipPlane(effect, scene);
             // Colors
-            scene.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
+            scene.sceneRender.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
             _materialHelper__WEBPACK_IMPORTED_MODULE_12__["MaterialHelper"].BindEyePosition(effect, scene);
             effect.setColor3("vAmbientColor", this._globalAmbientColor);
         }
@@ -31772,7 +31842,7 @@ class StandardMaterial extends _pushMaterial__WEBPACK_IMPORTED_MODULE_11__["Push
                 _materialHelper__WEBPACK_IMPORTED_MODULE_12__["MaterialHelper"].BindLights(scene, mesh, effect, defines, this._maxSimultaneousLights, this._rebuildInParallel);
             }
             // View
-            if (scene.fogEnabled && mesh.applyFog && scene.fogMode !== _Scene_scene__WEBPACK_IMPORTED_MODULE_3__["Scene"].FOGMODE_NONE || this._reflectionTexture || this._refractionTexture) {
+            if (scene.sceneFog.fogEnabled && mesh.applyFog && scene.sceneFog.fogMode !== _Scene_scene__WEBPACK_IMPORTED_MODULE_3__["Scene"].FOGMODE_NONE || this._reflectionTexture || this._refractionTexture) {
                 this.bindView(effect);
             }
             // Fog
@@ -32387,7 +32457,7 @@ class UniformBuffer {
         // Matrix cache
         this._valueCache = {};
         this._engine = engine;
-        this._noUBO = !engine.supportsUniformBuffers;
+        this._noUBO = !engine.engineUniform.supportsUniformBuffers;
         this._dynamic = dynamic;
         this._data = data || [];
         this._uniformLocations = {};
@@ -32408,7 +32478,7 @@ class UniformBuffer {
             this.updateColor4 = this._updateColor4ForEffect;
         }
         else {
-            this._engine._uniformBuffers.push(this);
+            this._engine.engineUniform._uniformBuffers.push(this);
             this.updateMatrix3x3 = this._updateMatrix3x3ForUniform;
             this.updateMatrix2x2 = this._updateMatrix2x2ForUniform;
             this.updateFloat = this._updateFloatForUniform;
@@ -32826,7 +32896,7 @@ class UniformBuffer {
         if (this._noUBO) {
             return;
         }
-        const uniformBuffers = this._engine._uniformBuffers;
+        const uniformBuffers = this._engine.engineUniform._uniformBuffers;
         let index = uniformBuffers.indexOf(this);
         if (index !== -1) {
             uniformBuffers[index] = uniformBuffers[uniformBuffers.length - 1];
@@ -42517,7 +42587,7 @@ class AbstractMesh extends _transformNode__WEBPACK_IMPORTED_MODULE_5__["Transfor
             }
             this.onCollisionPositionChangeObservable.notifyObservers(this.position);
         };
-        this.getScene().addMesh(this);
+        this.getScene().sceneNode.addMesh(this);
         this._resyncLightSources();
     }
     /**
@@ -43634,7 +43704,7 @@ class AbstractMesh extends _transformNode__WEBPACK_IMPORTED_MODULE_5__["Transfor
         }
         // Smart Array Retainers.
         this.getScene().freeActiveMeshes();
-        this.getScene().freeRenderingGroups();
+        this.getScene().sceneRender.freeRenderingGroups();
         // Action manager
         // if (this.actionManager !== undefined && this.actionManager !== null) {
         //     this.actionManager.dispose();
@@ -43690,7 +43760,7 @@ class AbstractMesh extends _transformNode__WEBPACK_IMPORTED_MODULE_5__["Transfor
         // Engine
         engine.wipeCaches();
         // Remove from scene
-        this.getScene().removeMesh(this);
+        this.getScene().sceneNode.removeMesh(this);
         if (disposeMaterialAndTextures) {
             if (this.material) {
                 if (this.material.getClassName() === "MultiMaterial") {
@@ -44295,11 +44365,11 @@ class Buffer {
         }
         if (!this._buffer) { // create buffer
             if (this._updatable) {
-                this._buffer = this._engine.createDynamicVertexBuffer(data);
+                this._buffer = this._engine.engineVertex.createDynamicVertexBuffer(data);
                 this._data = data;
             }
             else {
-                this._buffer = this._engine.createVertexBuffer(data);
+                this._buffer = this._engine.engineVertex.createVertexBuffer(data);
             }
         }
         else if (this._updatable) { // update buffer
@@ -44359,8 +44429,8 @@ class Buffer {
     }
 }
 /**
-     * Specialized buffer used to store vertex data
-     */
+ * Specialized buffer used to store vertex data
+ */
 class VertexBuffer {
     /**
      * Constructor
@@ -44980,7 +45050,7 @@ class Geometry {
         }
         // Index buffer
         if (this._meshes.length !== 0 && this._indices) {
-            this._indexBuffer = this._engine.createIndexBuffer(this._indices);
+            this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices);
         }
         // Vertex buffers
         for (var key in this._vertexBuffers) {
@@ -45129,14 +45199,14 @@ class Geometry {
             return;
         }
         if (indexToBind != this._indexBuffer || !this._vertexArrayObjects) {
-            this._engine.bindBuffers(vbs, indexToBind, effect);
+            this._engine.engineVertex.bindBuffers(vbs, indexToBind, effect);
             return;
         }
         // Using VAO
         if (!this._vertexArrayObjects[effect.key]) {
-            this._vertexArrayObjects[effect.key] = this._engine.recordVertexArrayObject(vbs, indexToBind, effect);
+            this._vertexArrayObjects[effect.key] = this._engine.engineVertex.recordVertexArrayObject(vbs, indexToBind, effect);
         }
-        this._engine.bindVertexArrayObject(this._vertexArrayObjects[effect.key], indexToBind);
+        this._engine.engineVertex.bindVertexArrayObject(this._vertexArrayObjects[effect.key], indexToBind);
     }
     /**
      * Gets total number of vertices
@@ -45306,7 +45376,7 @@ class Geometry {
         this._indices = indices;
         this._indexBufferIsUpdatable = updatable;
         if (this._meshes.length !== 0 && this._indices) {
-            this._indexBuffer = this._engine.createIndexBuffer(this._indices, updatable);
+            this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices, updatable);
         }
         if (totalVertices != undefined) {
             // including null and undefined
@@ -45366,7 +45436,7 @@ class Geometry {
             return;
         }
         if (this._vertexArrayObjects[effect.key]) {
-            this._engine.releaseVertexArrayObject(this._vertexArrayObjects[effect.key]);
+            this._engine.engineVertex.releaseVertexArrayObject(this._vertexArrayObjects[effect.key]);
             delete this._vertexArrayObjects[effect.key];
         }
     }
@@ -45402,7 +45472,7 @@ class Geometry {
         var meshes = this._meshes;
         // must be done before setting vertexBuffers because of mesh._createGlobalSubMesh()
         mesh._geometry = this;
-        this._scene.pushGeometry(this);
+        this._scene.sceneNode.pushGeometry(this);
         meshes.push(mesh);
         if (this.isReady()) {
             this._applyToMesh(mesh);
@@ -45448,7 +45518,7 @@ class Geometry {
         }
         // indexBuffer
         if (numOfMeshes === 1 && this._indices && this._indices.length > 0) {
-            this._indexBuffer = this._engine.createIndexBuffer(this._indices);
+            this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices);
         }
         if (this._indexBuffer) {
             this._indexBuffer.references = numOfMeshes;
@@ -45489,7 +45559,7 @@ class Geometry {
             return;
         }
         scene._addPendingData(this);
-        scene._loadFile(this.delayLoadingFile, (data) => {
+        scene.sceneFile._loadFile(this.delayLoadingFile, (data) => {
             if (!this._delayLoadingFunction) {
                 return;
             }
@@ -45573,7 +45643,7 @@ class Geometry {
     _disposeVertexArrayObjects() {
         if (this._vertexArrayObjects) {
             for (var kind in this._vertexArrayObjects) {
-                this._engine.releaseVertexArrayObject(this._vertexArrayObjects[kind]);
+                this._engine.engineVertex.releaseVertexArrayObject(this._vertexArrayObjects[kind]);
             }
             this._vertexArrayObjects = {};
         }
@@ -45605,7 +45675,7 @@ class Geometry {
         this._delayLoadingFunction = null;
         this._delayInfo = [];
         this._boundingInfo = null;
-        this._scene.removeGeometry(this);
+        this._scene.sceneNode.removeGeometry(this);
         this._isDisposed = true;
     }
     /**
@@ -45789,7 +45859,7 @@ class Geometry {
         // Geometry
         var geometryId = parsedGeometry.geometryId;
         if (geometryId) {
-            var geometry = scene.getGeometryByID(geometryId);
+            var geometry = scene.sceneNode.getGeometryByID(geometryId);
             if (geometry) {
                 geometry.applyToMesh(mesh);
             }
@@ -45966,7 +46036,7 @@ class Geometry {
         }
         // Update
         mesh.computeWorldMatrix(true);
-        scene.onMeshImportedObservable.notifyObservers(mesh);
+        scene.sceneEventTrigger.onMeshImportedObservable.notifyObservers(mesh);
     }
     static _CleanMatricesWeights(parsedGeometry, mesh) {
         const epsilon = 1e-3;
@@ -46047,7 +46117,7 @@ class Geometry {
      * @returns the new geometry object
      */
     static Parse(parsedVertexData, scene, rootUrl) {
-        if (scene.getGeometryByID(parsedVertexData.id)) {
+        if (scene.sceneNode.getGeometryByID(parsedVertexData.id)) {
             return null; // null since geometry could be something else than a box...
         }
         var geometry = new Geometry(parsedVertexData.id, scene, undefined, parsedVertexData.updatable);
@@ -46091,7 +46161,7 @@ class Geometry {
         else {
             _mesh_vertexData__WEBPACK_IMPORTED_MODULE_2__["VertexData"].ImportVertexData(parsedVertexData, geometry);
         }
-        scene.pushGeometry(geometry, true);
+        scene.sceneNode.pushGeometry(geometry, true);
         return geometry;
     }
 }
@@ -47115,12 +47185,12 @@ class LinesMesh extends _Meshes_mesh__WEBPACK_IMPORTED_MODULE_2__["Mesh"] {
     isReady() {
         const scene = this.getScene();
         // Clip planes
-        scene.clipPlane ? this._addClipPlaneDefine("CLIPPLANE") : this._removeClipPlaneDefine("CLIPPLANE");
-        scene.clipPlane2 ? this._addClipPlaneDefine("CLIPPLANE2") : this._removeClipPlaneDefine("CLIPPLANE2");
-        scene.clipPlane3 ? this._addClipPlaneDefine("CLIPPLANE3") : this._removeClipPlaneDefine("CLIPPLANE3");
-        scene.clipPlane4 ? this._addClipPlaneDefine("CLIPPLANE4") : this._removeClipPlaneDefine("CLIPPLANE4");
-        scene.clipPlane5 ? this._addClipPlaneDefine("CLIPPLANE5") : this._removeClipPlaneDefine("CLIPPLANE5");
-        scene.clipPlane6 ? this._addClipPlaneDefine("CLIPPLANE6") : this._removeClipPlaneDefine("CLIPPLANE6");
+        scene.sceneClipPlane.clipPlane ? this._addClipPlaneDefine("CLIPPLANE") : this._removeClipPlaneDefine("CLIPPLANE");
+        scene.sceneClipPlane.clipPlane2 ? this._addClipPlaneDefine("CLIPPLANE2") : this._removeClipPlaneDefine("CLIPPLANE2");
+        scene.sceneClipPlane.clipPlane3 ? this._addClipPlaneDefine("CLIPPLANE3") : this._removeClipPlaneDefine("CLIPPLANE3");
+        scene.sceneClipPlane.clipPlane4 ? this._addClipPlaneDefine("CLIPPLANE4") : this._removeClipPlaneDefine("CLIPPLANE4");
+        scene.sceneClipPlane.clipPlane5 ? this._addClipPlaneDefine("CLIPPLANE5") : this._removeClipPlaneDefine("CLIPPLANE5");
+        scene.sceneClipPlane.clipPlane6 ? this._addClipPlaneDefine("CLIPPLANE6") : this._removeClipPlaneDefine("CLIPPLANE6");
         if (!this._colorShader.isReady(this)) {
             return false;
         }
@@ -47261,7 +47331,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Misc_canvasGenerator__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../Misc/canvasGenerator */ "./src/Misc/canvasGenerator.ts");
 
 
-// import { IAnimatable } from '../Animations/animatable.interface';
 
 
 
@@ -47274,10 +47343,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// import { MultiMaterial } from "../Materials/multiMaterial";
 
-// import { Skeleton } from "../Bones/skeleton";
-// import { MorphTargetManager } from "../Morph/morphTargetManager";
 
 // import { SerializationHelper } from "../Misc/decorators";
 
@@ -47334,9 +47400,6 @@ class _InternalMeshDataInfo {
         // Will be used to for fast cloned mesh lookup
         this.meshMap = null;
         this._preActivateId = -1;
-        // public _LODLevels = new Array<MeshLODLevel>();
-        // Morph
-        // public _morphTargetManager: Nullable<MorphTargetManager> = null;
     }
 }
 /**
@@ -47371,20 +47434,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
          * @see https://doc.babylonjs.com/how_to/how_to_use_instances
          */
         this.instances = new Array();
-        /**
-         * Gets or sets the morph target manager
-         * @see https://doc.babylonjs.com/how_to/how_to_use_morphtargets
-         */
-        // public get morphTargetManager(): Nullable<MorphTargetManager> {
-        //     return this._internalMeshDataInfo._morphTargetManager;
-        // }
-        // public set morphTargetManager(value: Nullable<MorphTargetManager>) {
-        //     if (this._internalMeshDataInfo._morphTargetManager === value) {
-        //         return;
-        //     }
-        //     this._internalMeshDataInfo._morphTargetManager = value;
-        //     this._syncGeometryWithMorphTargetManager();
-        // }
         // Private
         /** @hidden */
         this._creationDataStorage = null;
@@ -47420,29 +47469,10 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
             ], ["_poseMatrix"]);
             // Source mesh
             this._internalMeshDataInfo._source = source;
-            // if (scene.useClonedMeshMap) {
-            //     if (!source._internalMeshDataInfo.meshMap) {
-            //         source._internalMeshDataInfo.meshMap = {};
-            //     }
-            //     source._internalMeshDataInfo.meshMap[this.uniqueId] = this;
-            // }
             // Construction Params
             // Clone parameters allowing mesh to be updated in case of parametric shapes.
             this._originalBuilderSideOrientation = source._originalBuilderSideOrientation;
             this._creationDataStorage = source._creationDataStorage;
-            // Animation ranges
-            // if (source._ranges) {
-            //     const ranges = source._ranges;
-            //     for (var name in ranges) {
-            //         if (!ranges.hasOwnProperty(name)) {
-            //             continue;
-            //         }
-            //         if (!ranges[name]) {
-            //             continue;
-            //         }
-            //         this.createAnimationRange(name, ranges[name]!.from, ranges[name]!.to);
-            //     }
-            // }
             // Metadata
             if (source.metadata && source.metadata.clone) {
                 this.metadata = source.metadata.clone();
@@ -47474,27 +47504,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
                     }
                 }
             }
-            // Morphs
-            // if (source.morphTargetManager) {
-            //     this.morphTargetManager = source.morphTargetManager;
-            // }
-            // Physics clone
-            // if (scene.getPhysicsEngine) {
-            //     var physicsEngine = scene.getPhysicsEngine();
-            //     if (clonePhysicsImpostor && physicsEngine) {
-            //         var impostor = physicsEngine.getImpostorForPhysicsObject(source);
-            //         if (impostor) {
-            //             this.physicsImpostor = impostor.clone(this);
-            //         }
-            //     }
-            // }
-            // Particles
-            // for (index = 0; index < scene.particleSystems.length; index++) {
-            //     var system = scene.particleSystems[index];
-            //     if (system.emitter === source) {
-            //         system.clone(system.name, this);
-            //     }
-            // }
             this.refreshBoundingInfo();
             this.computeWorldMatrix(true);
         }
@@ -47661,11 +47670,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         var ret = super.toString(fullDetails);
         ret += ", n vertices: " + this.getTotalVertices();
         ret += ", parent: " + (this._waitingParentId ? this._waitingParentId : (this.parent ? this.parent.name : "NONE"));
-        // if (this.animations) {
-        //     for (var i = 0; i < this.animations.length; i++) {
-        //         ret += ", animation[0]: " + this.animations[i].toString(fullDetails);
-        //     }
-        // }
         if (fullDetails) {
             if (this._geometry) {
                 let ib = this.getIndices();
@@ -47688,30 +47692,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         }
     }
     /**
-     * Gets a boolean indicating if this mesh has LOD
-     */
-    // public get hasLODLevels(): boolean {
-    //     // return this._internalMeshDataInfo._LODLevels.length > 0;
-    // }
-    /**
-     * Gets the list of MeshLODLevel associated with the current mesh
-     * @returns an array of MeshLODLevel
-     */
-    // public getLODLevels(): MeshLODLevel[] {
-    //     return this._internalMeshDataInfo._LODLevels;
-    // }
-    // private _sortLODLevels(): void {
-    //     this._internalMeshDataInfo._LODLevels.sort((a, b) => {
-    //         if (a.distance < b.distance) {
-    //             return 1;
-    //         }
-    //         if (a.distance > b.distance) {
-    //             return -1;
-    //         }
-    //         return 0;
-    //     });
-    // }
-    /**
      * Add a mesh as LOD level triggered at the given distance.
      * @see https://doc.babylonjs.com/how_to/how_to_use_lod
      * @param distance The distance from the center of the object to show this level
@@ -47723,100 +47703,11 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
             _Misc_logger__WEBPACK_IMPORTED_MODULE_15__["Logger"].Warn("You cannot use a mesh as LOD level twice");
             return this;
         }
-        // var level = new MeshLODLevel(distance, mesh);
-        // this._internalMeshDataInfo._LODLevels.push(level);
         if (mesh) {
             mesh._masterMesh = this;
         }
-        // this._sortLODLevels();
         return this;
     }
-    /**
-     * Returns the LOD level mesh at the passed distance or null if not found.
-     * @see https://doc.babylonjs.com/how_to/how_to_use_lod
-     * @param distance The distance from the center of the object to show this level
-     * @returns a Mesh or `null`
-     */
-    // public getLODLevelAtDistance(distance: number): Nullable<Mesh> {
-    //     let internalDataInfo = this._internalMeshDataInfo;
-    //     for (var index = 0; index < internalDataInfo._LODLevels.length; index++) {
-    //         var level = internalDataInfo._LODLevels[index];
-    //         if (level.distance === distance) {
-    //             return level.mesh;
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Remove a mesh from the LOD array
-     * @see https://doc.babylonjs.com/how_to/how_to_use_lod
-     * @param mesh defines the mesh to be removed
-     * @return This mesh (for chaining)
-     */
-    // public removeLODLevel(mesh: Mesh): Mesh {
-    //     let internalDataInfo = this._internalMeshDataInfo;
-    //     for (var index = 0; index < internalDataInfo._LODLevels.length; index++) {
-    //         if (internalDataInfo._LODLevels[index].mesh === mesh) {
-    //             internalDataInfo._LODLevels.splice(index, 1);
-    //             if (mesh) {
-    //                 mesh._masterMesh = null;
-    //             }
-    //         }
-    //     }
-    //     this._sortLODLevels();
-    //     return this;
-    // }
-    /**
-     * Returns the registered LOD mesh distant from the parameter `camera` position if any, else returns the current mesh.
-     * @see https://doc.babylonjs.com/how_to/how_to_use_lod
-     * @param camera defines the camera to use to compute distance
-     * @param boundingSphere defines a custom bounding sphere to use instead of the one from this mesh
-     * @return This mesh (for chaining)
-     */
-    // public getLOD(camera: Camera, boundingSphere?: BoundingSphere): Nullable<AbstractMesh> {
-    //     let internalDataInfo = this._internalMeshDataInfo;
-    //     if (!internalDataInfo._LODLevels || internalDataInfo._LODLevels.length === 0) {
-    //         return this;
-    //     }
-    //     let bSphere: BoundingSphere;
-    //     if (boundingSphere) {
-    //         bSphere = boundingSphere;
-    //     } else {
-    //         let boundingInfo = this.getBoundingInfo();
-    //         bSphere = boundingInfo.boundingSphere;
-    //     }
-    //     var distanceToCamera = bSphere.centerWorld.subtract(camera.globalPosition).length();
-    //     if (internalDataInfo._LODLevels[internalDataInfo._LODLevels.length - 1].distance > distanceToCamera) {
-    //         if (this.onLODLevelSelection) {
-    //             this.onLODLevelSelection(distanceToCamera, this, this);
-    //         }
-    //         return this;
-    //     }
-    //     for (var index = 0; index < internalDataInfo._LODLevels.length; index++) {
-    //         var level = internalDataInfo._LODLevels[index];
-    //         if (level.distance < distanceToCamera) {
-    //             if (level.mesh) {
-    //                 if (level.mesh.delayLoadState === Constants.DELAYLOADSTATE_NOTLOADED) {
-    //                     level.mesh._checkDelayState();
-    //                     return this;
-    //                 }
-    //                 if (level.mesh.delayLoadState === Constants.DELAYLOADSTATE_LOADING) {
-    //                     return this;
-    //                 }
-    //                 level.mesh._preActivate();
-    //                 level.mesh._updateSubMeshesBoundingInfo(this.worldMatrixFromCache);
-    //             }
-    //             if (this.onLODLevelSelection) {
-    //                 this.onLODLevelSelection(distanceToCamera, this, level.mesh);
-    //             }
-    //             return level.mesh;
-    //         }
-    //     }
-    //     if (this.onLODLevelSelection) {
-    //         this.onLODLevelSelection(distanceToCamera, this, this);
-    //     }
-    //     return this;
-    // }
     /**
      * Gets the mesh internal Geometry object
      */
@@ -48049,12 +47940,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         //         }
         //     }
         // }
-        // LOD
-        // for (var lod of this._internalMeshDataInfo._LODLevels) {
-        //     if (lod.mesh && !lod.mesh.isReady(hardwareInstancedRendering)) {
-        //         return false;
-        //     }
-        // }
         return true;
     }
     /**
@@ -48089,7 +47974,7 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
     /** @hidden */
     _preActivate() {
         let internalDataInfo = this._internalMeshDataInfo;
-        var sceneRenderId = this.getScene().getRenderId();
+        var sceneRenderId = this.getScene().sceneRender.getRenderId();
         if (internalDataInfo._preActivateId === sceneRenderId) {
             return this;
         }
@@ -48127,17 +48012,7 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         if (!this.hasThinInstances) {
             return;
         }
-        // if (!this.doNotSyncBoundingInfo) {
-        //     this.thinInstanceRefreshBoundingInfo(false);
-        // }
     }
-    /** @hidden */
-    // public _postActivate(): void {
-    //     if (this.edgesShareWithInstances && this.edgesRenderer && this.edgesRenderer.isEnabled && this._renderingGroup) {
-    //         this._renderingGroup._edgesRenderers.pushNoDuplicate(this.edgesRenderer);
-    //         this.edgesRenderer.customInstances.push(this.getWorldMatrix());
-    //     }
-    // }
     /**
      * This method recomputes and sets a new BoundingInfo to the mesh unless it is locked.
      * This means the mesh underlying bounding box and sphere are recomputed.
@@ -48524,7 +48399,7 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         batchCache.visibleInstances[subMeshId] = null;
         if (this._instanceDataStorage.visibleInstances && !isReplacementMode) {
             let visibleInstances = this._instanceDataStorage.visibleInstances;
-            var currentRenderId = scene.getRenderId();
+            var currentRenderId = scene.sceneRender.getRenderId();
             var defaultRenderId = (isInIntermediateRendering ? visibleInstances.intermediateDefaultRenderId : visibleInstances.defaultRenderId);
             batchCache.visibleInstances[subMeshId] = visibleInstances[currentRenderId];
             if (!batchCache.visibleInstances[subMeshId] && defaultRenderId) {
@@ -48601,7 +48476,7 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         // Draw
         this._bind(subMesh, effect, fillMode);
         this._draw(subMesh, fillMode, instancesCount);
-        engine.unbindInstanceAttributes();
+        engine.engineVertex.unbindInstanceAttributes();
         return this;
     }
     /** @hidden */
@@ -48613,54 +48488,12 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         // Draw
         this._bind(subMesh, effect, fillMode);
         this._draw(subMesh, fillMode, instancesCount);
-        engine.unbindInstanceAttributes();
+        engine.engineVertex.unbindInstanceAttributes();
     }
     /** @hidden */
     _processInstancedBuffers(visibleInstances, renderSelf) {
         // Do nothing
     }
-    /** @hidden */
-    // public _processRendering(renderingMesh: AbstractMesh, subMesh: SubMesh, effect: Effect, fillMode: number, batch: _InstancesBatch, hardwareInstancedRendering: boolean,
-    //     onBeforeDraw: (isInstance: boolean, world: Matrix, effectiveMaterial?: Material) => void, effectiveMaterial?: Material): Mesh {
-    //     var scene = this.getScene();
-    //     var engine = scene.getEngine();
-    //     if (hardwareInstancedRendering && subMesh.getRenderingMesh().hasThinInstances) {
-    //         this._renderWithThinInstances(subMesh, fillMode, effect, engine);
-    //         return this;
-    //     }
-    //     if (hardwareInstancedRendering) {
-    //         this._renderWithInstances(subMesh, fillMode, batch, effect, engine);
-    //     } else {
-    //         let instanceCount = 0;
-    //         if (batch.renderSelf[subMesh._id]) {
-    //             // Draw
-    //             if (onBeforeDraw) {
-    //                 onBeforeDraw(false, renderingMesh._effectiveMesh.getWorldMatrix(), effectiveMaterial);
-    //             }
-    //             instanceCount++;
-    //             this._draw(subMesh, fillMode, this._instanceDataStorage.overridenInstanceCount);
-    //         }
-    //         let visibleInstancesForSubMesh = batch.visibleInstances[subMesh._id];
-    //         if (visibleInstancesForSubMesh) {
-    //             let visibleInstanceCount = visibleInstancesForSubMesh.length;
-    //             instanceCount += visibleInstanceCount;
-    //             // Stats
-    //             for (var instanceIndex = 0; instanceIndex < visibleInstanceCount; instanceIndex++) {
-    //                 var instance = visibleInstancesForSubMesh[instanceIndex];
-    //                 // World
-    //                 var world = instance.getWorldMatrix();
-    //                 if (onBeforeDraw) {
-    //                     onBeforeDraw(true, world, effectiveMaterial);
-    //                 }
-    //                 // Draw
-    //                 this._draw(subMesh, fillMode);
-    //             }
-    //         }
-    //         // Stats
-    //         scene._activeIndices.addCount(subMesh.indexCount * instanceCount, false);
-    //     }
-    //     return this;
-    // }
     /** @hidden */
     _rebuild() {
         if (this._instanceDataStorage.instancesBuffer) {
@@ -48747,7 +48580,7 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         else {
             effect = this._effectiveMaterial.getEffect();
         }
-        for (let step of scene._beforeRenderingMeshStage) {
+        for (let step of scene.sceneStage._beforeRenderingMeshStage) {
             step.action(this, subMesh, batch, effect);
         }
         if (!effect) {
@@ -48775,7 +48608,7 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
             engine.setDepthWrite(true);
         }
         // Bind
-        var fillMode = scene.forcePointsCloud ? _Materials_material__WEBPACK_IMPORTED_MODULE_12__["Material"].PointFillMode : (scene.forceWireframe ? _Materials_material__WEBPACK_IMPORTED_MODULE_12__["Material"].WireFrameFillMode : this._effectiveMaterial.fillMode);
+        var fillMode = scene.forcePointsCloud ? _Materials_material__WEBPACK_IMPORTED_MODULE_12__["Material"].PointFillMode : (scene.sceneRender.forceWireframe ? _Materials_material__WEBPACK_IMPORTED_MODULE_12__["Material"].WireFrameFillMode : this._effectiveMaterial.fillMode);
         if (this._internalMeshDataInfo._onBeforeBindObservable) {
             this._internalMeshDataInfo._onBeforeBindObservable.notifyObservers(this);
         }
@@ -48798,7 +48631,7 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         this._processRendering(this, subMesh, effect, fillMode, batch, hardwareInstancedRendering, this._onBeforeDraw, this._effectiveMaterial);
         // Unbind
         this._effectiveMaterial.unbind();
-        for (let step of scene._afterRenderingMeshStage) {
+        for (let step of scene.sceneStage._afterRenderingMeshStage) {
             step.action(this, subMesh, batch, effect);
         }
         if (this._internalMeshDataInfo._onAfterRenderObservable) {
@@ -48913,20 +48746,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         // Multi
         return this;
     }
-    /**
-     * Returns as a new array populated with the mesh material and/or skeleton, if any.
-     * @returns an array of IAnimatable
-     */
-    // public getAnimatables(): IAnimatable[] {
-    //     var results = new Array<IAnimatable>();
-    //     if (this.material) {
-    //         results.push(this.material);
-    //     }
-    //     if (this.skeleton) {
-    //         results.push(this.skeleton);
-    //     }
-    //     return results;
-    // }
     /**
      * Modifies the mesh geometry according to the passed transformation matrix.
      * This method returns nothing but it really modifies the mesh even if it's originally not set as updatable.
@@ -49769,38 +49588,15 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
                 matrixData: _Misc_tools__WEBPACK_IMPORTED_MODULE_1__["Tools"].SliceToArray(this._thinInstanceDataStorage.matrixData),
                 matrixBufferSize: this._thinInstanceDataStorage.matrixBufferSize,
             };
-            // if (this._userThinInstanceBuffersStorage) {
-            //     const userThinInstance: any = {
-            //         data: {},
-            //         sizes: {},
-            //         strides: {},
-            //     };
-            //     for (const kind in this._userThinInstanceBuffersStorage.data) {
-            //         userThinInstance.data[kind] = Tools.SliceToArray(this._userThinInstanceBuffersStorage.data[kind]);
-            //         userThinInstance.sizes[kind] = this._userThinInstanceBuffersStorage.sizes[kind];
-            //         userThinInstance.strides[kind] = this._userThinInstanceBuffersStorage.strides[kind];
-            //     }
-            // serializationObject.thinInstances.userThinInstance = userThinInstance;
-            // }
         }
-        // Animations
-        // SerializationHelper.AppendSerializedAnimations(this, serializationObject);
-        // serializationObject.ranges = this.serializeAnimationRanges();
-        // Layer mask
-        // serializationObject.layerMask = this.layerMask;
         // Alpha
         serializationObject.alphaIndex = this.alphaIndex;
         serializationObject.hasVertexAlpha = this.hasVertexAlpha;
         // Overlay
         serializationObject.overlayAlpha = this.overlayAlpha;
         serializationObject.overlayColor = this.overlayColor.asArray();
-        // serializationObject.renderOverlay = this.renderOverlay;
         // Fog
         serializationObject.applyFog = this.applyFog;
-        // Action Manager
-        // if (this.actionManager) {
-        //     serializationObject.actions = this.actionManager.serialize(this.name);
-        // }
     }
     /** @hidden */
     _syncGeometryWithMorphTargetManager() {
@@ -49960,31 +49756,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         else {
             mesh.material = null;
         }
-        // Morph targets
-        // if (parsedMesh.morphTargetManagerId > -1) {
-        //     mesh.morphTargetManager = scene.getMorphTargetManagerById(parsedMesh.morphTargetManagerId);
-        // }
-        // Skeleton
-        // if (parsedMesh.skeletonId !== undefined && parsedMesh.skeletonId !== null) {
-        //     mesh.skeleton = scene.getLastSkeletonByID(parsedMesh.skeletonId);
-        //     if (parsedMesh.numBoneInfluencers) {
-        //         mesh.numBoneInfluencers = parsedMesh.numBoneInfluencers;
-        //     }
-        // }
-        // Animations
-        // if (parsedMesh.animations) {
-        //     for (var animationIndex = 0; animationIndex < parsedMesh.animations.length; animationIndex++) {
-        //         var parsedAnimation = parsedMesh.animations[animationIndex];
-        //         const internalClass = _TypeStore.GetClass("BABYLON.Animation");
-        //         if (internalClass) {
-        //             mesh.animations.push(internalClass.Parse(parsedAnimation));
-        //         }
-        //     }
-        //     Node.ParseAnimationRanges(mesh, parsedMesh, scene);
-        // }
-        // if (parsedMesh.autoAnimate) {
-        //     scene.beginAnimation(mesh, parsedMesh.autoAnimateFrom, parsedMesh.autoAnimateTo, parsedMesh.autoAnimateLoop, parsedMesh.autoAnimateSpeed || 1.0);
-        // }
         // Layer Mask
         if (parsedMesh.layerMask && (!isNaN(parsedMesh.layerMask))) {
             mesh.layerMask = Math.abs(parseInt(parsedMesh.layerMask));
@@ -49992,10 +49763,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
         else {
             mesh.layerMask = 0x0FFFFFFF;
         }
-        // Physics
-        // if (parsedMesh.physicsImpostor) {
-        //     Mesh._PhysicsImpostorParser(scene, mesh, parsedMesh);
-        // }
         // Levels
         if (parsedMesh.lodMeshIds) {
             mesh._waitingData.lods = {
@@ -50058,44 +49825,8 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
                 if (parsedInstance.alphaIndex != undefined && parsedInstance.showSubMeshesBoundingBox != null) {
                     instance.alphaIndex = parsedInstance.alphaIndex;
                 }
-                // Physics
-                if (parsedInstance.physicsImpostor) {
-                    // Mesh._PhysicsImpostorParser(scene, instance, parsedInstance);
-                }
-                // Animation
-                // if (parsedInstance.animations) {
-                //     for (animationIndex = 0; animationIndex < parsedInstance.animations.length; animationIndex++) {
-                //         parsedAnimation = parsedInstance.animations[animationIndex];
-                //         const internalClass = _TypeStore.GetClass("BABYLON.Animation");
-                //         if (internalClass) {
-                //             instance.animations.push(internalClass.Parse(parsedAnimation));
-                //         }
-                //     }
-                //     Node.ParseAnimationRanges(instance, parsedInstance, scene);
-                //     if (parsedInstance.autoAnimate) {
-                //         scene.beginAnimation(instance, parsedInstance.autoAnimateFrom, parsedInstance.autoAnimateTo, parsedInstance.autoAnimateLoop, parsedInstance.autoAnimateSpeed || 1.0);
-                //     }
-                // }
             }
         }
-        // Thin instances
-        // if (parsedMesh.thinInstances) {
-        //     const thinInstances = parsedMesh.thinInstances;
-        //     if (thinInstances.matrixData) {
-        //         mesh.thinInstanceSetBuffer("matrix", new Float32Array(thinInstances.matrixData), 16, false);
-        //         mesh._thinInstanceDataStorage.matrixBufferSize = thinInstances.matrixBufferSize;
-        //         mesh._thinInstanceDataStorage.instancesCount = thinInstances.instancesCount;
-        //     } else {
-        //         mesh._thinInstanceDataStorage.matrixBufferSize = thinInstances.matrixBufferSize;
-        //     }
-        //     // if (parsedMesh.thinInstances.userThinInstance) {
-        //     //     const userThinInstance = parsedMesh.thinInstances.userThinInstance;
-        //     //     for (const kind in userThinInstance.data) {
-        //     //         mesh.thinInstanceSetBuffer(kind, new Float32Array(userThinInstance.data[kind]), userThinInstance.strides[kind], false);
-        //     //         mesh._userThinInstanceBuffersStorage.sizes[kind] = userThinInstance.sizes[kind];
-        //     //     }
-        //     // }
-        // }
         return mesh;
     }
     /**
@@ -50628,14 +50359,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
                 }
             }
         }
-        // if (multiMultiMaterials) {
-        //     var newMultiMaterial: Nullable<MultiMaterial> = null;
-        //     var subIndex: number;
-        //     var matIndex: number;
-        //     subdivideWithSubMeshes = false;
-        // }
-        // var materialArray: Array<Material> = new Array<Material>();
-        // var materialIndexArray: Array<number> = new Array<number>();
         // Merge
         var vertexData = null;
         var otherVertexData;
@@ -50693,12 +50416,6 @@ class Mesh extends _abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] {
             }
         }
         if (multiMultiMaterials) {
-            // newMultiMaterial = new MultiMaterial(source.name + "_merged", source.getScene());
-            // newMultiMaterial.subMaterials = materialArray;
-            // for (subIndex = 0; subIndex < meshSubclass.subMeshes.length; subIndex++) {
-            //     meshSubclass.subMeshes[subIndex].materialIndex = materialIndexArray[subIndex];
-            // }
-            // meshSubclass.material = newMultiMaterial;
         }
         else {
             meshSubclass.material = source.material;
@@ -52421,7 +52138,7 @@ class SubMesh {
             for (var index = this.indexStart; index < this.indexStart + this.indexCount; index += 3) {
                 linesIndices.push(indices[index], indices[index + 1], indices[index + 1], indices[index + 2], indices[index + 2], indices[index]);
             }
-            this._linesIndexBuffer = engine.createIndexBuffer(linesIndices);
+            this._linesIndexBuffer = engine.engineVertex.createIndexBuffer(linesIndices);
             this._linesIndexCount = linesIndices.length;
         }
         return this._linesIndexBuffer;
@@ -52743,7 +52460,7 @@ class TransformNode extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
         this.onAfterWorldMatrixUpdateObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_2__["Observable"]();
         this._nonUniformScaling = false;
         if (isPure) {
-            this.getScene().addTransformNode(this);
+            this.getScene().sceneNode.addTransformNode(this);
         }
     }
     /**
@@ -53211,7 +52928,7 @@ class TransformNode extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
      * @returns the current TransformNode
     */
     setPivotPoint(point, space = _Maths_math_axis__WEBPACK_IMPORTED_MODULE_5__["Space"].LOCAL) {
-        if (this.getScene().getRenderId() == 0) {
+        if (this.getScene().sceneRender.getRenderId() == 0) {
             this.computeWorldMatrix(true);
         }
         var wm = this.getWorldMatrix();
@@ -53478,7 +53195,7 @@ class TransformNode extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
         if (this._isWorldMatrixFrozen && !this._isDirty) {
             return this._worldMatrix;
         }
-        let currentRenderId = this.getScene().getRenderId();
+        let currentRenderId = this.getScene().sceneRender.getRenderId();
         if (!this._isDirty && !force && this.isSynchronized()) {
             this._currentRenderId = currentRenderId;
             return this._worldMatrix;
@@ -53819,7 +53536,7 @@ class TransformNode extends _node__WEBPACK_IMPORTED_MODULE_4__["Node"] {
         // Animations
         // this.getScene().stopAnimation(this);
         // Remove from scene
-        this.getScene().removeTransformNode(this);
+        this.getScene().sceneNode.removeTransformNode(this);
         this.onAfterWorldMatrixUpdateObservable.clear();
         if (doNotRecurse) {
             const transformNodes = this.getChildTransformNodes(true);
@@ -55254,7 +54971,7 @@ class DDSTools {
         let bOffset = DDSTools._ExtractLongWordOrder(header[off_BMask]);
         let aOffset = DDSTools._ExtractLongWordOrder(header[off_AMask]);
         if (computeFormats) {
-            internalCompressedFormat = engine._getRGBABufferInternalSizedFormat(info.textureType);
+            internalCompressedFormat = engine.engineTexture._getRGBABufferInternalSizedFormat(info.textureType);
         }
         mipmapCount = 1;
         if (header[off_flags] & DDSD_MIPMAPCOUNT && loadMipmaps !== false) {
@@ -55311,7 +55028,7 @@ class DDSTools {
                             }
                         }
                         if (floatArray) {
-                            engine._uploadDataToTextureDirectly(texture, floatArray, face, i);
+                            engine.engineTexture._uploadDataToTextureDirectly(texture, floatArray, face, i);
                         }
                     }
                     else if (info.isRGB) {
@@ -55320,13 +55037,13 @@ class DDSTools {
                             texture.format = _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].TEXTUREFORMAT_RGB;
                             dataLength = width * height * 3;
                             byteArray = DDSTools._GetRGBArrayBuffer(width, height, data.byteOffset + dataOffset, dataLength, data.buffer, rOffset, gOffset, bOffset);
-                            engine._uploadDataToTextureDirectly(texture, byteArray, face, i);
+                            engine.engineTexture._uploadDataToTextureDirectly(texture, byteArray, face, i);
                         }
                         else { // 32
                             texture.format = _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].TEXTUREFORMAT_RGBA;
                             dataLength = width * height * 4;
                             byteArray = DDSTools._GetRGBAArrayBuffer(width, height, data.byteOffset + dataOffset, dataLength, data.buffer, rOffset, gOffset, bOffset, aOffset);
-                            engine._uploadDataToTextureDirectly(texture, byteArray, face, i);
+                            engine.engineTexture._uploadDataToTextureDirectly(texture, byteArray, face, i);
                         }
                     }
                     else if (info.isLuminance) {
@@ -55337,7 +55054,7 @@ class DDSTools {
                         byteArray = DDSTools._GetLuminanceArrayBuffer(width, height, data.byteOffset + dataOffset, dataLength, data.buffer);
                         texture.format = _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].TEXTUREFORMAT_LUMINANCE;
                         texture.type = _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].TEXTURETYPE_UNSIGNED_INT;
-                        engine._uploadDataToTextureDirectly(texture, byteArray, face, i);
+                        engine.engineTexture._uploadDataToTextureDirectly(texture, byteArray, face, i);
                     }
                     else {
                         dataLength = Math.max(4, width) / 4 * Math.max(4, height) / 4 * blockBytes;
@@ -55437,7 +55154,7 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_8__["ThinEngine"].prototype.createP
             glTextureFromLod.width = Math.pow(2, Math.max(_Maths_math_scalar__WEBPACK_IMPORTED_MODULE_0__["Scalar"].Log2(width) - mipmapIndex, 0));
             glTextureFromLod.height = glTextureFromLod.width;
             glTextureFromLod.isCube = true;
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, glTextureFromLod, true);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, glTextureFromLod, true);
             glTextureFromLod.samplingMode = _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].TEXTURE_LINEAR_LINEAR;
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -55446,13 +55163,13 @@ _Engines_thinEngine__WEBPACK_IMPORTED_MODULE_8__["ThinEngine"].prototype.createP
             if (loadData.isDDS) {
                 var info = loadData.info;
                 var data = loadData.data;
-                this._unpackFlipY(info.isCompressed);
+                this.engineTexture._unpackFlipY(info.isCompressed);
                 DDSTools.UploadDDSLevels(this, glTextureFromLod, data, info, true, 6, mipmapIndex);
             }
             else {
                 _logger__WEBPACK_IMPORTED_MODULE_4__["Logger"].Warn("DDS is the only prefiltered cube map supported so far.");
             }
-            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+            this.engineTexture._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
             // Wrap in a base texture for easy binding.
             const lodTexture = new _Materials_Textures_baseTexture__WEBPACK_IMPORTED_MODULE_6__["BaseTexture"](scene);
             lodTexture.isCube = true;
@@ -55795,7 +55512,7 @@ class SerializationHelper {
                         break;
                     case 6: // Mesh reference
                         if (scene) {
-                            dest[property] = scene.getLastMeshByID(sourceProperty);
+                            dest[property] = scene.sceneNode.getLastMeshByID(sourceProperty);
                         }
                         break;
                     case 7: // Color Curves
@@ -55812,7 +55529,7 @@ class SerializationHelper {
                         break;
                     case 11: // Camera reference
                         if (scene) {
-                            dest[property] = scene.getCameraByID(sourceProperty);
+                            dest[property] = scene.sceneNode.getCameraByID(sourceProperty);
                         }
                     case 12: // Matrix
                         dest[property] = _Maths_math_vector__WEBPACK_IMPORTED_MODULE_1__["Matrix"].FromArray(sourceProperty);
@@ -59817,9 +59534,6 @@ function applyMixins(derivedConstructor, baseConstructors) {
                 getOwnPropertyDescriptor(baseConstructor.prototype, name));
         });
     });
-    // baseConstructors.forEach(item => {
-    //     derivedConstructor.prototype = Object.assign(derivedConstructor.prototype, item.prototype)
-    // })
 }
 
 
@@ -60098,7 +59812,7 @@ class DepthRenderer {
         var engine = scene.getEngine();
         // Render target
         var format = (this.isPacked || engine.webGLVersion === 1) ? _Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].TEXTUREFORMAT_RGBA : _Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].TEXTUREFORMAT_R;
-        this._depthMap = new _Materials_Textures_renderTargetTexture__WEBPACK_IMPORTED_MODULE_3__["RenderTargetTexture"]("depthMap", { width: engine.getRenderWidth(), height: engine.getRenderHeight() }, this._scene, false, true, type, false, undefined, undefined, undefined, undefined, format);
+        this._depthMap = new _Materials_Textures_renderTargetTexture__WEBPACK_IMPORTED_MODULE_3__["RenderTargetTexture"]("depthMap", { width: engine.engineFramebuffer.getRenderWidth(), height: engine.engineFramebuffer.getRenderHeight() }, this._scene, false, true, type, false, undefined, undefined, undefined, undefined, format);
         this._depthMap.wrapU = _Materials_Textures_texture__WEBPACK_IMPORTED_MODULE_2__["Texture"].CLAMP_ADDRESSMODE;
         this._depthMap.wrapV = _Materials_Textures_texture__WEBPACK_IMPORTED_MODULE_2__["Texture"].CLAMP_ADDRESSMODE;
         this._depthMap.refreshRate = 1;
@@ -60120,7 +59834,7 @@ class DepthRenderer {
             var engine = scene.getEngine();
             let material = subMesh.getMaterial();
             effectiveMesh._internalAbstractMeshDataInfo._isActiveIntermediate = false;
-            if (!material || subMesh.verticesCount === 0 || subMesh._renderId === scene.getRenderId()) {
+            if (!material || subMesh.verticesCount === 0 || subMesh._renderId === scene.sceneRender.getRenderId()) {
                 return;
             }
             // Culling and reverse (right handed system)
@@ -60133,10 +59847,10 @@ class DepthRenderer {
             var hardwareInstancedRendering = engine.getCaps().instancedArrays && (batch.visibleInstances[subMesh._id] !== null && batch.visibleInstances[subMesh._id] !== undefined || renderingMesh.hasThinInstances);
             var camera = this._camera || scene.activeCamera;
             if (this.isReady(subMesh, hardwareInstancedRendering) && camera) {
-                subMesh._renderId = scene.getRenderId();
+                subMesh._renderId = scene.sceneRender.getRenderId();
                 engine.enableEffect(this._effect);
                 renderingMesh._bind(subMesh, this._effect, material.fillMode);
-                this._effect.setMatrix("viewProjection", scene.getTransformMatrix());
+                this._effect.setMatrix("viewProjection", scene.sceneMatrix.getTransformMatrix());
                 this._effect.setFloat2("depthValues", camera.minZ, camera.minZ + camera.maxZ);
                 // Alpha test
                 if (material && material.needAlphaTesting()) {
@@ -60707,26 +60421,26 @@ class RenderingManager {
             let renderingGroupMask = Math.pow(2, index);
             info.renderingGroupId = index;
             // Before Observable
-            this._scene.onBeforeRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
+            this._scene.sceneEventTrigger.onBeforeRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
             // Clear depth/stencil if needed
             if (RenderingManager.AUTOCLEAR) {
                 const autoClear = this._useSceneAutoClearSetup ?
-                    this._scene.getAutoClearDepthStencilSetup(index) :
+                    this._scene.sceneRender.getAutoClearDepthStencilSetup(index) :
                     this._autoClearDepthStencil[index];
                 if (autoClear && autoClear.autoClear) {
                     this._clearDepthStencilBuffer(autoClear.depth, autoClear.stencil);
                 }
             }
             // Render
-            for (let step of this._scene._beforeRenderingGroupDrawStage) {
+            for (let step of this._scene.sceneStage._beforeRenderingGroupDrawStage) {
                 step.action(index);
             }
             renderingGroup.render(customRenderFunction, renderSprites, renderParticles, activeMeshes);
-            for (let step of this._scene._afterRenderingGroupDrawStage) {
+            for (let step of this._scene.sceneStage._afterRenderingGroupDrawStage) {
                 step.action(index);
             }
             // After Observable
-            this._scene.onAfterRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
+            this._scene.sceneEventTrigger.onAfterRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
         }
     }
     /**
@@ -61050,6 +60764,622 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/Scene/scene.catch.ts":
+/*!**********************************!*\
+  !*** ./src/Scene/scene.catch.ts ***!
+  \**********************************/
+/*! exports provided: SceneCatch */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneCatch", function() { return SceneCatch; });
+class SceneCatch {
+    constructor(scene) {
+        this.scene = scene;
+    }
+    /**
+      * Call this function to reduce memory footprint of the scene.
+      * Vertex buffers will not store CPU data anymore (this will prevent picking, collisions or physics to work correctly)
+      */
+    clearCachedVertexData() {
+        for (var meshIndex = 0; meshIndex < this.scene.meshes.length; meshIndex++) {
+            var mesh = this.scene.meshes[meshIndex];
+            var geometry = mesh.geometry;
+            if (geometry) {
+                geometry._indices = [];
+                for (var vbName in geometry._vertexBuffers) {
+                    if (!geometry._vertexBuffers.hasOwnProperty(vbName)) {
+                        continue;
+                    }
+                    geometry._vertexBuffers[vbName]._buffer._data = null;
+                }
+            }
+        }
+    }
+    /**
+     * This function will remove the local cached buffer data from texture.
+     * It will save memory but will prevent the texture from being rebuilt
+     */
+    cleanCachedTextureBuffer() {
+        for (var baseTexture of this.scene.textures) {
+            let buffer = baseTexture._buffer;
+            if (buffer) {
+                baseTexture._buffer = null;
+            }
+        }
+    }
+    /**
+     * Gets the cached material (ie. the latest rendered one)
+     * @returns the cached material
+     */
+    getCachedMaterial() {
+        return this._cachedMaterial;
+    }
+    /**
+     * Gets the cached effect (ie. the latest rendered one)
+     * @returns the cached effect
+     */
+    getCachedEffect() {
+        return this._cachedEffect;
+    }
+    /**
+     * Gets the cached visibility state (ie. the latest rendered one)
+     * @returns the cached visibility state
+     */
+    getCachedVisibility() {
+        return this._cachedVisibility;
+    }
+    /**
+     * Gets a boolean indicating if the current material / effect / visibility must be bind again
+     * @param material defines the current material
+     * @param effect defines the current effect
+     * @param visibility defines the current visibility state
+     * @returns true if one parameter is not cached
+     */
+    isCachedMaterialInvalid(material, effect, visibility = 1) {
+        return this._cachedEffect !== effect || this._cachedMaterial !== material || this._cachedVisibility !== visibility;
+    }
+    /** Resets all cached information relative to material (including effect and visibility) */
+    resetCachedMaterial() {
+        this._cachedMaterial = null;
+        this._cachedEffect = null;
+        this._cachedVisibility = null;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Scene/scene.clipPlane.ts":
+/*!**************************************!*\
+  !*** ./src/Scene/scene.clipPlane.ts ***!
+  \**************************************/
+/*! exports provided: SceneClipPlane */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneClipPlane", function() { return SceneClipPlane; });
+class SceneClipPlane {
+    constructor() { }
+}
+
+
+/***/ }),
+
+/***/ "./src/Scene/scene.eventTrigger.ts":
+/*!*****************************************!*\
+  !*** ./src/Scene/scene.eventTrigger.ts ***!
+  \*****************************************/
+/*! exports provided: SceneEventTrigger */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneEventTrigger", function() { return SceneEventTrigger; });
+/* harmony import */ var _Misc_observable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Misc/observable */ "./src/Misc/observable.ts");
+
+class SceneEventTrigger {
+    constructor(scene) {
+        /**
+        * An event triggered when the scene is disposed.
+        */
+        this.onDisposeObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        this._onDisposeObserver = null;
+        /**
+        * An event triggered before rendering the scene (right after animations and physics)
+        */
+        this.onBeforeRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        this._onBeforeRenderObserver = null;
+        /**
+        * An event triggered after rendering the scene
+        */
+        this.onAfterRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered after rendering the scene for an active camera (When scene.render is called this will be called after each camera)
+        */
+        this.onAfterRenderCameraObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        this._onAfterRenderObserver = null;
+        /**
+        * An event triggered before animating the scene
+        */
+        this.onBeforeAnimationsObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered after animations processing
+        */
+        this.onAfterAnimationsObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered before draw calls are ready to be sent
+        */
+        this.onBeforeDrawPhaseObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered after draw calls have been sent
+        */
+        this.onAfterDrawPhaseObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when the scene is ready
+        */
+        this.onReadyObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered before rendering a camera
+        */
+        this.onBeforeCameraRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        this._onBeforeCameraRenderObserver = null;
+        /**
+        * An event triggered after rendering a camera
+        */
+        this.onAfterCameraRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        this._onAfterCameraRenderObserver = null;
+        /**
+        * An event triggered when active meshes evaluation is about to start
+        */
+        this.onBeforeActiveMeshesEvaluationObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when active meshes evaluation is done
+        */
+        this.onAfterActiveMeshesEvaluationObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when particles rendering is about to start
+        * Note: This event can be trigger more than once per frame (because particles can be rendered by render target textures as well)
+        */
+        this.onBeforeParticlesRenderingObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when particles rendering is done
+        * Note: This event can be trigger more than once per frame (because particles can be rendered by render target textures as well)
+        */
+        this.onAfterParticlesRenderingObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when SceneLoader.Append or SceneLoader.Load or SceneLoader.ImportMesh were successfully executed
+        */
+        this.onDataLoadedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a camera is created
+        */
+        this.onNewCameraAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a camera is removed
+        */
+        this.onCameraRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a light is created
+        */
+        this.onNewLightAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a light is removed
+        */
+        this.onLightRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a geometry is created
+        */
+        this.onNewGeometryAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a geometry is removed
+        */
+        this.onGeometryRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a transform node is created
+        */
+        this.onNewTransformNodeAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a transform node is removed
+        */
+        this.onTransformNodeRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a mesh is created
+        */
+        this.onNewMeshAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a mesh is removed
+        */
+        this.onMeshRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+         * An event triggered when a skeleton is created
+         */
+        // public onNewSkeletonAddedObservable = new Observable<Skeleton>();
+        /**
+        * An event triggered when a skeleton is removed
+        */
+        // public onSkeletonRemovedObservable = new Observable<Skeleton>();
+        /**
+        * An event triggered when a material is created
+        */
+        this.onNewMaterialAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a multi material is created
+        */
+        //  public onNewMultiMaterialAddedObservable = new Observable<MultiMaterial>();
+        /**
+        * An event triggered when a material is removed
+        */
+        this.onMaterialRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a multi material is removed
+        */
+        // public onMultiMaterialRemovedObservable = new Observable<MultiMaterial>();
+        /**
+        * An event triggered when a texture is created
+        */
+        this.onNewTextureAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when a texture is removed
+        */
+        this.onTextureRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when render targets are about to be rendered
+        * Can happen multiple times per frame.
+        */
+        this.onBeforeRenderTargetsRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered when render targets were rendered.
+        * Can happen multiple times per frame.
+        */
+        this.onAfterRenderTargetsRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered before calculating deterministic simulation step
+        */
+        this.onBeforeStepObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+        * An event triggered after calculating deterministic simulation step
+        */
+        this.onAfterStepObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+         * An event triggered when the activeCamera property is updated
+         */
+        this.onActiveCameraChanged = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+         * This Observable will be triggered before rendering each renderingGroup of each rendered camera.
+         * The RenderinGroupInfo class contains all the information about the context in which the observable is called
+         * If you wish to register an Observer only for a given set of renderingGroup, use the mask with a combination of the renderingGroup index elevated to the power of two (1 for renderingGroup 0, 2 for renderingrOup1, 4 for 2 and 8 for 3)
+         */
+        this.onBeforeRenderingGroupObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+         * This Observable will be triggered after rendering each renderingGroup of each rendered camera.
+         * The RenderinGroupInfo class contains all the information about the context in which the observable is called
+         * If you wish to register an Observer only for a given set of renderingGroup, use the mask with a combination of the renderingGroup index elevated to the power of two (1 for renderingGroup 0, 2 for renderingrOup1, 4 for 2 and 8 for 3)
+         */
+        this.onAfterRenderingGroupObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+         * This Observable will when a mesh has been imported into the scene.
+         */
+        this.onMeshImportedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+         * This Observable will when an animation file has been imported into the scene.
+         */
+        this.onAnimationFileImportedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+       * This observable event is triggered when any ponter event is triggered. It is registered during Scene.attachControl() and it is called BEFORE the 3D engine process anything (mesh/sprite picking for instance).
+       * You have the possibility to skip the process and the call to onPointerObservable by setting PointerInfoPre.skipOnPointerObservable to true
+       */
+        this.onPrePointerObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+         * Observable event triggered each time an input event is received from the rendering canvas
+         */
+        this.onPointerObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        // Keyboard
+        /**
+         * This observable event is triggered when any keyboard event si raised and registered during Scene.attachControl()
+         * You have the possibility to skip the process and the call to onKeyboardObservable by setting KeyboardInfoPre.skipOnPointerObservable to true
+         */
+        this.onPreKeyboardObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        /**
+         * Observable event triggered each time an keyboard event is received from the hosting window
+         */
+        this.onKeyboardObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_0__["Observable"]();
+        this.scene = scene;
+    }
+    /** Sets a function to be executed when this scene is disposed. */
+    set onDispose(callback) {
+        if (this._onDisposeObserver) {
+            this.onDisposeObservable.remove(this._onDisposeObserver);
+        }
+        this._onDisposeObserver = this.onDisposeObservable.add(callback);
+    }
+    /** Sets a function to be executed before rendering this scene */
+    set beforeRender(callback) {
+        if (this._onBeforeRenderObserver) {
+            this.onBeforeRenderObservable.remove(this._onBeforeRenderObserver);
+        }
+        if (callback) {
+            this._onBeforeRenderObserver = this.onBeforeRenderObservable.add(callback);
+        }
+    }
+    /** Sets a function to be executed after rendering this scene */
+    set afterRender(callback) {
+        if (this._onAfterRenderObserver) {
+            this.onAfterRenderObservable.remove(this._onAfterRenderObserver);
+        }
+        if (callback) {
+            this._onAfterRenderObserver = this.onAfterRenderObservable.add(callback);
+        }
+    }
+    /** Sets a function to be executed before rendering a camera*/
+    set beforeCameraRender(callback) {
+        if (this._onBeforeCameraRenderObserver) {
+            this.onBeforeCameraRenderObservable.remove(this._onBeforeCameraRenderObserver);
+        }
+        this._onBeforeCameraRenderObserver = this.onBeforeCameraRenderObservable.add(callback);
+    }
+    /** Sets a function to be executed after rendering a camera*/
+    set afterCameraRender(callback) {
+        if (this._onAfterCameraRenderObserver) {
+            this.onAfterCameraRenderObservable.remove(this._onAfterCameraRenderObserver);
+        }
+        this._onAfterCameraRenderObserver = this.onAfterCameraRenderObservable.add(callback);
+    }
+    /**
+     * Registers a function to be called before every frame render
+     * @param func defines the function to register
+     */
+    registerBeforeRender(func) {
+        this.onBeforeRenderObservable.add(func);
+    }
+    /**
+     * Unregisters a function called before every frame render
+     * @param func defines the function to unregister
+     */
+    unregisterBeforeRender(func) {
+        this.onBeforeRenderObservable.removeCallback(func);
+    }
+    /**
+     * Registers a function to be called after every frame render
+     * @param func defines the function to register
+     */
+    registerAfterRender(func) {
+        this.onAfterRenderObservable.add(func);
+    }
+    /**
+     * Unregisters a function called after every frame render
+     * @param func defines the function to unregister
+     */
+    unregisterAfterRender(func) {
+        this.onAfterRenderObservable.removeCallback(func);
+    }
+    dispose() {
+        // Events
+        this.onDisposeObservable.notifyObservers(this.scene);
+        this.onDisposeObservable.clear();
+        this.onBeforeRenderObservable.clear();
+        this.onAfterRenderObservable.clear();
+        this.onBeforeRenderTargetsRenderObservable.clear();
+        this.onAfterRenderTargetsRenderObservable.clear();
+        this.onAfterStepObservable.clear();
+        this.onBeforeStepObservable.clear();
+        this.onBeforeActiveMeshesEvaluationObservable.clear();
+        this.onAfterActiveMeshesEvaluationObservable.clear();
+        this.onBeforeParticlesRenderingObservable.clear();
+        this.onAfterParticlesRenderingObservable.clear();
+        this.onBeforeDrawPhaseObservable.clear();
+        this.onAfterDrawPhaseObservable.clear();
+        this.onBeforeAnimationsObservable.clear();
+        this.onAfterAnimationsObservable.clear();
+        this.onDataLoadedObservable.clear();
+        this.onBeforeRenderingGroupObservable.clear();
+        this.onAfterRenderingGroupObservable.clear();
+        this.onMeshImportedObservable.clear();
+        this.onBeforeCameraRenderObservable.clear();
+        this.onAfterCameraRenderObservable.clear();
+        this.onReadyObservable.clear();
+        this.onNewCameraAddedObservable.clear();
+        this.onCameraRemovedObservable.clear();
+        this.onNewLightAddedObservable.clear();
+        this.onLightRemovedObservable.clear();
+        this.onNewGeometryAddedObservable.clear();
+        this.onGeometryRemovedObservable.clear();
+        this.onNewTransformNodeAddedObservable.clear();
+        this.onTransformNodeRemovedObservable.clear();
+        this.onNewMeshAddedObservable.clear();
+        this.onMeshRemovedObservable.clear();
+        // this.onNewSkeletonAddedObservable.clear();
+        // this.onSkeletonRemovedObservable.clear();
+        // this.onNewMaterialAddedObservable.clear();
+        // this.onNewMultiMaterialAddedObservable.clear();
+        this.onMaterialRemovedObservable.clear();
+        // this.onMultiMaterialRemovedObservable.clear();
+        this.onNewTextureAddedObservable.clear();
+        this.onTextureRemovedObservable.clear();
+        this.onPrePointerObservable.clear();
+        this.onPointerObservable.clear();
+        this.onPreKeyboardObservable.clear();
+        this.onKeyboardObservable.clear();
+        this.onActiveCameraChanged.clear();
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Scene/scene.file.ts":
+/*!*********************************!*\
+  !*** ./src/Scene/scene.file.ts ***!
+  \*********************************/
+/*! exports provided: SceneFile */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneFile", function() { return SceneFile; });
+/* harmony import */ var _Misc_fileTools__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Misc/fileTools */ "./src/Misc/fileTools.ts");
+
+class SceneFile {
+    constructor() {
+        this._activeRequests = new Array();
+    }
+    /** @hidden */
+    _loadFile(url, onSuccess, onProgress, useOfflineSupport, useArrayBuffer, onError) {
+        const request = _Misc_fileTools__WEBPACK_IMPORTED_MODULE_0__["FileTools"].LoadFile(url, onSuccess, onProgress, useArrayBuffer, onError);
+        this._activeRequests.push(request);
+        request.onCompleteObservable.add((request) => {
+            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
+        });
+        return request;
+    }
+    /** @hidden */
+    _loadFileAsync(url, onProgress, useOfflineSupport, useArrayBuffer) {
+        return new Promise((resolve, reject) => {
+            this._loadFile(url, (data) => {
+                resolve(data);
+            }, onProgress, useOfflineSupport, useArrayBuffer, (request, exception) => {
+                reject(exception);
+            });
+        });
+    }
+    /** @hidden */
+    _requestFile(url, onSuccess, onProgress, useOfflineSupport, useArrayBuffer, onError, onOpened) {
+        const request = _Misc_fileTools__WEBPACK_IMPORTED_MODULE_0__["FileTools"].RequestFile(url, onSuccess, onProgress, useArrayBuffer, onError, onOpened);
+        this._activeRequests.push(request);
+        request.onCompleteObservable.add((request) => {
+            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
+        });
+        return request;
+    }
+    /** @hidden */
+    _requestFileAsync(url, onProgress, useOfflineSupport, useArrayBuffer, onOpened) {
+        return new Promise((resolve, reject) => {
+            this._requestFile(url, (data) => {
+                resolve(data);
+            }, onProgress, useOfflineSupport, useArrayBuffer, (error) => {
+                reject(error);
+            }, onOpened);
+        });
+    }
+    /** @hidden */
+    _readFile(file, onSuccess, onProgress, useArrayBuffer, onError) {
+        const request = _Misc_fileTools__WEBPACK_IMPORTED_MODULE_0__["FileTools"].ReadFile(file, onSuccess, onProgress, useArrayBuffer, onError);
+        this._activeRequests.push(request);
+        request.onCompleteObservable.add((request) => {
+            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
+        });
+        return request;
+    }
+    /** @hidden */
+    _readFileAsync(file, onProgress, useArrayBuffer) {
+        return new Promise((resolve, reject) => {
+            this._readFile(file, (data) => {
+                resolve(data);
+            }, onProgress, useArrayBuffer, (error) => {
+                reject(error);
+            });
+        });
+    }
+    dispose() {
+        // Abort active requests
+        for (let request of this._activeRequests) {
+            request.abort();
+        }
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Scene/scene.fog.ts":
+/*!********************************!*\
+  !*** ./src/Scene/scene.fog.ts ***!
+  \********************************/
+/*! exports provided: SceneFog */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneFog", function() { return SceneFog; });
+/* harmony import */ var _Engines_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Engines/constants */ "./src/Engines/constants.ts");
+/* harmony import */ var _Maths_math__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Maths/math */ "./src/Maths/math.ts");
+/* harmony import */ var _scene__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./scene */ "./src/Scene/scene.ts");
+
+
+
+class SceneFog {
+    constructor(scene) {
+        // Fog
+        this._fogEnabled = true;
+        this._fogMode = _scene__WEBPACK_IMPORTED_MODULE_2__["Scene"].FOGMODE_NONE;
+        /**
+        * Gets or sets the fog color to use
+        * @see https://doc.babylonjs.com/babylon101/environment#fog
+        * (Default is Color3(0.2, 0.2, 0.3))
+        */
+        this.fogColor = new _Maths_math__WEBPACK_IMPORTED_MODULE_1__["Color3"](0.2, 0.2, 0.3);
+        /**
+        * Gets or sets the fog density to use
+        * @see https://doc.babylonjs.com/babylon101/environment#fog
+        * (Default is 0.1)
+        */
+        this.fogDensity = 0.1;
+        /**
+        * Gets or sets the fog start distance to use
+        * @see https://doc.babylonjs.com/babylon101/environment#fog
+        * (Default is 0)
+        */
+        this.fogStart = 0;
+        /**
+        * Gets or sets the fog end distance to use
+        * @see https://doc.babylonjs.com/babylon101/environment#fog
+        * (Default is 1000)
+        */
+        this.fogEnd = 1000.0;
+        this.scene = scene;
+    }
+    /**
+    * Gets or sets a boolean indicating if fog is enabled on this scene
+    * @see https://doc.babylonjs.com/babylon101/environment#fog
+    * (Default is true)
+    */
+    set fogEnabled(value) {
+        if (this._fogEnabled === value) {
+            return;
+        }
+        this._fogEnabled = value;
+        this.scene.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_0__["Constants"].MATERIAL_MiscDirtyFlag);
+    }
+    get fogEnabled() {
+        return this._fogEnabled;
+    }
+    /**
+    * Gets or sets the fog mode to use
+    * @see https://doc.babylonjs.com/babylon101/environment#fog
+    * | mode | value |
+    * | --- | --- |
+    * | FOGMODE_NONE | 0 |
+    * | FOGMODE_EXP | 1 |
+    * | FOGMODE_EXP2 | 2 |
+    * | FOGMODE_LINEAR | 3 |
+    */
+    set fogMode(value) {
+        if (this._fogMode === value) {
+            return;
+        }
+        this._fogMode = value;
+        this.scene.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_0__["Constants"].MATERIAL_MiscDirtyFlag);
+    }
+    get fogMode() {
+        return this._fogMode;
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/Scene/scene.inputManager.ts":
 /*!*****************************************!*\
   !*** ./src/Scene/scene.inputManager.ts ***!
@@ -61198,7 +61528,7 @@ class InputManager {
         }
         var isMeshPicked = pickResult && pickResult.hit && pickResult.pickedMesh ? true : false;
         if (isMeshPicked) {
-            scene.setPointerOverMesh(pickResult.pickedMesh, evt.pointerId);
+            scene.sceneInputManagerApp.setPointerOverMesh(pickResult.pickedMesh, evt.pointerId);
             if (this._pointerOverMesh && this._pointerOverMesh.actionManager && this._pointerOverMesh.actionManager.hasPointerTriggers) {
                 if (!scene.doNotHandleCursors) {
                     if (this._pointerOverMesh.actionManager.hoverCursor) {
@@ -61211,20 +61541,20 @@ class InputManager {
             }
         }
         else {
-            scene.setPointerOverMesh(null, evt.pointerId);
+            scene.sceneInputManagerApp.setPointerOverMesh(null, evt.pointerId);
         }
-        for (let step of scene._pointerMoveStage) {
+        for (let step of scene.sceneStage._pointerMoveStage) {
             pickResult = step.action(this._unTranslatedPointerX, this._unTranslatedPointerY, pickResult, isMeshPicked, canvas);
         }
         if (pickResult) {
             let type = evt.type === this._wheelEventName ? _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERWHEEL : _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERMOVE;
-            if (scene.onPointerMove) {
-                scene.onPointerMove(evt, pickResult, type);
+            if (scene.sceneInputManagerApp.onPointerMove) {
+                scene.sceneInputManagerApp.onPointerMove(evt, pickResult, type);
             }
-            if (scene.onPointerObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
                 let pi = new _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerInfo"](type, evt, pickResult);
                 this._setRayOnPointerInfo(pi);
-                scene.onPointerObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
             }
         }
     }
@@ -61233,7 +61563,7 @@ class InputManager {
         let scene = this._scene;
         if (pointerInfo.pickInfo && !pointerInfo.pickInfo._pickingUnavailable) {
             if (!pointerInfo.pickInfo.ray) {
-                pointerInfo.pickInfo.ray = scene.createPickingRay(pointerInfo.event.offsetX, pointerInfo.event.offsetY, _Maths_math_vector__WEBPACK_IMPORTED_MODULE_2__["Matrix"].Identity(), scene.activeCamera);
+                pointerInfo.pickInfo.ray = scene.scenePick.createPickingRay(pointerInfo.event.offsetX, pointerInfo.event.offsetY, _Maths_math_vector__WEBPACK_IMPORTED_MODULE_2__["Matrix"].Identity(), scene.activeCamera);
             }
         }
     }
@@ -61243,7 +61573,7 @@ class InputManager {
         if (pickResult) {
             pi.ray = pickResult.ray;
         }
-        scene.onPrePointerObservable.notifyObservers(pi, type);
+        scene.sceneEventTrigger.onPrePointerObservable.notifyObservers(pi, type);
         if (pi.skipOnPointerObservable) {
             return true;
         }
@@ -61299,7 +61629,7 @@ class InputManager {
                 }
                 if (actionManager.hasSpecificTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_3__["Constants"].ACTION_OnLongPressTrigger)) {
                     window.setTimeout(() => {
-                        var pickResult = scene.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, (mesh) => (mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.actionManager && mesh.actionManager.hasSpecificTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_3__["Constants"].ACTION_OnLongPressTrigger) && mesh == this._pickedDownMesh), false, scene.cameraToUseForPointers);
+                        var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, (mesh) => (mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.actionManager && mesh.actionManager.hasSpecificTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_3__["Constants"].ACTION_OnLongPressTrigger) && mesh == this._pickedDownMesh), false, scene.cameraToUseForPointers);
                         if (pickResult && pickResult.hit && pickResult.pickedMesh && actionManager) {
                             if (this._totalPointersPressed !== 0 && Date.now() - this._startingPointerTime > InputManager.LongPressDelay && !this._isPointerSwiping()) {
                                 this._startingPointerTime = 0;
@@ -61311,19 +61641,19 @@ class InputManager {
             }
         }
         else {
-            for (let step of scene._pointerDownStage) {
+            for (let step of scene.sceneStage._pointerDownStage) {
                 pickResult = step.action(this._unTranslatedPointerX, this._unTranslatedPointerY, pickResult, evt);
             }
         }
         if (pickResult) {
             let type = _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOWN;
-            if (scene.onPointerDown) {
-                scene.onPointerDown(evt, pickResult, type);
+            if (scene.sceneInputManagerApp.onPointerDown) {
+                scene.sceneInputManagerApp.onPointerDown(evt, pickResult, type);
             }
-            if (scene.onPointerObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
                 let pi = new _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerInfo"](type, evt, pickResult);
                 this._setRayOnPointerInfo(pi);
-                scene.onPointerObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
             }
         }
     }
@@ -61357,14 +61687,14 @@ class InputManager {
         if (pickResult && pickResult && pickResult.pickedMesh) {
             this._pickedUpMesh = pickResult.pickedMesh;
             if (this._pickedDownMesh === this._pickedUpMesh) {
-                if (scene.onPointerPick) {
-                    scene.onPointerPick(evt, pickResult);
+                if (scene.sceneInputManagerApp.onPointerPick) {
+                    scene.sceneInputManagerApp.onPointerPick(evt, pickResult);
                 }
-                if (clickInfo.singleClick && !clickInfo.ignore && scene.onPointerObservable.hasObservers()) {
+                if (clickInfo.singleClick && !clickInfo.ignore && scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
                     let type = _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERPICK;
                     let pi = new _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerInfo"](type, evt, pickResult);
                     this._setRayOnPointerInfo(pi);
-                    scene.onPointerObservable.notifyObservers(pi, type);
+                    scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
                 }
             }
             let actionManager = pickResult.pickedMesh._getActionManagerForTrigger();
@@ -61381,7 +61711,7 @@ class InputManager {
         }
         else {
             if (!clickInfo.ignore) {
-                for (let step of scene._pointerUpStage) {
+                for (let step of scene.sceneStage._pointerUpStage) {
                     pickResult = step.action(this._unTranslatedPointerX, this._unTranslatedPointerY, pickResult, evt);
                 }
             }
@@ -61393,29 +61723,29 @@ class InputManager {
             }
         }
         let type = 0;
-        if (scene.onPointerObservable.hasObservers()) {
+        if (scene.sceneEventTrigger.onPointerObservable.hasObservers()) {
             if (!clickInfo.ignore && !clickInfo.hasSwiped) {
-                if (clickInfo.singleClick && scene.onPointerObservable.hasSpecificMask(_Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERTAP)) {
+                if (clickInfo.singleClick && scene.sceneEventTrigger.onPointerObservable.hasSpecificMask(_Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERTAP)) {
                     type = _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERTAP;
                 }
-                else if (clickInfo.doubleClick && scene.onPointerObservable.hasSpecificMask(_Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOUBLETAP)) {
+                else if (clickInfo.doubleClick && scene.sceneEventTrigger.onPointerObservable.hasSpecificMask(_Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOUBLETAP)) {
                     type = _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOUBLETAP;
                 }
                 if (type) {
                     let pi = new _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerInfo"](type, evt, pickResult);
                     this._setRayOnPointerInfo(pi);
-                    scene.onPointerObservable.notifyObservers(pi, type);
+                    scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
                 }
             }
             if (!clickInfo.ignore) {
                 type = _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERUP;
                 let pi = new _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerInfo"](type, evt, pickResult);
                 this._setRayOnPointerInfo(pi);
-                scene.onPointerObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPointerObservable.notifyObservers(pi, type);
             }
         }
-        if (scene.onPointerUp && !clickInfo.ignore) {
-            scene.onPointerUp(evt, pickResult, type);
+        if (scene.sceneInputManagerApp.onPointerUp && !clickInfo.ignore) {
+            scene.sceneInputManagerApp.onPointerUp(evt, pickResult, type);
         }
     }
     /**
@@ -61448,7 +61778,7 @@ class InputManager {
         let engine = scene.getEngine();
         this._initActionManager = (act, clickInfo) => {
             if (!this._meshPickProceed) {
-                let pickResult = scene.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerDownPredicate, false, scene.cameraToUseForPointers);
+                let pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.sceneInputManagerApp.pointerDownPredicate, false, scene.cameraToUseForPointers);
                 this._currentPickResult = pickResult;
                 if (pickResult) {
                     act = pickResult.hit && pickResult.pickedMesh ? pickResult.pickedMesh._getActionManagerForTrigger() : null;
@@ -61581,8 +61911,8 @@ class InputManager {
             if (!scene.cameraToUseForPointers && !scene.activeCamera) {
                 return;
             }
-            if (!scene.pointerMovePredicate) {
-                scene.pointerMovePredicate = (mesh) => mesh.isPickable &&
+            if (!scene.sceneInputManagerApp.pointerMovePredicate) {
+                scene.sceneInputManagerApp.pointerMovePredicate = (mesh) => mesh.isPickable &&
                     mesh.isVisible &&
                     mesh.isReady() &&
                     mesh.isEnabled() &&
@@ -61590,7 +61920,7 @@ class InputManager {
                     (!scene.cameraToUseForPointers || (scene.cameraToUseForPointers.layerMask & mesh.layerMask) !== 0);
             }
             // Meshes
-            var pickResult = scene.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerMovePredicate, false, scene.cameraToUseForPointers);
+            var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.sceneInputManagerApp.pointerMovePredicate, false, scene.cameraToUseForPointers);
             this._processPointerMove(pickResult, evt);
         };
         this._onPointerDown = (evt) => {
@@ -61617,14 +61947,14 @@ class InputManager {
                 return;
             }
             this._pointerCaptures[evt.pointerId] = true;
-            if (!scene.pointerDownPredicate) {
-                scene.pointerDownPredicate = (mesh) => {
+            if (!scene.sceneInputManagerApp.pointerDownPredicate) {
+                scene.sceneInputManagerApp.pointerDownPredicate = (mesh) => {
                     return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.isEnabled() && (!scene.cameraToUseForPointers || (scene.cameraToUseForPointers.layerMask & mesh.layerMask) !== 0);
                 };
             }
             // Meshes
             this._pickedDownMesh = null;
-            var pickResult = scene.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.pointerDownPredicate, false, scene.cameraToUseForPointers);
+            var pickResult = scene.scenePick.pick(this._unTranslatedPointerX, this._unTranslatedPointerY, scene.sceneInputManagerApp.pointerDownPredicate, false, scene.cameraToUseForPointers);
             this._processPointerDown(pickResult, evt);
         };
         this._onPointerUp = (evt) => {
@@ -61644,17 +61974,17 @@ class InputManager {
                 evt.preventDefault();
                 elementToAttachTo.focus();
             }
-            this._initClickEvent(scene.onPrePointerObservable, scene.onPointerObservable, evt, (clickInfo, pickResult) => {
+            this._initClickEvent(scene.sceneEventTrigger.onPrePointerObservable, scene.sceneEventTrigger.onPointerObservable, evt, (clickInfo, pickResult) => {
                 // PreObservable support
-                if (scene.onPrePointerObservable.hasObservers()) {
+                if (scene.sceneEventTrigger.onPrePointerObservable.hasObservers()) {
                     if (!clickInfo.ignore) {
                         if (!clickInfo.hasSwiped) {
-                            if (clickInfo.singleClick && scene.onPrePointerObservable.hasSpecificMask(_Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERTAP)) {
+                            if (clickInfo.singleClick && scene.sceneEventTrigger.onPrePointerObservable.hasSpecificMask(_Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERTAP)) {
                                 if (this._checkPrePointerObservable(null, evt, _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERTAP)) {
                                     return;
                                 }
                             }
-                            if (clickInfo.doubleClick && scene.onPrePointerObservable.hasSpecificMask(_Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOUBLETAP)) {
+                            if (clickInfo.doubleClick && scene.sceneEventTrigger.onPrePointerObservable.hasSpecificMask(_Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOUBLETAP)) {
                                 if (this._checkPrePointerObservable(null, evt, _Events_pointerEvents__WEBPACK_IMPORTED_MODULE_0__["PointerEventTypes"].POINTERDOUBLETAP)) {
                                     return;
                                 }
@@ -61672,13 +62002,13 @@ class InputManager {
                 if (!scene.cameraToUseForPointers && !scene.activeCamera) {
                     return;
                 }
-                if (!scene.pointerUpPredicate) {
-                    scene.pointerUpPredicate = (mesh) => {
+                if (!scene.sceneInputManagerApp.pointerUpPredicate) {
+                    scene.sceneInputManagerApp.pointerUpPredicate = (mesh) => {
                         return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.isEnabled() && (!scene.cameraToUseForPointers || (scene.cameraToUseForPointers.layerMask & mesh.layerMask) !== 0);
                     };
                 }
                 // Meshes
-                if (!this._meshPickProceed && ((_Actions_abstractActionManager__WEBPACK_IMPORTED_MODULE_1__["AbstractActionManager"] && _Actions_abstractActionManager__WEBPACK_IMPORTED_MODULE_1__["AbstractActionManager"].HasTriggers) || scene.onPointerObservable.hasObservers())) {
+                if (!this._meshPickProceed && ((_Actions_abstractActionManager__WEBPACK_IMPORTED_MODULE_1__["AbstractActionManager"] && _Actions_abstractActionManager__WEBPACK_IMPORTED_MODULE_1__["AbstractActionManager"].HasTriggers) || scene.sceneEventTrigger.onPointerObservable.hasObservers())) {
                     this._initActionManager(null, clickInfo);
                 }
                 if (!pickResult) {
@@ -61690,16 +62020,16 @@ class InputManager {
         };
         this._onKeyDown = (evt) => {
             let type = _Events_keyboardEvents__WEBPACK_IMPORTED_MODULE_6__["KeyboardEventTypes"].KEYDOWN;
-            if (scene.onPreKeyboardObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onPreKeyboardObservable.hasObservers()) {
                 let pi = new _Events_keyboardEvents__WEBPACK_IMPORTED_MODULE_6__["KeyboardInfoPre"](type, evt);
-                scene.onPreKeyboardObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPreKeyboardObservable.notifyObservers(pi, type);
                 if (pi.skipOnPointerObservable) {
                     return;
                 }
             }
-            if (scene.onKeyboardObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onKeyboardObservable.hasObservers()) {
                 let pi = new _Events_keyboardEvents__WEBPACK_IMPORTED_MODULE_6__["KeyboardInfo"](type, evt);
-                scene.onKeyboardObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onKeyboardObservable.notifyObservers(pi, type);
             }
             if (scene.actionManager) {
                 scene.actionManager.processTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_3__["Constants"].ACTION_OnKeyDownTrigger, _Actions_actionEvent__WEBPACK_IMPORTED_MODULE_4__["ActionEvent"].CreateNewFromScene(scene, evt));
@@ -61707,16 +62037,16 @@ class InputManager {
         };
         this._onKeyUp = (evt) => {
             let type = _Events_keyboardEvents__WEBPACK_IMPORTED_MODULE_6__["KeyboardEventTypes"].KEYUP;
-            if (scene.onPreKeyboardObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onPreKeyboardObservable.hasObservers()) {
                 let pi = new _Events_keyboardEvents__WEBPACK_IMPORTED_MODULE_6__["KeyboardInfoPre"](type, evt);
-                scene.onPreKeyboardObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onPreKeyboardObservable.notifyObservers(pi, type);
                 if (pi.skipOnPointerObservable) {
                     return;
                 }
             }
-            if (scene.onKeyboardObservable.hasObservers()) {
+            if (scene.sceneEventTrigger.onKeyboardObservable.hasObservers()) {
                 let pi = new _Events_keyboardEvents__WEBPACK_IMPORTED_MODULE_6__["KeyboardInfo"](type, evt);
-                scene.onKeyboardObservable.notifyObservers(pi, type);
+                scene.sceneEventTrigger.onKeyboardObservable.notifyObservers(pi, type);
             }
             if (scene.actionManager) {
                 scene.actionManager.processTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_3__["Constants"].ACTION_OnKeyUpTrigger, _Actions_actionEvent__WEBPACK_IMPORTED_MODULE_4__["ActionEvent"].CreateNewFromScene(scene, evt));
@@ -61854,6 +62184,161 @@ InputManager.ExclusiveDoubleClickMode = false;
 
 /***/ }),
 
+/***/ "./src/Scene/scene.inputManagerApp.ts":
+/*!********************************************!*\
+  !*** ./src/Scene/scene.inputManagerApp.ts ***!
+  \********************************************/
+/*! exports provided: SceneInputManagerApp */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneInputManagerApp", function() { return SceneInputManagerApp; });
+/* harmony import */ var _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./scene.inputManager */ "./src/Scene/scene.inputManager.ts");
+
+class SceneInputManagerApp {
+    constructor(scene) {
+        this.inputManager = new _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"](scene);
+    }
+    /**
+      * Gets or sets the distance in pixel that you have to move to prevent some events. Default is 10 pixels
+      */
+    static get DragMovementThreshold() {
+        return _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"].DragMovementThreshold;
+    }
+    static set DragMovementThreshold(value) {
+        _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"].DragMovementThreshold = value;
+    }
+    /**
+     * Time in milliseconds to wait to raise long press events if button is still pressed. Default is 500 ms
+     */
+    static get LongPressDelay() {
+        return _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"].LongPressDelay;
+    }
+    static set LongPressDelay(value) {
+        _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"].LongPressDelay = value;
+    }
+    /**
+     * Time in milliseconds to wait to raise long press events if button is still pressed. Default is 300 ms
+     */
+    static get DoubleClickDelay() {
+        return _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"].DoubleClickDelay;
+    }
+    static set DoubleClickDelay(value) {
+        _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"].DoubleClickDelay = value;
+    }
+    /** If you need to check double click without raising a single click at first click, enable this flag */
+    static get ExclusiveDoubleClickMode() {
+        return _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"].ExclusiveDoubleClickMode;
+    }
+    static set ExclusiveDoubleClickMode(value) {
+        _scene_inputManager__WEBPACK_IMPORTED_MODULE_0__["InputManager"].ExclusiveDoubleClickMode = value;
+    }
+    /**
+       * Use this method to simulate a pointer move on a mesh
+       * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
+       * @param pickResult pickingInfo of the object wished to simulate pointer event on
+       * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
+       * @returns the current scene
+       */
+    simulatePointerMove(pickResult, pointerEventInit) {
+        this.inputManager.simulatePointerMove(pickResult, pointerEventInit);
+        return this;
+    }
+    /**
+     * Use this method to simulate a pointer down on a mesh
+     * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
+     * @param pickResult pickingInfo of the object wished to simulate pointer event on
+     * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
+     * @returns the current scene
+     */
+    simulatePointerDown(pickResult, pointerEventInit) {
+        this.inputManager.simulatePointerDown(pickResult, pointerEventInit);
+        return this;
+    }
+    /**
+     * Use this method to simulate a pointer up on a mesh
+     * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
+     * @param pickResult pickingInfo of the object wished to simulate pointer event on
+     * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
+     * @param doubleTap indicates that the pointer up event should be considered as part of a double click (false by default)
+     * @returns the current scene
+     */
+    simulatePointerUp(pickResult, pointerEventInit, doubleTap) {
+        this.inputManager.simulatePointerUp(pickResult, pointerEventInit, doubleTap);
+        return this;
+    }
+    /**
+     * Gets a boolean indicating if the current pointer event is captured (meaning that the scene has already handled the pointer down)
+     * @param pointerId defines the pointer id to use in a multi-touch scenario (0 by default)
+     * @returns true if the pointer was captured
+     */
+    isPointerCaptured(pointerId = 0) {
+        return this.inputManager.isPointerCaptured(pointerId);
+    }
+    /**
+    * Attach events to the canvas (To handle actionManagers triggers and raise onPointerMove, onPointerDown and onPointerUp
+    * @param attachUp defines if you want to attach events to pointerup
+    * @param attachDown defines if you want to attach events to pointerdown
+    * @param attachMove defines if you want to attach events to pointermove
+    */
+    attachControl(attachUp = true, attachDown = true, attachMove = true) {
+        this.inputManager.attachControl(attachUp, attachDown, attachMove);
+    }
+    /** Detaches all event handlers*/
+    detachControl() {
+        this.inputManager.detachControl();
+    }
+    /**
+       * Force the value of meshUnderPointer
+       * @param mesh defines the mesh to use
+       * @param pointerId optional pointer id when using more than one pointer
+       */
+    setPointerOverMesh(mesh, pointerId) {
+        this.inputManager.setPointerOverMesh(mesh, pointerId);
+    }
+    /**
+     * Gets the mesh under the pointer
+     * @returns a Mesh or null if no mesh is under the pointer
+     */
+    getPointerOverMesh() {
+        return this.inputManager.getPointerOverMesh();
+    }
+    /**
+   * Gets the pointer coordinates without any translation (ie. straight out of the pointer event)
+   */
+    get unTranslatedPointer() {
+        return this.inputManager.unTranslatedPointer;
+    }
+    /**
+      * Gets the mesh that is currently under the pointer
+      */
+    get meshUnderPointer() {
+        return this.inputManager.meshUnderPointer;
+    }
+    /**
+     * Gets or sets the current on-screen X position of the pointer
+     */
+    get pointerX() {
+        return this.inputManager.pointerX;
+    }
+    set pointerX(value) {
+        this.inputManager.pointerX = value;
+    }
+    /**
+     * Gets or sets the current on-screen Y position of the pointer
+     */
+    get pointerY() {
+        return this.inputManager.pointerY;
+    }
+    set pointerY(value) {
+        this.inputManager.pointerY = value;
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/Scene/scene.matrix.ts":
 /*!***********************************!*\
   !*** ./src/Scene/scene.matrix.ts ***!
@@ -61864,14 +62349,20 @@ InputManager.ExclusiveDoubleClickMode = false;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneMatrix", function() { return SceneMatrix; });
-/* harmony import */ var _Maths_math_vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Maths/math.vector */ "./src/Maths/math.vector.ts");
+/* harmony import */ var _Materials_uniformBuffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Materials/uniformBuffer */ "./src/Materials/uniformBuffer.ts");
+/* harmony import */ var _Maths_math__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Maths/math */ "./src/Maths/math.ts");
+/* harmony import */ var _Maths_math_vector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Maths/math.vector */ "./src/Maths/math.vector.ts");
+
+
 
 class SceneMatrix {
-    constructor() {
-        this._transformMatrix = _Maths_math_vector__WEBPACK_IMPORTED_MODULE_0__["Matrix"].Zero();
-        this.aaa = 5;
+    constructor(scene, engine) {
+        this._transformMatrix = _Maths_math_vector__WEBPACK_IMPORTED_MODULE_2__["Matrix"].Zero();
+        this._viewUpdateFlag = -1;
+        this._projectionUpdateFlag = -1;
+        this._engine = engine;
+        this.scene = scene;
     }
-    // Matrix
     /**
      * Gets the current view matrix
      * @returns a Matrix
@@ -61893,6 +62384,1874 @@ class SceneMatrix {
     getTransformMatrix() {
         return this._transformMatrix;
     }
+    /**
+    * Sets the current transform matrix
+    * @param viewL defines the View matrix to use
+    * @param projectionL defines the Projection matrix to use
+    * @param viewR defines the right View matrix to use (if provided)
+    * @param projectionR defines the right Projection matrix to use (if provided)
+    */
+    setTransformMatrix(viewL, projectionL, viewR, projectionR) {
+        if (this._viewUpdateFlag === viewL.updateFlag && this._projectionUpdateFlag === projectionL.updateFlag) {
+            return;
+        }
+        this._viewUpdateFlag = viewL.updateFlag;
+        this._projectionUpdateFlag = projectionL.updateFlag;
+        this._viewMatrix = viewL;
+        this._projectionMatrix = projectionL;
+        this._viewMatrix.multiplyToRef(this._projectionMatrix, this._transformMatrix);
+        // Update frustum
+        if (!this.scene.sceneClipPlane.frustumPlanes) {
+            this.scene.sceneClipPlane.frustumPlanes = _Maths_math__WEBPACK_IMPORTED_MODULE_1__["Frustum"].GetPlanes(this._transformMatrix);
+        }
+        else {
+            _Maths_math__WEBPACK_IMPORTED_MODULE_1__["Frustum"].GetPlanesToRef(this._transformMatrix, this.scene.sceneClipPlane.frustumPlanes);
+        }
+        if (this._sceneUbo.useUbo) {
+            this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
+            this._sceneUbo.updateMatrix("view", this._viewMatrix);
+            this._sceneUbo.update();
+        }
+    }
+    _createUbo() {
+        this._sceneUbo = new _Materials_uniformBuffer__WEBPACK_IMPORTED_MODULE_0__["UniformBuffer"](this._engine, undefined, true);
+        this._sceneUbo.addUniform("viewProjection", 16);
+        this._sceneUbo.addUniform("view", 16);
+    }
+    /**
+      * Gets the uniform buffer used to store scene data
+      * @returns a UniformBuffer
+      */
+    getSceneUniformBuffer() {
+        return this._sceneUbo;
+    }
+    /**
+   * Update the transform matrix to update from the current active camera
+   * @param force defines a boolean used to force the update even if cache is up to date
+   */
+    updateTransformMatrix(force) {
+        if (!this.scene.activeCamera) {
+            return;
+        }
+        this.setTransformMatrix(this.scene.activeCamera.getViewMatrix(), this.scene.activeCamera.getProjectionMatrix(force));
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Scene/scene.node.ts":
+/*!*********************************!*\
+  !*** ./src/Scene/scene.node.ts ***!
+  \*********************************/
+/*! exports provided: SceneNode */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneNode", function() { return SceneNode; });
+/* harmony import */ var _Lights_light__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Lights/light */ "./src/Lights/light.ts");
+/* harmony import */ var _Misc_tags__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Misc/tags */ "./src/Misc/tags.ts");
+/* harmony import */ var _Engines_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Engines/constants */ "./src/Engines/constants.ts");
+
+
+
+class SceneNode {
+    constructor(scene) {
+        /** @hidden */
+        this._defaultMeshCandidates = {
+            data: [],
+            length: 0
+        };
+        this._defaultSubMeshCandidates = {
+            data: [],
+            length: 0
+        };
+        this.scene = scene;
+    }
+    /**
+      * Add a mesh to the list of scene's meshes
+      * @param newMesh defines the mesh to add
+      * @param recursive if all child meshes should also be added to the scene
+      */
+    addMesh(newMesh, recursive = false) {
+        if (this.scene._blockEntityCollection) {
+            return;
+        }
+        this.scene.meshes.push(newMesh);
+        newMesh._resyncLightSources();
+        if (!newMesh.parent) {
+            newMesh._addToSceneRootNodes();
+        }
+        this.scene.sceneEventTrigger.onNewMeshAddedObservable.notifyObservers(newMesh);
+        if (recursive) {
+            newMesh.getChildMeshes().forEach((m) => {
+                this.addMesh(m);
+            });
+        }
+    }
+    /**
+     * Remove a mesh for the list of scene's meshes
+     * @param toRemove defines the mesh to remove
+     * @param recursive if all child meshes should also be removed from the scene
+     * @returns the index where the mesh was in the mesh list
+     */
+    removeMesh(toRemove, recursive = false) {
+        var index = this.scene.meshes.indexOf(toRemove);
+        if (index !== -1) {
+            // Remove from the scene if mesh found
+            this.scene.meshes[index] = this.scene.meshes[this.scene.meshes.length - 1];
+            this.scene.meshes.pop();
+            if (!toRemove.parent) {
+                toRemove._removeFromSceneRootNodes();
+            }
+        }
+        this.scene.sceneEventTrigger.onMeshRemovedObservable.notifyObservers(toRemove);
+        if (recursive) {
+            toRemove.getChildMeshes().forEach((m) => {
+                this.removeMesh(m);
+            });
+        }
+        return index;
+    }
+    /**
+     * Add a transform node to the list of scene's transform nodes
+     * @param newTransformNode defines the transform node to add
+     */
+    addTransformNode(newTransformNode) {
+        if (this.scene._blockEntityCollection) {
+            return;
+        }
+        newTransformNode._indexInSceneTransformNodesArray = this.scene.transformNodes.length;
+        this.scene.transformNodes.push(newTransformNode);
+        if (!newTransformNode.parent) {
+            newTransformNode._addToSceneRootNodes();
+        }
+        this.scene.sceneEventTrigger.onNewTransformNodeAddedObservable.notifyObservers(newTransformNode);
+    }
+    /**
+       * Gets a light node using its name
+       * @param name defines the the light's name
+       * @return the light or null if none found.
+       */
+    getLightByName(name) {
+        for (var index = 0; index < this.scene.lights.length; index++) {
+            if (this.scene.lights[index].name === name) {
+                return this.scene.lights[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Remove a transform node for the list of scene's transform nodes
+     * @param toRemove defines the transform node to remove
+     * @returns the index where the transform node was in the transform node list
+     */
+    removeTransformNode(toRemove) {
+        var index = toRemove._indexInSceneTransformNodesArray;
+        if (index !== -1) {
+            if (index !== this.scene.transformNodes.length - 1) {
+                const lastNode = this.scene.transformNodes[this.scene.transformNodes.length - 1];
+                this.scene.transformNodes[index] = lastNode;
+                lastNode._indexInSceneTransformNodesArray = index;
+            }
+            toRemove._indexInSceneTransformNodesArray = -1;
+            this.scene.transformNodes.pop();
+            if (!toRemove.parent) {
+                toRemove._removeFromSceneRootNodes();
+            }
+        }
+        this.scene.sceneEventTrigger.onTransformNodeRemovedObservable.notifyObservers(toRemove);
+        return index;
+    }
+    /**
+     * Remove a light for the list of scene's lights
+     * @param toRemove defines the light to remove
+     * @returns the index where the light was in the light list
+     */
+    removeLight(toRemove) {
+        var index = this.scene.lights.indexOf(toRemove);
+        if (index !== -1) {
+            // Remove from meshes
+            for (var mesh of this.scene.meshes) {
+                mesh._removeLightSource(toRemove, false);
+            }
+            // Remove from the scene if mesh found
+            this.scene.lights.splice(index, 1);
+            this.sortLightsByPriority();
+            if (!toRemove.parent) {
+                toRemove._removeFromSceneRootNodes();
+            }
+        }
+        this.scene.sceneEventTrigger.onLightRemovedObservable.notifyObservers(toRemove);
+        return index;
+    }
+    /**
+     * Remove a camera for the list of scene's cameras
+     * @param toRemove defines the camera to remove
+     * @returns the index where the camera was in the camera list
+     */
+    removeCamera(toRemove) {
+        var index = this.scene.cameras.indexOf(toRemove);
+        if (index !== -1) {
+            // Remove from the scene if mesh found
+            this.scene.cameras.splice(index, 1);
+            if (!toRemove.parent) {
+                toRemove._removeFromSceneRootNodes();
+            }
+        }
+        // Remove from activeCameras
+        if (this.scene.activeCameras) {
+            var index2 = this.scene.activeCameras.indexOf(toRemove);
+            if (index2 !== -1) {
+                // Remove from the scene if mesh found
+                this.scene.activeCameras.splice(index2, 1);
+            }
+        }
+        // Reset the activeCamera
+        if (this.scene.activeCamera === toRemove) {
+            if (this.scene.cameras.length > 0) {
+                this.scene.activeCamera = this.scene.cameras[0];
+            }
+            else {
+                this.scene.activeCamera = null;
+            }
+        }
+        this.scene.sceneEventTrigger.onCameraRemovedObservable.notifyObservers(toRemove);
+        return index;
+    }
+    /**
+     * Removes the given material from this scene.
+     * @param toRemove The material to remove
+     * @returns The index of the removed material
+     */
+    removeMaterial(toRemove) {
+        var index = toRemove._indexInSceneMaterialArray;
+        if (index !== -1 && index < this.scene.materials.length) {
+            if (index !== this.scene.materials.length - 1) {
+                const lastMaterial = this.scene.materials[this.scene.materials.length - 1];
+                this.scene.materials[index] = lastMaterial;
+                lastMaterial._indexInSceneMaterialArray = index;
+            }
+            toRemove._indexInSceneMaterialArray = -1;
+            this.scene.materials.pop();
+        }
+        this.scene.sceneEventTrigger.onMaterialRemovedObservable.notifyObservers(toRemove);
+        return index;
+    }
+    /**
+     * Removes the given action manager from this scene.scene.
+     * @param toRemove The action manager to remove
+     * @returns The index of the removed action manager
+     */
+    removeActionManager(toRemove) {
+        var index = this.scene.actionManagers.indexOf(toRemove);
+        if (index !== -1) {
+            this.scene.actionManagers.splice(index, 1);
+        }
+        return index;
+    }
+    /**
+     * Removes the given texture from this scene.scene.
+     * @param toRemove The texture to remove
+     * @returns The index of the removed texture
+     */
+    removeTexture(toRemove) {
+        var index = this.scene.textures.indexOf(toRemove);
+        if (index !== -1) {
+            this.scene.textures.splice(index, 1);
+        }
+        this.scene.sceneEventTrigger.onTextureRemovedObservable.notifyObservers(toRemove);
+        return index;
+    }
+    /**
+     * Adds the given light to this scene.scene
+     * @param newLight The light to add
+     */
+    addLight(newLight) {
+        if (this.scene._blockEntityCollection) {
+            return;
+        }
+        this.scene.lights.push(newLight);
+        this.sortLightsByPriority();
+        if (!newLight.parent) {
+            newLight._addToSceneRootNodes();
+        }
+        // Add light to all meshes (To support if the light is removed and then re-added)
+        for (var mesh of this.scene.meshes) {
+            if (mesh.lightSources.indexOf(newLight) === -1) {
+                mesh.lightSources.push(newLight);
+                mesh._resyncLightSources();
+            }
+        }
+        this.scene.sceneEventTrigger.onNewLightAddedObservable.notifyObservers(newLight);
+    }
+    /**
+     * Sorts the list list based on light priorities
+     */
+    sortLightsByPriority() {
+        if (this.scene.requireLightSorting) {
+            this.scene.lights.sort(_Lights_light__WEBPACK_IMPORTED_MODULE_0__["Light"].CompareLightsPriority);
+        }
+    }
+    /**
+     * Adds the given camera to this scene.scene
+     * @param newCamera The camera to add
+     */
+    addCamera(newCamera) {
+        if (this.scene._blockEntityCollection) {
+            return;
+        }
+        this.scene.cameras.push(newCamera);
+        this.scene.sceneEventTrigger.onNewCameraAddedObservable.notifyObservers(newCamera);
+        if (!newCamera.parent) {
+            newCamera._addToSceneRootNodes();
+        }
+    }
+    /**
+ * Adds the given texture to this scene.
+ * @param newTexture The texture to add
+ */
+    addTexture(newTexture) {
+        if (this.scene._blockEntityCollection) {
+            return;
+        }
+        this.scene.textures.push(newTexture);
+        this.scene.sceneEventTrigger.onNewTextureAddedObservable.notifyObservers(newTexture);
+    }
+    /**
+     * Adds the given material to this scene.scene
+     * @param newMaterial The material to add
+     */
+    addMaterial(newMaterial) {
+        if (this.scene._blockEntityCollection) {
+            return;
+        }
+        newMaterial._indexInSceneMaterialArray = this.scene.materials.length;
+        this.scene.materials.push(newMaterial);
+        this.scene.sceneEventTrigger.onNewMaterialAddedObservable.notifyObservers(newMaterial);
+    }
+    /**
+     * Adds the given morph target to this scene.scene
+     * @param newMorphTargetManager The morph target to add
+     */
+    // public addMorphTargetManager(newMorphTargetManager: MorphTargetManager): void {
+    //     if (this.scene._blockEntityCollection) {
+    //         return;
+    //     }
+    //     this.scene.morphTargetManagers.push(newMorphTargetManager);
+    // }
+    /**
+     * Adds the given geometry to this scene.scene
+     * @param newGeometry The geometry to add
+     */
+    addGeometry(newGeometry) {
+        if (this.scene._blockEntityCollection) {
+            return;
+        }
+        if (this.scene.geometriesByUniqueId) {
+            this.scene.geometriesByUniqueId[newGeometry.uniqueId] = this.scene.geometries.length;
+        }
+        this.scene.geometries.push(newGeometry);
+    }
+    /**
+       * Add a new geometry to this scene
+       * @param geometry defines the geometry to be added to the scene.
+       * @param force defines if the geometry must be pushed even if a geometry with this id already exists
+       * @return a boolean defining if the geometry was added or not
+       */
+    pushGeometry(geometry, force) {
+        if (!force && this._getGeometryByUniqueID(geometry.uniqueId)) {
+            return false;
+        }
+        this.addGeometry(geometry);
+        this.scene.sceneEventTrigger.onNewGeometryAddedObservable.notifyObservers(geometry);
+        return true;
+    }
+    /**
+     * Removes an existing geometry
+     * @param geometry defines the geometry to be removed from the scene
+     * @return a boolean defining if the geometry was removed or not
+     */
+    removeGeometry(geometry) {
+        let index;
+        if (this.scene.geometriesByUniqueId) {
+            index = this.scene.geometriesByUniqueId[geometry.uniqueId];
+            if (index === undefined) {
+                return false;
+            }
+        }
+        else {
+            index = this.scene.geometries.indexOf(geometry);
+            if (index < 0) {
+                return false;
+            }
+        }
+        if (index !== this.scene.geometries.length - 1) {
+            const lastGeometry = this.scene.geometries[this.scene.geometries.length - 1];
+            if (lastGeometry) {
+                this.scene.geometries[index] = lastGeometry;
+                if (this.scene.geometriesByUniqueId) {
+                    this.scene.geometriesByUniqueId[lastGeometry.uniqueId] = index;
+                    this.scene.geometriesByUniqueId[geometry.uniqueId] = undefined;
+                }
+            }
+        }
+        this.scene.geometries.pop();
+        this.scene.sceneEventTrigger.onGeometryRemovedObservable.notifyObservers(geometry);
+        return true;
+    }
+    /**
+     * Gets the list of geometries attached to the scene
+     * @returns an array of Geometry
+     */
+    getGeometries() {
+        return this.scene.geometries;
+    }
+    /**
+     * Gets the first added mesh found of a given ID
+     * @param id defines the id to search for
+     * @return the mesh found or null if not found at all
+     */
+    getMeshByID(id) {
+        for (var index = 0; index < this.scene.meshes.length; index++) {
+            if (this.scene.meshes[index].id === id) {
+                return this.scene.meshes[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a list of meshes using their id
+     * @param id defines the id to search for
+     * @returns a list of meshes
+     */
+    getMeshesByID(id) {
+        return this.scene.meshes.filter(function (m) {
+            return m.id === id;
+        });
+    }
+    /**
+     * Gets the first added transform node found of a given ID
+     * @param id defines the id to search for
+     * @return the found transform node or null if not found at all.
+     */
+    getTransformNodeByID(id) {
+        for (var index = 0; index < this.scene.transformNodes.length; index++) {
+            if (this.scene.transformNodes[index].id === id) {
+                return this.scene.transformNodes[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a transform node with its auto-generated unique id
+     * @param uniqueId efines the unique id to search for
+     * @return the found transform node or null if not found at all.
+     */
+    getTransformNodeByUniqueID(uniqueId) {
+        for (var index = 0; index < this.scene.transformNodes.length; index++) {
+            if (this.scene.transformNodes[index].uniqueId === uniqueId) {
+                return this.scene.transformNodes[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a list of transform nodes using their id
+     * @param id defines the id to search for
+     * @returns a list of transform nodes
+     */
+    getTransformNodesByID(id) {
+        return this.scene.transformNodes.filter(function (m) {
+            return m.id === id;
+        });
+    }
+    /**
+     * Gets a mesh with its auto-generated unique id
+     * @param uniqueId defines the unique id to search for
+     * @return the found mesh or null if not found at all.
+     */
+    getMeshByUniqueID(uniqueId) {
+        for (var index = 0; index < this.scene.meshes.length; index++) {
+            if (this.scene.meshes[index].uniqueId === uniqueId) {
+                return this.scene.meshes[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a the last added mesh using a given id
+     * @param id defines the id to search for
+     * @return the found mesh or null if not found at all.
+     */
+    getLastMeshByID(id) {
+        for (var index = this.scene.meshes.length - 1; index >= 0; index--) {
+            if (this.scene.meshes[index].id === id) {
+                return this.scene.meshes[index];
+            }
+        }
+        return null;
+    }
+    a(a) {
+    }
+    /**
+     * Gets a the last added node (Mesh, Camera, Light) using a given id
+     * @param id defines the id to search for
+     * @return the found node or null if not found at all
+     */
+    getLastEntryByID(id) {
+        if (this.scene.lights[0]) {
+            this.a(this.scene.lights[0]);
+        }
+        var index;
+        for (index = this.scene.meshes.length - 1; index >= 0; index--) {
+            if (this.scene.meshes[index].id === id) {
+                return this.scene.meshes[index];
+            }
+        }
+        for (index = this.scene.transformNodes.length - 1; index >= 0; index--) {
+            if (this.scene.transformNodes[index].id === id) {
+                return this.scene.transformNodes[index];
+            }
+        }
+        for (index = this.scene.cameras.length - 1; index >= 0; index--) {
+            if (this.scene.cameras[index].id === id) {
+                return this.scene.cameras[index];
+            }
+        }
+        for (index = this.scene.lights.length - 1; index >= 0; index--) {
+            if (this.scene.lights[index].id === id) {
+                return this.scene.lights[index];
+            }
+        }
+        return null;
+    }
+    /**
+       * Gets a light node using its id
+       * @param id defines the light's id
+       * @return the light or null if none found.
+       */
+    getLightByID(id) {
+        for (var index = 0; index < this.scene.lights.length; index++) {
+            if (this.scene.lights[index].id === id) {
+                return this.scene.lights[index];
+            }
+        }
+        return null;
+    }
+    /**
+    * Gets a geometry using its ID
+    * @param id defines the geometry's id
+    * @return the geometry or null if none found.
+    */
+    getGeometryByID(id) {
+        for (var index = 0; index < this.scene.geometries.length; index++) {
+            if (this.scene.geometries[index].id === id) {
+                return this.scene.geometries[index];
+            }
+        }
+        return null;
+    }
+    _getGeometryByUniqueID(uniqueId) {
+        if (this.scene.geometriesByUniqueId) {
+            const index = this.scene.geometriesByUniqueId[uniqueId];
+            if (index !== undefined) {
+                return this.scene.geometries[index];
+            }
+        }
+        else {
+            for (var index = 0; index < this.scene.geometries.length; index++) {
+                if (this.scene.geometries[index].uniqueId === uniqueId) {
+                    return this.scene.geometries[index];
+                }
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a light node using its scene-generated unique ID
+     * @param uniqueId defines the light's unique id
+     * @return the light or null if none found.
+     */
+    getLightByUniqueID(uniqueId) {
+        for (var index = 0; index < this.scene.lights.length; index++) {
+            if (this.scene.lights[index].uniqueId === uniqueId) {
+                return this.scene.lights[index];
+            }
+        }
+        return null;
+    }
+    /**
+    * Gets a camera using its id
+    * @param id defines the id to look for
+    * @returns the camera or null if not found
+    */
+    getCameraByID(id) {
+        for (var index = 0; index < this.scene.cameras.length; index++) {
+            if (this.scene.cameras[index].id === id) {
+                return this.scene.cameras[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a node (Mesh, Camera, Light) using a given id
+     * @param id defines the id to search for
+     * @return the found node or null if not found at all
+     */
+    getNodeByID(id) {
+        const mesh = this.getMeshByID(id);
+        if (mesh) {
+            return mesh;
+        }
+        const transformNode = this.getTransformNodeByID(id);
+        if (transformNode) {
+            return transformNode;
+        }
+        const light = this.getLightByID(id);
+        if (light) {
+            return light;
+        }
+        const camera = this.getCameraByID(id);
+        if (camera) {
+            return camera;
+        }
+        // const bone = this.getBoneByID(id);
+        // if (bone) {
+        //     return bone;
+        // }
+        return null;
+    }
+    /**
+       * Gets a camera using its name
+       * @param name defines the camera's name
+       * @return the camera or null if none found.
+       */
+    getCameraByName(name) {
+        for (var index = 0; index < this.scene.cameras.length; index++) {
+            if (this.scene.cameras[index].name === name) {
+                return this.scene.cameras[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a node (Mesh, Camera, Light) using a given name
+     * @param name defines the name to search for
+     * @return the found node or null if not found at all.
+     */
+    getNodeByName(name) {
+        const mesh = this.getMeshByName(name);
+        if (mesh) {
+            return mesh;
+        }
+        const transformNode = this.getTransformNodeByName(name);
+        if (transformNode) {
+            return transformNode;
+        }
+        const light = this.getLightByName(name);
+        if (light) {
+            return light;
+        }
+        const camera = this.getCameraByName(name);
+        if (camera) {
+            return camera;
+        }
+        // const bone = this.getBoneByName(name);
+        // if (bone) {
+        //     return bone;
+        // }
+        return null;
+    }
+    /**
+     * Gets a mesh using a given name
+     * @param name defines the name to search for
+     * @return the found mesh or null if not found at all.
+     */
+    getMeshByName(name) {
+        for (var index = 0; index < this.scene.meshes.length; index++) {
+            if (this.scene.meshes[index].name === name) {
+                return this.scene.meshes[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a transform node using a given name
+     * @param name defines the name to search for
+     * @return the found transform node or null if not found at all.
+     */
+    getTransformNodeByName(name) {
+        for (var index = 0; index < this.scene.transformNodes.length; index++) {
+            if (this.scene.transformNodes[index].name === name) {
+                return this.scene.transformNodes[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a boolean indicating if the given mesh is active
+     * @param mesh defines the mesh to look for
+     * @returns true if the mesh is in the active list
+     */
+    isActiveMesh(mesh) {
+        return (this.scene._activeMeshes.indexOf(mesh) !== -1);
+    }
+    /**
+     * Get a material using its unique id
+     * @param uniqueId defines the material's unique id
+     * @return the material or null if none found.
+     */
+    getMaterialByUniqueID(uniqueId) {
+        for (var index = 0; index < this.scene.materials.length; index++) {
+            if (this.scene.materials[index].uniqueId === uniqueId) {
+                return this.scene.materials[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * get a material using its id
+     * @param id defines the material's ID
+     * @return the material or null if none found.
+     */
+    getMaterialByID(id) {
+        for (var index = 0; index < this.scene.materials.length; index++) {
+            if (this.scene.materials[index].id === id) {
+                return this.scene.materials[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a the last added material using a given id
+     * @param id defines the material's ID
+     * @return the last material with the given id or null if none found.
+     */
+    getLastMaterialByID(id) {
+        for (var index = this.scene.materials.length - 1; index >= 0; index--) {
+            if (this.scene.materials[index].id === id) {
+                return this.scene.materials[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a material using its name
+     * @param name defines the material's name
+     * @return the material or null if none found.
+     */
+    getMaterialByName(name) {
+        for (var index = 0; index < this.scene.materials.length; index++) {
+            if (this.scene.materials[index].name === name) {
+                return this.scene.materials[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Get a texture using its unique id
+     * @param uniqueId defines the texture's unique id
+     * @return the texture or null if none found.
+     */
+    getTextureByUniqueID(uniqueId) {
+        for (var index = 0; index < this.scene.textures.length; index++) {
+            if (this.scene.textures[index].uniqueId === uniqueId) {
+                return this.scene.textures[index];
+            }
+        }
+        return null;
+    }
+    /**
+     * Gets a camera using its unique id
+     * @param uniqueId defines the unique id to look for
+     * @returns the camera or null if not found
+     */
+    getCameraByUniqueID(uniqueId) {
+        for (var index = 0; index < this.scene.cameras.length; index++) {
+            if (this.scene.cameras[index].uniqueId === uniqueId) {
+                return this.scene.cameras[index];
+            }
+        }
+        return null;
+    }
+    /**
+    * @hidden
+    */
+    _getDefaultMeshCandidates() {
+        this._defaultMeshCandidates.data = this.scene.meshes;
+        this._defaultMeshCandidates.length = this.scene.meshes.length;
+        return this._defaultMeshCandidates;
+    }
+    /**
+     * @hidden
+     */
+    _getDefaultSubMeshCandidates(mesh) {
+        this._defaultSubMeshCandidates.data = mesh.subMeshes;
+        this._defaultSubMeshCandidates.length = mesh.subMeshes.length;
+        return this._defaultSubMeshCandidates;
+    }
+    /**
+    * Sets the default candidate providers for the scene.
+    * This sets the getActiveMeshCandidates, getActiveSubMeshCandidates, getIntersectingSubMeshCandidates
+    * and getCollidingSubMeshCandidates to their default function
+    */
+    setDefaultCandidateProviders() {
+        this.scene.getActiveMeshCandidates = this._getDefaultMeshCandidates.bind(this);
+        this.scene.getActiveSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
+        this.scene.getIntersectingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
+        this.scene.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
+    }
+    /**
+    * Freeze all materials
+    * A frozen material will not be updatable but should be faster to render
+    */
+    freezeMaterials() {
+        for (var i = 0; i < this.scene.materials.length; i++) {
+            this.scene.materials[i].freeze();
+        }
+    }
+    /**
+     * Unfreeze all scene.materials
+     * A frozen material will not be updatable but should be faster to render
+     */
+    unfreezeMaterials() {
+        for (var i = 0; i < this.scene.materials.length; i++) {
+            this.scene.materials[i].unfreeze();
+        }
+    }
+    // Misc.
+    /** @hidden */
+    _rebuildGeometries() {
+        for (var geometry of this.scene.geometries) {
+            geometry._rebuild();
+        }
+        for (var mesh of this.scene.meshes) {
+            mesh._rebuild();
+        }
+        // if (this.postProcessManager) {
+        //     this.postProcessManager._rebuild();
+        // }
+        for (let component of this.scene._components) {
+            component.rebuild();
+        }
+        // for (var system of this.particleSystems) {
+        //     system.rebuild();
+        // }
+    }
+    /** @hidden */
+    _rebuildTextures() {
+        for (var texture of this.scene.textures) {
+            texture._rebuild();
+        }
+        this.scene.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].MATERIAL_TextureDirtyFlag);
+    }
+    // Tags
+    _getByTags(list, tagsQuery, forEach) {
+        if (tagsQuery === undefined) {
+            // returns the complete list (could be done with Tags.MatchesQuery but no need to have a for-loop here)
+            return list;
+        }
+        var listByTags = [];
+        forEach = forEach || ((item) => { return; });
+        for (var i in list) {
+            var item = list[i];
+            if (_Misc_tags__WEBPACK_IMPORTED_MODULE_1__["Tags"] && _Misc_tags__WEBPACK_IMPORTED_MODULE_1__["Tags"].MatchesQuery(item, tagsQuery)) {
+                listByTags.push(item);
+                forEach(item);
+            }
+        }
+        return listByTags;
+    }
+    /**
+     * Get a list of meshes by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of Mesh
+     */
+    getMeshesByTags(tagsQuery, forEach) {
+        return this._getByTags(this.scene.meshes, tagsQuery, forEach);
+    }
+    /**
+     * Get a list of cameras by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of Camera
+     */
+    getCamerasByTags(tagsQuery, forEach) {
+        return this._getByTags(this.scene.cameras, tagsQuery, forEach);
+    }
+    /**
+     * Get a list of lights by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of Light
+     */
+    getLightsByTags(tagsQuery, forEach) {
+        return this._getByTags(this.scene.lights, tagsQuery, forEach);
+    }
+    /**
+     * Get a list of materials by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of Material
+     */
+    // public getMaterialByTags(tagsQuery: string, forEach?: (material: Material) => void): Material[] {
+    //     return this._getByTags(this.materials, tagsQuery, forEach).concat(this._getByTags(this.multiMaterials, tagsQuery, forEach));
+    // }
+    /**
+     * Get a list of transform nodes by tags
+     * @param tagsQuery defines the tags query to use
+     * @param forEach defines a predicate used to filter results
+     * @returns an array of TransformNode
+     */
+    getTransformNodesByTags(tagsQuery, forEach) {
+        return this._getByTags(this.scene.transformNodes, tagsQuery, forEach);
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Scene/scene.pick.ts":
+/*!*********************************!*\
+  !*** ./src/Scene/scene.pick.ts ***!
+  \*********************************/
+/*! exports provided: ScenePick */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ScenePick", function() { return ScenePick; });
+/* harmony import */ var _Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Collisions/pickingInfo */ "./src/Collisions/pickingInfo.ts");
+/* harmony import */ var _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Misc/devTools */ "./src/Misc/devTools.ts");
+
+
+class ScenePick {
+    constructor(scene) {
+        this.scene = scene;
+    }
+    // Picking
+    /**
+     * Creates a ray that can be used to pick in the scene
+     * @param x defines the x coordinate of the origin (on-screen)
+     * @param y defines the y coordinate of the origin (on-screen)
+     * @param world defines the world matrix to use if you want to pick in object space (instead of world space)
+     * @param camera defines the camera to use for the picking
+     * @param cameraViewSpace defines if picking will be done in view space (false by default)
+     * @returns a Ray
+     */
+    createPickingRay(x, y, world, camera, cameraViewSpace = false) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Ray");
+    }
+    /**
+     * Creates a ray that can be used to pick in the scene
+     * @param x defines the x coordinate of the origin (on-screen)
+     * @param y defines the y coordinate of the origin (on-screen)
+     * @param world defines the world matrix to use if you want to pick in object space (instead of world space)
+     * @param result defines the ray where to store the picking ray
+     * @param camera defines the camera to use for the picking
+     * @param cameraViewSpace defines if picking will be done in view space (false by default)
+     * @returns the current scene
+     */
+    createPickingRayToRef(x, y, world, result, camera, cameraViewSpace = false) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Ray");
+    }
+    /**
+     * Creates a ray that can be used to pick in the scene
+     * @param x defines the x coordinate of the origin (on-screen)
+     * @param y defines the y coordinate of the origin (on-screen)
+     * @param camera defines the camera to use for the picking
+     * @returns a Ray
+     */
+    createPickingRayInCameraSpace(x, y, camera) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Ray");
+    }
+    /**
+     * Creates a ray that can be used to pick in the scene
+     * @param x defines the x coordinate of the origin (on-screen)
+     * @param y defines the y coordinate of the origin (on-screen)
+     * @param result defines the ray where to store the picking ray
+     * @param camera defines the camera to use for the picking
+     * @returns the current scene
+     */
+    createPickingRayInCameraSpaceToRef(x, y, result, camera) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Ray");
+    }
+    /** Launch a ray to try to pick a mesh in the scene
+     * @param x position on screen
+     * @param y position on screen
+     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
+     * @param fastCheck defines if the first intersection will be used (and not the closest)
+     * @param camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
+     * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
+     * @returns a PickingInfo
+     */
+    pick(x, y, predicate, fastCheck, camera, trianglePredicate) {
+        // Dummy info if picking as not been imported
+        const pi = new _Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_0__["PickingInfo"]();
+        pi._pickingUnavailable = true;
+        return pi;
+    }
+    /** Launch a ray to try to pick a mesh in the scene using only bounding information of the main mesh (not using submeshes)
+     * @param x position on screen
+     * @param y position on screen
+     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
+     * @param fastCheck defines if the first intersection will be used (and not the closest)
+     * @param camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
+     * @returns a PickingInfo (Please note that some info will not be set like distance, bv, bu and everything that cannot be capture by only using bounding infos)
+     */
+    pickWithBoundingInfo(x, y, predicate, fastCheck, camera) {
+        // Dummy info if picking as not been imported
+        const pi = new _Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_0__["PickingInfo"]();
+        pi._pickingUnavailable = true;
+        return pi;
+    }
+    /** Use the given ray to pick a mesh in the scene
+     * @param ray The ray to use to pick meshes
+     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must have isPickable set to true
+     * @param fastCheck defines if the first intersection will be used (and not the closest)
+     * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
+     * @returns a PickingInfo
+     */
+    pickWithRay(ray, predicate, fastCheck, trianglePredicate) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Ray");
+    }
+    /**
+     * Launch a ray to try to pick a mesh in the scene
+     * @param x X position on screen
+     * @param y Y position on screen
+     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
+     * @param camera camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
+     * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
+     * @returns an array of PickingInfo
+     */
+    multiPick(x, y, predicate, camera, trianglePredicate) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Ray");
+    }
+    /**
+     * Launch a ray to try to pick a mesh in the scene
+     * @param ray Ray to use
+     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
+     * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
+     * @returns an array of PickingInfo
+     */
+    multiPickWithRay(ray, predicate, trianglePredicate) {
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_1__["_DevTools"].WarnImport("Ray");
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Scene/scene.render.ts":
+/*!***********************************!*\
+  !*** ./src/Scene/scene.render.ts ***!
+  \***********************************/
+/*! exports provided: SceneRender */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneRender", function() { return SceneRender; });
+/* harmony import */ var _Actions_actionEvent__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Actions/actionEvent */ "./src/Actions/actionEvent.ts");
+/* harmony import */ var _Cameras_camera__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Cameras/camera */ "./src/Cameras/camera.ts");
+/* harmony import */ var _Engines_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Engines/constants */ "./src/Engines/constants.ts");
+/* harmony import */ var _Maths_math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Maths/math */ "./src/Maths/math.ts");
+/* harmony import */ var _Meshes_abstractMesh__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Meshes/abstractMesh */ "./src/Meshes/abstractMesh.ts");
+/* harmony import */ var _Meshes_transformNode__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../Meshes/transformNode */ "./src/Meshes/transformNode.ts");
+/* harmony import */ var _Misc_logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../Misc/logger */ "./src/Misc/logger.ts");
+/* harmony import */ var _Misc_tools__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../Misc/tools */ "./src/Misc/tools.ts");
+
+
+
+
+
+
+
+
+class SceneRender {
+    constructor(scene) {
+        /**
+         * Defines the color used to simulate the ambient color (Default is (0, 0, 0))
+         */
+        this.ambientColor = new _Maths_math__WEBPACK_IMPORTED_MODULE_3__["Color3"](0, 0, 0);
+        /** @hidden */
+        this._environmentIntensity = 1;
+        this._forceWireframe = false;
+        this._skipFrustumClipping = false;
+        /**
+         * Gets or sets a boolean that indicates if the scene must clear the render buffer before rendering a frame
+         */
+        this.autoClear = true;
+        /**
+         * Gets or sets a boolean that indicates if the scene must clear the depth and stencil buffers before rendering a frame
+         */
+        this.autoClearDepthAndStencil = true;
+        /**
+         * Defines the color used to clear the render buffer (Default is (0.2, 0.2, 0.3, 1.0))
+         */
+        this.clearColor = new _Maths_math__WEBPACK_IMPORTED_MODULE_3__["Color4"](0.2, 0.2, 0.3, 1.0);
+        this._renderId = 0;
+        this._frameId = 0;
+        // Customs render targets
+        /**
+        * Gets or sets a boolean indicating if render targets are enabled on this scene
+        */
+        this.renderTargetsEnabled = true;
+        /**
+        * Gets or sets a boolean indicating if next render targets must be dumped as image for debugging purposes
+        * We recommend not using it and instead rely on Spector.js: http://spector.babylonjs.com
+        */
+        this.dumpNextRenderTargets = false;
+        /**
+       * The list of user defined render targets added to the scene
+       */
+        this.customRenderTargets = new Array();
+        this.scene = scene;
+    }
+    /**
+     * Texture used in all pbr material as the reflection texture.
+     * As in the majority of the scene they are the same (exception for multi room and so on),
+     * this is easier to reference from here than from all the materials.
+     */
+    get environmentTexture() {
+        return this.scene._environmentTexture;
+    }
+    /**
+     * Texture used in all pbr material as the reflection texture.
+     * As in the majority of the scene they are the same (exception for multi room and so on),
+     * this is easier to set here than in all the materials.
+     */
+    set environmentTexture(value) {
+        if (this.scene._environmentTexture === value) {
+            return;
+        }
+        this.scene._environmentTexture = value;
+        this.scene.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].MATERIAL_TextureDirtyFlag);
+    }
+    /**
+     * Intensity of the environment in all pbr material.
+     * This dims or reinforces the IBL lighting overall (reflection and diffuse).
+     * As in the majority of the scene they are the same (exception for multi room and so on),
+     * this is easier to reference from here than from all the materials.
+     */
+    get environmentIntensity() {
+        return this._environmentIntensity;
+    }
+    /**
+     * Intensity of the environment in all pbr material.
+     * This dims or reinforces the IBL lighting overall (reflection and diffuse).
+     * As in the majority of the scene they are the same (exception for multi room and so on),
+     * this is easier to set here than in all the materials.
+     */
+    set environmentIntensity(value) {
+        if (this._environmentIntensity === value) {
+            return;
+        }
+        this._environmentIntensity = value;
+        this.scene.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].MATERIAL_TextureDirtyFlag);
+    }
+    /**
+     * Default image processing configuration used either in the rendering
+     * Forward main pass or through the imageProcessingPostProcess if present.
+     * As in the majority of the scene they are the same (exception for multi camera),
+     * this is easier to reference from here than from all the materials and post process.
+     *
+     * No setter as we it is a shared configuration, you can set the values instead.
+     */
+    get imageProcessingConfiguration() {
+        return this._imageProcessingConfiguration;
+    }
+    /**
+     * Gets or sets a boolean indicating if all rendering must be done in wireframe
+     */
+    set forceWireframe(value) {
+        if (this._forceWireframe === value) {
+            return;
+        }
+        this._forceWireframe = value;
+        this.scene.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].MATERIAL_MiscDirtyFlag);
+    }
+    get forceWireframe() {
+        return this._forceWireframe;
+    }
+    /**
+     * Gets or sets a boolean indicating if we should skip the frustum clipping part of the active meshes selection
+     */
+    set skipFrustumClipping(value) {
+        if (this._skipFrustumClipping === value) {
+            return;
+        }
+        this._skipFrustumClipping = value;
+    }
+    get skipFrustumClipping() {
+        return this._skipFrustumClipping;
+    }
+    _executeOnceBeforeRender(func) {
+        let execFunc = () => {
+            func();
+            setTimeout(() => {
+                this.scene.sceneEventTrigger.unregisterBeforeRender(execFunc);
+            });
+        };
+        this.scene.sceneEventTrigger.registerBeforeRender(execFunc);
+    }
+    /**
+     * The provided function will run before render once and will be disposed afterwards.
+     * A timeout delay can be provided so that the function will be executed in N ms.
+     * The timeout is using the browser's native setTimeout so time percision cannot be guaranteed.
+     * @param func The function to be executed.
+     * @param timeout optional delay in ms
+     */
+    executeOnceBeforeRender(func, timeout) {
+        if (timeout !== undefined) {
+            setTimeout(() => {
+                this._executeOnceBeforeRender(func);
+            }, timeout);
+        }
+        else {
+            this._executeOnceBeforeRender(func);
+        }
+    }
+    /**
+       * Gets the current auto clear configuration for one rendering group of the rendering
+       * manager.
+       * @param index the rendering group index to get the information for
+       * @returns The auto clear setup for the requested rendering group
+       */
+    getAutoClearDepthStencilSetup(index) {
+        return this.scene._renderingManager.getAutoClearDepthStencilSetup(index);
+    }
+    /**
+      * Clear the info related to rendering groups preventing retention points during dispose.
+      */
+    freeRenderingGroups() {
+        if (this.scene.blockfreeActiveMeshesAndRenderingGroups) {
+            return;
+        }
+        if (this.scene._renderingManager) {
+            this.scene._renderingManager.freeRenderingGroups();
+        }
+        if (this.scene.textures) {
+            for (let i = 0; i < this.scene.textures.length; i++) {
+                let texture = this.scene.textures[i];
+                if (texture && texture.renderList) {
+                    texture.freeRenderingGroups();
+                }
+            }
+        }
+    }
+    /**
+     * Overrides the default sort function applied in the renderging group to prepare the meshes.
+     * This allowed control for front to back rendering or reversly depending of the special needs.
+     *
+     * @param renderingGroupId The rendering group id corresponding to its index
+     * @param opaqueSortCompareFn The opaque queue comparison function use to sort.
+     * @param alphaTestSortCompareFn The alpha test queue comparison function use to sort.
+     * @param transparentSortCompareFn The transparent queue comparison function use to sort.
+     */
+    setRenderingOrder(renderingGroupId, opaqueSortCompareFn = null, alphaTestSortCompareFn = null, transparentSortCompareFn = null) {
+        this.scene._renderingManager.setRenderingOrder(renderingGroupId, opaqueSortCompareFn, alphaTestSortCompareFn, transparentSortCompareFn);
+    }
+    /**
+     * Specifies whether or not the stencil and depth buffer are cleared between two rendering groups.
+     *
+     * @param renderingGroupId The rendering group id corresponding to its index
+     * @param autoClearDepthStencil Automatically clears depth and stencil between groups if true.
+     * @param depth Automatically clears depth between groups if true and autoClear is true.
+     * @param stencil Automatically clears stencil between groups if true and autoClear is true.
+     */
+    setRenderingAutoClearDepthStencil(renderingGroupId, autoClearDepthStencil, depth = true, stencil = true) {
+        this.scene._renderingManager.setRenderingAutoClearDepthStencil(renderingGroupId, autoClearDepthStencil, depth, stencil);
+    }
+    _checkIntersections() {
+        for (var index = 0; index < this.scene._meshesForIntersections.length; index++) {
+            var sourceMesh = this.scene._meshesForIntersections.data[index];
+            if (!sourceMesh.actionManager) {
+                continue;
+            }
+            for (var actionIndex = 0; sourceMesh.actionManager && actionIndex < sourceMesh.actionManager.actions.length; actionIndex++) {
+                var action = sourceMesh.actionManager.actions[actionIndex];
+                if (action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionEnterTrigger || action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionExitTrigger) {
+                    var parameters = action.getTriggerParameter();
+                    var otherMesh = parameters instanceof _Meshes_abstractMesh__WEBPACK_IMPORTED_MODULE_4__["AbstractMesh"] ? parameters : parameters.mesh;
+                    var areIntersecting = otherMesh.intersectsMesh(sourceMesh, parameters.usePreciseIntersection);
+                    var currentIntersectionInProgress = sourceMesh._intersectionsInProgress.indexOf(otherMesh);
+                    if (areIntersecting && currentIntersectionInProgress === -1) {
+                        if (action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionEnterTrigger) {
+                            action._executeCurrent(_Actions_actionEvent__WEBPACK_IMPORTED_MODULE_0__["ActionEvent"].CreateNew(sourceMesh, undefined, otherMesh));
+                            sourceMesh._intersectionsInProgress.push(otherMesh);
+                        }
+                        else if (action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionExitTrigger) {
+                            sourceMesh._intersectionsInProgress.push(otherMesh);
+                        }
+                    }
+                    else if (!areIntersecting && currentIntersectionInProgress > -1) {
+                        //They intersected, and now they don't.
+                        //is this trigger an exit trigger? execute an event.
+                        if (action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionExitTrigger) {
+                            action._executeCurrent(_Actions_actionEvent__WEBPACK_IMPORTED_MODULE_0__["ActionEvent"].CreateNew(sourceMesh, undefined, otherMesh));
+                        }
+                        //if this is an exit trigger, or no exit trigger exists, remove the id from the intersection in progress array.
+                        if (!sourceMesh.actionManager.hasSpecificTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionExitTrigger, (parameter) => {
+                            var parameterMesh = parameter instanceof _Meshes_abstractMesh__WEBPACK_IMPORTED_MODULE_4__["AbstractMesh"] ? parameter : parameter.mesh;
+                            return otherMesh === parameterMesh;
+                        }) || action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionExitTrigger) {
+                            sourceMesh._intersectionsInProgress.splice(currentIntersectionInProgress, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    _processSubCameras(camera) {
+        if (camera.cameraRigMode === _Cameras_camera__WEBPACK_IMPORTED_MODULE_1__["Camera"].RIG_MODE_NONE || (camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1 && this.scene.getEngine().getCaps().multiview)) {
+            this.scene.sceneRender._renderForCamera(camera);
+            this.scene.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
+            return;
+        }
+        {
+            // rig cameras
+            for (var index = 0; index < camera._rigCameras.length; index++) {
+                this.scene.sceneRender._renderForCamera(camera._rigCameras[index], camera);
+            }
+        }
+        // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
+        this.scene._activeCamera = camera;
+        this.scene.sceneMatrix.setTransformMatrix(this.scene._activeCamera.getViewMatrix(), this.scene._activeCamera.getProjectionMatrix());
+        this.scene.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
+    }
+    /**
+     * Render the scene
+     * @param updateCameras defines a boolean indicating if cameras must update according to their inputs (true by default)
+     * @param ignoreAnimations defines a boolean indicating if animations should not be executed (false by default)
+     */
+    render(updateCameras = true, ignoreAnimations = false) {
+        if (this.scene.isDisposed) {
+            return;
+        }
+        if (this.scene.sceneEventTrigger.onReadyObservable.hasObservers() && this.scene._executeWhenReadyTimeoutId === -1) {
+            this.scene._checkIsReady();
+        }
+        this._frameId++;
+        // Register components that have been associated lately to the scene.
+        this.scene._registerTransientComponents();
+        this.scene._totalVertices.fetchNewFrame();
+        this.scene._activeIndices.fetchNewFrame();
+        this.scene._meshesForIntersections.reset();
+        this.scene.sceneCatch.resetCachedMaterial();
+        this.scene.sceneEventTrigger.onBeforeAnimationsObservable.notifyObservers(this.scene);
+        // Actions
+        if (this.scene.actionManager) {
+            this.scene.actionManager.processTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnEveryFrameTrigger);
+        }
+        // Before camera update steps
+        for (let step of this.scene.sceneStage._beforeCameraUpdateStage) {
+            step.action();
+        }
+        // Update Cameras
+        if (updateCameras) {
+            if (this.scene.activeCameras && this.scene.activeCameras.length > 0) {
+                for (var cameraIndex = 0; cameraIndex < this.scene.activeCameras.length; cameraIndex++) {
+                    let camera = this.scene.activeCameras[cameraIndex];
+                    camera.update();
+                    if (camera.cameraRigMode !== _Cameras_camera__WEBPACK_IMPORTED_MODULE_1__["Camera"].RIG_MODE_NONE) {
+                        // rig cameras
+                        for (var index = 0; index < camera._rigCameras.length; index++) {
+                            camera._rigCameras[index].update();
+                        }
+                    }
+                }
+            }
+            else if (this.scene.activeCamera) {
+                this.scene.activeCamera.update();
+                if (this.scene.activeCamera.cameraRigMode !== _Cameras_camera__WEBPACK_IMPORTED_MODULE_1__["Camera"].RIG_MODE_NONE) {
+                    // rig cameras
+                    for (var index = 0; index < this.scene.activeCamera._rigCameras.length; index++) {
+                        this.scene.activeCamera._rigCameras[index].update();
+                    }
+                }
+            }
+        }
+        // Before render
+        this.scene.sceneEventTrigger.onBeforeRenderObservable.notifyObservers(this.scene);
+        // Customs render targets
+        this.scene.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this.scene);
+        var engine = this.scene.getEngine();
+        var currentActiveCamera = this.scene.activeCamera;
+        if (this.renderTargetsEnabled) {
+            _Misc_tools__WEBPACK_IMPORTED_MODULE_7__["Tools"].StartPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
+            this.scene._intermediateRendering = true;
+            for (var customIndex = 0; customIndex < this.customRenderTargets.length; customIndex++) {
+                var renderTarget = this.customRenderTargets[customIndex];
+                if (renderTarget._shouldRender()) {
+                    this._renderId++;
+                    this.scene.activeCamera = renderTarget.activeCamera || this.scene.activeCamera;
+                    if (!this.scene.activeCamera) {
+                        throw new Error("Active camera not set");
+                    }
+                    // Viewport
+                    engine.engineViewPort.setViewport(this.scene.activeCamera.viewport);
+                    // Camera
+                    this.scene.sceneMatrix.updateTransformMatrix();
+                    renderTarget.render(currentActiveCamera !== this.scene.activeCamera, this.dumpNextRenderTargets);
+                }
+            }
+            _Misc_tools__WEBPACK_IMPORTED_MODULE_7__["Tools"].EndPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
+            this.scene._intermediateRendering = false;
+            this._renderId++;
+        }
+        // Restore back buffer
+        this.scene.activeCamera = currentActiveCamera;
+        if (this.scene._activeCamera && this.scene._activeCamera.cameraRigMode !== _Cameras_camera__WEBPACK_IMPORTED_MODULE_1__["Camera"].RIG_MODE_CUSTOM && !this.scene.prePass) {
+            this._bindFrameBuffer();
+        }
+        this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this.scene);
+        for (let step of this.scene.sceneStage._beforeClearStage) {
+            step.action();
+        }
+        // Clear
+        if ((this.autoClearDepthAndStencil || this.autoClear) && !this.scene.prePass) {
+            this.scene._engine.clear(this.clearColor, this.autoClear || this.forceWireframe || this.scene.forcePointsCloud, this.autoClearDepthAndStencil, this.autoClearDepthAndStencil);
+        }
+        // Collects render targets from external components.
+        for (let step of this.scene.sceneStage._gatherRenderTargetsStage) {
+            step.action(this.scene._renderTargets);
+        }
+        // Multi-cameras?
+        if (this.scene.activeCameras && this.scene.activeCameras.length > 0) {
+            for (var cameraIndex = 0; cameraIndex < this.scene.activeCameras.length; cameraIndex++) {
+                if (cameraIndex > 0) {
+                    this.scene._engine.clear(null, false, true, true);
+                }
+                this._processSubCameras(this.scene.activeCameras[cameraIndex]);
+            }
+        }
+        else {
+            if (!this.scene.activeCamera) {
+                throw new Error("No camera defined");
+            }
+            this._processSubCameras(this.scene.activeCamera);
+        }
+        // Intersection checks
+        this._checkIntersections();
+        // Executes the after render stage actions.
+        for (let step of this.scene.sceneStage._afterRenderStage) {
+            step.action();
+        }
+        // After render
+        if (this.scene.sceneEventTrigger.afterRender) {
+            this.scene.sceneEventTrigger.afterRender();
+        }
+        this.scene.sceneEventTrigger.onAfterRenderObservable.notifyObservers(this.scene);
+        // Cleaning
+        if (this.scene._toBeDisposed.length) {
+            for (var index = 0; index < this.scene._toBeDisposed.length; index++) {
+                var data = this.scene._toBeDisposed[index];
+                if (data) {
+                    data.dispose();
+                }
+            }
+            this.scene._toBeDisposed = [];
+        }
+        if (this.dumpNextRenderTargets) {
+            this.dumpNextRenderTargets = false;
+        }
+        this.scene._activeIndices.addCount(0, true);
+    }
+    /** @hidden */
+    _renderForCamera(camera, rigParent) {
+        if (camera && camera._skipRendering) {
+            return;
+        }
+        var engine = this.scene._engine;
+        // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
+        this.scene._activeCamera = camera;
+        if (!this.scene.activeCamera) {
+            throw new Error("Active camera not set");
+        }
+        // Viewport
+        engine.engineViewPort.setViewport(this.scene.activeCamera.viewport);
+        // Camera
+        this.scene.sceneCatch.resetCachedMaterial();
+        this._renderId++;
+        var useMultiview = this.scene.getEngine().getCaps().multiview && camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1;
+        if (useMultiview) {
+            this.scene.sceneMatrix.setTransformMatrix(camera._rigCameras[0].getViewMatrix(), camera._rigCameras[0].getProjectionMatrix(), camera._rigCameras[1].getViewMatrix(), camera._rigCameras[1].getProjectionMatrix());
+        }
+        else {
+            this.scene.sceneMatrix.updateTransformMatrix();
+        }
+        this.scene.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.scene.activeCamera);
+        // Meshes
+        this._evaluateActiveMeshes();
+        // Render targets
+        this.scene.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this.scene);
+        if (camera.customRenderTargets && camera.customRenderTargets.length > 0) {
+            this.scene._renderTargets.concatWithNoDuplicate(camera.customRenderTargets);
+        }
+        if (rigParent && rigParent.customRenderTargets && rigParent.customRenderTargets.length > 0) {
+            this.scene._renderTargets.concatWithNoDuplicate(rigParent.customRenderTargets);
+        }
+        // Collects render targets from external components.
+        for (let step of this.scene.sceneStage._gatherActiveCameraRenderTargetsStage) {
+            step.action(this.scene._renderTargets);
+        }
+        let needRebind = false;
+        if (this.renderTargetsEnabled) {
+            this.scene._intermediateRendering = true;
+            if (this.scene._renderTargets.length > 0) {
+                _Misc_tools__WEBPACK_IMPORTED_MODULE_7__["Tools"].StartPerformanceCounter("Render targets", this.scene._renderTargets.length > 0);
+                for (var renderIndex = 0; renderIndex < this.scene._renderTargets.length; renderIndex++) {
+                    let renderTarget = this.scene._renderTargets.data[renderIndex];
+                    if (renderTarget._shouldRender()) {
+                        this._renderId++;
+                        var hasSpecialRenderTargetCamera = renderTarget.activeCamera && renderTarget.activeCamera !== this.scene.activeCamera;
+                        renderTarget.render(hasSpecialRenderTargetCamera, this.dumpNextRenderTargets);
+                        needRebind = true;
+                    }
+                }
+                _Misc_tools__WEBPACK_IMPORTED_MODULE_7__["Tools"].EndPerformanceCounter("Render targets", this.scene._renderTargets.length > 0);
+                this._renderId++;
+            }
+            for (let step of this.scene.sceneStage._cameraDrawRenderTargetStage) {
+                needRebind = step.action(this.scene.activeCamera) || needRebind;
+            }
+            this.scene._intermediateRendering = false;
+            // Need to bind if sub-camera has an outputRenderTarget eg. for webXR
+            if (this.scene.activeCamera && this.scene.activeCamera.outputRenderTarget) {
+                needRebind = true;
+            }
+        }
+        // Restore framebuffer after rendering to targets
+        if (needRebind && !this.scene.prePass) {
+            this._bindFrameBuffer();
+        }
+        this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this.scene);
+        // Prepare Frame
+        // if (this.scene.postProcessManager && !camera._multiviewTexture && !this.scene.prePass) {
+        //     this.scene.postProcessManager._prepareFrame();
+        // }
+        // Before Camera Draw
+        for (let step of this.scene.sceneStage._beforeCameraDrawStage) {
+            step.action(this.scene.activeCamera);
+        }
+        // Render
+        this.scene.sceneEventTrigger.onBeforeDrawPhaseObservable.notifyObservers(this.scene);
+        this.scene._renderingManager.render(null, null, true, true);
+        this.scene.sceneEventTrigger.onAfterDrawPhaseObservable.notifyObservers(this.scene);
+        // After Camera Draw
+        for (let step of this.scene.sceneStage._afterCameraDrawStage) {
+            step.action(this.scene.activeCamera);
+        }
+        // Finalize frame
+        // if (this.scene.postProcessManager && !camera._multiviewTexture) {
+        //     // if the camera has an output render target, render the post process to the render target
+        //     const texture = camera.outputRenderTarget ? camera.outputRenderTarget.getInternalTexture()! : undefined;
+        //     this.scene.postProcessManager._finalizeFrame(camera.isIntermediate, texture);
+        // }
+        // Reset some special arrays
+        this.scene._renderTargets.reset();
+        this.scene.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(this.scene.activeCamera);
+    }
+    /**
+    * Gets an unique Id for the current render phase
+    * @returns a number
+    */
+    getRenderId() {
+        return this._renderId;
+    }
+    /**
+     * Gets an unique Id for the current frame
+     * @returns a number
+     */
+    getFrameId() {
+        return this._frameId;
+    }
+    /** Call this function if you want to manually increment the render Id*/
+    incrementRenderId() {
+        this._renderId++;
+    }
+    _bindFrameBuffer() {
+        if (this.scene.activeCamera && this.scene.activeCamera.outputRenderTarget) {
+            var useMultiview = this.scene.getEngine().getCaps().multiview && this.scene.activeCamera.outputRenderTarget && this.scene.activeCamera.outputRenderTarget.getViewCount() > 1;
+            if (useMultiview) {
+                this.scene.activeCamera.outputRenderTarget._bindFrameBuffer();
+            }
+            else {
+                var internalTexture = this.scene.activeCamera.outputRenderTarget.getInternalTexture();
+                if (internalTexture) {
+                    this.scene.getEngine().engineFramebuffer.bindFramebuffer(internalTexture);
+                }
+                else {
+                    _Misc_logger__WEBPACK_IMPORTED_MODULE_6__["Logger"].Error("Camera contains invalid customDefaultRenderTarget");
+                }
+            }
+        }
+        else {
+            this.scene.getEngine().engineFramebuffer.restoreDefaultFramebuffer(); // Restore back buffer if needed
+        }
+    }
+    _evaluateSubMesh(subMesh, mesh, initialMesh) {
+        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.scene.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes)) {
+            for (let step of this.scene.sceneStage._evaluateSubMeshStage) {
+                step.action(mesh, subMesh);
+            }
+            const material = subMesh.getMaterial();
+            if (material !== null && material !== undefined) {
+                // Render targets
+                if (material.hasRenderTargetTextures && material.getRenderTargetTextures != null) {
+                    if (this.scene._processedMaterials.indexOf(material) === -1) {
+                        this.scene._processedMaterials.push(material);
+                        this.scene._renderTargets.concatWithNoDuplicate(material.getRenderTargetTextures());
+                    }
+                }
+                // Dispatch
+                this.scene._renderingManager.dispatch(subMesh, mesh, material);
+            }
+        }
+    }
+    _activeMesh(sourceMesh, mesh) {
+        if (mesh !== undefined && mesh !== null
+            && mesh.subMeshes !== undefined && mesh.subMeshes !== null && mesh.subMeshes.length > 0) {
+            const subMeshes = this.scene.getActiveSubMeshCandidates(mesh);
+            const len = subMeshes.length;
+            for (let i = 0; i < len; i++) {
+                const subMesh = subMeshes.data[i];
+                this._evaluateSubMesh(subMesh, mesh, sourceMesh);
+            }
+        }
+    }
+    _evaluateActiveMeshes() {
+        if (this.scene._activeMeshesFrozen && this.scene._activeMeshes.length) {
+            if (!this.scene._skipEvaluateActiveMeshesCompletely) {
+                const len = this.scene._activeMeshes.length;
+                for (let i = 0; i < len; i++) {
+                    let mesh = this.scene._activeMeshes.data[i];
+                    mesh.computeWorldMatrix();
+                }
+            }
+            return;
+        }
+        if (!this.scene.activeCamera) {
+            return;
+        }
+        this.scene.sceneEventTrigger.onBeforeActiveMeshesEvaluationObservable.notifyObservers(this.scene);
+        this.scene.activeCamera._activeMeshes.reset();
+        this.scene._activeMeshes.reset();
+        this.scene._renderingManager.reset();
+        this.scene._processedMaterials.reset();
+        this.scene._softwareSkinnedMeshes.reset();
+        for (let step of this.scene.sceneStage._beforeEvaluateActiveMeshStage) {
+            step.action();
+        }
+        // Determine mesh candidates
+        const meshes = this.scene.getActiveMeshCandidates();
+        // Check each mesh
+        const len = meshes.length;
+        for (let i = 0; i < len; i++) {
+            const mesh = meshes.data[i];
+            mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = false;
+            if (mesh.isBlocked) {
+                continue;
+            }
+            this.scene._totalVertices.addCount(mesh.getTotalVertices(), false);
+            if (!mesh.isReady() || !mesh.isEnabled() || mesh.scaling.lengthSquared() === 0) {
+                continue;
+            }
+            mesh.computeWorldMatrix();
+            // Intersections
+            if (mesh.actionManager && mesh.actionManager.hasSpecificTriggers2(_Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionEnterTrigger, _Engines_constants__WEBPACK_IMPORTED_MODULE_2__["Constants"].ACTION_OnIntersectionExitTrigger)) {
+                this.scene._meshesForIntersections.pushNoDuplicate(mesh);
+            }
+            // Switch to current LOD
+            let meshToRender = this.scene.customLODSelector ? this.scene.customLODSelector(mesh, this.scene.activeCamera) : mesh.getLOD(this.scene.activeCamera);
+            mesh._internalAbstractMeshDataInfo._currentLOD = meshToRender;
+            mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = true;
+            if (meshToRender === undefined || meshToRender === null) {
+                continue;
+            }
+            // Compute world matrix if LOD is billboard
+            if (meshToRender !== mesh && meshToRender.billboardMode !== _Meshes_transformNode__WEBPACK_IMPORTED_MODULE_5__["TransformNode"].BILLBOARDMODE_NONE) {
+                meshToRender.computeWorldMatrix();
+            }
+            mesh._preActivate();
+            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.scene.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes))) {
+                this.scene._activeMeshes.push(mesh);
+                this.scene.activeCamera._activeMeshes.push(mesh);
+                if (meshToRender !== mesh) {
+                    meshToRender._activate(this._renderId, false);
+                }
+                for (let step of this.scene.sceneStage._preActiveMeshStage) {
+                    step.action(mesh);
+                }
+                if (mesh._activate(this._renderId, false)) {
+                    if (!mesh.isAnInstance) {
+                        meshToRender._internalAbstractMeshDataInfo._onlyForInstances = false;
+                    }
+                    else {
+                        if (mesh._internalAbstractMeshDataInfo._actAsRegularMesh) {
+                            meshToRender = mesh;
+                        }
+                    }
+                    meshToRender._internalAbstractMeshDataInfo._isActive = true;
+                    this._activeMesh(mesh, meshToRender);
+                }
+                mesh._postActivate();
+            }
+        }
+        this.scene.sceneEventTrigger.onAfterActiveMeshesEvaluationObservable.notifyObservers(this.scene);
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Scene/scene.stage.ts":
+/*!**********************************!*\
+  !*** ./src/Scene/scene.stage.ts ***!
+  \**********************************/
+/*! exports provided: SceneStage */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SceneStage", function() { return SceneStage; });
+/* harmony import */ var _sceneComponent__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sceneComponent */ "./src/Scene/sceneComponent.ts");
+
+class SceneStage {
+    constructor() {
+        /**
+         * @hidden
+         * Defines the actions happening before camera updates.
+         */
+        this._beforeCameraUpdateStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening before clear the canvas.
+         */
+        this._beforeClearStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions when collecting render targets for the frame.
+         */
+        this._gatherRenderTargetsStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening for one camera in the frame.
+         */
+        this._gatherActiveCameraRenderTargetsStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening during the per mesh ready checks.
+         */
+        this._isReadyForMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening before evaluate active mesh checks.
+         */
+        this._beforeEvaluateActiveMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening during the evaluate sub mesh checks.
+         */
+        this._evaluateSubMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening during the active mesh stage.
+         */
+        this._preActiveMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening during the per camera render target step.
+         */
+        this._cameraDrawRenderTargetStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just before the active camera is drawing.
+         */
+        this._beforeCameraDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just before a render target is drawing.
+         */
+        this._beforeRenderTargetDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just before a rendering group is drawing.
+         */
+        this._beforeRenderingGroupDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just before a mesh is drawing.
+         */
+        this._beforeRenderingMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just after a mesh has been drawn.
+         */
+        this._afterRenderingMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just after a rendering group has been drawn.
+         */
+        this._afterRenderingGroupDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just after the active camera has been drawn.
+         */
+        this._afterCameraDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just after a render target has been drawn.
+         */
+        this._afterRenderTargetDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening just after rendering all cameras and computing intersections.
+         */
+        this._afterRenderStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening when a pointer move event happens.
+         */
+        this._pointerMoveStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening when a pointer down event happens.
+         */
+        this._pointerDownStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+        /**
+         * @hidden
+         * Defines the actions happening when a pointer up event happens.
+         */
+        this._pointerUpStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_0__["Stage"].Create();
+    }
+    clear() {
+        this._isReadyForMeshStage.clear();
+        this._beforeEvaluateActiveMeshStage.clear();
+        this._evaluateSubMeshStage.clear();
+        this._preActiveMeshStage.clear();
+        this._cameraDrawRenderTargetStage.clear();
+        this._beforeCameraDrawStage.clear();
+        this._beforeRenderTargetDrawStage.clear();
+        this._beforeRenderingGroupDrawStage.clear();
+        this._beforeRenderingMeshStage.clear();
+        this._afterRenderingMeshStage.clear();
+        this._afterRenderingGroupDrawStage.clear();
+        this._afterCameraDrawStage.clear();
+        this._afterRenderTargetDrawStage.clear();
+        this._afterRenderStage.clear();
+        this._beforeCameraUpdateStage.clear();
+        this._beforeClearStage.clear();
+        this._gatherRenderTargetsStage.clear();
+        this._gatherActiveCameraRenderTargetsStage.clear();
+        this._pointerMoveStage.clear();
+        this._pointerDownStage.clear();
+        this._pointerUpStage.clear();
+    }
 }
 
 
@@ -61910,41 +64269,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Scene", function() { return Scene; });
 /* harmony import */ var _abstractScene__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./abstractScene */ "./src/Scene/abstractScene.ts");
 /* harmony import */ var _Misc_tools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Misc/tools */ "./src/Misc/tools.ts");
-/* harmony import */ var _Misc_precisionDate__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Misc/precisionDate */ "./src/Misc/precisionDate.ts");
-/* harmony import */ var _Misc_observable__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Misc/observable */ "./src/Misc/observable.ts");
-/* harmony import */ var _Misc_smartArray__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Misc/smartArray */ "./src/Misc/smartArray.ts");
-/* harmony import */ var _Misc_stringDictionary__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../Misc/stringDictionary */ "./src/Misc/stringDictionary.ts");
-/* harmony import */ var _Misc_tags__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../Misc/tags */ "./src/Misc/tags.ts");
-/* harmony import */ var _Maths_math_vector__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../Maths/math.vector */ "./src/Maths/math.vector.ts");
-/* harmony import */ var _Meshes_transformNode__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../Meshes/transformNode */ "./src/Meshes/transformNode.ts");
-/* harmony import */ var _Meshes_abstractMesh__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../Meshes/abstractMesh */ "./src/Meshes/abstractMesh.ts");
-/* harmony import */ var _Cameras_camera__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../Cameras/camera */ "./src/Cameras/camera.ts");
-/* harmony import */ var _Materials_uniformBuffer__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../Materials/uniformBuffer */ "./src/Materials/uniformBuffer.ts");
-/* harmony import */ var _Lights_light__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../Lights/light */ "./src/Lights/light.ts");
-/* harmony import */ var _Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../Collisions/pickingInfo */ "./src/Collisions/pickingInfo.ts");
-/* harmony import */ var _Actions_actionEvent__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../Actions/actionEvent */ "./src/Actions/actionEvent.ts");
-/* harmony import */ var _Rendering_renderingManager__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../Rendering/renderingManager */ "./src/Rendering/renderingManager.ts");
-/* harmony import */ var _sceneComponent__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./sceneComponent */ "./src/Scene/sceneComponent.ts");
-/* harmony import */ var _Engines_constants__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../Engines/constants */ "./src/Engines/constants.ts");
-/* harmony import */ var _Misc_domManagement__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../Misc/domManagement */ "./src/Misc/domManagement.ts");
-/* harmony import */ var _Misc_logger__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../Misc/logger */ "./src/Misc/logger.ts");
-/* harmony import */ var _Engines_engineStore__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../Engines/engineStore */ "./src/Engines/engineStore.ts");
-/* harmony import */ var _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ../Misc/devTools */ "./src/Misc/devTools.ts");
-/* harmony import */ var _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./scene.inputManager */ "./src/Scene/scene.inputManager.ts");
-/* harmony import */ var _Misc_perfCounter__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../Misc/perfCounter */ "./src/Misc/perfCounter.ts");
-/* harmony import */ var _Maths_math_color__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ../Maths/math.color */ "./src/Maths/math.color.ts");
-/* harmony import */ var _Maths_math_frustum__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ../Maths/math.frustum */ "./src/Maths/math.frustum.ts");
-/* harmony import */ var _Misc_uniqueIdGenerator__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ../Misc/uniqueIdGenerator */ "./src/Misc/uniqueIdGenerator.ts");
-/* harmony import */ var _Misc_fileTools__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ../Misc/fileTools */ "./src/Misc/fileTools.ts");
-/* harmony import */ var _scene_matrix__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! ./scene.matrix */ "./src/Scene/scene.matrix.ts");
-
-
-
-
-
-
-
-
+/* harmony import */ var _Misc_smartArray__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Misc/smartArray */ "./src/Misc/smartArray.ts");
+/* harmony import */ var _Maths_math_vector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Maths/math.vector */ "./src/Maths/math.vector.ts");
+/* harmony import */ var _Rendering_renderingManager__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Rendering/renderingManager */ "./src/Rendering/renderingManager.ts");
+/* harmony import */ var _Engines_constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../Engines/constants */ "./src/Engines/constants.ts");
+/* harmony import */ var _Misc_domManagement__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../Misc/domManagement */ "./src/Misc/domManagement.ts");
+/* harmony import */ var _Engines_engineStore__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../Engines/engineStore */ "./src/Engines/engineStore.ts");
+/* harmony import */ var _Misc_devTools__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../Misc/devTools */ "./src/Misc/devTools.ts");
+/* harmony import */ var _Misc_perfCounter__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../Misc/perfCounter */ "./src/Misc/perfCounter.ts");
+/* harmony import */ var _Misc_uniqueIdGenerator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../Misc/uniqueIdGenerator */ "./src/Misc/uniqueIdGenerator.ts");
+/* harmony import */ var _scene_matrix__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./scene.matrix */ "./src/Scene/scene.matrix.ts");
+/* harmony import */ var _scene_clipPlane__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./scene.clipPlane */ "./src/Scene/scene.clipPlane.ts");
+/* harmony import */ var _scene_inputManagerApp__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./scene.inputManagerApp */ "./src/Scene/scene.inputManagerApp.ts");
+/* harmony import */ var _scene_catch__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./scene.catch */ "./src/Scene/scene.catch.ts");
+/* harmony import */ var _scene_file__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./scene.file */ "./src/Scene/scene.file.ts");
+/* harmony import */ var _scene_eventTrigger__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./scene.eventTrigger */ "./src/Scene/scene.eventTrigger.ts");
+/* harmony import */ var _scene_node__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./scene.node */ "./src/Scene/scene.node.ts");
+/* harmony import */ var _scene_pick__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./scene.pick */ "./src/Scene/scene.pick.ts");
+/* harmony import */ var _scene_stage__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./scene.stage */ "./src/Scene/scene.stage.ts");
+/* harmony import */ var _scene_render__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./scene.render */ "./src/Scene/scene.render.ts");
+/* harmony import */ var _scene_fog__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./scene.fog */ "./src/Scene/scene.fog.ts");
 
 
 
@@ -61979,49 +64323,35 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
      */
     constructor(engine, options) {
         super();
-        this._inputManager = new _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"](this);
-        // Members
+        /**
+        * All of the (abstract) meshes added to this scene
+        */
+        this.meshes = new Array();
+        /**
+        * All of the tranform nodes added to this scene
+        * In the context of a Scene, it is not supposed to be modified manually.
+        * Any addition or removal should be done using the addTransformNode and removeTransformNode Scene methods.
+        * Note also that the order of the TransformNode wihin the array is not significant and might change.
+        * @see https://doc.babylonjs.com/how_to/transformnode
+        */
+        this.transformNodes = new Array();
+        this.sceneFile = new _scene_file__WEBPACK_IMPORTED_MODULE_15__["SceneFile"]();
+        this.sceneFog = new _scene_fog__WEBPACK_IMPORTED_MODULE_21__["SceneFog"](this);
+        this.sceneNode = new _scene_node__WEBPACK_IMPORTED_MODULE_17__["SceneNode"](this);
+        this.sceneClipPlane = new _scene_clipPlane__WEBPACK_IMPORTED_MODULE_12__["SceneClipPlane"]();
+        this.sceneCatch = new _scene_catch__WEBPACK_IMPORTED_MODULE_14__["SceneCatch"](this);
+        this.sceneInputManagerApp = new _scene_inputManagerApp__WEBPACK_IMPORTED_MODULE_13__["SceneInputManagerApp"](this);
+        this.sceneEventTrigger = new _scene_eventTrigger__WEBPACK_IMPORTED_MODULE_16__["SceneEventTrigger"](this);
+        this.scenePick = new _scene_pick__WEBPACK_IMPORTED_MODULE_18__["ScenePick"](this);
+        this.sceneStage = new _scene_stage__WEBPACK_IMPORTED_MODULE_19__["SceneStage"]();
+        this.sceneRender = new _scene_render__WEBPACK_IMPORTED_MODULE_20__["SceneRender"](this);
         /** Define this parameter if you are using multiple cameras and you want to specify which one should be used for pointer position */
         this.cameraToUseForPointers = null;
         /** @hidden */
         this._isScene = true;
         /** @hidden */
         this._blockEntityCollection = false;
-        /**
-         * Gets or sets a boolean that indicates if the scene must clear the render buffer before rendering a frame
-         */
-        this.autoClear = true;
-        /**
-         * Gets or sets a boolean that indicates if the scene must clear the depth and stencil buffers before rendering a frame
-         */
-        this.autoClearDepthAndStencil = true;
-        /**
-         * Defines the color used to clear the render buffer (Default is (0.2, 0.2, 0.3, 1.0))
-         */
-        this.clearColor = new _Maths_math_color__WEBPACK_IMPORTED_MODULE_24__["Color4"](0.2, 0.2, 0.3, 1.0);
-        /**
-         * Defines the color used to simulate the ambient color (Default is (0, 0, 0))
-         */
-        this.ambientColor = new _Maths_math_color__WEBPACK_IMPORTED_MODULE_24__["Color3"](0, 0, 0);
-        /** @hidden */
-        this._environmentIntensity = 1;
-        this._forceWireframe = false;
-        this._skipFrustumClipping = false;
         this._forcePointsCloud = false;
-        /**
-         * Gets or sets a boolean indicating if animations are enabled
-         */
-        this.animationsEnabled = true;
-        // private _animationPropertiesOverride: Nullable<AnimationPropertiesOverride> = null;
-        /**
-         * Gets or sets the animation properties override
-         */
-        // public get animationPropertiesOverride(): Nullable<AnimationPropertiesOverride> {
-        //     return this._animationPropertiesOverride;
-        // }
-        // public set animationPropertiesOverride(value: Nullable<AnimationPropertiesOverride>) {
-        //     this._animationPropertiesOverride = value;
-        // }
         /**
          * Gets or sets a boolean indicating if a constant deltatime has to be used
          * This is mostly useful for testing purposes when you do not want the animations to scale with the framerate
@@ -62067,246 +64397,14 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
          * Use this array to add regular expressions used to disable offline support for specific urls
          */
         this.disableOfflineSupportExceptionRules = new Array();
-        /**
-        * An event triggered when the scene is disposed.
-        */
-        this.onDisposeObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        this._onDisposeObserver = null;
-        /**
-        * An event triggered before rendering the scene (right after animations and physics)
-        */
-        this.onBeforeRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        this._onBeforeRenderObserver = null;
-        /**
-        * An event triggered after rendering the scene
-        */
-        this.onAfterRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered after rendering the scene for an active camera (When scene.render is called this will be called after each camera)
-        */
-        this.onAfterRenderCameraObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        this._onAfterRenderObserver = null;
-        /**
-        * An event triggered before animating the scene
-        */
-        this.onBeforeAnimationsObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered after animations processing
-        */
-        this.onAfterAnimationsObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered before draw calls are ready to be sent
-        */
-        this.onBeforeDrawPhaseObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered after draw calls have been sent
-        */
-        this.onAfterDrawPhaseObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when the scene is ready
-        */
-        this.onReadyObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered before rendering a camera
-        */
-        this.onBeforeCameraRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        this._onBeforeCameraRenderObserver = null;
-        /**
-        * An event triggered after rendering a camera
-        */
-        this.onAfterCameraRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        this._onAfterCameraRenderObserver = null;
-        /**
-        * An event triggered when active meshes evaluation is about to start
-        */
-        this.onBeforeActiveMeshesEvaluationObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when active meshes evaluation is done
-        */
-        this.onAfterActiveMeshesEvaluationObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when particles rendering is about to start
-        * Note: This event can be trigger more than once per frame (because particles can be rendered by render target textures as well)
-        */
-        this.onBeforeParticlesRenderingObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when particles rendering is done
-        * Note: This event can be trigger more than once per frame (because particles can be rendered by render target textures as well)
-        */
-        this.onAfterParticlesRenderingObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when SceneLoader.Append or SceneLoader.Load or SceneLoader.ImportMesh were successfully executed
-        */
-        this.onDataLoadedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a camera is created
-        */
-        this.onNewCameraAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a camera is removed
-        */
-        this.onCameraRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a light is created
-        */
-        this.onNewLightAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a light is removed
-        */
-        this.onLightRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a geometry is created
-        */
-        this.onNewGeometryAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a geometry is removed
-        */
-        this.onGeometryRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a transform node is created
-        */
-        this.onNewTransformNodeAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a transform node is removed
-        */
-        this.onTransformNodeRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a mesh is created
-        */
-        this.onNewMeshAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a mesh is removed
-        */
-        this.onMeshRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-         * An event triggered when a skeleton is created
-         */
-        // public onNewSkeletonAddedObservable = new Observable<Skeleton>();
-        /**
-        * An event triggered when a skeleton is removed
-        */
-        // public onSkeletonRemovedObservable = new Observable<Skeleton>();
-        /**
-        * An event triggered when a material is created
-        */
-        this.onNewMaterialAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a multi material is created
-        */
-        //  public onNewMultiMaterialAddedObservable = new Observable<MultiMaterial>();
-        /**
-        * An event triggered when a material is removed
-        */
-        this.onMaterialRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a multi material is removed
-        */
-        // public onMultiMaterialRemovedObservable = new Observable<MultiMaterial>();
-        /**
-        * An event triggered when a texture is created
-        */
-        this.onNewTextureAddedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when a texture is removed
-        */
-        this.onTextureRemovedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when render targets are about to be rendered
-        * Can happen multiple times per frame.
-        */
-        this.onBeforeRenderTargetsRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered when render targets were rendered.
-        * Can happen multiple times per frame.
-        */
-        this.onAfterRenderTargetsRenderObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered before calculating deterministic simulation step
-        */
-        this.onBeforeStepObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-        * An event triggered after calculating deterministic simulation step
-        */
-        this.onAfterStepObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-         * An event triggered when the activeCamera property is updated
-         */
-        this.onActiveCameraChanged = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-         * This Observable will be triggered before rendering each renderingGroup of each rendered camera.
-         * The RenderinGroupInfo class contains all the information about the context in which the observable is called
-         * If you wish to register an Observer only for a given set of renderingGroup, use the mask with a combination of the renderingGroup index elevated to the power of two (1 for renderingGroup 0, 2 for renderingrOup1, 4 for 2 and 8 for 3)
-         */
-        this.onBeforeRenderingGroupObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-         * This Observable will be triggered after rendering each renderingGroup of each rendered camera.
-         * The RenderinGroupInfo class contains all the information about the context in which the observable is called
-         * If you wish to register an Observer only for a given set of renderingGroup, use the mask with a combination of the renderingGroup index elevated to the power of two (1 for renderingGroup 0, 2 for renderingrOup1, 4 for 2 and 8 for 3)
-         */
-        this.onAfterRenderingGroupObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-         * This Observable will when a mesh has been imported into the scene.
-         */
-        this.onMeshImportedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-         * This Observable will when an animation file has been imported into the scene.
-         */
-        this.onAnimationFileImportedObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
         // Animations
         /** @hidden */
-        this._registeredForLateAnimationBindings = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_4__["SmartArrayNoDuplicate"](256);
-        /**
-         * This observable event is triggered when any ponter event is triggered. It is registered during Scene.attachControl() and it is called BEFORE the 3D engine process anything (mesh/sprite picking for instance).
-         * You have the possibility to skip the process and the call to onPointerObservable by setting PointerInfoPre.skipOnPointerObservable to true
-         */
-        this.onPrePointerObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-         * Observable event triggered each time an input event is received from the rendering canvas
-         */
-        this.onPointerObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        // Keyboard
-        /**
-         * This observable event is triggered when any keyboard event si raised and registered during Scene.attachControl()
-         * You have the possibility to skip the process and the call to onKeyboardObservable by setting KeyboardInfoPre.skipOnPointerObservable to true
-         */
-        this.onPreKeyboardObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
-        /**
-         * Observable event triggered each time an keyboard event is received from the hosting window
-         */
-        this.onKeyboardObservable = new _Misc_observable__WEBPACK_IMPORTED_MODULE_3__["Observable"]();
+        this._registeredForLateAnimationBindings = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_2__["SmartArrayNoDuplicate"](256);
         // Coordinates system
         this._useRightHandedSystem = false;
         // Deterministic lockstep
-        this._timeAccumulator = 0;
         this._currentStepId = 0;
         this._currentInternalStep = 0;
-        // Fog
-        this._fogEnabled = true;
-        this._fogMode = Scene.FOGMODE_NONE;
-        /**
-        * Gets or sets the fog color to use
-        * @see https://doc.babylonjs.com/babylon101/environment#fog
-        * (Default is Color3(0.2, 0.2, 0.3))
-        */
-        this.fogColor = new _Maths_math_color__WEBPACK_IMPORTED_MODULE_24__["Color3"](0.2, 0.2, 0.3);
-        /**
-        * Gets or sets the fog density to use
-        * @see https://doc.babylonjs.com/babylon101/environment#fog
-        * (Default is 0.1)
-        */
-        this.fogDensity = 0.1;
-        /**
-        * Gets or sets the fog start distance to use
-        * @see https://doc.babylonjs.com/babylon101/environment#fog
-        * (Default is 0)
-        */
-        this.fogStart = 0;
-        /**
-        * Gets or sets the fog end distance to use
-        * @see https://doc.babylonjs.com/babylon101/environment#fog
-        * (Default is 1000)
-        */
-        this.fogEnd = 1000.0;
         /**
         * Flag indicating that the frame buffer binding is handled by another component
         */
@@ -62318,28 +64416,11 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         this.activeCameras = new Array();
         // Textures
         this._texturesEnabled = true;
-        // Physics
-        /**
-         * Gets or sets a boolean indicating if physic engines are enabled on this scene
-         */
-        this.physicsEnabled = true;
-        // Particles
-        /**
-        * Gets or sets a boolean indicating if particles are enabled on this scene
-        */
-        this.particlesEnabled = true;
         // Sprites
         /**
         * Gets or sets a boolean indicating if sprites are enabled on this scene
         */
         this.spritesEnabled = true;
-        // Skeletons
-        this._skeletonsEnabled = true;
-        // Lens flares
-        /**
-        * Gets or sets a boolean indicating if lens flares are enabled on this scene
-        */
-        this.lensFlaresEnabled = true;
         // Collisions
         /**
         * Gets or sets a boolean indicating if collisions are enabled on this scene
@@ -62347,72 +64428,18 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         */
         this.collisionsEnabled = true;
         /**
-         * Defines the gravity applied to this scene (used only for collisions)
-         * @see https://doc.babylonjs.com/babylon101/cameras,_mesh_collisions_and_gravity
-         */
-        this.gravity = new _Maths_math_vector__WEBPACK_IMPORTED_MODULE_7__["Vector3"](0, -9.807, 0);
-        // Postprocesses
-        /**
-        * Gets or sets a boolean indicating if postprocesses are enabled on this scene
-        */
-        this.postProcessesEnabled = true;
-        /**
-         * Gets the current postprocess manager
-         */
-        // public postProcessManager: PostProcessManager;
-        // Customs render targets
-        /**
-        * Gets or sets a boolean indicating if render targets are enabled on this scene
-        */
-        this.renderTargetsEnabled = true;
-        /**
-        * Gets or sets a boolean indicating if next render targets must be dumped as image for debugging purposes
-        * We recommend not using it and instead rely on Spector.js: http://spector.babylonjs.com
-        */
-        this.dumpNextRenderTargets = false;
-        /**
-         * The list of user defined render targets added to the scene
-         */
-        this.customRenderTargets = new Array();
-        /**
          * Gets the list of meshes imported to the scene through SceneLoader
          */
         this.importedMeshesFiles = new Array();
-        // Probes
-        /**
-        * Gets or sets a boolean indicating if probes are enabled on this scene
-        */
-        this.probesEnabled = true;
-        this._meshesForIntersections = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_4__["SmartArrayNoDuplicate"](256);
-        // Procedural textures
-        /**
-        * Gets or sets a boolean indicating if procedural textures are enabled on this scene
-        */
-        this.proceduralTexturesEnabled = true;
+        this._meshesForIntersections = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_2__["SmartArrayNoDuplicate"](256);
         // Performance counters
-        this._totalVertices = new _Misc_perfCounter__WEBPACK_IMPORTED_MODULE_23__["PerfCounter"]();
+        this._totalVertices = new _Misc_perfCounter__WEBPACK_IMPORTED_MODULE_9__["PerfCounter"]();
         /** @hidden */
-        this._activeIndices = new _Misc_perfCounter__WEBPACK_IMPORTED_MODULE_23__["PerfCounter"]();
-        /** @hidden */
-        this._activeParticles = new _Misc_perfCounter__WEBPACK_IMPORTED_MODULE_23__["PerfCounter"]();
-        /** @hidden */
-        this._activeBones = new _Misc_perfCounter__WEBPACK_IMPORTED_MODULE_23__["PerfCounter"]();
-        /** @hidden */
-        this._animationTime = 0;
-        /**
-         * Gets or sets a general scale for animation speed
-         * @see https://www.babylonjs-playground.com/#IBU2W7#3
-         */
-        this.animationTimeScale = 1;
-        this._renderId = 0;
-        this._frameId = 0;
+        this._activeIndices = new _Misc_perfCounter__WEBPACK_IMPORTED_MODULE_9__["PerfCounter"]();
         this._executeWhenReadyTimeoutId = -1;
         this._intermediateRendering = false;
-        this._viewUpdateFlag = -1;
-        this._projectionUpdateFlag = -1;
         /** @hidden */
         this._toBeDisposed = new Array(256);
-        this._activeRequests = new Array();
         /** @hidden */
         this._pendingData = new Array();
         this._isDisposed = false;
@@ -62421,15 +64448,11 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
          * Use this boolean to avoid computing frustum clipping on submeshes (This could help when you are CPU bound)
          */
         this.dispatchAllSubMeshesOfActiveMeshes = false;
-        this._activeMeshes = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_4__["SmartArray"](256);
-        this._processedMaterials = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_4__["SmartArray"](256);
-        this._renderTargets = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_4__["SmartArrayNoDuplicate"](256);
+        this._activeMeshes = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_2__["SmartArray"](256);
+        this._processedMaterials = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_2__["SmartArray"](256);
+        this._renderTargets = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_2__["SmartArrayNoDuplicate"](256);
         /** @hidden */
-        // public _activeParticleSystems = new SmartArray<IParticleSystem>(256);
-        // private _activeSkeletons = new SmartArrayNoDuplicate<Skeleton>(32);
-        this._softwareSkinnedMeshes = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_4__["SmartArrayNoDuplicate"](32);
-        /** @hidden */
-        this._activeAnimatables = new Array();
+        this._softwareSkinnedMeshes = new _Misc_smartArray__WEBPACK_IMPORTED_MODULE_2__["SmartArrayNoDuplicate"](32);
         /**
          * Gets or sets a boolean indicating if lights must be sorted by priority (off by default)
          * This is useful if there are more lights that the maximum simulteanous authorized
@@ -62450,128 +64473,13 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
          */
         this._transientComponents = [];
         /**
-         * @hidden
-         * Defines the actions happening before camera updates.
-         */
-        this._beforeCameraUpdateStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening before clear the canvas.
-         */
-        this._beforeClearStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions when collecting render targets for the frame.
-         */
-        this._gatherRenderTargetsStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening for one camera in the frame.
-         */
-        this._gatherActiveCameraRenderTargetsStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening during the per mesh ready checks.
-         */
-        this._isReadyForMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening before evaluate active mesh checks.
-         */
-        this._beforeEvaluateActiveMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening during the evaluate sub mesh checks.
-         */
-        this._evaluateSubMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening during the active mesh stage.
-         */
-        this._preActiveMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening during the per camera render target step.
-         */
-        this._cameraDrawRenderTargetStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just before the active camera is drawing.
-         */
-        this._beforeCameraDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just before a render target is drawing.
-         */
-        this._beforeRenderTargetDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just before a rendering group is drawing.
-         */
-        this._beforeRenderingGroupDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just before a mesh is drawing.
-         */
-        this._beforeRenderingMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just after a mesh has been drawn.
-         */
-        this._afterRenderingMeshStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just after a rendering group has been drawn.
-         */
-        this._afterRenderingGroupDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just after the active camera has been drawn.
-         */
-        this._afterCameraDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just after a render target has been drawn.
-         */
-        this._afterRenderTargetDrawStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening just after rendering all cameras and computing intersections.
-         */
-        this._afterRenderStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening when a pointer move event happens.
-         */
-        this._pointerMoveStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening when a pointer down event happens.
-         */
-        this._pointerDownStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
-         * @hidden
-         * Defines the actions happening when a pointer up event happens.
-         */
-        this._pointerUpStage = _sceneComponent__WEBPACK_IMPORTED_MODULE_16__["Stage"].Create();
-        /**
          * an optional map from Geometry Id to Geometry index in the 'geometries' array
          */
         this.geometriesByUniqueId = null;
-        this._defaultMeshCandidates = {
-            data: [],
-            length: 0
-        };
-        this._defaultSubMeshCandidates = {
-            data: [],
-            length: 0
-        };
         this._preventFreeActiveMeshesAndRenderingGroups = false;
         /** @hidden */
         this._activeMeshesFrozen = false;
         this._skipEvaluateActiveMeshesCompletely = false;
-        /** @hidden */
-        this._allowPostProcessClearColor = true;
         /**
          * User updatable function that will return a deterministic frame time when engine is in deterministic lock step mode
          */
@@ -62579,27 +64487,21 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             return this._engine.getTimeStep();
         };
         this._blockMaterialDirtyMechanism = false;
+        this.sceneMatrix = new _scene_matrix__WEBPACK_IMPORTED_MODULE_11__["SceneMatrix"](this, engine);
         const fullOptions = Object.assign({ useGeometryUniqueIdsMap: true, useMaterialMeshMap: true, useClonedMeshMap: true, virtual: false }, options);
-        this._engine = engine || _Engines_engineStore__WEBPACK_IMPORTED_MODULE_20__["EngineStore"].LastCreatedEngine;
+        this._engine = engine || _Engines_engineStore__WEBPACK_IMPORTED_MODULE_7__["EngineStore"].LastCreatedEngine;
         if (!fullOptions.virtual) {
-            _Engines_engineStore__WEBPACK_IMPORTED_MODULE_20__["EngineStore"]._LastCreatedScene = this;
+            _Engines_engineStore__WEBPACK_IMPORTED_MODULE_7__["EngineStore"]._LastCreatedScene = this;
             this._engine.scenes.push(this);
         }
         this._uid = null;
-        this._renderingManager = new _Rendering_renderingManager__WEBPACK_IMPORTED_MODULE_15__["RenderingManager"](this);
-        // if (PostProcessManager) {
-        //     this.postProcessManager = new PostProcessManager(this);
-        // }
-        if (_Misc_domManagement__WEBPACK_IMPORTED_MODULE_18__["DomManagement"].IsWindowObjectExist()) {
-            this.attachControl();
+        this._renderingManager = new _Rendering_renderingManager__WEBPACK_IMPORTED_MODULE_4__["RenderingManager"](this);
+        if (_Misc_domManagement__WEBPACK_IMPORTED_MODULE_6__["DomManagement"].IsWindowObjectExist()) {
+            this.sceneInputManagerApp.attachControl();
         }
         // Uniform Buffer
-        this._createUbo();
-        // Default Image processing definition
-        // if (ImageProcessingConfiguration) {
-        //     this._imageProcessingConfiguration = new ImageProcessingConfiguration();
-        // }
-        this.setDefaultCandidateProviders();
+        this.sceneMatrix._createUbo();
+        this.sceneNode.setDefaultCandidateProviders();
         if (fullOptions.useGeometryUniqueIdsMap) {
             this.geometriesByUniqueId = {};
         }
@@ -62616,92 +64518,14 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
      * @returns The default material
      */
     static DefaultMaterialFactory(scene) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("StandardMaterial");
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_8__["_DevTools"].WarnImport("StandardMaterial");
     }
     /**
      * Factory used to create the a collision coordinator.
      * @returns The collision coordinator
      */
     static CollisionCoordinatorFactory() {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("DefaultCollisionCoordinator");
-    }
-    /**
-     * Texture used in all pbr material as the reflection texture.
-     * As in the majority of the scene they are the same (exception for multi room and so on),
-     * this is easier to reference from here than from all the materials.
-     */
-    get environmentTexture() {
-        return this._environmentTexture;
-    }
-    /**
-     * Texture used in all pbr material as the reflection texture.
-     * As in the majority of the scene they are the same (exception for multi room and so on),
-     * this is easier to set here than in all the materials.
-     */
-    set environmentTexture(value) {
-        if (this._environmentTexture === value) {
-            return;
-        }
-        this._environmentTexture = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_TextureDirtyFlag);
-    }
-    /**
-     * Intensity of the environment in all pbr material.
-     * This dims or reinforces the IBL lighting overall (reflection and diffuse).
-     * As in the majority of the scene they are the same (exception for multi room and so on),
-     * this is easier to reference from here than from all the materials.
-     */
-    get environmentIntensity() {
-        return this._environmentIntensity;
-    }
-    /**
-     * Intensity of the environment in all pbr material.
-     * This dims or reinforces the IBL lighting overall (reflection and diffuse).
-     * As in the majority of the scene they are the same (exception for multi room and so on),
-     * this is easier to set here than in all the materials.
-     */
-    set environmentIntensity(value) {
-        if (this._environmentIntensity === value) {
-            return;
-        }
-        this._environmentIntensity = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_TextureDirtyFlag);
-    }
-    /**
-     * Default image processing configuration used either in the rendering
-     * Forward main pass or through the imageProcessingPostProcess if present.
-     * As in the majority of the scene they are the same (exception for multi camera),
-     * this is easier to reference from here than from all the materials and post process.
-     *
-     * No setter as we it is a shared configuration, you can set the values instead.
-     */
-    get imageProcessingConfiguration() {
-        return this._imageProcessingConfiguration;
-    }
-    /**
-     * Gets or sets a boolean indicating if all rendering must be done in wireframe
-     */
-    set forceWireframe(value) {
-        if (this._forceWireframe === value) {
-            return;
-        }
-        this._forceWireframe = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_MiscDirtyFlag);
-    }
-    get forceWireframe() {
-        return this._forceWireframe;
-    }
-    /**
-     * Gets or sets a boolean indicating if we should skip the frustum clipping part of the active meshes selection
-     */
-    set skipFrustumClipping(value) {
-        if (this._skipFrustumClipping === value) {
-            return;
-        }
-        this._skipFrustumClipping = value;
-    }
-    get skipFrustumClipping() {
-        return this._skipFrustumClipping;
+        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_8__["_DevTools"].WarnImport("DefaultCollisionCoordinator");
     }
     /**
      * Gets or sets a boolean indicating if all rendering must be done in point cloud
@@ -62711,83 +64535,10 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             return;
         }
         this._forcePointsCloud = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_MiscDirtyFlag);
+        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].MATERIAL_MiscDirtyFlag);
     }
     get forcePointsCloud() {
         return this._forcePointsCloud;
-    }
-    /** Sets a function to be executed when this scene is disposed. */
-    set onDispose(callback) {
-        if (this._onDisposeObserver) {
-            this.onDisposeObservable.remove(this._onDisposeObserver);
-        }
-        this._onDisposeObserver = this.onDisposeObservable.add(callback);
-    }
-    /** Sets a function to be executed before rendering this scene */
-    set beforeRender(callback) {
-        if (this._onBeforeRenderObserver) {
-            this.onBeforeRenderObservable.remove(this._onBeforeRenderObserver);
-        }
-        if (callback) {
-            this._onBeforeRenderObserver = this.onBeforeRenderObservable.add(callback);
-        }
-    }
-    /** Sets a function to be executed after rendering this scene */
-    set afterRender(callback) {
-        if (this._onAfterRenderObserver) {
-            this.onAfterRenderObservable.remove(this._onAfterRenderObserver);
-        }
-        if (callback) {
-            this._onAfterRenderObserver = this.onAfterRenderObservable.add(callback);
-        }
-    }
-    /** Sets a function to be executed before rendering a camera*/
-    set beforeCameraRender(callback) {
-        if (this._onBeforeCameraRenderObserver) {
-            this.onBeforeCameraRenderObservable.remove(this._onBeforeCameraRenderObserver);
-        }
-        this._onBeforeCameraRenderObserver = this.onBeforeCameraRenderObservable.add(callback);
-    }
-    /** Sets a function to be executed after rendering a camera*/
-    set afterCameraRender(callback) {
-        if (this._onAfterCameraRenderObserver) {
-            this.onAfterCameraRenderObservable.remove(this._onAfterCameraRenderObserver);
-        }
-        this._onAfterCameraRenderObserver = this.onAfterCameraRenderObservable.add(callback);
-    }
-    /**
-     * Gets or sets the distance in pixel that you have to move to prevent some events. Default is 10 pixels
-     */
-    static get DragMovementThreshold() {
-        return _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"].DragMovementThreshold;
-    }
-    static set DragMovementThreshold(value) {
-        _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"].DragMovementThreshold = value;
-    }
-    /**
-     * Time in milliseconds to wait to raise long press events if button is still pressed. Default is 500 ms
-     */
-    static get LongPressDelay() {
-        return _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"].LongPressDelay;
-    }
-    static set LongPressDelay(value) {
-        _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"].LongPressDelay = value;
-    }
-    /**
-     * Time in milliseconds to wait to raise long press events if button is still pressed. Default is 300 ms
-     */
-    static get DoubleClickDelay() {
-        return _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"].DoubleClickDelay;
-    }
-    static set DoubleClickDelay(value) {
-        _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"].DoubleClickDelay = value;
-    }
-    /** If you need to check double click without raising a single click at first click, enable this flag */
-    static get ExclusiveDoubleClickMode() {
-        return _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"].ExclusiveDoubleClickMode;
-    }
-    static set ExclusiveDoubleClickMode(value) {
-        _scene_inputManager__WEBPACK_IMPORTED_MODULE_22__["InputManager"].ExclusiveDoubleClickMode = value;
     }
     /**
     * Gets or sets a boolean indicating if the scene must use right-handed coordinates system
@@ -62797,7 +64548,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             return;
         }
         this._useRightHandedSystem = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_MiscDirtyFlag);
+        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].MATERIAL_MiscDirtyFlag);
     }
     get useRightHandedSystem() {
         return this._useRightHandedSystem;
@@ -62827,41 +64578,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         return this._currentInternalStep;
     }
     /**
-    * Gets or sets a boolean indicating if fog is enabled on this scene
-    * @see https://doc.babylonjs.com/babylon101/environment#fog
-    * (Default is true)
-    */
-    set fogEnabled(value) {
-        if (this._fogEnabled === value) {
-            return;
-        }
-        this._fogEnabled = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_MiscDirtyFlag);
-    }
-    get fogEnabled() {
-        return this._fogEnabled;
-    }
-    /**
-    * Gets or sets the fog mode to use
-    * @see https://doc.babylonjs.com/babylon101/environment#fog
-    * | mode | value |
-    * | --- | --- |
-    * | FOGMODE_NONE | 0 |
-    * | FOGMODE_EXP | 1 |
-    * | FOGMODE_EXP2 | 2 |
-    * | FOGMODE_LINEAR | 3 |
-    */
-    set fogMode(value) {
-        if (this._fogMode === value) {
-            return;
-        }
-        this._fogMode = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_MiscDirtyFlag);
-    }
-    get fogMode() {
-        return this._fogMode;
-    }
-    /**
     * Gets or sets a boolean indicating if shadows are enabled on this scene
     */
     set shadowsEnabled(value) {
@@ -62869,7 +64585,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             return;
         }
         this._shadowsEnabled = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_LightDirtyFlag);
+        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].MATERIAL_LightDirtyFlag);
     }
     get shadowsEnabled() {
         return this._shadowsEnabled;
@@ -62882,7 +64598,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             return;
         }
         this._lightsEnabled = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_LightDirtyFlag);
+        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].MATERIAL_LightDirtyFlag);
     }
     get lightsEnabled() {
         return this._lightsEnabled;
@@ -62896,7 +64612,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             return;
         }
         this._activeCamera = value;
-        this.onActiveCameraChanged.notifyObservers(this);
+        this.sceneEventTrigger.onActiveCameraChanged.notifyObservers(this);
     }
     /** The default material used on meshes when no material is affected */
     get defaultMaterial() {
@@ -62917,23 +64633,10 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             return;
         }
         this._texturesEnabled = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_TextureDirtyFlag);
+        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].MATERIAL_TextureDirtyFlag);
     }
     get texturesEnabled() {
         return this._texturesEnabled;
-    }
-    /**
-    * Gets or sets a boolean indicating if skeletons are enabled on this scene
-    */
-    set skeletonsEnabled(value) {
-        if (this._skeletonsEnabled === value) {
-            return;
-        }
-        this._skeletonsEnabled = value;
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_AttributesDirtyFlag);
-    }
-    get skeletonsEnabled() {
-        return this._skeletonsEnabled;
     }
     /** @hidden */
     get collisionCoordinator() {
@@ -62942,12 +64645,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             this._collisionCoordinator.init(this);
         }
         return this._collisionCoordinator;
-    }
-    /**
-     * Gets the list of frustum planes (built from the active camera)
-     */
-    get frustumPlanes() {
-        return this._frustumPlanes;
     }
     /**
      * Registers the transient components if needed.
@@ -62977,42 +64674,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         }
     }
     /**
-   * Sets the current transform matrix
-   * @param viewL defines the View matrix to use
-   * @param projectionL defines the Projection matrix to use
-   * @param viewR defines the right View matrix to use (if provided)
-   * @param projectionR defines the right Projection matrix to use (if provided)
-   */
-    setTransformMatrix(viewL, projectionL, viewR, projectionR) {
-        if (this._viewUpdateFlag === viewL.updateFlag && this._projectionUpdateFlag === projectionL.updateFlag) {
-            return;
-        }
-        this._viewUpdateFlag = viewL.updateFlag;
-        this._projectionUpdateFlag = projectionL.updateFlag;
-        this._viewMatrix = viewL;
-        this._projectionMatrix = projectionL;
-        this._viewMatrix.multiplyToRef(this._projectionMatrix, this._transformMatrix);
-        // Update frustum
-        if (!this._frustumPlanes) {
-            this._frustumPlanes = _Maths_math_frustum__WEBPACK_IMPORTED_MODULE_25__["Frustum"].GetPlanes(this._transformMatrix);
-        }
-        else {
-            _Maths_math_frustum__WEBPACK_IMPORTED_MODULE_25__["Frustum"].GetPlanesToRef(this._transformMatrix, this._frustumPlanes);
-        }
-        // if (this._multiviewSceneUbo && this._multiviewSceneUbo.useUbo) {
-        //     this._updateMultiviewUbo(viewR, projectionR);
-        // } else if (this._sceneUbo.useUbo) {
-        //     this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
-        //     this._sceneUbo.updateMatrix("view", this._viewMatrix);
-        //     this._sceneUbo.update();
-        // }
-        if (this._sceneUbo.useUbo) {
-            this._sceneUbo.updateMatrix("viewProjection", this._transformMatrix);
-            this._sceneUbo.updateMatrix("view", this._viewMatrix);
-            this._sceneUbo.update();
-        }
-    }
-    /**
      * @hidden
      * Gets a component from the scene.
      * @param name defines the name of the component to retrieve
@@ -63032,64 +64693,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
      */
     getClassName() {
         return "Scene";
-    }
-    /**
-     * @hidden
-     */
-    _getDefaultMeshCandidates() {
-        this._defaultMeshCandidates.data = this.meshes;
-        this._defaultMeshCandidates.length = this.meshes.length;
-        return this._defaultMeshCandidates;
-    }
-    /**
-     * @hidden
-     */
-    _getDefaultSubMeshCandidates(mesh) {
-        this._defaultSubMeshCandidates.data = mesh.subMeshes;
-        this._defaultSubMeshCandidates.length = mesh.subMeshes.length;
-        return this._defaultSubMeshCandidates;
-    }
-    /**
-     * Sets the default candidate providers for the scene.
-     * This sets the getActiveMeshCandidates, getActiveSubMeshCandidates, getIntersectingSubMeshCandidates
-     * and getCollidingSubMeshCandidates to their default function
-     */
-    setDefaultCandidateProviders() {
-        this.getActiveMeshCandidates = this._getDefaultMeshCandidates.bind(this);
-        this.getActiveSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-        this.getIntersectingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-        this.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-    }
-    /**
-     * Gets the cached material (ie. the latest rendered one)
-     * @returns the cached material
-     */
-    getCachedMaterial() {
-        return this._cachedMaterial;
-    }
-    /**
-     * Gets the cached effect (ie. the latest rendered one)
-     * @returns the cached effect
-     */
-    getCachedEffect() {
-        return this._cachedEffect;
-    }
-    /**
-     * Gets the cached visibility state (ie. the latest rendered one)
-     * @returns the cached visibility state
-     */
-    getCachedVisibility() {
-        return this._cachedVisibility;
-    }
-    /**
-     * Gets a boolean indicating if the current material / effect / visibility must be bind again
-     * @param material defines the current material
-     * @param effect defines the current effect
-     * @param visibility defines the current visibility state
-     * @returns true if one parameter is not cached
-     */
-    isCachedMaterialInvalid(material, effect, visibility = 1) {
-        return this._cachedEffect !== effect || this._cachedMaterial !== material || this._cachedVisibility !== visibility;
     }
     /**
      * Gets the engine associated with the scene
@@ -63127,69 +64730,11 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         return this._activeIndices;
     }
     /**
-     * Gets the total number of active particles rendered per frame
-     * @returns the total number of active particles rendered per frame
-     */
-    getActiveParticles() {
-        return this._activeParticles.current;
-    }
-    /**
-     * Gets the performance counter for active particles
-     * @see https://doc.babylonjs.com/how_to/optimizing_your_scene#instrumentation
-     */
-    get activeParticlesPerfCounter() {
-        return this._activeParticles;
-    }
-    /**
-     * Gets the total number of active bones rendered per frame
-     * @returns the total number of active bones rendered per frame
-     */
-    // public getActiveBones(): number {
-    //     return this._activeBones.current;
-    // }
-    /**
-     * Gets the performance counter for active bones
-     * @see https://doc.babylonjs.com/how_to/optimizing_your_scene#instrumentation
-     */
-    get activeBonesPerfCounter() {
-        return this._activeBones;
-    }
-    /**
      * Gets the array of active meshes
      * @returns an array of AbstractMesh
      */
     getActiveMeshes() {
         return this._activeMeshes;
-    }
-    /**
-     * Gets the animation ratio (which is 1.0 is the scene renders at 60fps and 2 if the scene renders at 30fps, etc.)
-     * @returns a number
-     */
-    getAnimationRatio() {
-        return this._animationRatio !== undefined ? this._animationRatio : 1;
-    }
-    /**
-     * Gets an unique Id for the current render phase
-     * @returns a number
-     */
-    getRenderId() {
-        return this._renderId;
-    }
-    /**
-     * Gets an unique Id for the current frame
-     * @returns a number
-     */
-    getFrameId() {
-        return this._frameId;
-    }
-    /** Call this function if you want to manually increment the render Id*/
-    incrementRenderId() {
-        this._renderId++;
-    }
-    _createUbo() {
-        this._sceneUbo = new _Materials_uniformBuffer__WEBPACK_IMPORTED_MODULE_11__["UniformBuffer"](this._engine, undefined, true);
-        this._sceneUbo.addUniform("viewProjection", 16);
-        this._sceneUbo.addUniform("view", 16);
     }
     /**
      * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
@@ -63224,7 +64769,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             }
             let hardwareInstancedRendering = mesh.hasThinInstances || mesh.getClassName() === "InstancedMesh" || mesh.getClassName() === "InstancedLinesMesh" || engine.getCaps().instancedArrays && mesh.instances.length > 0;
             // Is Ready For Mesh
-            for (let step of this._isReadyForMeshStage) {
+            for (let step of this.sceneStage._isReadyForMeshStage) {
                 if (!step.action(mesh, hardwareInstancedRendering)) {
                     return false;
                 }
@@ -63233,7 +64778,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         // Geometries
         for (index = 0; index < this.geometries.length; index++) {
             var geometry = this.geometries[index];
-            if (geometry.delayLoadState === _Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].DELAYLOADSTATE_LOADING) {
+            if (geometry.delayLoadState === _Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].DELAYLOADSTATE_LOADING) {
                 return false;
             }
         }
@@ -63250,73 +64795,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
                 return false;
             }
         }
-        // Particles
-        // for (var particleSystem of this.particleSystems) {
-        //     if (!particleSystem.isReady()) {
-        //         return false;
-        //     }
-        // }
         return true;
-    }
-    /** Resets all cached information relative to material (including effect and visibility) */
-    resetCachedMaterial() {
-        this._cachedMaterial = null;
-        this._cachedEffect = null;
-        this._cachedVisibility = null;
-    }
-    /**
-     * Registers a function to be called before every frame render
-     * @param func defines the function to register
-     */
-    registerBeforeRender(func) {
-        this.onBeforeRenderObservable.add(func);
-    }
-    /**
-     * Unregisters a function called before every frame render
-     * @param func defines the function to unregister
-     */
-    unregisterBeforeRender(func) {
-        this.onBeforeRenderObservable.removeCallback(func);
-    }
-    /**
-     * Registers a function to be called after every frame render
-     * @param func defines the function to register
-     */
-    registerAfterRender(func) {
-        this.onAfterRenderObservable.add(func);
-    }
-    /**
-     * Unregisters a function called after every frame render
-     * @param func defines the function to unregister
-     */
-    unregisterAfterRender(func) {
-        this.onAfterRenderObservable.removeCallback(func);
-    }
-    _executeOnceBeforeRender(func) {
-        let execFunc = () => {
-            func();
-            setTimeout(() => {
-                this.unregisterBeforeRender(execFunc);
-            });
-        };
-        this.registerBeforeRender(execFunc);
-    }
-    /**
-     * The provided function will run before render once and will be disposed afterwards.
-     * A timeout delay can be provided so that the function will be executed in N ms.
-     * The timeout is using the browser's native setTimeout so time percision cannot be guaranteed.
-     * @param func The function to be executed.
-     * @param timeout optional delay in ms
-     */
-    executeOnceBeforeRender(func, timeout) {
-        if (timeout !== undefined) {
-            setTimeout(() => {
-                this._executeOnceBeforeRender(func);
-            }, timeout);
-        }
-        else {
-            this._executeOnceBeforeRender(func);
-        }
     }
     /** @hidden */
     _addPendingData(data) {
@@ -63330,7 +64809,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             this._pendingData.splice(index, 1);
         }
         if (wasLoading && !this.isLoading) {
-            this.onDataLoadedObservable.notifyObservers(this);
+            this.sceneEventTrigger.onDataLoadedObservable.notifyObservers(this);
         }
     }
     /**
@@ -63351,7 +64830,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
      * @param {Function} func - the function to be executed
      */
     executeWhenReady(func) {
-        this.onReadyObservable.add(func);
+        this.sceneEventTrigger.onReadyObservable.add(func);
         if (this._executeWhenReadyTimeoutId !== -1) {
             return;
         }
@@ -63374,13 +64853,13 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
     _checkIsReady() {
         this._registerTransientComponents();
         if (this.isReady()) {
-            this.onReadyObservable.notifyObservers(this);
-            this.onReadyObservable.clear();
+            this.sceneEventTrigger.onReadyObservable.notifyObservers(this);
+            this.sceneEventTrigger.onReadyObservable.clear();
             this._executeWhenReadyTimeoutId = -1;
             return;
         }
         if (this._isDisposed) {
-            this.onReadyObservable.clear();
+            this.sceneEventTrigger.onReadyObservable.clear();
             this._executeWhenReadyTimeoutId = -1;
             return;
         }
@@ -63389,320 +64868,11 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         }, 150);
     }
     /**
-     * Gets all animatable attached to the scene
-     */
-    get animatables() {
-        return this._activeAnimatables;
-    }
-    /**
-     * Resets the last animation time frame.
-     * Useful to override when animations start running when loading a scene for the first time.
-     */
-    resetLastAnimationTimeFrame() {
-        this._animationTimeLast = _Misc_precisionDate__WEBPACK_IMPORTED_MODULE_2__["PrecisionDate"].Now;
-    }
-    /**
-     * Gets the uniform buffer used to store scene data
-     * @returns a UniformBuffer
-     */
-    getSceneUniformBuffer() {
-        // return this._multiviewSceneUbo ? this._multiviewSceneUbo : this._sceneUbo;
-        return this._sceneUbo;
-    }
-    /**
      * Gets an unique (relatively to the current scene) Id
      * @returns an unique number for the scene
      */
     getUniqueId() {
-        return _Misc_uniqueIdGenerator__WEBPACK_IMPORTED_MODULE_26__["UniqueIdGenerator"].UniqueId;
-    }
-    /**
-     * Add a mesh to the list of scene's meshes
-     * @param newMesh defines the mesh to add
-     * @param recursive if all child meshes should also be added to the scene
-     */
-    addMesh(newMesh, recursive = false) {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        this.meshes.push(newMesh);
-        newMesh._resyncLightSources();
-        if (!newMesh.parent) {
-            newMesh._addToSceneRootNodes();
-        }
-        this.onNewMeshAddedObservable.notifyObservers(newMesh);
-        if (recursive) {
-            newMesh.getChildMeshes().forEach((m) => {
-                this.addMesh(m);
-            });
-        }
-    }
-    /**
-     * Remove a mesh for the list of scene's meshes
-     * @param toRemove defines the mesh to remove
-     * @param recursive if all child meshes should also be removed from the scene
-     * @returns the index where the mesh was in the mesh list
-     */
-    removeMesh(toRemove, recursive = false) {
-        var index = this.meshes.indexOf(toRemove);
-        if (index !== -1) {
-            // Remove from the scene if mesh found
-            this.meshes[index] = this.meshes[this.meshes.length - 1];
-            this.meshes.pop();
-            if (!toRemove.parent) {
-                toRemove._removeFromSceneRootNodes();
-            }
-        }
-        this.onMeshRemovedObservable.notifyObservers(toRemove);
-        if (recursive) {
-            toRemove.getChildMeshes().forEach((m) => {
-                this.removeMesh(m);
-            });
-        }
-        return index;
-    }
-    /**
-     * Add a transform node to the list of scene's transform nodes
-     * @param newTransformNode defines the transform node to add
-     */
-    addTransformNode(newTransformNode) {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        newTransformNode._indexInSceneTransformNodesArray = this.transformNodes.length;
-        this.transformNodes.push(newTransformNode);
-        if (!newTransformNode.parent) {
-            newTransformNode._addToSceneRootNodes();
-        }
-        this.onNewTransformNodeAddedObservable.notifyObservers(newTransformNode);
-    }
-    /**
-     * Remove a transform node for the list of scene's transform nodes
-     * @param toRemove defines the transform node to remove
-     * @returns the index where the transform node was in the transform node list
-     */
-    removeTransformNode(toRemove) {
-        var index = toRemove._indexInSceneTransformNodesArray;
-        if (index !== -1) {
-            if (index !== this.transformNodes.length - 1) {
-                const lastNode = this.transformNodes[this.transformNodes.length - 1];
-                this.transformNodes[index] = lastNode;
-                lastNode._indexInSceneTransformNodesArray = index;
-            }
-            toRemove._indexInSceneTransformNodesArray = -1;
-            this.transformNodes.pop();
-            if (!toRemove.parent) {
-                toRemove._removeFromSceneRootNodes();
-            }
-        }
-        this.onTransformNodeRemovedObservable.notifyObservers(toRemove);
-        return index;
-    }
-    /**
-     * Remove a skeleton for the list of scene's skeletons
-     * @param toRemove defines the skeleton to remove
-     * @returns the index where the skeleton was in the skeleton list
-     */
-    // public removeSkeleton(toRemove: Skeleton): number {
-    //     var index = this.skeletons.indexOf(toRemove);
-    //     if (index !== -1) {
-    //         // Remove from the scene if found
-    //         this.skeletons.splice(index, 1);
-    //         this.onSkeletonRemovedObservable.notifyObservers(toRemove);
-    //     }
-    //     return index;
-    // }
-    /**
-     * Remove a morph target for the list of scene's morph targets
-     * @param toRemove defines the morph target to remove
-     * @returns the index where the morph target was in the morph target list
-     */
-    // public removeMorphTargetManager(toRemove: MorphTargetManager): number {
-    //     var index = this.morphTargetManagers.indexOf(toRemove);
-    //     if (index !== -1) {
-    //         // Remove from the scene if found
-    //         this.morphTargetManagers.splice(index, 1);
-    //     }
-    //     return index;
-    // }
-    /**
-     * Remove a light for the list of scene's lights
-     * @param toRemove defines the light to remove
-     * @returns the index where the light was in the light list
-     */
-    removeLight(toRemove) {
-        var index = this.lights.indexOf(toRemove);
-        if (index !== -1) {
-            // Remove from meshes
-            for (var mesh of this.meshes) {
-                mesh._removeLightSource(toRemove, false);
-            }
-            // Remove from the scene if mesh found
-            this.lights.splice(index, 1);
-            this.sortLightsByPriority();
-            if (!toRemove.parent) {
-                toRemove._removeFromSceneRootNodes();
-            }
-        }
-        this.onLightRemovedObservable.notifyObservers(toRemove);
-        return index;
-    }
-    /**
-     * Remove a camera for the list of scene's cameras
-     * @param toRemove defines the camera to remove
-     * @returns the index where the camera was in the camera list
-     */
-    removeCamera(toRemove) {
-        var index = this.cameras.indexOf(toRemove);
-        if (index !== -1) {
-            // Remove from the scene if mesh found
-            this.cameras.splice(index, 1);
-            if (!toRemove.parent) {
-                toRemove._removeFromSceneRootNodes();
-            }
-        }
-        // Remove from activeCameras
-        if (this.activeCameras) {
-            var index2 = this.activeCameras.indexOf(toRemove);
-            if (index2 !== -1) {
-                // Remove from the scene if mesh found
-                this.activeCameras.splice(index2, 1);
-            }
-        }
-        // Reset the activeCamera
-        if (this.activeCamera === toRemove) {
-            if (this.cameras.length > 0) {
-                this.activeCamera = this.cameras[0];
-            }
-            else {
-                this.activeCamera = null;
-            }
-        }
-        this.onCameraRemovedObservable.notifyObservers(toRemove);
-        return index;
-    }
-    /**
-     * Removes the given material from this scene.
-     * @param toRemove The material to remove
-     * @returns The index of the removed material
-     */
-    removeMaterial(toRemove) {
-        var index = toRemove._indexInSceneMaterialArray;
-        if (index !== -1 && index < this.materials.length) {
-            if (index !== this.materials.length - 1) {
-                const lastMaterial = this.materials[this.materials.length - 1];
-                this.materials[index] = lastMaterial;
-                lastMaterial._indexInSceneMaterialArray = index;
-            }
-            toRemove._indexInSceneMaterialArray = -1;
-            this.materials.pop();
-        }
-        this.onMaterialRemovedObservable.notifyObservers(toRemove);
-        return index;
-    }
-    /**
-     * Removes the given action manager from this scene.
-     * @param toRemove The action manager to remove
-     * @returns The index of the removed action manager
-     */
-    removeActionManager(toRemove) {
-        var index = this.actionManagers.indexOf(toRemove);
-        if (index !== -1) {
-            this.actionManagers.splice(index, 1);
-        }
-        return index;
-    }
-    /**
-     * Removes the given texture from this scene.
-     * @param toRemove The texture to remove
-     * @returns The index of the removed texture
-     */
-    removeTexture(toRemove) {
-        var index = this.textures.indexOf(toRemove);
-        if (index !== -1) {
-            this.textures.splice(index, 1);
-        }
-        this.onTextureRemovedObservable.notifyObservers(toRemove);
-        return index;
-    }
-    /**
-     * Adds the given light to this scene
-     * @param newLight The light to add
-     */
-    addLight(newLight) {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        this.lights.push(newLight);
-        this.sortLightsByPriority();
-        if (!newLight.parent) {
-            newLight._addToSceneRootNodes();
-        }
-        // Add light to all meshes (To support if the light is removed and then re-added)
-        for (var mesh of this.meshes) {
-            if (mesh.lightSources.indexOf(newLight) === -1) {
-                mesh.lightSources.push(newLight);
-                mesh._resyncLightSources();
-            }
-        }
-        this.onNewLightAddedObservable.notifyObservers(newLight);
-    }
-    /**
-     * Sorts the list list based on light priorities
-     */
-    sortLightsByPriority() {
-        if (this.requireLightSorting) {
-            this.lights.sort(_Lights_light__WEBPACK_IMPORTED_MODULE_12__["Light"].CompareLightsPriority);
-        }
-    }
-    /**
-     * Adds the given camera to this scene
-     * @param newCamera The camera to add
-     */
-    addCamera(newCamera) {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        this.cameras.push(newCamera);
-        this.onNewCameraAddedObservable.notifyObservers(newCamera);
-        if (!newCamera.parent) {
-            newCamera._addToSceneRootNodes();
-        }
-    }
-    /**
-     * Adds the given material to this scene
-     * @param newMaterial The material to add
-     */
-    addMaterial(newMaterial) {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        newMaterial._indexInSceneMaterialArray = this.materials.length;
-        this.materials.push(newMaterial);
-        this.onNewMaterialAddedObservable.notifyObservers(newMaterial);
-    }
-    /**
-     * Adds the given morph target to this scene
-     * @param newMorphTargetManager The morph target to add
-     */
-    // public addMorphTargetManager(newMorphTargetManager: MorphTargetManager): void {
-    //     if (this._blockEntityCollection) {
-    //         return;
-    //     }
-    //     this.morphTargetManagers.push(newMorphTargetManager);
-    // }
-    /**
-     * Adds the given geometry to this scene
-     * @param newGeometry The geometry to add
-     */
-    addGeometry(newGeometry) {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        if (this.geometriesByUniqueId) {
-            this.geometriesByUniqueId[newGeometry.uniqueId] = this.geometries.length;
-        }
-        this.geometries.push(newGeometry);
+        return _Misc_uniqueIdGenerator__WEBPACK_IMPORTED_MODULE_10__["UniqueIdGenerator"].UniqueId;
     }
     /**
      * Adds the given action manager to this scene
@@ -63710,17 +64880,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
      */
     addActionManager(newActionManager) {
         this.actionManagers.push(newActionManager);
-    }
-    /**
-     * Adds the given texture to this scene.
-     * @param newTexture The texture to add
-     */
-    addTexture(newTexture) {
-        if (this._blockEntityCollection) {
-            return;
-        }
-        this.textures.push(newTexture);
-        this.onNewTextureAddedObservable.notifyObservers(newTexture);
     }
     /**
      * Switch active camera
@@ -63746,7 +64905,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
      * @return the new active camera or null if none found.
      */
     setActiveCameraByID(id) {
-        var camera = this.getCameraByID(id);
+        var camera = this.sceneNode.getCameraByID(id);
         if (camera) {
             this.activeCamera = camera;
             return camera;
@@ -63759,500 +64918,12 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
      * @returns the new active camera or null if none found.
      */
     setActiveCameraByName(name) {
-        var camera = this.getCameraByName(name);
+        var camera = this.sceneNode.getCameraByName(name);
         if (camera) {
             this.activeCamera = camera;
             return camera;
         }
         return null;
-    }
-    /**
-     * get an animation group using its name
-     * @param name defines the material's name
-     * @return the animation group or null if none found.
-     */
-    // public getAnimationGroupByName(name: string): Nullable<AnimationGroup> {
-    //     for (var index = 0; index < this.animationGroups.length; index++) {
-    //         if (this.animationGroups[index].name === name) {
-    //             return this.animationGroups[index];
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Get a material using its unique id
-     * @param uniqueId defines the material's unique id
-     * @return the material or null if none found.
-     */
-    getMaterialByUniqueID(uniqueId) {
-        for (var index = 0; index < this.materials.length; index++) {
-            if (this.materials[index].uniqueId === uniqueId) {
-                return this.materials[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * get a material using its id
-     * @param id defines the material's ID
-     * @return the material or null if none found.
-     */
-    getMaterialByID(id) {
-        for (var index = 0; index < this.materials.length; index++) {
-            if (this.materials[index].id === id) {
-                return this.materials[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a the last added material using a given id
-     * @param id defines the material's ID
-     * @return the last material with the given id or null if none found.
-     */
-    getLastMaterialByID(id) {
-        for (var index = this.materials.length - 1; index >= 0; index--) {
-            if (this.materials[index].id === id) {
-                return this.materials[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a material using its name
-     * @param name defines the material's name
-     * @return the material or null if none found.
-     */
-    getMaterialByName(name) {
-        for (var index = 0; index < this.materials.length; index++) {
-            if (this.materials[index].name === name) {
-                return this.materials[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Get a texture using its unique id
-     * @param uniqueId defines the texture's unique id
-     * @return the texture or null if none found.
-     */
-    getTextureByUniqueID(uniqueId) {
-        for (var index = 0; index < this.textures.length; index++) {
-            if (this.textures[index].uniqueId === uniqueId) {
-                return this.textures[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a camera using its id
-     * @param id defines the id to look for
-     * @returns the camera or null if not found
-     */
-    getCameraByID(id) {
-        for (var index = 0; index < this.cameras.length; index++) {
-            if (this.cameras[index].id === id) {
-                return this.cameras[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a camera using its unique id
-     * @param uniqueId defines the unique id to look for
-     * @returns the camera or null if not found
-     */
-    getCameraByUniqueID(uniqueId) {
-        for (var index = 0; index < this.cameras.length; index++) {
-            if (this.cameras[index].uniqueId === uniqueId) {
-                return this.cameras[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a camera using its name
-     * @param name defines the camera's name
-     * @return the camera or null if none found.
-     */
-    getCameraByName(name) {
-        for (var index = 0; index < this.cameras.length; index++) {
-            if (this.cameras[index].name === name) {
-                return this.cameras[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a bone using its id
-     * @param id defines the bone's id
-     * @return the bone or null if not found
-     */
-    // public getBoneByID(id: string): Nullable<Bone> {
-    //     for (var skeletonIndex = 0; skeletonIndex < this.skeletons.length; skeletonIndex++) {
-    //         var skeleton = this.skeletons[skeletonIndex];
-    //         for (var boneIndex = 0; boneIndex < skeleton.bones.length; boneIndex++) {
-    //             if (skeleton.bones[boneIndex].id === id) {
-    //                 return skeleton.bones[boneIndex];
-    //             }
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-    * Gets a bone using its id
-    * @param name defines the bone's name
-    * @return the bone or null if not found
-    */
-    // public getBoneByName(name: string): Nullable<Bone> {
-    //     for (var skeletonIndex = 0; skeletonIndex < this.skeletons.length; skeletonIndex++) {
-    //         var skeleton = this.skeletons[skeletonIndex];
-    //         for (var boneIndex = 0; boneIndex < skeleton.bones.length; boneIndex++) {
-    //             if (skeleton.bones[boneIndex].name === name) {
-    //                 return skeleton.bones[boneIndex];
-    //             }
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a light node using its name
-     * @param name defines the the light's name
-     * @return the light or null if none found.
-     */
-    getLightByName(name) {
-        for (var index = 0; index < this.lights.length; index++) {
-            if (this.lights[index].name === name) {
-                return this.lights[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a light node using its id
-     * @param id defines the light's id
-     * @return the light or null if none found.
-     */
-    getLightByID(id) {
-        for (var index = 0; index < this.lights.length; index++) {
-            if (this.lights[index].id === id) {
-                return this.lights[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a light node using its scene-generated unique ID
-     * @param uniqueId defines the light's unique id
-     * @return the light or null if none found.
-     */
-    getLightByUniqueID(uniqueId) {
-        for (var index = 0; index < this.lights.length; index++) {
-            if (this.lights[index].uniqueId === uniqueId) {
-                return this.lights[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a particle system by id
-     * @param id defines the particle system id
-     * @return the corresponding system or null if none found
-     */
-    // public getParticleSystemByID(id: string): Nullable<IParticleSystem> {
-    //     for (var index = 0; index < this.particleSystems.length; index++) {
-    //         if (this.particleSystems[index].id === id) {
-    //             return this.particleSystems[index];
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Gets a geometry using its ID
-     * @param id defines the geometry's id
-     * @return the geometry or null if none found.
-     */
-    getGeometryByID(id) {
-        for (var index = 0; index < this.geometries.length; index++) {
-            if (this.geometries[index].id === id) {
-                return this.geometries[index];
-            }
-        }
-        return null;
-    }
-    _getGeometryByUniqueID(uniqueId) {
-        if (this.geometriesByUniqueId) {
-            const index = this.geometriesByUniqueId[uniqueId];
-            if (index !== undefined) {
-                return this.geometries[index];
-            }
-        }
-        else {
-            for (var index = 0; index < this.geometries.length; index++) {
-                if (this.geometries[index].uniqueId === uniqueId) {
-                    return this.geometries[index];
-                }
-            }
-        }
-        return null;
-    }
-    /**
-     * Add a new geometry to this scene
-     * @param geometry defines the geometry to be added to the scene.
-     * @param force defines if the geometry must be pushed even if a geometry with this id already exists
-     * @return a boolean defining if the geometry was added or not
-     */
-    pushGeometry(geometry, force) {
-        if (!force && this._getGeometryByUniqueID(geometry.uniqueId)) {
-            return false;
-        }
-        this.addGeometry(geometry);
-        this.onNewGeometryAddedObservable.notifyObservers(geometry);
-        return true;
-    }
-    /**
-     * Removes an existing geometry
-     * @param geometry defines the geometry to be removed from the scene
-     * @return a boolean defining if the geometry was removed or not
-     */
-    removeGeometry(geometry) {
-        let index;
-        if (this.geometriesByUniqueId) {
-            index = this.geometriesByUniqueId[geometry.uniqueId];
-            if (index === undefined) {
-                return false;
-            }
-        }
-        else {
-            index = this.geometries.indexOf(geometry);
-            if (index < 0) {
-                return false;
-            }
-        }
-        if (index !== this.geometries.length - 1) {
-            const lastGeometry = this.geometries[this.geometries.length - 1];
-            if (lastGeometry) {
-                this.geometries[index] = lastGeometry;
-                if (this.geometriesByUniqueId) {
-                    this.geometriesByUniqueId[lastGeometry.uniqueId] = index;
-                    this.geometriesByUniqueId[geometry.uniqueId] = undefined;
-                }
-            }
-        }
-        this.geometries.pop();
-        this.onGeometryRemovedObservable.notifyObservers(geometry);
-        return true;
-    }
-    /**
-     * Gets the list of geometries attached to the scene
-     * @returns an array of Geometry
-     */
-    getGeometries() {
-        return this.geometries;
-    }
-    /**
-     * Gets the first added mesh found of a given ID
-     * @param id defines the id to search for
-     * @return the mesh found or null if not found at all
-     */
-    getMeshByID(id) {
-        for (var index = 0; index < this.meshes.length; index++) {
-            if (this.meshes[index].id === id) {
-                return this.meshes[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a list of meshes using their id
-     * @param id defines the id to search for
-     * @returns a list of meshes
-     */
-    getMeshesByID(id) {
-        return this.meshes.filter(function (m) {
-            return m.id === id;
-        });
-    }
-    /**
-     * Gets the first added transform node found of a given ID
-     * @param id defines the id to search for
-     * @return the found transform node or null if not found at all.
-     */
-    getTransformNodeByID(id) {
-        for (var index = 0; index < this.transformNodes.length; index++) {
-            if (this.transformNodes[index].id === id) {
-                return this.transformNodes[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a transform node with its auto-generated unique id
-     * @param uniqueId efines the unique id to search for
-     * @return the found transform node or null if not found at all.
-     */
-    getTransformNodeByUniqueID(uniqueId) {
-        for (var index = 0; index < this.transformNodes.length; index++) {
-            if (this.transformNodes[index].uniqueId === uniqueId) {
-                return this.transformNodes[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a list of transform nodes using their id
-     * @param id defines the id to search for
-     * @returns a list of transform nodes
-     */
-    getTransformNodesByID(id) {
-        return this.transformNodes.filter(function (m) {
-            return m.id === id;
-        });
-    }
-    /**
-     * Gets a mesh with its auto-generated unique id
-     * @param uniqueId defines the unique id to search for
-     * @return the found mesh or null if not found at all.
-     */
-    getMeshByUniqueID(uniqueId) {
-        for (var index = 0; index < this.meshes.length; index++) {
-            if (this.meshes[index].uniqueId === uniqueId) {
-                return this.meshes[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a the last added mesh using a given id
-     * @param id defines the id to search for
-     * @return the found mesh or null if not found at all.
-     */
-    getLastMeshByID(id) {
-        for (var index = this.meshes.length - 1; index >= 0; index--) {
-            if (this.meshes[index].id === id) {
-                return this.meshes[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a the last added node (Mesh, Camera, Light) using a given id
-     * @param id defines the id to search for
-     * @return the found node or null if not found at all
-     */
-    getLastEntryByID(id) {
-        var index;
-        for (index = this.meshes.length - 1; index >= 0; index--) {
-            if (this.meshes[index].id === id) {
-                return this.meshes[index];
-            }
-        }
-        for (index = this.transformNodes.length - 1; index >= 0; index--) {
-            if (this.transformNodes[index].id === id) {
-                return this.transformNodes[index];
-            }
-        }
-        for (index = this.cameras.length - 1; index >= 0; index--) {
-            if (this.cameras[index].id === id) {
-                return this.cameras[index];
-            }
-        }
-        for (index = this.lights.length - 1; index >= 0; index--) {
-            if (this.lights[index].id === id) {
-                return this.lights[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a node (Mesh, Camera, Light) using a given id
-     * @param id defines the id to search for
-     * @return the found node or null if not found at all
-     */
-    getNodeByID(id) {
-        const mesh = this.getMeshByID(id);
-        if (mesh) {
-            return mesh;
-        }
-        const transformNode = this.getTransformNodeByID(id);
-        if (transformNode) {
-            return transformNode;
-        }
-        const light = this.getLightByID(id);
-        if (light) {
-            return light;
-        }
-        const camera = this.getCameraByID(id);
-        if (camera) {
-            return camera;
-        }
-        // const bone = this.getBoneByID(id);
-        // if (bone) {
-        //     return bone;
-        // }
-        return null;
-    }
-    /**
-     * Gets a node (Mesh, Camera, Light) using a given name
-     * @param name defines the name to search for
-     * @return the found node or null if not found at all.
-     */
-    getNodeByName(name) {
-        const mesh = this.getMeshByName(name);
-        if (mesh) {
-            return mesh;
-        }
-        const transformNode = this.getTransformNodeByName(name);
-        if (transformNode) {
-            return transformNode;
-        }
-        const light = this.getLightByName(name);
-        if (light) {
-            return light;
-        }
-        const camera = this.getCameraByName(name);
-        if (camera) {
-            return camera;
-        }
-        // const bone = this.getBoneByName(name);
-        // if (bone) {
-        //     return bone;
-        // }
-        return null;
-    }
-    /**
-     * Gets a mesh using a given name
-     * @param name defines the name to search for
-     * @return the found mesh or null if not found at all.
-     */
-    getMeshByName(name) {
-        for (var index = 0; index < this.meshes.length; index++) {
-            if (this.meshes[index].name === name) {
-                return this.meshes[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a transform node using a given name
-     * @param name defines the name to search for
-     * @return the found transform node or null if not found at all.
-     */
-    getTransformNodeByName(name) {
-        for (var index = 0; index < this.transformNodes.length; index++) {
-            if (this.transformNodes[index].name === name) {
-                return this.transformNodes[index];
-            }
-        }
-        return null;
-    }
-    /**
-     * Gets a boolean indicating if the given mesh is active
-     * @param mesh defines the mesh to look for
-     * @returns true if the mesh is in the active list
-     */
-    isActiveMesh(mesh) {
-        return (this._activeMeshes.indexOf(mesh) !== -1);
     }
     /**
      * Return a unique id as a string which can serve as an identifier for the scene
@@ -64262,70 +64933,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             this._uid = _Misc_tools__WEBPACK_IMPORTED_MODULE_1__["Tools"].RandomId();
         }
         return this._uid;
-    }
-    /**
-     * Add an externaly attached data from its key.
-     * This method call will fail and return false, if such key already exists.
-     * If you don't care and just want to get the data no matter what, use the more convenient getOrAddExternalDataWithFactory() method.
-     * @param key the unique key that identifies the data
-     * @param data the data object to associate to the key for this Engine instance
-     * @return true if no such key were already present and the data was added successfully, false otherwise
-     */
-    addExternalData(key, data) {
-        if (!this._externalData) {
-            this._externalData = new _Misc_stringDictionary__WEBPACK_IMPORTED_MODULE_5__["StringDictionary"]();
-        }
-        return this._externalData.add(key, data);
-    }
-    /**
-     * Get an externaly attached data from its key
-     * @param key the unique key that identifies the data
-     * @return the associated data, if present (can be null), or undefined if not present
-     */
-    getExternalData(key) {
-        if (!this._externalData) {
-            return null;
-        }
-        return this._externalData.get(key);
-    }
-    /**
-     * Get an externaly attached data from its key, create it using a factory if it's not already present
-     * @param key the unique key that identifies the data
-     * @param factory the factory that will be called to create the instance if and only if it doesn't exists
-     * @return the associated data, can be null if the factory returned null.
-     */
-    getOrAddExternalDataWithFactory(key, factory) {
-        if (!this._externalData) {
-            this._externalData = new _Misc_stringDictionary__WEBPACK_IMPORTED_MODULE_5__["StringDictionary"]();
-        }
-        return this._externalData.getOrAddWithFactory(key, factory);
-    }
-    /**
-     * Remove an externaly attached data from the Engine instance
-     * @param key the unique key that identifies the data
-     * @return true if the data was successfully removed, false if it doesn't exist
-     */
-    removeExternalData(key) {
-        return this._externalData.remove(key);
-    }
-    _evaluateSubMesh(subMesh, mesh, initialMesh) {
-        if (initialMesh.hasInstances || initialMesh.isAnInstance || this.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this._frustumPlanes)) {
-            for (let step of this._evaluateSubMeshStage) {
-                step.action(mesh, subMesh);
-            }
-            const material = subMesh.getMaterial();
-            if (material !== null && material !== undefined) {
-                // Render targets
-                if (material.hasRenderTargetTextures && material.getRenderTargetTextures != null) {
-                    if (this._processedMaterials.indexOf(material) === -1) {
-                        this._processedMaterials.push(material);
-                        this._renderTargets.concatWithNoDuplicate(material.getRenderTargetTextures());
-                    }
-                }
-                // Dispatch
-                this._renderingManager.dispatch(subMesh, mesh, material);
-            }
-        }
     }
     /**
      * Clear the processed materials smart array preventing retention point in material dispose.
@@ -64347,7 +64954,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         }
         if (value) {
             this.freeActiveMeshes();
-            this.freeRenderingGroups();
+            this.sceneRender.freeRenderingGroups();
         }
         this._preventFreeActiveMeshesAndRenderingGroups = value;
     }
@@ -64371,25 +64978,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             }
         }
     }
-    /**
-     * Clear the info related to rendering groups preventing retention points during dispose.
-     */
-    freeRenderingGroups() {
-        if (this.blockfreeActiveMeshesAndRenderingGroups) {
-            return;
-        }
-        if (this._renderingManager) {
-            this._renderingManager.freeRenderingGroups();
-        }
-        if (this.textures) {
-            for (let i = 0; i < this.textures.length; i++) {
-                let texture = this.textures[i];
-                if (texture && texture.renderList) {
-                    texture.freeRenderingGroups();
-                }
-            }
-        }
-    }
     /** @hidden */
     _isInIntermediateRendering() {
         return this._intermediateRendering;
@@ -64407,10 +64995,10 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
                 onError && onError('No active camera found');
                 return;
             }
-            if (!this._frustumPlanes) {
-                this.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix());
+            if (!this.sceneClipPlane.frustumPlanes) {
+                this.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix());
             }
-            this._evaluateActiveMeshes();
+            this.sceneRender._evaluateActiveMeshes();
             this._activeMeshesFrozen = true;
             this._skipEvaluateActiveMeshesCompletely = skipEvaluateActiveMeshes;
             for (var index = 0; index < this._activeMeshes.length; index++) {
@@ -64437,561 +65025,19 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         this._activeMeshesFrozen = false;
         return this;
     }
-    _evaluateActiveMeshes() {
-        if (this._activeMeshesFrozen && this._activeMeshes.length) {
-            if (!this._skipEvaluateActiveMeshesCompletely) {
-                const len = this._activeMeshes.length;
-                for (let i = 0; i < len; i++) {
-                    let mesh = this._activeMeshes.data[i];
-                    mesh.computeWorldMatrix();
-                }
-            }
-            // if (this._activeParticleSystems) {
-            //     const psLength = this._activeParticleSystems.length;
-            //     for (let i = 0; i < psLength; i++) {
-            //         this._activeParticleSystems.data[i].animate();
-            //     }
-            // }
-            return;
-        }
-        if (!this.activeCamera) {
-            return;
-        }
-        this.onBeforeActiveMeshesEvaluationObservable.notifyObservers(this);
-        this.activeCamera._activeMeshes.reset();
-        this._activeMeshes.reset();
-        this._renderingManager.reset();
-        this._processedMaterials.reset();
-        // this._activeParticleSystems.reset();
-        // this._activeSkeletons.reset();
-        this._softwareSkinnedMeshes.reset();
-        for (let step of this._beforeEvaluateActiveMeshStage) {
-            step.action();
-        }
-        // Determine mesh candidates
-        const meshes = this.getActiveMeshCandidates();
-        // Check each mesh
-        const len = meshes.length;
-        for (let i = 0; i < len; i++) {
-            const mesh = meshes.data[i];
-            mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = false;
-            if (mesh.isBlocked) {
-                continue;
-            }
-            this._totalVertices.addCount(mesh.getTotalVertices(), false);
-            if (!mesh.isReady() || !mesh.isEnabled() || mesh.scaling.lengthSquared() === 0) {
-                continue;
-            }
-            mesh.computeWorldMatrix();
-            // Intersections
-            // if (mesh.actionManager && mesh.actionManager.hasSpecificTriggers2(Constants.ACTION_OnIntersectionEnterTrigger, Constants.ACTION_OnIntersectionExitTrigger)) {
-            //     this._meshesForIntersections.pushNoDuplicate(mesh);
-            // }
-            // Switch to current LOD
-            let meshToRender = this.customLODSelector ? this.customLODSelector(mesh, this.activeCamera) : mesh.getLOD(this.activeCamera);
-            mesh._internalAbstractMeshDataInfo._currentLOD = meshToRender;
-            mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = true;
-            if (meshToRender === undefined || meshToRender === null) {
-                continue;
-            }
-            // Compute world matrix if LOD is billboard
-            if (meshToRender !== mesh && meshToRender.billboardMode !== _Meshes_transformNode__WEBPACK_IMPORTED_MODULE_8__["TransformNode"].BILLBOARDMODE_NONE) {
-                meshToRender.computeWorldMatrix();
-            }
-            mesh._preActivate();
-            if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this._frustumPlanes))) {
-                this._activeMeshes.push(mesh);
-                this.activeCamera._activeMeshes.push(mesh);
-                if (meshToRender !== mesh) {
-                    meshToRender._activate(this._renderId, false);
-                }
-                for (let step of this._preActiveMeshStage) {
-                    step.action(mesh);
-                }
-                if (mesh._activate(this._renderId, false)) {
-                    if (!mesh.isAnInstance) {
-                        meshToRender._internalAbstractMeshDataInfo._onlyForInstances = false;
-                    }
-                    else {
-                        if (mesh._internalAbstractMeshDataInfo._actAsRegularMesh) {
-                            meshToRender = mesh;
-                        }
-                    }
-                    meshToRender._internalAbstractMeshDataInfo._isActive = true;
-                    this._activeMesh(mesh, meshToRender);
-                }
-                mesh._postActivate();
-            }
-        }
-        this.onAfterActiveMeshesEvaluationObservable.notifyObservers(this);
-        // Particle systems
-        // if (this.particlesEnabled) {
-        //     this.onBeforeParticlesRenderingObservable.notifyObservers(this);
-        //     for (var particleIndex = 0; particleIndex < this.particleSystems.length; particleIndex++) {
-        //         var particleSystem = this.particleSystems[particleIndex];
-        //         if (!particleSystem.isStarted() || !particleSystem.emitter) {
-        //             continue;
-        //         }
-        //         let emitter = <any>particleSystem.emitter;
-        //         if (!emitter.position || emitter.isEnabled()) {
-        //             this._activeParticleSystems.push(particleSystem);
-        //             particleSystem.animate();
-        //             this._renderingManager.dispatchParticles(particleSystem);
-        //         }
-        //     }
-        //     this.onAfterParticlesRenderingObservable.notifyObservers(this);
-        // }
-    }
-    _activeMesh(sourceMesh, mesh) {
-        // if (this._skeletonsEnabled && mesh.skeleton !== null && mesh.skeleton !== undefined) {
-        //     // if (this._activeSkeletons.pushNoDuplicate(mesh.skeleton)) {
-        //     //     mesh.skeleton.prepare();
-        //     // }
-        //     if (!mesh.computeBonesUsingShaders) {
-        //         this._softwareSkinnedMeshes.pushNoDuplicate(<Mesh>mesh);
-        //     }
-        // }
-        if (mesh !== undefined && mesh !== null
-            && mesh.subMeshes !== undefined && mesh.subMeshes !== null && mesh.subMeshes.length > 0) {
-            const subMeshes = this.getActiveSubMeshCandidates(mesh);
-            const len = subMeshes.length;
-            for (let i = 0; i < len; i++) {
-                const subMesh = subMeshes.data[i];
-                this._evaluateSubMesh(subMesh, mesh, sourceMesh);
-            }
-        }
-    }
-    /**
-     * Update the transform matrix to update from the current active camera
-     * @param force defines a boolean used to force the update even if cache is up to date
-     */
-    updateTransformMatrix(force) {
-        if (!this.activeCamera) {
-            return;
-        }
-        this.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(force));
-    }
-    _bindFrameBuffer() {
-        if (this.activeCamera && this.activeCamera.outputRenderTarget) {
-            var useMultiview = this.getEngine().getCaps().multiview && this.activeCamera.outputRenderTarget && this.activeCamera.outputRenderTarget.getViewCount() > 1;
-            if (useMultiview) {
-                this.activeCamera.outputRenderTarget._bindFrameBuffer();
-            }
-            else {
-                var internalTexture = this.activeCamera.outputRenderTarget.getInternalTexture();
-                if (internalTexture) {
-                    this.getEngine().bindFramebuffer(internalTexture);
-                }
-                else {
-                    _Misc_logger__WEBPACK_IMPORTED_MODULE_19__["Logger"].Error("Camera contains invalid customDefaultRenderTarget");
-                }
-            }
-        }
-        else {
-            this.getEngine().restoreDefaultFramebuffer(); // Restore back buffer if needed
-        }
-    }
-    /** @hidden */
-    _renderForCamera(camera, rigParent) {
-        if (camera && camera._skipRendering) {
-            return;
-        }
-        var engine = this._engine;
-        // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
-        this._activeCamera = camera;
-        if (!this.activeCamera) {
-            throw new Error("Active camera not set");
-        }
-        // Viewport
-        engine.setViewport(this.activeCamera.viewport);
-        // Camera
-        this.resetCachedMaterial();
-        this._renderId++;
-        var useMultiview = this.getEngine().getCaps().multiview && camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1;
-        if (useMultiview) {
-            this.setTransformMatrix(camera._rigCameras[0].getViewMatrix(), camera._rigCameras[0].getProjectionMatrix(), camera._rigCameras[1].getViewMatrix(), camera._rigCameras[1].getProjectionMatrix());
-        }
-        else {
-            this.updateTransformMatrix();
-        }
-        this.onBeforeCameraRenderObservable.notifyObservers(this.activeCamera);
-        // Meshes
-        this._evaluateActiveMeshes();
-        // Software skinning
-        // for (var softwareSkinnedMeshIndex = 0; softwareSkinnedMeshIndex < this._softwareSkinnedMeshes.length; softwareSkinnedMeshIndex++) {
-        //     var mesh = this._softwareSkinnedMeshes.data[softwareSkinnedMeshIndex];
-        //     mesh.applySkeleton(<Skeleton>mesh.skeleton);
-        // }
-        // Render targets
-        this.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
-        if (camera.customRenderTargets && camera.customRenderTargets.length > 0) {
-            this._renderTargets.concatWithNoDuplicate(camera.customRenderTargets);
-        }
-        if (rigParent && rigParent.customRenderTargets && rigParent.customRenderTargets.length > 0) {
-            this._renderTargets.concatWithNoDuplicate(rigParent.customRenderTargets);
-        }
-        // Collects render targets from external components.
-        for (let step of this._gatherActiveCameraRenderTargetsStage) {
-            step.action(this._renderTargets);
-        }
-        let needRebind = false;
-        if (this.renderTargetsEnabled) {
-            this._intermediateRendering = true;
-            if (this._renderTargets.length > 0) {
-                _Misc_tools__WEBPACK_IMPORTED_MODULE_1__["Tools"].StartPerformanceCounter("Render targets", this._renderTargets.length > 0);
-                for (var renderIndex = 0; renderIndex < this._renderTargets.length; renderIndex++) {
-                    let renderTarget = this._renderTargets.data[renderIndex];
-                    if (renderTarget._shouldRender()) {
-                        this._renderId++;
-                        var hasSpecialRenderTargetCamera = renderTarget.activeCamera && renderTarget.activeCamera !== this.activeCamera;
-                        renderTarget.render(hasSpecialRenderTargetCamera, this.dumpNextRenderTargets);
-                        needRebind = true;
-                    }
-                }
-                _Misc_tools__WEBPACK_IMPORTED_MODULE_1__["Tools"].EndPerformanceCounter("Render targets", this._renderTargets.length > 0);
-                this._renderId++;
-            }
-            for (let step of this._cameraDrawRenderTargetStage) {
-                needRebind = step.action(this.activeCamera) || needRebind;
-            }
-            this._intermediateRendering = false;
-            // Need to bind if sub-camera has an outputRenderTarget eg. for webXR
-            if (this.activeCamera && this.activeCamera.outputRenderTarget) {
-                needRebind = true;
-            }
-        }
-        // Restore framebuffer after rendering to targets
-        if (needRebind && !this.prePass) {
-            this._bindFrameBuffer();
-        }
-        this.onAfterRenderTargetsRenderObservable.notifyObservers(this);
-        // Prepare Frame
-        // if (this.postProcessManager && !camera._multiviewTexture && !this.prePass) {
-        //     this.postProcessManager._prepareFrame();
-        // }
-        // Before Camera Draw
-        for (let step of this._beforeCameraDrawStage) {
-            step.action(this.activeCamera);
-        }
-        // Render
-        this.onBeforeDrawPhaseObservable.notifyObservers(this);
-        this._renderingManager.render(null, null, true, true);
-        this.onAfterDrawPhaseObservable.notifyObservers(this);
-        // After Camera Draw
-        for (let step of this._afterCameraDrawStage) {
-            step.action(this.activeCamera);
-        }
-        // Finalize frame
-        // if (this.postProcessManager && !camera._multiviewTexture) {
-        //     // if the camera has an output render target, render the post process to the render target
-        //     const texture = camera.outputRenderTarget ? camera.outputRenderTarget.getInternalTexture()! : undefined;
-        //     this.postProcessManager._finalizeFrame(camera.isIntermediate, texture);
-        // }
-        // Reset some special arrays
-        this._renderTargets.reset();
-        this.onAfterCameraRenderObservable.notifyObservers(this.activeCamera);
-    }
-    _processSubCameras(camera) {
-        if (camera.cameraRigMode === _Cameras_camera__WEBPACK_IMPORTED_MODULE_10__["Camera"].RIG_MODE_NONE || (camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1 && this.getEngine().getCaps().multiview)) {
-            this._renderForCamera(camera);
-            this.onAfterRenderCameraObservable.notifyObservers(camera);
-            return;
-        }
-        {
-            // rig cameras
-            for (var index = 0; index < camera._rigCameras.length; index++) {
-                this._renderForCamera(camera._rigCameras[index], camera);
-            }
-        }
-        // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
-        this._activeCamera = camera;
-        this.setTransformMatrix(this._activeCamera.getViewMatrix(), this._activeCamera.getProjectionMatrix());
-        this.onAfterRenderCameraObservable.notifyObservers(camera);
-    }
-    _checkIntersections() {
-        for (var index = 0; index < this._meshesForIntersections.length; index++) {
-            var sourceMesh = this._meshesForIntersections.data[index];
-            if (!sourceMesh.actionManager) {
-                continue;
-            }
-            for (var actionIndex = 0; sourceMesh.actionManager && actionIndex < sourceMesh.actionManager.actions.length; actionIndex++) {
-                var action = sourceMesh.actionManager.actions[actionIndex];
-                if (action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].ACTION_OnIntersectionEnterTrigger || action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].ACTION_OnIntersectionExitTrigger) {
-                    var parameters = action.getTriggerParameter();
-                    var otherMesh = parameters instanceof _Meshes_abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] ? parameters : parameters.mesh;
-                    var areIntersecting = otherMesh.intersectsMesh(sourceMesh, parameters.usePreciseIntersection);
-                    var currentIntersectionInProgress = sourceMesh._intersectionsInProgress.indexOf(otherMesh);
-                    if (areIntersecting && currentIntersectionInProgress === -1) {
-                        if (action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].ACTION_OnIntersectionEnterTrigger) {
-                            action._executeCurrent(_Actions_actionEvent__WEBPACK_IMPORTED_MODULE_14__["ActionEvent"].CreateNew(sourceMesh, undefined, otherMesh));
-                            sourceMesh._intersectionsInProgress.push(otherMesh);
-                        }
-                        else if (action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].ACTION_OnIntersectionExitTrigger) {
-                            sourceMesh._intersectionsInProgress.push(otherMesh);
-                        }
-                    }
-                    else if (!areIntersecting && currentIntersectionInProgress > -1) {
-                        //They intersected, and now they don't.
-                        //is this trigger an exit trigger? execute an event.
-                        if (action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].ACTION_OnIntersectionExitTrigger) {
-                            action._executeCurrent(_Actions_actionEvent__WEBPACK_IMPORTED_MODULE_14__["ActionEvent"].CreateNew(sourceMesh, undefined, otherMesh));
-                        }
-                        //if this is an exit trigger, or no exit trigger exists, remove the id from the intersection in progress array.
-                        if (!sourceMesh.actionManager.hasSpecificTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].ACTION_OnIntersectionExitTrigger, (parameter) => {
-                            var parameterMesh = parameter instanceof _Meshes_abstractMesh__WEBPACK_IMPORTED_MODULE_9__["AbstractMesh"] ? parameter : parameter.mesh;
-                            return otherMesh === parameterMesh;
-                        }) || action.trigger === _Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].ACTION_OnIntersectionExitTrigger) {
-                            sourceMesh._intersectionsInProgress.splice(currentIntersectionInProgress, 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /** @hidden */
-    _advancePhysicsEngineStep(step) {
-        // Do nothing. Code will be replaced if physics engine component is referenced
-    }
-    /** @hidden */
-    _animate() {
-        // Nothing to do as long as Animatable have not been imported.
-    }
-    /** Execute all animations (for a frame) */
-    animate() {
-        if (this._engine.isDeterministicLockStep()) {
-            var deltaTime = Math.max(Scene.MinDeltaTime, Math.min(this._engine.getDeltaTime(), Scene.MaxDeltaTime)) + this._timeAccumulator;
-            let defaultFrameTime = this._engine.getTimeStep();
-            var defaultFPS = (1000.0 / defaultFrameTime) / 1000.0;
-            let stepsTaken = 0;
-            var maxSubSteps = this._engine.getLockstepMaxSteps();
-            var internalSteps = Math.floor(deltaTime / defaultFrameTime);
-            internalSteps = Math.min(internalSteps, maxSubSteps);
-            while (deltaTime > 0 && stepsTaken < internalSteps) {
-                this.onBeforeStepObservable.notifyObservers(this);
-                // Animations
-                this._animationRatio = defaultFrameTime * defaultFPS;
-                this._animate();
-                this.onAfterAnimationsObservable.notifyObservers(this);
-                // Physics
-                if (this.physicsEnabled) {
-                    this._advancePhysicsEngineStep(defaultFrameTime);
-                }
-                this.onAfterStepObservable.notifyObservers(this);
-                this._currentStepId++;
-                stepsTaken++;
-                deltaTime -= defaultFrameTime;
-            }
-            this._timeAccumulator = deltaTime < 0 ? 0 : deltaTime;
-        }
-        else {
-            // Animations
-            var deltaTime = this.useConstantAnimationDeltaTime ? 16 : Math.max(Scene.MinDeltaTime, Math.min(this._engine.getDeltaTime(), Scene.MaxDeltaTime));
-            this._animationRatio = deltaTime * (60.0 / 1000.0);
-            this._animate();
-            this.onAfterAnimationsObservable.notifyObservers(this);
-            // Physics
-            if (this.physicsEnabled) {
-                this._advancePhysicsEngineStep(deltaTime);
-            }
-        }
-    }
-    /**
-     * Render the scene
-     * @param updateCameras defines a boolean indicating if cameras must update according to their inputs (true by default)
-     * @param ignoreAnimations defines a boolean indicating if animations should not be executed (false by default)
-     */
-    render(updateCameras = true, ignoreAnimations = false) {
-        if (this.isDisposed) {
-            return;
-        }
-        if (this.onReadyObservable.hasObservers() && this._executeWhenReadyTimeoutId === -1) {
-            this._checkIsReady();
-        }
-        this._frameId++;
-        // Register components that have been associated lately to the scene.
-        this._registerTransientComponents();
-        this._activeParticles.fetchNewFrame();
-        this._totalVertices.fetchNewFrame();
-        this._activeIndices.fetchNewFrame();
-        this._activeBones.fetchNewFrame();
-        this._meshesForIntersections.reset();
-        this.resetCachedMaterial();
-        this.onBeforeAnimationsObservable.notifyObservers(this);
-        // Actions
-        if (this.actionManager) {
-            this.actionManager.processTrigger(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].ACTION_OnEveryFrameTrigger);
-        }
-        // Animations
-        if (!ignoreAnimations) {
-            this.animate();
-        }
-        // Before camera update steps
-        for (let step of this._beforeCameraUpdateStage) {
-            step.action();
-        }
-        // Update Cameras
-        if (updateCameras) {
-            if (this.activeCameras && this.activeCameras.length > 0) {
-                for (var cameraIndex = 0; cameraIndex < this.activeCameras.length; cameraIndex++) {
-                    let camera = this.activeCameras[cameraIndex];
-                    camera.update();
-                    if (camera.cameraRigMode !== _Cameras_camera__WEBPACK_IMPORTED_MODULE_10__["Camera"].RIG_MODE_NONE) {
-                        // rig cameras
-                        for (var index = 0; index < camera._rigCameras.length; index++) {
-                            camera._rigCameras[index].update();
-                        }
-                    }
-                }
-            }
-            else if (this.activeCamera) {
-                this.activeCamera.update();
-                if (this.activeCamera.cameraRigMode !== _Cameras_camera__WEBPACK_IMPORTED_MODULE_10__["Camera"].RIG_MODE_NONE) {
-                    // rig cameras
-                    for (var index = 0; index < this.activeCamera._rigCameras.length; index++) {
-                        this.activeCamera._rigCameras[index].update();
-                    }
-                }
-            }
-        }
-        // Before render
-        this.onBeforeRenderObservable.notifyObservers(this);
-        // Customs render targets
-        this.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
-        var engine = this.getEngine();
-        var currentActiveCamera = this.activeCamera;
-        if (this.renderTargetsEnabled) {
-            _Misc_tools__WEBPACK_IMPORTED_MODULE_1__["Tools"].StartPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
-            this._intermediateRendering = true;
-            for (var customIndex = 0; customIndex < this.customRenderTargets.length; customIndex++) {
-                var renderTarget = this.customRenderTargets[customIndex];
-                if (renderTarget._shouldRender()) {
-                    this._renderId++;
-                    this.activeCamera = renderTarget.activeCamera || this.activeCamera;
-                    if (!this.activeCamera) {
-                        throw new Error("Active camera not set");
-                    }
-                    // Viewport
-                    engine.setViewport(this.activeCamera.viewport);
-                    // Camera
-                    this.updateTransformMatrix();
-                    renderTarget.render(currentActiveCamera !== this.activeCamera, this.dumpNextRenderTargets);
-                }
-            }
-            _Misc_tools__WEBPACK_IMPORTED_MODULE_1__["Tools"].EndPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
-            this._intermediateRendering = false;
-            this._renderId++;
-        }
-        // Restore back buffer
-        this.activeCamera = currentActiveCamera;
-        if (this._activeCamera && this._activeCamera.cameraRigMode !== _Cameras_camera__WEBPACK_IMPORTED_MODULE_10__["Camera"].RIG_MODE_CUSTOM && !this.prePass) {
-            this._bindFrameBuffer();
-        }
-        this.onAfterRenderTargetsRenderObservable.notifyObservers(this);
-        for (let step of this._beforeClearStage) {
-            step.action();
-        }
-        // Clear
-        if ((this.autoClearDepthAndStencil || this.autoClear) && !this.prePass) {
-            this._engine.clear(this.clearColor, this.autoClear || this.forceWireframe || this.forcePointsCloud, this.autoClearDepthAndStencil, this.autoClearDepthAndStencil);
-        }
-        // Collects render targets from external components.
-        for (let step of this._gatherRenderTargetsStage) {
-            step.action(this._renderTargets);
-        }
-        // Multi-cameras?
-        if (this.activeCameras && this.activeCameras.length > 0) {
-            for (var cameraIndex = 0; cameraIndex < this.activeCameras.length; cameraIndex++) {
-                if (cameraIndex > 0) {
-                    this._engine.clear(null, false, true, true);
-                }
-                this._processSubCameras(this.activeCameras[cameraIndex]);
-            }
-        }
-        else {
-            if (!this.activeCamera) {
-                throw new Error("No camera defined");
-            }
-            this._processSubCameras(this.activeCamera);
-        }
-        // Intersection checks
-        this._checkIntersections();
-        // Executes the after render stage actions.
-        for (let step of this._afterRenderStage) {
-            step.action();
-        }
-        // After render
-        if (this.afterRender) {
-            this.afterRender();
-        }
-        this.onAfterRenderObservable.notifyObservers(this);
-        // Cleaning
-        if (this._toBeDisposed.length) {
-            for (var index = 0; index < this._toBeDisposed.length; index++) {
-                var data = this._toBeDisposed[index];
-                if (data) {
-                    data.dispose();
-                }
-            }
-            this._toBeDisposed = [];
-        }
-        if (this.dumpNextRenderTargets) {
-            this.dumpNextRenderTargets = false;
-        }
-        this._activeBones.addCount(0, true);
-        this._activeIndices.addCount(0, true);
-        this._activeParticles.addCount(0, true);
-    }
-    /**
-     * Freeze all materials
-     * A frozen material will not be updatable but should be faster to render
-     */
-    freezeMaterials() {
-        for (var i = 0; i < this.materials.length; i++) {
-            this.materials[i].freeze();
-        }
-    }
-    /**
-     * Unfreeze all materials
-     * A frozen material will not be updatable but should be faster to render
-     */
-    unfreezeMaterials() {
-        for (var i = 0; i < this.materials.length; i++) {
-            this.materials[i].unfreeze();
-        }
-    }
     /**
      * Releases all held ressources
      */
     dispose() {
-        this.beforeRender = null;
-        this.afterRender = null;
-        if (_Engines_engineStore__WEBPACK_IMPORTED_MODULE_20__["EngineStore"]._LastCreatedScene === this) {
-            _Engines_engineStore__WEBPACK_IMPORTED_MODULE_20__["EngineStore"]._LastCreatedScene = null;
+        this.sceneEventTrigger.beforeRender = null;
+        this.sceneEventTrigger.afterRender = null;
+        if (_Engines_engineStore__WEBPACK_IMPORTED_MODULE_7__["EngineStore"]._LastCreatedScene === this) {
+            _Engines_engineStore__WEBPACK_IMPORTED_MODULE_7__["EngineStore"]._LastCreatedScene = null;
         }
         // this.skeletons = [];
         // this.morphTargetManagers = [];
         this._transientComponents = [];
-        this._isReadyForMeshStage.clear();
-        this._beforeEvaluateActiveMeshStage.clear();
-        this._evaluateSubMeshStage.clear();
-        this._preActiveMeshStage.clear();
-        this._cameraDrawRenderTargetStage.clear();
-        this._beforeCameraDrawStage.clear();
-        this._beforeRenderTargetDrawStage.clear();
-        this._beforeRenderingGroupDrawStage.clear();
-        this._beforeRenderingMeshStage.clear();
-        this._afterRenderingMeshStage.clear();
-        this._afterRenderingGroupDrawStage.clear();
-        this._afterCameraDrawStage.clear();
-        this._afterRenderTargetDrawStage.clear();
-        this._afterRenderStage.clear();
-        this._beforeCameraUpdateStage.clear();
-        this._beforeClearStage.clear();
-        this._gatherRenderTargetsStage.clear();
-        this._gatherActiveCameraRenderTargetsStage.clear();
-        this._pointerMoveStage.clear();
-        this._pointerDownStage.clear();
-        this._pointerUpStage.clear();
+        this.sceneStage.clear();
         for (let component of this._components) {
             component.dispose();
         }
@@ -64999,7 +65045,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         // if (this.stopAllAnimations) {
         //     this.stopAllAnimations();
         // }
-        this.resetCachedMaterial();
+        this.sceneCatch.resetCachedMaterial();
         // Smart arrays
         if (this.activeCamera) {
             this.activeCamera._activeMeshes.dispose();
@@ -65015,58 +65061,9 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         this._registeredForLateAnimationBindings.dispose();
         this._meshesForIntersections.dispose();
         this._toBeDisposed = [];
-        // Abort active requests
-        for (let request of this._activeRequests) {
-            request.abort();
-        }
-        // Events
-        this.onDisposeObservable.notifyObservers(this);
-        this.onDisposeObservable.clear();
-        this.onBeforeRenderObservable.clear();
-        this.onAfterRenderObservable.clear();
-        this.onBeforeRenderTargetsRenderObservable.clear();
-        this.onAfterRenderTargetsRenderObservable.clear();
-        this.onAfterStepObservable.clear();
-        this.onBeforeStepObservable.clear();
-        this.onBeforeActiveMeshesEvaluationObservable.clear();
-        this.onAfterActiveMeshesEvaluationObservable.clear();
-        this.onBeforeParticlesRenderingObservable.clear();
-        this.onAfterParticlesRenderingObservable.clear();
-        this.onBeforeDrawPhaseObservable.clear();
-        this.onAfterDrawPhaseObservable.clear();
-        this.onBeforeAnimationsObservable.clear();
-        this.onAfterAnimationsObservable.clear();
-        this.onDataLoadedObservable.clear();
-        this.onBeforeRenderingGroupObservable.clear();
-        this.onAfterRenderingGroupObservable.clear();
-        this.onMeshImportedObservable.clear();
-        this.onBeforeCameraRenderObservable.clear();
-        this.onAfterCameraRenderObservable.clear();
-        this.onReadyObservable.clear();
-        this.onNewCameraAddedObservable.clear();
-        this.onCameraRemovedObservable.clear();
-        this.onNewLightAddedObservable.clear();
-        this.onLightRemovedObservable.clear();
-        this.onNewGeometryAddedObservable.clear();
-        this.onGeometryRemovedObservable.clear();
-        this.onNewTransformNodeAddedObservable.clear();
-        this.onTransformNodeRemovedObservable.clear();
-        this.onNewMeshAddedObservable.clear();
-        this.onMeshRemovedObservable.clear();
-        // this.onNewSkeletonAddedObservable.clear();
-        // this.onSkeletonRemovedObservable.clear();
-        // this.onNewMaterialAddedObservable.clear();
-        // this.onNewMultiMaterialAddedObservable.clear();
-        this.onMaterialRemovedObservable.clear();
-        // this.onMultiMaterialRemovedObservable.clear();
-        this.onNewTextureAddedObservable.clear();
-        this.onTextureRemovedObservable.clear();
-        this.onPrePointerObservable.clear();
-        this.onPointerObservable.clear();
-        this.onPreKeyboardObservable.clear();
-        this.onKeyboardObservable.clear();
-        this.onActiveCameraChanged.clear();
-        this.detachControl();
+        this.sceneFile.dispose();
+        this.sceneEventTrigger.dispose();
+        this.sceneInputManagerApp.detachControl();
         // Detach cameras
         var canvas = this._engine.getInputElement();
         if (canvas) {
@@ -65075,10 +65072,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
                 this.cameras[index].detachControl();
             }
         }
-        // Release animation groups
-        // while (this.animationGroups.length) {
-        //     this.animationGroups[0].dispose();
-        // }
         // Release lights
         while (this.lights.length) {
             this.lights[0].dispose();
@@ -65098,31 +65091,15 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         if (this._defaultMaterial) {
             this._defaultMaterial.dispose();
         }
-        // while (this.multiMaterials.length) {
-        //     this.multiMaterials[0].dispose();
-        // }
         while (this.materials.length) {
             this.materials[0].dispose();
         }
-        // Release particles
-        // while (this.particleSystems.length) {
-        //     this.particleSystems[0].dispose();
-        // }
-        // // Release postProcesses
-        // while (this.postProcesses.length) {
-        //     this.postProcesses[0].dispose();
-        // }
         // Release textures
         while (this.textures.length) {
             this.textures[0].dispose();
         }
         // Release UBO
-        this._sceneUbo.dispose();
-        // if (this._multiviewSceneUbo) {
-        //     this._multiviewSceneUbo.dispose();
-        // }
-        // Post-processes
-        // this.postProcessManager.dispose();
+        this.sceneMatrix._sceneUbo.dispose();
         // Remove from engine
         index = this._engine.scenes.indexOf(this);
         if (index > -1) {
@@ -65138,45 +65115,14 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         return this._isDisposed;
     }
     /**
-     * Call this function to reduce memory footprint of the scene.
-     * Vertex buffers will not store CPU data anymore (this will prevent picking, collisions or physics to work correctly)
-     */
-    clearCachedVertexData() {
-        for (var meshIndex = 0; meshIndex < this.meshes.length; meshIndex++) {
-            var mesh = this.meshes[meshIndex];
-            var geometry = mesh.geometry;
-            if (geometry) {
-                geometry._indices = [];
-                for (var vbName in geometry._vertexBuffers) {
-                    if (!geometry._vertexBuffers.hasOwnProperty(vbName)) {
-                        continue;
-                    }
-                    geometry._vertexBuffers[vbName]._buffer._data = null;
-                }
-            }
-        }
-    }
-    /**
-     * This function will remove the local cached buffer data from texture.
-     * It will save memory but will prevent the texture from being rebuilt
-     */
-    cleanCachedTextureBuffer() {
-        for (var baseTexture of this.textures) {
-            let buffer = baseTexture._buffer;
-            if (buffer) {
-                baseTexture._buffer = null;
-            }
-        }
-    }
-    /**
      * Get the world extend vectors with an optional filter
      *
      * @param filterPredicate the predicate - which meshes should be included when calculating the world size
      * @returns {{ min: Vector3; max: Vector3 }} min and max vectors
      */
     getWorldExtends(filterPredicate) {
-        var min = new _Maths_math_vector__WEBPACK_IMPORTED_MODULE_7__["Vector3"](Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-        var max = new _Maths_math_vector__WEBPACK_IMPORTED_MODULE_7__["Vector3"](-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
+        var min = new _Maths_math_vector__WEBPACK_IMPORTED_MODULE_3__["Vector3"](Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+        var max = new _Maths_math_vector__WEBPACK_IMPORTED_MODULE_3__["Vector3"](-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
         filterPredicate = filterPredicate || (() => true);
         this.meshes.filter(filterPredicate).forEach((mesh) => {
             mesh.computeWorldMatrix(true);
@@ -65186,243 +65132,17 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             let boundingInfo = mesh.getBoundingInfo();
             var minBox = boundingInfo.boundingBox.minimumWorld;
             var maxBox = boundingInfo.boundingBox.maximumWorld;
-            _Maths_math_vector__WEBPACK_IMPORTED_MODULE_7__["Vector3"].CheckExtends(minBox, min, max);
-            _Maths_math_vector__WEBPACK_IMPORTED_MODULE_7__["Vector3"].CheckExtends(maxBox, min, max);
+            _Maths_math_vector__WEBPACK_IMPORTED_MODULE_3__["Vector3"].CheckExtends(minBox, min, max);
+            _Maths_math_vector__WEBPACK_IMPORTED_MODULE_3__["Vector3"].CheckExtends(maxBox, min, max);
         });
         return {
             min: min,
             max: max
         };
     }
-    // Picking
     /**
-     * Creates a ray that can be used to pick in the scene
-     * @param x defines the x coordinate of the origin (on-screen)
-     * @param y defines the y coordinate of the origin (on-screen)
-     * @param world defines the world matrix to use if you want to pick in object space (instead of world space)
-     * @param camera defines the camera to use for the picking
-     * @param cameraViewSpace defines if picking will be done in view space (false by default)
-     * @returns a Ray
+     * Gets or sets a boolean blocking all the calls to markAllMaterialsAsDirty (ie. the materials won't be updated if they are out of sync)
      */
-    createPickingRay(x, y, world, camera, cameraViewSpace = false) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("Ray");
-    }
-    /**
-     * Creates a ray that can be used to pick in the scene
-     * @param x defines the x coordinate of the origin (on-screen)
-     * @param y defines the y coordinate of the origin (on-screen)
-     * @param world defines the world matrix to use if you want to pick in object space (instead of world space)
-     * @param result defines the ray where to store the picking ray
-     * @param camera defines the camera to use for the picking
-     * @param cameraViewSpace defines if picking will be done in view space (false by default)
-     * @returns the current scene
-     */
-    createPickingRayToRef(x, y, world, result, camera, cameraViewSpace = false) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("Ray");
-    }
-    /**
-     * Creates a ray that can be used to pick in the scene
-     * @param x defines the x coordinate of the origin (on-screen)
-     * @param y defines the y coordinate of the origin (on-screen)
-     * @param camera defines the camera to use for the picking
-     * @returns a Ray
-     */
-    createPickingRayInCameraSpace(x, y, camera) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("Ray");
-    }
-    /**
-     * Creates a ray that can be used to pick in the scene
-     * @param x defines the x coordinate of the origin (on-screen)
-     * @param y defines the y coordinate of the origin (on-screen)
-     * @param result defines the ray where to store the picking ray
-     * @param camera defines the camera to use for the picking
-     * @returns the current scene
-     */
-    createPickingRayInCameraSpaceToRef(x, y, result, camera) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("Ray");
-    }
-    /** Launch a ray to try to pick a mesh in the scene
-     * @param x position on screen
-     * @param y position on screen
-     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
-     * @param fastCheck defines if the first intersection will be used (and not the closest)
-     * @param camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
-     * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
-     * @returns a PickingInfo
-     */
-    pick(x, y, predicate, fastCheck, camera, trianglePredicate) {
-        // Dummy info if picking as not been imported
-        const pi = new _Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_13__["PickingInfo"]();
-        pi._pickingUnavailable = true;
-        return pi;
-    }
-    /** Launch a ray to try to pick a mesh in the scene using only bounding information of the main mesh (not using submeshes)
-     * @param x position on screen
-     * @param y position on screen
-     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
-     * @param fastCheck defines if the first intersection will be used (and not the closest)
-     * @param camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
-     * @returns a PickingInfo (Please note that some info will not be set like distance, bv, bu and everything that cannot be capture by only using bounding infos)
-     */
-    pickWithBoundingInfo(x, y, predicate, fastCheck, camera) {
-        // Dummy info if picking as not been imported
-        const pi = new _Collisions_pickingInfo__WEBPACK_IMPORTED_MODULE_13__["PickingInfo"]();
-        pi._pickingUnavailable = true;
-        return pi;
-    }
-    /** Use the given ray to pick a mesh in the scene
-     * @param ray The ray to use to pick meshes
-     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must have isPickable set to true
-     * @param fastCheck defines if the first intersection will be used (and not the closest)
-     * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
-     * @returns a PickingInfo
-     */
-    pickWithRay(ray, predicate, fastCheck, trianglePredicate) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("Ray");
-    }
-    /**
-     * Launch a ray to try to pick a mesh in the scene
-     * @param x X position on screen
-     * @param y Y position on screen
-     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
-     * @param camera camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
-     * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
-     * @returns an array of PickingInfo
-     */
-    multiPick(x, y, predicate, camera, trianglePredicate) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("Ray");
-    }
-    /**
-     * Launch a ray to try to pick a mesh in the scene
-     * @param ray Ray to use
-     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
-     * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
-     * @returns an array of PickingInfo
-     */
-    multiPickWithRay(ray, predicate, trianglePredicate) {
-        throw _Misc_devTools__WEBPACK_IMPORTED_MODULE_21__["_DevTools"].WarnImport("Ray");
-    }
-    // Misc.
-    /** @hidden */
-    _rebuildGeometries() {
-        for (var geometry of this.geometries) {
-            geometry._rebuild();
-        }
-        for (var mesh of this.meshes) {
-            mesh._rebuild();
-        }
-        // if (this.postProcessManager) {
-        //     this.postProcessManager._rebuild();
-        // }
-        for (let component of this._components) {
-            component.rebuild();
-        }
-        // for (var system of this.particleSystems) {
-        //     system.rebuild();
-        // }
-    }
-    /** @hidden */
-    _rebuildTextures() {
-        for (var texture of this.textures) {
-            texture._rebuild();
-        }
-        this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_TextureDirtyFlag);
-    }
-    // Tags
-    _getByTags(list, tagsQuery, forEach) {
-        if (tagsQuery === undefined) {
-            // returns the complete list (could be done with Tags.MatchesQuery but no need to have a for-loop here)
-            return list;
-        }
-        var listByTags = [];
-        forEach = forEach || ((item) => { return; });
-        for (var i in list) {
-            var item = list[i];
-            if (_Misc_tags__WEBPACK_IMPORTED_MODULE_6__["Tags"] && _Misc_tags__WEBPACK_IMPORTED_MODULE_6__["Tags"].MatchesQuery(item, tagsQuery)) {
-                listByTags.push(item);
-                forEach(item);
-            }
-        }
-        return listByTags;
-    }
-    /**
-     * Get a list of meshes by tags
-     * @param tagsQuery defines the tags query to use
-     * @param forEach defines a predicate used to filter results
-     * @returns an array of Mesh
-     */
-    getMeshesByTags(tagsQuery, forEach) {
-        return this._getByTags(this.meshes, tagsQuery, forEach);
-    }
-    /**
-     * Get a list of cameras by tags
-     * @param tagsQuery defines the tags query to use
-     * @param forEach defines a predicate used to filter results
-     * @returns an array of Camera
-     */
-    getCamerasByTags(tagsQuery, forEach) {
-        return this._getByTags(this.cameras, tagsQuery, forEach);
-    }
-    /**
-     * Get a list of lights by tags
-     * @param tagsQuery defines the tags query to use
-     * @param forEach defines a predicate used to filter results
-     * @returns an array of Light
-     */
-    getLightsByTags(tagsQuery, forEach) {
-        return this._getByTags(this.lights, tagsQuery, forEach);
-    }
-    /**
-     * Get a list of materials by tags
-     * @param tagsQuery defines the tags query to use
-     * @param forEach defines a predicate used to filter results
-     * @returns an array of Material
-     */
-    // public getMaterialByTags(tagsQuery: string, forEach?: (material: Material) => void): Material[] {
-    //     return this._getByTags(this.materials, tagsQuery, forEach).concat(this._getByTags(this.multiMaterials, tagsQuery, forEach));
-    // }
-    /**
-     * Get a list of transform nodes by tags
-     * @param tagsQuery defines the tags query to use
-     * @param forEach defines a predicate used to filter results
-     * @returns an array of TransformNode
-     */
-    getTransformNodesByTags(tagsQuery, forEach) {
-        return this._getByTags(this.transformNodes, tagsQuery, forEach);
-    }
-    /**
-     * Overrides the default sort function applied in the renderging group to prepare the meshes.
-     * This allowed control for front to back rendering or reversly depending of the special needs.
-     *
-     * @param renderingGroupId The rendering group id corresponding to its index
-     * @param opaqueSortCompareFn The opaque queue comparison function use to sort.
-     * @param alphaTestSortCompareFn The alpha test queue comparison function use to sort.
-     * @param transparentSortCompareFn The transparent queue comparison function use to sort.
-     */
-    setRenderingOrder(renderingGroupId, opaqueSortCompareFn = null, alphaTestSortCompareFn = null, transparentSortCompareFn = null) {
-        this._renderingManager.setRenderingOrder(renderingGroupId, opaqueSortCompareFn, alphaTestSortCompareFn, transparentSortCompareFn);
-    }
-    /**
-     * Specifies whether or not the stencil and depth buffer are cleared between two rendering groups.
-     *
-     * @param renderingGroupId The rendering group id corresponding to its index
-     * @param autoClearDepthStencil Automatically clears depth and stencil between groups if true.
-     * @param depth Automatically clears depth between groups if true and autoClear is true.
-     * @param stencil Automatically clears stencil between groups if true and autoClear is true.
-     */
-    setRenderingAutoClearDepthStencil(renderingGroupId, autoClearDepthStencil, depth = true, stencil = true) {
-        this._renderingManager.setRenderingAutoClearDepthStencil(renderingGroupId, autoClearDepthStencil, depth, stencil);
-    }
-    /**
-     * Gets the current auto clear configuration for one rendering group of the rendering
-     * manager.
-     * @param index the rendering group index to get the information for
-     * @returns The auto clear setup for the requested rendering group
-     */
-    getAutoClearDepthStencilSetup(index) {
-        return this._renderingManager.getAutoClearDepthStencilSetup(index);
-    }
-    /** Gets or sets a boolean blocking all the calls to markAllMaterialsAsDirty (ie. the materials won't be updated if they are out of sync) */
     get blockMaterialDirtyMechanism() {
         return this._blockMaterialDirtyMechanism;
     }
@@ -65432,7 +65152,7 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
         }
         this._blockMaterialDirtyMechanism = value;
         if (!value) { // Do a complete update
-            this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_17__["Constants"].MATERIAL_AllDirtyFlag);
+            this.markAllMaterialsAsDirty(_Engines_constants__WEBPACK_IMPORTED_MODULE_5__["Constants"].MATERIAL_AllDirtyFlag);
         }
     }
     /**
@@ -65450,63 +65170,6 @@ class Scene extends _abstractScene__WEBPACK_IMPORTED_MODULE_0__["AbstractScene"]
             }
             material.markAsDirty(flag);
         }
-    }
-    /** @hidden */
-    _loadFile(url, onSuccess, onProgress, useOfflineSupport, useArrayBuffer, onError) {
-        const request = _Misc_fileTools__WEBPACK_IMPORTED_MODULE_27__["FileTools"].LoadFile(url, onSuccess, onProgress, useArrayBuffer, onError);
-        this._activeRequests.push(request);
-        request.onCompleteObservable.add((request) => {
-            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
-        });
-        return request;
-    }
-    /** @hidden */
-    _loadFileAsync(url, onProgress, useOfflineSupport, useArrayBuffer) {
-        return new Promise((resolve, reject) => {
-            this._loadFile(url, (data) => {
-                resolve(data);
-            }, onProgress, useOfflineSupport, useArrayBuffer, (request, exception) => {
-                reject(exception);
-            });
-        });
-    }
-    /** @hidden */
-    _requestFile(url, onSuccess, onProgress, useOfflineSupport, useArrayBuffer, onError, onOpened) {
-        const request = _Misc_fileTools__WEBPACK_IMPORTED_MODULE_27__["FileTools"].RequestFile(url, onSuccess, onProgress, useArrayBuffer, onError, onOpened);
-        this._activeRequests.push(request);
-        request.onCompleteObservable.add((request) => {
-            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
-        });
-        return request;
-    }
-    /** @hidden */
-    _requestFileAsync(url, onProgress, useOfflineSupport, useArrayBuffer, onOpened) {
-        return new Promise((resolve, reject) => {
-            this._requestFile(url, (data) => {
-                resolve(data);
-            }, onProgress, useOfflineSupport, useArrayBuffer, (error) => {
-                reject(error);
-            }, onOpened);
-        });
-    }
-    /** @hidden */
-    _readFile(file, onSuccess, onProgress, useArrayBuffer, onError) {
-        const request = _Misc_fileTools__WEBPACK_IMPORTED_MODULE_27__["FileTools"].ReadFile(file, onSuccess, onProgress, useArrayBuffer, onError);
-        this._activeRequests.push(request);
-        request.onCompleteObservable.add((request) => {
-            this._activeRequests.splice(this._activeRequests.indexOf(request), 1);
-        });
-        return request;
-    }
-    /** @hidden */
-    _readFileAsync(file, onProgress, useArrayBuffer) {
-        return new Promise((resolve, reject) => {
-            this._readFile(file, (data) => {
-                resolve(data);
-            }, onProgress, useArrayBuffer, (error) => {
-                reject(error);
-            });
-        });
     }
 }
 /** The fog is deactivated */
@@ -65527,12 +65190,6 @@ Scene.MinDeltaTime = 1.0;
  * @see https://doc.babylonjs.com/babylon101/animations#deterministic-lockstep
  */
 Scene.MaxDeltaTime = 1000.0;
-Object(_Misc_tools__WEBPACK_IMPORTED_MODULE_1__["applyMixins"])(Scene, [
-    // aaa,
-    _scene_matrix__WEBPACK_IMPORTED_MODULE_28__["SceneMatrix"],
-    // SceneClipPlane,
-    // InputManagerApp
-]);
 
 
 /***/ }),
@@ -70373,7 +70030,7 @@ class AssetContainer extends _Scene_abstractScene__WEBPACK_IMPORTED_MODULE_0__["
         // this["lensFlareSystems"] = [];
         // this["proceduralTextures"] = [];
         // this["reflectionProbes"] = [];
-        scene.onDisposeObservable.add(() => {
+        scene.sceneEventTrigger.onDisposeObservable.add(() => {
             if (!this._wasAddedToScene) {
                 this.dispose();
             }
@@ -70492,13 +70149,13 @@ class AssetContainer extends _Scene_abstractScene__WEBPACK_IMPORTED_MODULE_0__["
     addAllToScene() {
         this._wasAddedToScene = true;
         this.cameras.forEach((o) => {
-            this.scene.addCamera(o);
+            this.scene.sceneNode.addCamera(o);
         });
         this.lights.forEach((o) => {
-            this.scene.addLight(o);
+            this.scene.sceneNode.addLight(o);
         });
         this.meshes.forEach((o) => {
-            this.scene.addMesh(o);
+            this.scene.sceneNode.addMesh(o);
         });
         // this.skeletons.forEach((o) => {
         //     this.scene.addSkeleton(o);
@@ -70513,22 +70170,22 @@ class AssetContainer extends _Scene_abstractScene__WEBPACK_IMPORTED_MODULE_0__["
         //     this.scene.addMultiMaterial(o);
         // });
         this.materials.forEach((o) => {
-            this.scene.addMaterial(o);
+            this.scene.sceneNode.addMaterial(o);
         });
         // this.morphTargetManagers.forEach((o) => {
         //     this.scene.addMorphTargetManager(o);
         // });
         this.geometries.forEach((o) => {
-            this.scene.addGeometry(o);
+            this.scene.sceneNode.addGeometry(o);
         });
         this.transformNodes.forEach((o) => {
-            this.scene.addTransformNode(o);
+            this.scene.sceneNode.addTransformNode(o);
         });
         // this.actionManagers.forEach((o) => {
         //     this.scene.addActionManager(o);
         // });
         this.textures.forEach((o) => {
-            this.scene.addTexture(o);
+            this.scene.sceneNode.addTexture(o);
         });
         // this.reflectionProbes.forEach((o) => {
         //     this.scene.addReflectionProbe(o);
@@ -70546,13 +70203,13 @@ class AssetContainer extends _Scene_abstractScene__WEBPACK_IMPORTED_MODULE_0__["
     removeAllFromScene() {
         this._wasAddedToScene = false;
         this.cameras.forEach((o) => {
-            this.scene.removeCamera(o);
+            this.scene.sceneNode.removeCamera(o);
         });
         this.lights.forEach((o) => {
-            this.scene.removeLight(o);
+            this.scene.sceneNode.removeLight(o);
         });
         this.meshes.forEach((o) => {
-            this.scene.removeMesh(o);
+            this.scene.sceneNode.removeMesh(o);
         });
         // this.skeletons.forEach((o) => {
         //     this.scene.removeSkeleton(o);
@@ -70567,22 +70224,22 @@ class AssetContainer extends _Scene_abstractScene__WEBPACK_IMPORTED_MODULE_0__["
         //     this.scene.removeMultiMaterial(o);
         // });
         this.materials.forEach((o) => {
-            this.scene.removeMaterial(o);
+            this.scene.sceneNode.removeMaterial(o);
         });
         // this.morphTargetManagers.forEach((o) => {
         //     this.scene.removeMorphTargetManager(o);
         // });
         this.geometries.forEach((o) => {
-            this.scene.removeGeometry(o);
+            this.scene.sceneNode.removeGeometry(o);
         });
         this.transformNodes.forEach((o) => {
-            this.scene.removeTransformNode(o);
+            this.scene.sceneNode.removeTransformNode(o);
         });
         // this.actionManagers.forEach((o) => {
         //     this.scene.removeActionManager(o);
         // });
         this.textures.forEach((o) => {
-            this.scene.removeTexture(o);
+            this.scene.sceneNode.removeTexture(o);
         });
         // this.reflectionProbes.forEach((o) => {
         //     this.scene.removeReflectionProbe(o);
@@ -70710,11 +70367,78 @@ class AssetContainer extends _Scene_abstractScene__WEBPACK_IMPORTED_MODULE_0__["
 
 /***/ }),
 
+/***/ "./src/creator.ts":
+/*!************************!*\
+  !*** ./src/creator.ts ***!
+  \************************/
+/*! exports provided: creator */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "creator", function() { return creator; });
+function getValue(target, key) {
+    let value = null;
+    let type = "";
+    if (target[key] !== undefined) {
+        value = target[key];
+    }
+    else {
+        for (let i in target) {
+            var temp = target[i];
+            if (temp !== undefined) {
+                type = Object.prototype.toString.call(temp).toLocaleLowerCase();
+                if (type === "[object object]") {
+                    value = temp[key];
+                    if (value !== undefined) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return {
+        value,
+        type: Object.prototype.toString.call(value).toLocaleLowerCase()
+    };
+}
+function proxyClass(_class, _get, _set) {
+    return new Proxy(_class, {
+        get(target, key) {
+            const info = getValue(target, key);
+            return info.value;
+        },
+        set(target, key, value) {
+            _set(target, key, value);
+            const info = getValue(target, key);
+            if (info.value === undefined) {
+                target[key] = value;
+            }
+            else {
+                info.value = value;
+            }
+            return target;
+        }
+    });
+}
+function creator(_class, param) {
+    let ins = new _class(param);
+    ins = proxyClass(ins, (i) => {
+        // console.error(i);
+    }, (i) => {
+        // console.error(i);
+    });
+    return ins;
+}
+
+
+/***/ }),
+
 /***/ "./src/index.ts":
 /*!**********************!*\
   !*** ./src/index.ts ***!
   \**********************/
-/*! exports provided: Scene, AbstractActionManager, Action, ActionEvent, ActionManager, Condition, ValueCondition, PredicateCondition, StateCondition, SwitchBooleanAction, SetStateAction, SetValueAction, IncrementValueAction, PlayAnimationAction, StopAnimationAction, DoNothingAction, CombineAction, ExecuteCodeAction, SetParentAction, InterpolateValueAction, KeepAssets, InstantiatedEntries, AssetContainer, AutoRotationBehavior, BouncingBehavior, FramingBehavior, ArcRotateCameraGamepadInput, ArcRotateCameraKeyboardMoveInput, ArcRotateCameraMouseWheelInput, ArcRotateCameraPointersInput, ArcRotateCameraVRDeviceOrientationInput, CameraInputTypes, CameraInputsManager, Camera, TargetCamera, ArcRotateCamera, ArcRotateCameraInputsManager, Collider, DefaultCollisionCoordinator, PickingInfo, IntersectionInfo, _MeshCollisionData, BoundingBox, BoundingInfo, BoundingSphere, Octree, OctreeBlock, OctreeSceneComponent, Ray, ThinEngine, Engine, KeyboardEventTypes, KeyboardInfo, KeyboardInfoPre, PointerEventTypes, PointerInfoBase, PointerInfoPre, PointerInfo, ClipboardEventTypes, ClipboardInfo, StickValues, Gamepad, GenericPad, GamepadManager, GamepadSystemSceneComponent, Xbox360Button, Xbox360Dpad, Xbox360Pad, DualShockButton, DualShockDpad, DualShockPad, Light, HemisphericLight, DefaultLoadingScreen, SceneLoaderAnimationGroupLoadingMode, SceneLoader, SceneLoaderFlags, BaseTexture, InternalTextureSource, InternalTexture, Texture, StandardMaterialDefines, StandardMaterial, Scalar, extractMinAndMaxIndexed, extractMinAndMax, Space, Axis, Coordinate, Color3, Color4, TmpColors, ToGammaSpace, ToLinearSpace, Epsilon, Frustum, Orientation, BezierCurve, Angle, Arc2, Path2, Path3D, Curve3, Plane, Size, Vector2, Vector3, Vector4, Quaternion, Matrix, TmpVectors, PositionNormalVertex, PositionNormalTextureVertex, Viewport, SphericalHarmonics, SphericalPolynomial, AbstractMesh, Buffer, VertexBuffer, Geometry, GroundMesh, InstancedMesh, LinesMesh, InstancedLinesMesh, _CreationDataStorage, _InstancesBatch, Mesh, VertexData, MeshBuilder, SubMesh, TransformNode, BoxBuilder, SphereBuilder, LinesBuilder, DataBuffer, WebGLDataBuffer, Node, DepthRenderer, RenderingGroup, RenderingGroupInfo, RenderingManager, AlphaState, DepthCullingState, StencilState, AndOrNotEvaluator, DDSTools, expandToProperty, serialize, serializeAsTexture, serializeAsColor3, serializeAsFresnelParameters, serializeAsVector2, serializeAsVector3, serializeAsMeshReference, serializeAsColorCurves, serializeAsColor4, serializeAsImageProcessingConfiguration, serializeAsQuaternion, serializeAsMatrix, serializeAsCameraReference, SerializationHelper, CubeMapToSphericalPolynomialTools, HDRTools, PanoramaToCubeMapTools, EventState, Observer, MultiObserver, Observable, PerformanceMonitor, RollingAverage, PromisePolyfill, SmartArray, SmartArrayNoDuplicate, StringDictionary, Tags, Tools, className, AsyncLoop, applyMixins, Logger, _TypeStore, FilesInputStore, DeepCopier, PrecisionDate, WebRequest, InspectableType, PerfCounter, RetryStrategy, CanvasGenerator, LoadFileError, RequestFileError, ReadFileError, FileTools, StringTools, CopyTools */
+/*! exports provided: Scene, AbstractActionManager, Action, ActionEvent, ActionManager, Condition, ValueCondition, PredicateCondition, StateCondition, SwitchBooleanAction, SetStateAction, SetValueAction, IncrementValueAction, PlayAnimationAction, StopAnimationAction, DoNothingAction, CombineAction, ExecuteCodeAction, SetParentAction, InterpolateValueAction, KeepAssets, InstantiatedEntries, AssetContainer, AutoRotationBehavior, BouncingBehavior, FramingBehavior, ArcRotateCameraGamepadInput, ArcRotateCameraKeyboardMoveInput, ArcRotateCameraMouseWheelInput, ArcRotateCameraPointersInput, ArcRotateCameraVRDeviceOrientationInput, CameraInputTypes, CameraInputsManager, Camera, TargetCamera, ArcRotateCamera, ArcRotateCameraInputsManager, Collider, DefaultCollisionCoordinator, PickingInfo, IntersectionInfo, _MeshCollisionData, BoundingBox, BoundingInfo, BoundingSphere, Octree, OctreeBlock, OctreeSceneComponent, Ray, ThinEngine, Engine, KeyboardEventTypes, KeyboardInfo, KeyboardInfoPre, PointerEventTypes, PointerInfoBase, PointerInfoPre, PointerInfo, ClipboardEventTypes, ClipboardInfo, StickValues, Gamepad, GenericPad, GamepadManager, GamepadSystemSceneComponent, Xbox360Button, Xbox360Dpad, Xbox360Pad, DualShockButton, DualShockDpad, DualShockPad, Light, HemisphericLight, DefaultLoadingScreen, SceneLoaderAnimationGroupLoadingMode, SceneLoader, SceneLoaderFlags, BaseTexture, InternalTextureSource, InternalTexture, Texture, StandardMaterialDefines, StandardMaterial, Scalar, extractMinAndMaxIndexed, extractMinAndMax, Space, Axis, Coordinate, Color3, Color4, TmpColors, ToGammaSpace, ToLinearSpace, Epsilon, Frustum, Orientation, BezierCurve, Angle, Arc2, Path2, Path3D, Curve3, Plane, Size, Vector2, Vector3, Vector4, Quaternion, Matrix, TmpVectors, PositionNormalVertex, PositionNormalTextureVertex, Viewport, SphericalHarmonics, SphericalPolynomial, AbstractMesh, Buffer, VertexBuffer, Geometry, GroundMesh, InstancedMesh, LinesMesh, InstancedLinesMesh, _CreationDataStorage, _InstancesBatch, Mesh, VertexData, MeshBuilder, SubMesh, TransformNode, BoxBuilder, SphereBuilder, LinesBuilder, DataBuffer, WebGLDataBuffer, Node, DepthRenderer, RenderingGroup, RenderingGroupInfo, RenderingManager, AlphaState, DepthCullingState, StencilState, AndOrNotEvaluator, DDSTools, expandToProperty, serialize, serializeAsTexture, serializeAsColor3, serializeAsFresnelParameters, serializeAsVector2, serializeAsVector3, serializeAsMeshReference, serializeAsColorCurves, serializeAsColor4, serializeAsImageProcessingConfiguration, serializeAsQuaternion, serializeAsMatrix, serializeAsCameraReference, SerializationHelper, CubeMapToSphericalPolynomialTools, HDRTools, PanoramaToCubeMapTools, EventState, Observer, MultiObserver, Observable, PerformanceMonitor, RollingAverage, PromisePolyfill, SmartArray, SmartArrayNoDuplicate, StringDictionary, Tags, Tools, className, AsyncLoop, applyMixins, Logger, _TypeStore, FilesInputStore, DeepCopier, PrecisionDate, WebRequest, InspectableType, PerfCounter, RetryStrategy, CanvasGenerator, LoadFileError, RequestFileError, ReadFileError, FileTools, StringTools, CopyTools, creator */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -71129,7 +70853,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CopyTools", function() { return _Misc_index__WEBPACK_IMPORTED_MODULE_18__["CopyTools"]; });
 
 /* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./types */ "./src/types.ts");
-/* empty/unused harmony star reexport */
+/* empty/unused harmony star reexport *//* harmony import */ var _creator__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./creator */ "./src/creator.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "creator", function() { return _creator__WEBPACK_IMPORTED_MODULE_20__["creator"]; });
+
+
+
 
 
 
@@ -71198,11 +70926,6 @@ class Node {
         this._doNotSerialize = false;
         /** @hidden */
         this._isDisposed = false;
-        /**
-         * Gets a list of Animations associated with the node
-         */
-        // public animations = new Array<Animation>();
-        // protected _ranges: { [name: string]: Nullable<AnimationRange> } = {};
         /**
          * Callback raised when the node is ready to be used
          */
@@ -71344,19 +71067,6 @@ class Node {
             this._sceneRootNodesIndex = -1;
         }
     }
-    // private _animationPropertiesOverride: Nullable<AnimationPropertiesOverride> = null;
-    /**
-     * Gets or sets the animation properties override
-     */
-    // public get animationPropertiesOverride(): Nullable<AnimationPropertiesOverride> {
-    //     if (!this._animationPropertiesOverride) {
-    //         return this._scene.animationPropertiesOverride;
-    //     }
-    //     return this._animationPropertiesOverride;
-    // }
-    // public set animationPropertiesOverride(value: Nullable<AnimationPropertiesOverride>) {
-    //     this._animationPropertiesOverride = value;
-    // }
     /**
      * Gets a string identifying the name of the class
      * @returns "Node" string
@@ -71402,7 +71112,7 @@ class Node {
         behavior.init();
         if (this._scene.isLoading && !attachImmediately) {
             // We defer the attach when the scene will be loaded
-            this._scene.onDataLoadedObservable.addOnce(() => {
+            this._scene.sceneEventTrigger.onDataLoadedObservable.addOnce(() => {
                 behavior.attach(this);
             });
         }
@@ -71453,7 +71163,7 @@ class Node {
      * @returns a Matrix
      */
     getWorldMatrix() {
-        if (this._currentRenderId !== this._scene.getRenderId()) {
+        if (this._currentRenderId !== this._scene.sceneRender.getRenderId()) {
             this.computeWorldMatrix();
         }
         return this._worldMatrix;
@@ -71650,104 +71360,6 @@ class Node {
         this._isReady = true;
     }
     /**
-     * Get an animation by name
-     * @param name defines the name of the animation to look for
-     * @returns null if not found else the requested animation
-     */
-    // public getAnimationByName(name: string): Nullable<Animation> {
-    //     for (var i = 0; i < this.animations.length; i++) {
-    //         var animation = this.animations[i];
-    //         if (animation.name === name) {
-    //             return animation;
-    //         }
-    //     }
-    //     return null;
-    // }
-    /**
-     * Creates an animation range for this node
-     * @param name defines the name of the range
-     * @param from defines the starting key
-     * @param to defines the end key
-     */
-    // public createAnimationRange(name: string, from: number, to: number): void {
-    //     // check name not already in use
-    //     if (!this._ranges[name]) {
-    //         this._ranges[name] = Node._AnimationRangeFactory(name, from, to);
-    //         for (var i = 0, nAnimations = this.animations.length; i < nAnimations; i++) {
-    //             if (this.animations[i]) {
-    //                 this.animations[i].createRange(name, from, to);
-    //             }
-    //         }
-    //     }
-    // }
-    /**
-     * Delete a specific animation range
-     * @param name defines the name of the range to delete
-     * @param deleteFrames defines if animation frames from the range must be deleted as well
-     */
-    // public deleteAnimationRange(name: string, deleteFrames = true): void {
-    //     for (var i = 0, nAnimations = this.animations.length; i < nAnimations; i++) {
-    //         if (this.animations[i]) {
-    //             this.animations[i].deleteRange(name, deleteFrames);
-    //         }
-    //     }
-    //     this._ranges[name] = null; // said much faster than 'delete this._range[name]'
-    // }
-    /**
-     * Get an animation range by name
-     * @param name defines the name of the animation range to look for
-     * @returns null if not found else the requested animation range
-     */
-    // public getAnimationRange(name: string): Nullable<AnimationRange> {
-    //     return this._ranges[name] || null;
-    // }
-    /**
-     * Gets the list of all animation ranges defined on this node
-     * @returns an array
-     */
-    // public getAnimationRanges(): Nullable<AnimationRange>[] {
-    //     var animationRanges: Nullable<AnimationRange>[] = [];
-    //     var name: string;
-    //     for (name in this._ranges) {
-    //         animationRanges.push(this._ranges[name]);
-    //     }
-    //     return animationRanges;
-    // }
-    // /**
-    //  * Will start the animation sequence
-    //  * @param name defines the range frames for animation sequence
-    //  * @param loop defines if the animation should loop (false by default)
-    //  * @param speedRatio defines the speed factor in which to run the animation (1 by default)
-    //  * @param onAnimationEnd defines a function to be executed when the animation ended (undefined by default)
-    //  * @returns the object created for this animation. If range does not exist, it will return null
-    //  */
-    // public beginAnimation(name: string, loop?: boolean, speedRatio?: number, onAnimationEnd?: () => void): Nullable<Animatable> {
-    //     var range = this.getAnimationRange(name);
-    //     if (!range) {
-    //         return null;
-    //     }
-    //     return this._scene.beginAnimation(this, range.from, range.to, loop, speedRatio, onAnimationEnd);
-    // }
-    /**
-     * Serialize animation ranges into a JSON compatible object
-     * @returns serialization object
-     */
-    // public serializeAnimationRanges(): any {
-    //     var serializationRanges = [];
-    //     for (var name in this._ranges) {
-    //         var localRange = this._ranges[name];
-    //         if (!localRange) {
-    //             continue;
-    //         }
-    //         var range: any = {};
-    //         range.name = name;
-    //         range.from = localRange.from;
-    //         range.to = localRange.to;
-    //         serializationRanges.push(range);
-    //     }
-    //     return serializationRanges;
-    // }
-    /**
      * Computes the world matrix of the node
      * @param force defines if the cache version should be invalidated forcing the world matrix to be created from scratch
      * @returns the world matrix
@@ -71787,28 +71399,14 @@ class Node {
         this._behaviors = [];
     }
     /**
-     * Parse animation range data from a serialization object and store them into a given node
-     * @param node defines where to store the animation ranges
-     * @param parsedNode defines the serialization object to read data from
-     * @param scene defines the hosting scene
+     * Return the minimum and maximum world vectors of the entire hierarchy under current node
+     * @param includeDescendants Include bounding info from descendants as well (true by default)
+     * @param predicate defines a callback function that can be customize to filter what meshes should be included in the list used to compute the bounding vectors
+     * @returns the new bounding vectors
      */
-    // public static ParseAnimationRanges(node: Node, parsedNode: any, scene: Scene): void {
-    //     if (parsedNode.ranges) {
-    //         for (var index = 0; index < parsedNode.ranges.length; index++) {
-    //             var data = parsedNode.ranges[index];
-    //             node.createAnimationRange(data.name, data.from, data.to);
-    //         }
-    //     }
-    // }
-    /**
- * Return the minimum and maximum world vectors of the entire hierarchy under current node
- * @param includeDescendants Include bounding info from descendants as well (true by default)
- * @param predicate defines a callback function that can be customize to filter what meshes should be included in the list used to compute the bounding vectors
- * @returns the new bounding vectors
- */
     getHierarchyBoundingVectors(includeDescendants = true, predicate = null) {
         // Ensures that all world matrix will be recomputed.
-        this.getScene().incrementRenderId();
+        this.getScene().sceneRender.incrementRenderId();
         this.computeWorldMatrix(true);
         let min;
         let max;
@@ -71850,10 +71448,6 @@ class Node {
         };
     }
 }
-/** @hidden */
-// public static _AnimationRangeFactory = (name: string, from: number, to: number): AnimationRange => {
-//     throw _DevTools.WarnImport("AnimationRange");
-// }
 Node._NodeConstructors = {};
 Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_Misc_decorators__WEBPACK_IMPORTED_MODULE_2__["serialize"])()
@@ -71902,7 +71496,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index */ "./src/index.ts");
 // 挂载到window对象;
 
-window.lmgl2 = _index__WEBPACK_IMPORTED_MODULE_0__;
+window.BABYLON = _index__WEBPACK_IMPORTED_MODULE_0__;
 
 
 /***/ })

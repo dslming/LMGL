@@ -6,16 +6,17 @@ var canvas
 var engine
 var scene;
 
-window.canvas = canvas;
-window.engine = engine;
+
 window.onload = () => { };
 
 export function run(name) {
   canvas = document.getElementById('renderCanvas');
-  engine = new lmgl2.Engine(canvas, true);
+  engine = new BABYLON.Engine(canvas, true);
+  window.canvas = canvas;
+  window.engine = engine;
   scene = fnMap[name]();
   window.scene = scene;
   engine.runRenderLoop(function() {
-    scene && scene.render();
+    scene && scene.sceneRender.render();
   });
 }
