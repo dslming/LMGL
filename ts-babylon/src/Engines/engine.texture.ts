@@ -16,7 +16,7 @@ import { ThinEngine } from "./thinEngine";
 
 export class EngineTexture {
    public _gl: WebGLRenderingContext;
-  public webGLVersion = 2;
+   public webGLVersion = 2;
    /**
      * Texture content used if a texture cannot loaded
      * @ignorenaming

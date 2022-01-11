@@ -11,14 +11,14 @@ export class EngineUniform {
         this._gl = _gl;
     }
 
-    /** --------------------------------- uniform ---------------------------------- */
-   /**
+    /**
      * Gets or sets a boolean indicating that uniform buffers must be disabled even if they are supported
      */
     public disableUniformBuffers = false;
-  public _boundUniforms: { [key: number]: WebGLUniformLocation } = {};
+    public _boundUniforms: { [key: number]: WebGLUniformLocation } = {};
     public _uniformBuffers = new Array<UniformBuffer>();
-/**
+
+    /**
      * Gets a boolean indicating that the engine supports uniform buffers
      * @see https://doc.babylonjs.com/features/webgl2#uniform-buffer-objets
      */
@@ -26,16 +26,14 @@ export class EngineUniform {
         return this.webGLVersion > 1 && !this.disableUniformBuffers;
     }
 
-
-
-  /** -------------------------------- uniform -------------------------------------- */
-   public _rebuildBuffers(): void {
+    public _rebuildBuffers(): void {
         // Uniforms
         for (var uniformBuffer of this._uniformBuffers) {
             uniformBuffer._rebuild();
         }
-   }
-  /**
+    }
+
+    /**
      * Gets the list of webGL uniform locations associated with a specific program based on a list of uniform names
      * @param pipelineContext defines the pipeline context to use
      * @param uniformsNames defines the list of uniform names
@@ -51,7 +49,8 @@ export class EngineUniform {
 
         return results;
     }
-   /**
+
+    /**
      * Set the value of an uniform to an array of int32
      * @param uniform defines the webGL uniform location where to store the value
      * @param array defines the array of int32 to store
