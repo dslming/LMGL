@@ -74,12 +74,6 @@ export class ThinEngine {
   /** --------------------------------- effect ---------------------------------- */
   protected _currentEffect: Nullable<Effect>;
 
-
-
-
-
-
-
   /**
      * Binds an effect to the webGL context
      * @param effect defines the effect to bind
@@ -98,38 +92,6 @@ export class ThinEngine {
         this._currentEffect = null;
     }
 
-
-
-//     /**
-//      * Texture content used if a texture cannot loaded
-//      * @ignorenaming
-//      */
-//     public static FallbackTexture = "";
-//   public static _TextureLoaders: IInternalTextureLoader[] = [];
-//   public onBeforeTextureInitObservable = new Observable<Texture>();
-//     public _transformTextureUrl: Nullable<(url: string) => string> = null;
-
-
-//    /**
-//      * In case you are sharing the context with other applications, it might
-//      * be interested to not cache the unpack flip y state to ensure a consistent
-//      * value would be set.
-//      */
-//     public enableUnpackFlipYCached = true;
-//   protected _activeChannel = 0;
-//   private _currentTextureChannel = -1;
-//   private _maxSimultaneousTextures = 0;
-//   private _nextFreeTextureSlots = new Array<number>();
-//   private _textureUnits: Int32Array;
-//   public _internalTexturesCache = new Array<InternalTexture>();
-//   protected _boundTexturesCache: { [key: string]: Nullable<InternalTexture> } = {};
-//   private _emptyTexture: Nullable<InternalTexture>;
-//   private _emptyCubeTexture: Nullable<InternalTexture>;
-//   private _emptyTexture3D: Nullable<InternalTexture>;
-//   private _emptyTexture2DArray: Nullable<InternalTexture>;
-//   private _unpackFlipYCached: Nullable<boolean> = null;
-//   private _supportsHardwareTextureRescaling: boolean = false;
-
     public _doNotHandleContextLost = false;
 
 
@@ -143,8 +105,6 @@ export class ThinEngine {
 
   /** --------------------------------- program ---------------------------------- */
   private _compiledEffects: { [key: string]: Effect } = {};
-
-
 
   // States
   public _isStencilEnable: boolean;
@@ -164,15 +124,12 @@ export class ThinEngine {
   public useReverseDepthBuffer = false;
   public _frameHandler: number;
 
-
-
   /**
    * Gets or sets a boolean indicating that cache can be kept between frames
    */
   public preventCacheWipeBetweenFrames = false;
 
   public _boundRenderFunction: any;
-
 
   /**
    * Gets or sets the epsilon value used by collision engine
@@ -230,7 +187,6 @@ export class ThinEngine {
         }
         webGLRenderingState.program.__SPECTOR_rebuildProgram = rebuildRebind;
     }
-
 
   /**
      * Creates a new pipeline context
@@ -604,10 +560,6 @@ export class ThinEngine {
         return 1.0;
     }
 
-
-
-
-
   /**
     * Resize the view according to the canvas' size
     */
@@ -779,10 +731,6 @@ export class ThinEngine {
     protected _reportDrawCall() {
         // Will be implemented by children
     }
-
-
-
-
 
   /**
    * Enable or disable color writing
@@ -1067,10 +1015,6 @@ export class ThinEngine {
     public flushFramebuffer(): void {
         this._gl.flush();
     }
-
-
-
-
 
   /** ---------------------------------------- shader --------------------------------------------------------- */
    protected static _ConcatenateShader(source: string, defines: Nullable<string>, shaderVersion: string = ""): string {
@@ -1386,9 +1330,6 @@ export class ThinEngine {
         this.engineVertex.bindIndexBuffer(null);
     }
 
-
-
-
  /** @hidden */
     public _loadFile(url: string, onSuccess: (data: string | ArrayBuffer, responseURL?: string) => void, onProgress?: (data: any) => void, useArrayBuffer?: boolean, onError?: (request?: IWebRequest, exception?: any) => void): IFileRequest {
         let request = ThinEngine._FileToolsLoadFile(url, onSuccess, onProgress, useArrayBuffer, onError);
@@ -1415,7 +1356,6 @@ export class ThinEngine {
             this._activeRenderLoops.splice(index, 1);
         }
     }
-
 
   /**
      * Dispose and release all associated resources
