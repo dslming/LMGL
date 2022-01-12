@@ -1621,54 +1621,6 @@ export class StandardMaterial extends PushMaterial {
     }
 
     /**
-     * Get the list of animatables in the material.
-     * @returns the list of animatables object used in the material
-     */
-    // public getAnimatables(): IAnimatable[] {
-    //     var results = [];
-
-    //     if (this._diffuseTexture && this._diffuseTexture.animations && this._diffuseTexture.animations.length > 0) {
-    //         results.push(this._diffuseTexture);
-    //     }
-
-    //     if (this._ambientTexture && this._ambientTexture.animations && this._ambientTexture.animations.length > 0) {
-    //         results.push(this._ambientTexture);
-    //     }
-
-    //     if (this._opacityTexture && this._opacityTexture.animations && this._opacityTexture.animations.length > 0) {
-    //         results.push(this._opacityTexture);
-    //     }
-
-    //     if (this._reflectionTexture && this._reflectionTexture.animations && this._reflectionTexture.animations.length > 0) {
-    //         results.push(this._reflectionTexture);
-    //     }
-
-    //     if (this._emissiveTexture && this._emissiveTexture.animations && this._emissiveTexture.animations.length > 0) {
-    //         results.push(this._emissiveTexture);
-    //     }
-
-    //     if (this._specularTexture && this._specularTexture.animations && this._specularTexture.animations.length > 0) {
-    //         results.push(this._specularTexture);
-    //     }
-
-    //     if (this._bumpTexture && this._bumpTexture.animations && this._bumpTexture.animations.length > 0) {
-    //         results.push(this._bumpTexture);
-    //     }
-
-    //     if (this._lightmapTexture && this._lightmapTexture.animations && this._lightmapTexture.animations.length > 0) {
-    //         results.push(this._lightmapTexture);
-    //     }
-
-    //     if (this._refractionTexture && this._refractionTexture.animations && this._refractionTexture.animations.length > 0) {
-    //         results.push(this._refractionTexture);
-    //     }
-
-    //     this.detailMap.getAnimatables(results);
-
-    //     return results;
-    // }
-
-    /**
      * Gets the active textures from the material
      * @returns an array of textures
      */
