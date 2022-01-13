@@ -1,16 +1,19 @@
-import { DataBuffer } from './dataBuffer';
-import { Nullable } from '../types';
+import { DataBuffer } from "./dataBuffer";
+import { Nullable } from "../types";
 
-/** @hidden */
+/**
+ * new WebGLDataBuffer(gl.createBuffer());
+ * createUniformBuffer(), _createVertexBuffer()
+ */
 export class WebGLDataBuffer extends DataBuffer {
-    private _buffer: Nullable<WebGLBuffer>;
+  private _buffer: Nullable<WebGLBuffer>;
 
-    public constructor(resource: WebGLBuffer) {
-        super();
-        this._buffer = resource;
-    }
+  public constructor(resource: WebGLBuffer) {
+    super();
+    this._buffer = resource;
+  }
 
-    public get underlyingResource(): any {
-        return this._buffer;
-    }
+  public get underlyingResource(): any {
+    return this._buffer;
+  }
 }

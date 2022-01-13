@@ -23,6 +23,19 @@ export class EngineVertex {
     this._cachedVertexBuffers = null;
   }
 
+  public createVertexBuffer(data: DataArray): DataBuffer {
+    return this._createVertexBuffer(data, this._gl.STATIC_DRAW);
+  }
+
+  /**
+   * Creates a dynamic vertex buffer
+   * @param data the data for the dynamic vertex buffer
+   * @returns the new WebGL dynamic buffer
+   */
+  public createDynamicVertexBuffer(data: DataArray): DataBuffer {
+    return this._createVertexBuffer(data, this._gl.DYNAMIC_DRAW);
+  }
+
   private _createVertexBuffer(data: DataArray, usage: number): DataBuffer {
     var vbo = this._gl.createBuffer();
 
@@ -53,10 +66,6 @@ export class EngineVertex {
     return dataBuffer;
   }
 
-  public createVertexBuffer(data: DataArray): DataBuffer {
-    return this._createVertexBuffer(data, this._gl.STATIC_DRAW);
-  }
-
   public _unbindVertexArrayObject(): void {
     if (!this._cachedVertexArrayObject) {
       return;
@@ -81,5 +90,62 @@ export class EngineVertex {
       this._gl.bindBuffer(target, buffer ? buffer.underlyingResource : null);
       this._currentBoundBuffer[target] = buffer;
     }
+  }
+
+  updateDynamicVertexBuffer(
+    vertexBuffer: DataBuffer,
+    data: DataArray,
+    byteOffset?: number,
+    byteLength?: number
+  ): void {
+    this.bindArrayBuffer(vertexBuffer);
+
+    if (byteOffset === undefined) {
+      byteOffset = 0;
+    }
+
+    const dataLength =
+      (data as number[]).length || (data as ArrayBuffer).byteLength;
+
+    if (
+      byteLength === undefined ||
+      (byteLength >= dataLength && byteOffset === 0)
+    ) {
+      if (data instanceof Array) {
+        this._gl.bufferSubData(
+          this._gl.ARRAY_BUFFER,
+          byteOffset,
+          new Float32Array(data)
+        );
+      } else {
+        this._gl.bufferSubData(
+          this._gl.ARRAY_BUFFER,
+          byteOffset,
+          <ArrayBuffer>data
+        );
+      }
+    } else {
+      if (data instanceof Array) {
+        this._gl.bufferSubData(
+          this._gl.ARRAY_BUFFER,
+          0,
+          new Float32Array(data).subarray(byteOffset, byteOffset + byteLength)
+        );
+      } else {
+        if (data instanceof ArrayBuffer) {
+          data = new Uint8Array(data, byteOffset, byteLength);
+        } else {
+          data = new Uint8Array(
+            data.buffer,
+            data.byteOffset + byteOffset,
+            byteLength
+          );
+        }
+
+        this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, <ArrayBuffer>data);
+      }
+    }
+
+    this._resetVertexBufferBinding();
   }
 }
