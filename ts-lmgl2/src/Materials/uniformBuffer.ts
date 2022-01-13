@@ -1,14 +1,15 @@
 import { Logger } from "../Misc/logger";
 import { Nullable, FloatArray } from "../types";
 import { Matrix, Vector3, Vector4 } from "../Maths/math.vector";
-import { Engine } from "../Engines/engine";
+import { Engine } from "../Engine/engine";
 import { Effect } from "./effect";
 import { BaseTexture } from "./Textures/baseTexture";
-import { DataBuffer } from "../Meshes/dataBuffer";
+// import { DataBuffer } from "../Meshes/dataBuffer";
 import { Color3 } from "../Maths/math.color";
 import { IMatrixLike } from "../Maths/math.like";
 
 import "../Engines/Extensions/engine.uniformBuffer";
+import { DataBuffer } from "../Engine/dataBuffer";
 
 /**
  * Uniform buffer objects.
@@ -442,7 +443,7 @@ export class UniformBuffer {
       return;
     }
 
-    this._engine.updateUniformBuffer(this._buffer, this._bufferData);
+    this._engine.engineUniform.updateUniformBuffer(this._buffer, this._bufferData);
 
     this._needSync = false;
   }

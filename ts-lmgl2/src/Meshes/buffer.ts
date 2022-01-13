@@ -1,6 +1,6 @@
 import { Nullable, DataArray } from "../types";
 import { Engine } from "../Engine/engine";
-import { DataBuffer } from "./dataBuffer";
+import { DataBuffer } from "../Engine/dataBuffer";
 
 /**
  * Class used to store data that will be store in GPU memory
@@ -128,7 +128,7 @@ export class Buffer {
       }
     } else if (this._updatable) {
       // update buffer
-      this._engine.engineVertex.updateDynamicVertexBuffer(this._buffer, data);
+      this._engine.updateDynamicVertexBuffer(this._buffer, data);
       this._data = data;
     }
   }
@@ -166,7 +166,7 @@ export class Buffer {
 
     if (this._updatable) {
       // update buffer
-      this._engine.engineVertex.updateDynamicVertexBuffer(
+      this._engine.updateDynamicVertexBuffer(
         this._buffer,
         data,
         useBytes ? offset : offset * Float32Array.BYTES_PER_ELEMENT,

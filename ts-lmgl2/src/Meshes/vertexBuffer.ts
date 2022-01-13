@@ -1,5 +1,5 @@
 import { Nullable, DataArray } from "../types";
-import { DataBuffer } from "./dataBuffer";
+import { DataBuffer } from "../Engine/dataBuffer";
 import { Buffer } from "./buffer";
 import { Engine } from "../Engine/engine";
 /**

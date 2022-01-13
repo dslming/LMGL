@@ -1,36 +1,55 @@
-import { DataBuffer } from "../DataStruct/dataBuffer";
+import { DataBuffer } from "./dataBuffer";
 import { Nullable } from "../types";
 import { EngineCapabilities } from "./engine.capabilities";
 import { EngineVertex } from "./engine.vertex";
-
-export interface EngineOptions extends WebGLContextAttributes {
-  /**
-   * Defines that engine should compile shaders with high precision floats (if supported). True by default
-   */
-  useHighPrecisionFloats?: boolean;
-
-  /**
-   * Make the matrix computations to be performed in 64 bits instead of 32 bits. False by default
-   */
-  useHighPrecisionMatrix?: boolean;
-
-  /**
-   * Defines if animations should run using a deterministic lock step
-   * @see https://doc.babylonjs.com/babylon101/animations#deterministic-lockstep
-   */
-  deterministicLockstep?: boolean;
-  /** Defines the maximum steps to use with deterministic lock step mode */
-  lockstepMaxSteps?: number;
-  /** Defines the seconds between each deterministic lock step */
-  timeStep?: number;
-}
+import { IPipelineContext } from "./IPipelineContext";
+import { WebGLPipelineContext } from "./webGLPipelineContext";
+import { EngineUniform } from "./engine.uniform";
+import { Effect } from "../Materials/effect";
+import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
+import { EngineTexture } from "./engine.texture";
+import { EngineOptions } from "./iEngine";
+import { Scene } from "../Scene/scene";
+import { _DevTools } from "../Misc/devTools";
+import { IFileRequest } from "../Misc/fileRequest";
+import { EngineFile } from "./engine.file";
+import { EngineViewPort } from "./engine.viewPort";
+import { EngineFramebuffer } from "./engine.framebuffer";
+import { CanvasGenerator } from "../Misc/canvasGenerator";
+import { EngineState } from "./engine.state";
+import { InternalTexture } from "../Materials/Textures/internalTexture";
 
 export class Engine {
+  public _doNotHandleContextLost = false;
+  public _workingCanvas: Nullable<HTMLCanvasElement | OffscreenCanvas>;
+  public _workingContext: Nullable<CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D>;
   public _gl: WebGLRenderingContext;
   public _glVersion: string;
   public _webGLVersion: number = 2;
-  public engineVertex: EngineVertex;
   public _caps: EngineCapabilities;
+  private _compiledEffects: { [key: string]: Effect } = {};
+  protected _currentProgram: Nullable<WebGLProgram>;
+  protected _currentEffect: Nullable<Effect>;
+  public scenes = new Array<Scene>();
+
+  /**
+  * Gets or sets a boolean indicating that cache can be kept between frames
+  */
+  public preventCacheWipeBetweenFrames = false;
+
+  public engineVertex: EngineVertex;
+  public engineUniform: EngineUniform;
+  public engineTexture: EngineTexture;
+  public engineFile: EngineFile;
+  public engineViewPort: EngineViewPort;
+  public engineFramebuffer: EngineFramebuffer;
+  public engineState: EngineState;
+
+
+  /**
+   * Gets or sets a boolean indicating if the engine should validate programs after compilation
+   */
+  public validateShaderPrograms = false;
 
   constructor(canvas: HTMLCanvasElement, options?: EngineOptions) {
     // GL
@@ -48,6 +67,20 @@ export class Engine {
     }
 
     this.engineVertex = new EngineVertex(this._gl, this._caps);
+    this.engineUniform = new EngineUniform(this._gl);
+    this.engineState = new EngineState(this._gl);
+    this.engineTexture = new EngineTexture(this._gl, this);
+    this.engineFile = new EngineFile();
+    this.engineViewPort = new EngineViewPort(this);
+    this.engineFramebuffer = new EngineFramebuffer(this._gl, this);
+  }
+
+  public getClassName(): string {
+    return "ThinEngine";
+  }
+
+  public getCaps(): EngineCapabilities {
+    return this._caps;
   }
 
   protected _initGLContext(): void {
@@ -160,6 +193,7 @@ export class Engine {
   protected _deleteBuffer(buffer: DataBuffer): void {
     this._gl.deleteBuffer(buffer.underlyingResource);
   }
+
   /** @hidden */
   public _releaseBuffer(buffer: DataBuffer): boolean {
     buffer.references--;
@@ -170,5 +204,490 @@ export class Engine {
     }
 
     return false;
+  }
+
+  /**
+   * Binds an effect to the webGL context
+   * @param effect defines the effect to bind
+   */
+  public bindSamplers(effect: Effect): void {
+    let webGLPipelineContext =
+      effect.getPipelineContext() as WebGLPipelineContext;
+    this._setProgram(webGLPipelineContext.program!);
+    var samplers = effect.getSamplers();
+    for (var index = 0; index < samplers.length; index++) {
+      var uniform = effect.getUniform(samplers[index]);
+
+      if (uniform) {
+        this.engineUniform._boundUniforms[index] = uniform;
+      }
+    }
+    this._currentEffect = null;
+  }
+
+  protected _setProgram(program: WebGLProgram): void {
+    if (this._currentProgram !== program) {
+      this._gl.useProgram(program);
+      this._currentProgram = program;
+    }
+  }
+
+  public _isRenderingStateCompiled(pipelineContext: IPipelineContext): boolean {
+    let webGLPipelineContext = pipelineContext as WebGLPipelineContext;
+    if (
+      this._gl.getProgramParameter(
+        webGLPipelineContext.program!,
+        this._caps.parallelShaderCompile!.COMPLETION_STATUS_KHR
+      )
+    ) {
+      this._finalizePipelineContext(webGLPipelineContext);
+      return true;
+    }
+
+    return false;
+  }
+
+
+  public _deletePipelineContext(pipelineContext: IPipelineContext): void {
+    let webGLPipelineContext = pipelineContext as WebGLPipelineContext;
+    if (webGLPipelineContext && webGLPipelineContext.program) {
+      webGLPipelineContext.program.__SPECTOR_rebuildProgram = null;
+
+      this._gl.deleteProgram(webGLPipelineContext.program);
+    }
+  }
+
+  public releaseEffects() {
+    for (var name in this._compiledEffects) {
+      let webGLPipelineContext = this._compiledEffects[
+        name
+      ].getPipelineContext() as WebGLPipelineContext;
+      this._deletePipelineContext(webGLPipelineContext);
+    }
+
+    this._compiledEffects = {};
+  }
+
+  public _releaseEffect(effect: Effect): void {
+    if (this._compiledEffects[effect._key]) {
+      delete this._compiledEffects[effect._key];
+
+      this._deletePipelineContext(
+        effect.getPipelineContext() as WebGLPipelineContext
+      );
+    }
+  }
+
+  /**
+ * Sets a depth stencil texture from a render target to the according uniform.
+ * @param channel The texture channel
+ * @param uniform The uniform to set
+ * @param texture The render target texture containing the depth stencil texture to apply
+ */
+  public setDepthStencilTexture(channel: number, uniform: Nullable<WebGLUniformLocation>, texture: Nullable<RenderTargetTexture>): void {
+    if (channel === undefined) {
+      return;
+    }
+
+    if (uniform) {
+      this.engineUniform._boundUniforms[channel] = uniform;
+    }
+
+    if (!texture || !texture.depthStencilTexture) {
+      this.engineTexture._setTexture(channel, null);
+    }
+    else {
+      this.engineTexture._setTexture(channel, texture, false, true);
+    }
+  }
+
+  /**
+ * Creates a new pipeline context
+ * @returns the new pipeline
+ */
+  public createPipelineContext(): IPipelineContext {
+    var pipelineContext = new WebGLPipelineContext();
+    pipelineContext.engine = this;
+
+    if (this._caps.parallelShaderCompile) {
+      pipelineContext.isParallelCompiled = true;
+    }
+
+    return pipelineContext;
+  }
+
+  /**
+   * Gets the lsit of active attributes for a given webGL program
+   * @param pipelineContext defines the pipeline context to use
+   * @param attributesNames defines the list of attribute names to get
+   * @returns an array of indices indicating the offset of each attribute
+   */
+  public getAttributes(
+    pipelineContext: IPipelineContext,
+    attributesNames: string[]
+  ): number[] {
+    var results = [];
+    let webGLPipelineContext = pipelineContext as WebGLPipelineContext;
+
+    for (var index = 0; index < attributesNames.length; index++) {
+      try {
+        results.push(
+          this._gl.getAttribLocation(
+            webGLPipelineContext.program!,
+            attributesNames[index]
+          )
+        );
+      } catch (e) {
+        results.push(-1);
+      }
+    }
+
+    return results;
+  }
+
+  /** ---------------------------------------- shader --------------------------------------------------------- */
+  public _executeWhenRenderingStateIsCompiled(
+    pipelineContext: IPipelineContext,
+    action: () => void
+  ) {
+    let webGLPipelineContext = pipelineContext as WebGLPipelineContext;
+
+    if (!webGLPipelineContext.isParallelCompiled) {
+      action();
+      return;
+    }
+
+    let oldHandler = webGLPipelineContext.onCompiled;
+
+    if (oldHandler) {
+      webGLPipelineContext.onCompiled = () => {
+        oldHandler!();
+        action();
+      };
+    } else {
+      webGLPipelineContext.onCompiled = action;
+    }
+  }
+
+  protected static _ConcatenateShader(
+    source: string,
+    defines: Nullable<string>,
+    shaderVersion: string = ""
+  ): string {
+    return shaderVersion + (defines ? defines + "\n" : "") + source;
+  }
+
+  private _compileShader(
+    source: string,
+    type: string,
+    defines: Nullable<string>,
+    shaderVersion: string
+  ): WebGLShader {
+    return this._compileRawShader(
+      Engine._ConcatenateShader(source, defines, shaderVersion),
+      type
+    );
+  }
+
+  private _compileRawShader(source: string, type: string): WebGLShader {
+    var gl = this._gl;
+    var shader = gl.createShader(
+      type === "vertex" ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER
+    );
+
+    if (!shader) {
+      throw new Error("Something went wrong while compile the shader.");
+    }
+
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+
+    return shader;
+  }
+
+  public _getShaderSource(shader: WebGLShader): Nullable<string> {
+    return this._gl.getShaderSource(shader);
+  }
+  protected _finalizePipelineContext(pipelineContext: WebGLPipelineContext) {
+    const context = pipelineContext.context!;
+    const vertexShader = pipelineContext.vertexShader!;
+    const fragmentShader = pipelineContext.fragmentShader!;
+    const program = pipelineContext.program!;
+
+    var linked = context.getProgramParameter(program, context.LINK_STATUS);
+    if (!linked) {
+      // Get more info
+      // Vertex
+      if (!this._gl.getShaderParameter(vertexShader, this._gl.COMPILE_STATUS)) {
+        const log = this._gl.getShaderInfoLog(vertexShader);
+        if (log) {
+          pipelineContext.vertexCompilationError = log;
+          throw new Error("VERTEX SHADER " + log);
+        }
+      }
+
+      // Fragment
+      if (
+        !this._gl.getShaderParameter(fragmentShader, this._gl.COMPILE_STATUS)
+      ) {
+        const log = this._gl.getShaderInfoLog(fragmentShader);
+        if (log) {
+          pipelineContext.fragmentCompilationError = log;
+          throw new Error("FRAGMENT SHADER " + log);
+        }
+      }
+
+      var error = context.getProgramInfoLog(program);
+      if (error) {
+        pipelineContext.programLinkError = error;
+        throw new Error(error);
+      }
+    }
+
+    if (this.validateShaderPrograms) {
+      context.validateProgram(program);
+      var validated = context.getProgramParameter(
+        program,
+        context.VALIDATE_STATUS
+      );
+
+      if (!validated) {
+        var error = context.getProgramInfoLog(program);
+        if (error) {
+          pipelineContext.programValidationError = error;
+          throw new Error(error);
+        }
+      }
+    }
+
+    context.deleteShader(vertexShader);
+    context.deleteShader(fragmentShader);
+
+    pipelineContext.vertexShader = undefined;
+    pipelineContext.fragmentShader = undefined;
+
+    if (pipelineContext.onCompiled) {
+      pipelineContext.onCompiled();
+      pipelineContext.onCompiled = undefined;
+    }
+  }
+
+  protected _createShaderProgram(
+    pipelineContext: WebGLPipelineContext,
+    vertexShader: WebGLShader,
+    fragmentShader: WebGLShader,
+    context: WebGLRenderingContext,
+    transformFeedbackVaryings: Nullable<string[]> = null
+  ): WebGLProgram {
+    var shaderProgram = context.createProgram();
+    pipelineContext.program = shaderProgram;
+
+    if (!shaderProgram) {
+      throw new Error("Unable to create program");
+    }
+
+    context.attachShader(shaderProgram, vertexShader);
+    context.attachShader(shaderProgram, fragmentShader);
+
+    context.linkProgram(shaderProgram);
+
+    pipelineContext.context = context;
+    pipelineContext.vertexShader = vertexShader;
+    pipelineContext.fragmentShader = fragmentShader;
+
+    if (!pipelineContext.isParallelCompiled) {
+      this._finalizePipelineContext(pipelineContext);
+    }
+
+    return shaderProgram;
+  }
+
+  /**
+   * Directly creates a webGL program
+   * @param pipelineContext  defines the pipeline context to attach to
+   * @param vertexCode defines the vertex shader code to use
+   * @param fragmentCode defines the fragment shader code to use
+   * @param context defines the webGL context to use (if not set, the current one will be used)
+   * @param transformFeedbackVaryings defines the list of transform feedback varyings to use
+   * @returns the new webGL program
+   */
+  public createRawShaderProgram(
+    pipelineContext: IPipelineContext,
+    vertexCode: string,
+    fragmentCode: string,
+    context?: WebGLRenderingContext,
+    transformFeedbackVaryings: Nullable<string[]> = null
+  ): WebGLProgram {
+    context = context || this._gl;
+
+    var vertexShader = this._compileRawShader(vertexCode, "vertex");
+    var fragmentShader = this._compileRawShader(fragmentCode, "fragment");
+
+    return this._createShaderProgram(
+      pipelineContext as WebGLPipelineContext,
+      vertexShader,
+      fragmentShader,
+      context,
+      transformFeedbackVaryings
+    );
+  }
+
+  /**
+   * Creates a webGL program
+   * @param pipelineContext  defines the pipeline context to attach to
+   * @param vertexCode  defines the vertex shader code to use
+   * @param fragmentCode defines the fragment shader code to use
+   * @param defines defines the string containing the defines to use to compile the shaders
+   * @param context defines the webGL context to use (if not set, the current one will be used)
+   * @param transformFeedbackVaryings defines the list of transform feedback varyings to use
+   * @returns the new webGL program
+   */
+  public createShaderProgram(
+    pipelineContext: IPipelineContext,
+    vertexCode: string,
+    fragmentCode: string,
+    defines: Nullable<string>,
+    context?: WebGLRenderingContext,
+    transformFeedbackVaryings: Nullable<string[]> = null
+  ): WebGLProgram {
+    context = context || this._gl;
+
+    var shaderVersion =
+      this._webGLVersion > 1 ? "#version 300 es\n#define WEBGL2 \n" : "";
+    var vertexShader = this._compileShader(
+      vertexCode,
+      "vertex",
+      defines,
+      shaderVersion
+    );
+    var fragmentShader = this._compileShader(
+      fragmentCode,
+      "fragment",
+      defines,
+      shaderVersion
+    );
+
+    return this._createShaderProgram(
+      pipelineContext as WebGLPipelineContext,
+      vertexShader,
+      fragmentShader,
+      context,
+      transformFeedbackVaryings
+    );
+  }
+
+  /** @hidden */
+  public _preparePipelineContext(
+    pipelineContext: IPipelineContext,
+    vertexSourceCode: string,
+    fragmentSourceCode: string,
+    createAsRaw: boolean,
+    rebuildRebind: any,
+    defines: Nullable<string>,
+    transformFeedbackVaryings: Nullable<string[]>
+  ) {
+    let webGLRenderingState = pipelineContext as WebGLPipelineContext;
+
+    if (createAsRaw) {
+      webGLRenderingState.program = this.createRawShaderProgram(
+        webGLRenderingState,
+        vertexSourceCode,
+        fragmentSourceCode,
+        undefined,
+        transformFeedbackVaryings
+      );
+    } else {
+      webGLRenderingState.program = this.createShaderProgram(
+        webGLRenderingState,
+        vertexSourceCode,
+        fragmentSourceCode,
+        defines,
+        undefined,
+        transformFeedbackVaryings
+      );
+    }
+    webGLRenderingState.program.__SPECTOR_rebuildProgram = rebuildRebind;
+  }
+
+  /**
+   * Force the entire cache to be cleared
+   * You should not have to use this function unless your engine needs to share the webGL context with another engine
+   * @param bruteForce defines a boolean to force clearing ALL caches (including stencil, detoh and alpha states)
+   */
+  public wipeCaches(bruteForce?: boolean): void {
+    if (this.preventCacheWipeBetweenFrames && !bruteForce) {
+      return;
+    }
+    this._currentEffect = null;
+    this.engineViewPort._viewportCached.x = 0;
+    this.engineViewPort._viewportCached.y = 0;
+    this.engineViewPort._viewportCached.z = 0;
+    this.engineViewPort._viewportCached.w = 0;
+
+    // Done before in case we clean the attributes
+    this.engineVertex._unbindVertexArrayObject();
+
+    this.engineVertex._resetVertexBufferBinding();
+    this.engineVertex._cachedIndexBuffer = null;
+    this.engineVertex._cachedEffectForVertexBuffers = null;
+    this.engineVertex.bindIndexBuffer(null);
+  }
+
+  public _prepareWorkingCanvas(): void {
+    if (this._workingCanvas) {
+      return;
+    }
+
+    this._workingCanvas = CanvasGenerator.CreateCanvas(1, 1);
+    let context = this._workingCanvas.getContext("2d");
+
+    if (context) {
+      this._workingContext = context;
+    }
+  }
+
+  /**
+   * Activates an effect, mkaing it the current one (ie. the one used for rendering)
+   * @param effect defines the effect to activate
+   */
+  public enableEffect(effect: Nullable<Effect>): void {
+    if (!effect || effect === this._currentEffect) {
+      return;
+    }
+
+    // Use program
+    this.bindSamplers(effect);
+
+    this._currentEffect = effect;
+
+    if (effect.onBind) {
+      effect.onBind(effect);
+    }
+    if (effect._onBindObservable) {
+      effect._onBindObservable.notifyObservers(effect);
+    }
+  }
+
+
+  public _releaseTexture(texture: InternalTexture): void {
+    // super.engineTexture._releaseTexture(texture);
+
+    // Set output texture of post process to null if the texture has been released/disposed
+    this.scenes.forEach((scene) => {
+      // scene.postProcesses.forEach((postProcess) => {
+      //     if (postProcess._outputTexture == texture) {
+      //         postProcess._outputTexture = null;
+      //     }
+      // });
+      scene.cameras.forEach((camera) => {
+        // camera._postProcesses.forEach((postProcess) => {
+        //     if (postProcess) {
+        //         if (postProcess._outputTexture == texture) {
+        //             postProcess._outputTexture = null;
+        //         }
+        //     }
+        // });
+      });
+    });
   }
 }
