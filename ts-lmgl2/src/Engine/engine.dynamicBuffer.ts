@@ -1,8 +1,8 @@
-import { Engine } from "../Engine/Engine";
+import { Engine } from "./engine";
 import { IndicesArray, DataArray } from "../types";
 import { DataBuffer } from "./dataBuffer";
 
-declare module "../Engine/engine" {
+declare module "./engine" {
   export interface Engine {
     /**
      * Update a dynamic index buffer

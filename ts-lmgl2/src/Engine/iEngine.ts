@@ -1,8 +1,9 @@
+import { IViewportLike } from "../Maths/math.like";
 
 export interface EngineOptions extends WebGLContextAttributes {
   /**
-  * Defines that engine should compile shaders with high precision floats (if supported). True by default
-  */
+   * Defines that engine should compile shaders with high precision floats (if supported). True by default
+   */
   useHighPrecisionFloats?: boolean;
 
   /**
@@ -32,6 +33,13 @@ export interface HostInformation {
 }
 
 export interface ISceneLike {
-    _addPendingData(data: any): void;
-    _removePendingData(data: any): void;
+  _addPendingData(data: any): void;
+  _removePendingData(data: any): void;
+}
+
+export interface IViewportOwnerLike {
+  /**
+   * Gets or sets the viewport
+   */
+  viewport: IViewportLike;
 }

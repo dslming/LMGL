@@ -1,5 +1,5 @@
 // export * from "./boundingBoxRenderer";
-export * from "./depthRenderer";
+// export * from "./depthRenderer";
 // export * from "./depthRendererSceneComponent";
 // export * from "./edgesRenderer";
 // export * from "./geometryBufferRenderer";

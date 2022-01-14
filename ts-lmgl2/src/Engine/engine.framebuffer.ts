@@ -231,7 +231,7 @@ export class EngineFramebuffer {
         if (texture._MSAAFramebuffer) {
             if (texture._textureArray) {
                 // This texture is part of a MRT texture, we need to treat all attachments
-                this.engine.unBindMultiColorAttachmentFramebuffer(texture._textureArray!, disableGenerateMipMaps, onBeforeUnbind);
+                // this.engine.unBindMultiColorAttachmentFramebuffer(texture._textureArray!, disableGenerateMipMaps, onBeforeUnbind);
                 return;
             }
             gl.bindFramebuffer(gl.READ_FRAMEBUFFER, texture._MSAAFramebuffer);
