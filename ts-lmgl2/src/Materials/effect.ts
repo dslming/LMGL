@@ -274,6 +274,32 @@ export class Effect implements IDisposable {
             fragmentSource = baseName.fragment || baseName;
         }
 
+        this._useFinalCode(`
+precision highp float;
+layout(std140,column_major) uniform;
+uniform mat4 world;
+uniform Scene {
+  mat4 viewProjection;
+  mat4 view;
+};
+
+in vec3 position;
+in vec3 normal;
+
+void main(void) {
+  vec3 positionUpdated=position;
+  mat4 finalWorld=world;
+  vec4 worldPos=finalWorld*vec4(positionUpdated,1.0);
+  gl_Position=viewProjection*worldPos;
+}
+`, `
+    precision highp float;
+
+out vec4 glFragColor;
+void main(void) {
+  glFragColor=vec4(1.0);
+}
+`, null);
         // let processorOptions = {
         //     defines: this.defines.split("\n"),
         //     indexParameters: this._indexParameters,

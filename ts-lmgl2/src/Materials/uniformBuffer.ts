@@ -8,7 +8,7 @@ import { BaseTexture } from "./Textures/baseTexture";
 import { Color3 } from "../Maths/math.color";
 import { IMatrixLike } from "../Maths/math.like";
 
-import "../Engines/Extensions/engine.uniformBuffer";
+import "../Engine/engine.uniformBuffer";
 import { DataBuffer } from "../Engine/dataBuffer";
 
 /**

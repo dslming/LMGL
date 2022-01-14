@@ -18,8 +18,17 @@ import { SceneMatrix } from "./scene.matrix";
 import { TransformNode } from "../Meshes/transformNode";
 import { AbstractScene } from "./abstractScene";
 import { ISceneComponent } from "./sceneComponent";
+import { SceneCatch } from "./scene.catch";
+import { RenderingManager } from "../Rendering/renderingManager";
+import { ISmartArrayLike, SmartArray } from "../Misc/smartArray";
+import { SubMesh } from "../Meshes/subMesh";
+import { Ray } from "../Culling/ray";
+import { Collider } from "../Collisions/collider";
+import { PerfCounter } from "../Misc/perfCounter";
 
 export class Scene extends AbstractScene {
+  public _renderingManager: RenderingManager;
+  public _totalVertices = new PerfCounter();
   public webGLVersion: number = 2;
   public forcePointsCloud = false;
   public activeCamera: any;
@@ -49,18 +58,39 @@ export class Scene extends AbstractScene {
   public requireLightSorting = false;
 
   /**
+* Flag indicating that the frame buffer binding is handled by another component
+*/
+  public prePass: boolean = false;
+  public _activeCamera: Nullable<Camera>;
+  /**
    * Gets the list of root nodes (ie. nodes with no parent)
    */
   public rootNodes = new Array<Node>();
   public textures = new Array<BaseTexture>();
   public sceneMatrix: SceneMatrix;
   public _components: ISceneComponent[] = [];
+  public sceneCatch = new SceneCatch(this);
+  public _activeMeshes = new SmartArray<AbstractMesh>(256);
+  public _processedMaterials = new SmartArray<Material>(256);
+
+  /**
+     * Gets or sets a boolean indicating that all submeshes of active meshes must be rendered
+     * Use this boolean to avoid computing frustum clipping on submeshes (This could help when you are CPU bound)
+     */
+  public dispatchAllSubMeshesOfActiveMeshes: boolean = false;
 
   constructor(engine: Engine) {
     super();
+    this._engine = engine;
     this.sceneRender = new SceneRender(this);
     this.scenePaddingData = new ScenePaddingData();
     this.sceneMatrix = new SceneMatrix(this, engine);
+    this.sceneCatch.resetCachedMaterial();
+    this._renderingManager = new RenderingManager(this);
+    // Uniform Buffer
+    this.sceneMatrix._createUbo();
+
+    this.sceneNode.setDefaultCandidateProviders();
   }
 
   /**
@@ -155,4 +185,25 @@ export class Scene extends AbstractScene {
     //   this._serializableComponents.push(serializableComponent);
     // }
   }
+
+  /**
+     * Lambda returning the list of potentially active meshes.
+     */
+  public getActiveMeshCandidates: () => ISmartArrayLike<AbstractMesh>;
+
+  /**
+   * Lambda returning the list of potentially active sub meshes.
+   */
+  public getActiveSubMeshCandidates: (mesh: AbstractMesh) => ISmartArrayLike<SubMesh>;
+
+  /**
+   * Lambda returning the list of potentially intersecting sub meshes.
+   */
+  public getIntersectingSubMeshCandidates: (mesh: AbstractMesh, localRay: Ray) => ISmartArrayLike<SubMesh>;
+
+  /**
+   * Lambda returning the list of potentially colliding sub meshes.
+   */
+  public getCollidingSubMeshCandidates: (mesh: AbstractMesh, collider: Collider) => ISmartArrayLike<SubMesh>;
+
 }

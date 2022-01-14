@@ -97,9 +97,9 @@ export class SceneMatrix{
    * @param force defines a boolean used to force the update even if cache is up to date
    */
   public updateTransformMatrix(force?: boolean): void {
-      // if (!this.scene.activeCamera) {
-      //     return;
-      // }
-      // this.setTransformMatrix(this.scene.activeCamera.getViewMatrix(), this.scene.activeCamera.getProjectionMatrix(force));
+      if (!this.scene.activeCamera) {
+          return;
+      }
+      this.setTransformMatrix(this.scene.activeCamera.getViewMatrix(), this.scene.activeCamera.getProjectionMatrix(force));
   }
 }

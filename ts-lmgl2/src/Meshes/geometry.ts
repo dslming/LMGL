@@ -746,7 +746,7 @@ export class Geometry implements IGetSetVerticesData {
                 }
                 // mesh._boundingInfo = new BoundingInfo(this._extend.minimum, this._extend.maximum);
 
-                // mesh._createGlobalSubMesh(false);
+                mesh._createGlobalSubMesh(false);
 
                 // //bounding info was just created again, world matrix should be applied again.
                 // mesh._updateBoundingInfo();

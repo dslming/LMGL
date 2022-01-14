@@ -20,8 +20,11 @@ import { EngineState } from "./engine.state";
 import { InternalTexture } from "../Materials/Textures/internalTexture";
 import { IEffectFallbacks } from "../Materials/iEffectFallbacks";
 import { EngineDraw } from "./engine.draw";
+import { EngineRender } from "./engine.render";
 
 export class Engine {
+  public _contextWasLost = false;
+
   /**
    * Gets or sets the epsilon value used by collision engine
    */
@@ -50,6 +53,7 @@ export class Engine {
    */
   public preventCacheWipeBetweenFrames = false;
 
+  public engineRender: EngineRender;
   public engineVertex: EngineVertex;
   public engineUniform: EngineUniform;
   public engineTexture: EngineTexture;
@@ -130,6 +134,7 @@ export class Engine {
     if (!this._gl) {
       throw new Error("WebGL not supported");
     }
+    this._initGLContext();
 
     this.engineVertex = new EngineVertex(this._gl, this._caps);
     this.engineUniform = new EngineUniform(this._gl);
@@ -139,6 +144,7 @@ export class Engine {
     this.engineFile = new EngineFile();
     this.engineViewPort = new EngineViewPort(this);
     this.engineFramebuffer = new EngineFramebuffer(this._gl, this);
+    this.engineRender = new EngineRender(this);
   }
 
   public getClassName(): string {
@@ -442,7 +448,9 @@ export class Engine {
     defines: Nullable<string>,
     shaderVersion: string = ""
   ): string {
-    return shaderVersion + (defines ? defines + "\n" : "") + source;
+    // return shaderVersion + (defines ? defines + "\n" : "") + source;
+    return shaderVersion + source;
+    // return  source;
   }
 
   private _compileShader(
@@ -829,4 +837,21 @@ export class Engine {
 
     return effect;
   }
+
+  /**
+   * Begin a new frame
+   */
+  public beginFrame(): void { }
+
+  /**
+   * Enf the current frame
+   */
+  public endFrame(): void {
+    // Force a flush in case we are using a bad OS.
+    // if (this._badOS) {
+    //     this.flushFramebuffer();
+    // }
+  }
+
+
 }

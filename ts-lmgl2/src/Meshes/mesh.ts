@@ -556,6 +556,8 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       this.getEngine().getCaps().instancedArrays;
   }
 
+
+
   // Methods
   // public instantiateHierarchy(newParent: Nullable<TransformNode> = null, options?: { doNotInstantiate: boolean}, onNewNodeCreated?: (source: TransformNode, clone: TransformNode) => void): Nullable<TransformNode> {
   //     let instance = (this.getTotalVertices() > 0 && (!options || !options.doNotInstantiate)) ? this.createInstance("instance of " + (this.name || this.id)) :  this.clone("Clone of " +  (this.name || this.id), newParent || this.parent, true);
@@ -4468,6 +4470,20 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
   //     this.instances.pop();
   //   }
   // }
+  /**
+  * Returns an array of integers or a typed array (Int32Array, Uint32Array, Uint16Array) populated with the mesh indices.
+  * @param copyWhenShared If true (default false) and and if the mesh geometry is shared among some other meshes, the returned array is a copy of the internal one.
+  * @param forceCopy defines a boolean indicating that the returned array must be cloned upon returning it
+  * @returns the indices array or an empty array if the mesh has no geometry
+  */
+  public getIndices(copyWhenShared?: boolean, forceCopy?: boolean): Nullable<IndicesArray> {
+
+    if (!this._geometry) {
+      return [];
+    }
+    return this._geometry.getIndices(copyWhenShared, forceCopy);
+  }
+
 }
 
 _TypeStore.RegisteredTypes["BABYLON.Mesh"] = Mesh;
