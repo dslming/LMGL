@@ -7,7 +7,7 @@ import { Node } from "../node";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { Effect } from "../Materials/effect";
 import { UniformBuffer } from "../Materials/uniformBuffer";
-import { _TypeStore } from '../Misc/typeStore';
+import { _TypeStore } from "../Misc/typeStore";
 
 /**
  * Base class of all the lights in Babylon. It groups all the generic information about lights.
@@ -15,7 +15,6 @@ import { _TypeStore } from '../Misc/typeStore';
  * All meshes allow light to pass through them unless shadow generation is activated. The default number of lights allowed is four but this can be increased.
  */
 export abstract class Light extends Node {
-
   /**
    * Falloff Default: light is falling off following the material specification:
    * standard material is using standard falloff whereas pbr material can request special falloff per materials.
@@ -442,7 +441,7 @@ export abstract class Light extends Node {
    */
   public toString(fullDetails?: boolean): string {
     var ret = "Name: " + this.name;
-    ret += ", type: " + (["Point", "Directional", "Spot", "Hemispheric"])[this.getTypeID()];
+    ret += ", type: " + ["Point", "Directional", "Spot", "Hemispheric"][this.getTypeID()];
     if (fullDetails) {
     }
     return ret;
@@ -808,7 +807,7 @@ export abstract class Light extends Node {
   public _reorderLightsInScene(): void {
     var scene = this.getScene();
     if (this._renderPriority != 0) {
-      scene.requireLightSorting = true;
+      scene.sceneNode.requireLightSorting = true;
     }
     this.getScene().sceneNode.sortLightsByPriority();
   }

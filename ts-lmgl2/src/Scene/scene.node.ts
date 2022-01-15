@@ -12,7 +12,9 @@ import { SubMesh } from "../Meshes/subMesh";
 import { Constants } from "../Engine/constants";
 
 export class SceneNode {
-  scene: Scene;
+  public _blockEntityCollection = false;
+  public scene: Scene;
+
   /** @hidden */
   private _defaultMeshCandidates: ISmartArrayLike<AbstractMesh> = {
     data: [],
@@ -29,7 +31,7 @@ export class SceneNode {
    * @param newTransformNode defines the transform node to add
    */
   public addTransformNode(newTransformNode: TransformNode) {
-    if (this.scene._blockEntityCollection) {
+    if (this._blockEntityCollection) {
       return;
     }
     newTransformNode._indexInSceneTransformNodesArray = this.scene.transformNodes.length;
@@ -44,11 +46,16 @@ export class SceneNode {
 
   /*----------------------------------- light ------------------------------------*/
   /**
+   * Gets or sets a boolean indicating if lights must be sorted by priority (off by default)
+   * This is useful if there are more lights that the maximum simulteanous authorized
+   */
+  public requireLightSorting = false;
+  /**
    * Adds the given light to this scene.scene
    * @param newLight The light to add
    */
   public addLight(newLight: Light): void {
-    if (this.scene._blockEntityCollection) {
+    if (this._blockEntityCollection) {
       return;
     }
     this.scene.lights.push(newLight);
@@ -73,7 +80,7 @@ export class SceneNode {
    * Sorts the list list based on light priorities
    */
   public sortLightsByPriority(): void {
-    if (this.scene.requireLightSorting) {
+    if (this.requireLightSorting) {
       this.scene.lights.sort(Light.CompareLightsPriority);
     }
   }
@@ -84,7 +91,7 @@ export class SceneNode {
    * @param newCamera The camera to add
    */
   public addCamera(newCamera: Camera): void {
-    if (this.scene._blockEntityCollection) {
+    if (this._blockEntityCollection) {
       return;
     }
 
@@ -135,7 +142,7 @@ export class SceneNode {
    * @param newTexture The texture to add
    */
   public addTexture(newTexture: BaseTexture): void {
-    if (this.scene._blockEntityCollection) {
+    if (this._blockEntityCollection) {
       return;
     }
     this.scene.textures.push(newTexture);
@@ -157,17 +164,19 @@ export class SceneNode {
   }
 
   /*----------------------------------- geometry ------------------------------------*/
+  public geometriesByUniqueId: Nullable<{ [uniqueId: string]: number | undefined }> = null;
+
   /**
    * Adds the given geometry to this scene.scene
    * @param newGeometry The geometry to add
    */
   public addGeometry(newGeometry: Geometry): void {
-    if (this.scene._blockEntityCollection) {
+    if (this._blockEntityCollection) {
       return;
     }
 
-    if (this.scene.geometriesByUniqueId) {
-      this.scene.geometriesByUniqueId[newGeometry.uniqueId] = this.scene.geometries.length;
+    if (this.geometriesByUniqueId) {
+      this.geometriesByUniqueId[newGeometry.uniqueId] = this.scene.geometries.length;
     }
 
     this.scene.geometries.push(newGeometry);
@@ -198,8 +207,8 @@ export class SceneNode {
    */
   public removeGeometry(geometry: Geometry): boolean {
     let index;
-    if (this.scene.geometriesByUniqueId) {
-      index = this.scene.geometriesByUniqueId[geometry.uniqueId];
+    if (this.geometriesByUniqueId) {
+      index = this.geometriesByUniqueId[geometry.uniqueId];
       if (index === undefined) {
         return false;
       }
@@ -214,9 +223,9 @@ export class SceneNode {
       const lastGeometry = this.scene.geometries[this.scene.geometries.length - 1];
       if (lastGeometry) {
         this.scene.geometries[index] = lastGeometry;
-        if (this.scene.geometriesByUniqueId) {
-          this.scene.geometriesByUniqueId[lastGeometry.uniqueId] = index;
-          this.scene.geometriesByUniqueId[geometry.uniqueId] = undefined;
+        if (this.geometriesByUniqueId) {
+          this.geometriesByUniqueId[lastGeometry.uniqueId] = index;
+          this.geometriesByUniqueId[geometry.uniqueId] = undefined;
         }
       }
     }
@@ -228,8 +237,8 @@ export class SceneNode {
   }
 
   private _getGeometryByUniqueID(uniqueId: number): Nullable<Geometry> {
-    if (this.scene.geometriesByUniqueId) {
-      const index = this.scene.geometriesByUniqueId[uniqueId];
+    if (this.geometriesByUniqueId) {
+      const index = this.geometriesByUniqueId[uniqueId];
       if (index !== undefined) {
         return this.scene.geometries[index];
       }
@@ -288,7 +297,7 @@ export class SceneNode {
    * @param recursive if all child meshes should also be added to the scene
    */
   public addMesh(newMesh: AbstractMesh, recursive = false) {
-    if (this.scene._blockEntityCollection) {
+    if (this._blockEntityCollection) {
       return;
     }
 
@@ -346,6 +355,8 @@ export class SceneNode {
   }
 
   /*----------------------------------- material ------------------------------------*/
+  public readonly useMaterialMeshMap: boolean = true;
+
   /**
    * Freeze all materials
    * A frozen material will not be updatable but should be faster to render
@@ -466,7 +477,7 @@ export class SceneNode {
    * @param newMaterial The material to add
    */
   public addMaterial(newMaterial: Material): void {
-    if (this.scene._blockEntityCollection) {
+    if (this._blockEntityCollection) {
       return;
     }
 

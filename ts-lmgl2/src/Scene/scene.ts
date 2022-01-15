@@ -27,39 +27,25 @@ import { _DevTools } from "../Misc/devTools";
 import { SceneComponent } from "./scene.component";
 
 export class Scene extends AbstractScene {
+  public _engine: Engine;
   public lightsEnabled: boolean = true;
+
   public _renderingManager: RenderingManager;
   public _totalVertices = new PerfCounter();
-  public webGLVersion: number = 2;
-  public forcePointsCloud = false;
+  public _activeIndices = new PerfCounter();
+  public _activeCamera: Nullable<Camera>;
+  public _activeMeshes = new SmartArray<AbstractMesh>(256);
   public activeCamera: Nullable<Camera>;
   public activeCameras: Nullable<Array<Camera>>;
+
   public sceneClipPlane = new SceneClipPlane();
-  public materials = new Array<Material>();
-  public transformNodes = new Array<TransformNode>();
-  public _engine: Engine;
-  public meshes = new Array<AbstractMesh>();
   public sceneRender: SceneRender;
   public scenePaddingData: ScenePaddingData;
-  public readonly useMaterialMeshMap: boolean = true;
-  public geometriesByUniqueId: Nullable<{ [uniqueId: string]: number | undefined }> = null;
-
-  public geometries = new Array<Geometry>();
-  public _blockEntityCollection = false;
   public sceneEventTrigger: SceneEventTrigger;
-  public cameras = new Array<Camera>();
-  public lights = new Array<Light>();
   public sceneNode = new SceneNode(this);
   public sceneComponent = new SceneComponent();
-
-  public _activeIndices = new PerfCounter();
   public sceneCatch: SceneCatch;
-
-  /**
-   * Gets or sets a boolean indicating if lights must be sorted by priority (off by default)
-   * This is useful if there are more lights that the maximum simulteanous authorized
-   */
-  public requireLightSorting = false;
+  public sceneMatrix: SceneMatrix;
 
   /**
    * Flag indicating that the frame buffer binding is handled by another component
@@ -67,14 +53,11 @@ export class Scene extends AbstractScene {
    */
   public prePass: boolean = false;
 
-  public _activeCamera: Nullable<Camera>;
   /**
    * Gets the list of root nodes (ie. nodes with no parent)
    */
   public rootNodes = new Array<Node>();
-  public textures = new Array<BaseTexture>();
-  public sceneMatrix: SceneMatrix;
-  public _activeMeshes = new SmartArray<AbstractMesh>(256);
+  // public textures = new Array<BaseTexture>();
   public _processedMaterials = new SmartArray<Material>(256);
 
   /**
@@ -86,6 +69,7 @@ export class Scene extends AbstractScene {
   constructor(engine: Engine) {
     super();
     this._engine = engine;
+
     this.sceneRender = new SceneRender(this);
     this.scenePaddingData = new ScenePaddingData();
     this.sceneMatrix = new SceneMatrix(this, engine);
@@ -93,25 +77,11 @@ export class Scene extends AbstractScene {
     this.sceneEventTrigger = new SceneEventTrigger(this);
     this.sceneCatch.resetCachedMaterial();
     this._renderingManager = new RenderingManager(this);
-    // Uniform Buffer
     this.sceneMatrix._createUbo();
-
     this.sceneNode.setDefaultCandidateProviders();
   }
 
-  public getEngine(): Engine {
-    return this._engine;
-  }
-
-  /**
-   * Gets an unique (relatively to the current scene) Id
-   * @returns an unique number for the scene
-   */
-  public getUniqueId() {
-    return UniqueIdGenerator.UniqueId;
-  }
-
-  // Coordinates system
+  /*------------------------------------- Coordinates system ---------------------------*/
   private _useRightHandedSystem = false;
   /**
    * Gets or sets a boolean indicating if the scene must use right-handed coordinates system
@@ -126,6 +96,19 @@ export class Scene extends AbstractScene {
 
   public get useRightHandedSystem(): boolean {
     return this._useRightHandedSystem;
+  }
+
+  /*------------------------------------- 一些get方法 ---------------------------*/
+  public getEngine(): Engine {
+    return this._engine;
+  }
+
+  /**
+   * Gets an unique (relatively to the current scene) Id
+   * @returns an unique number for the scene
+   */
+  public getUniqueId() {
+    return UniqueIdGenerator.UniqueId;
   }
 
   getClassName(): String {

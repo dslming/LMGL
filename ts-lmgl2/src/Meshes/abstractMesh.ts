@@ -4,13 +4,7 @@ import { Nullable, FloatArray, IndicesArray, DeepImmutable } from "../types";
 import { Camera } from "../Cameras/camera";
 import { Scene } from "../Scene/scene";
 import { IDisposable } from "../Scene/iScene";
-import {
-  Quaternion,
-  Matrix,
-  Vector3,
-  TmpVectors,
-  Vector2,
-} from "../Maths/math.vector";
+import { Quaternion, Matrix, Vector3, TmpVectors, Vector2 } from "../Maths/math.vector";
 import { Engine } from "../Engine/engine";
 import { Node } from "../node";
 import { VertexBuffer } from "./vertexBuffer";
@@ -44,8 +38,7 @@ declare type Ray = import("../Culling/ray").Ray;
 // declare type Collider = import("../Collisions/collider").Collider;
 // declare type TrianglePickingPredicate =
 //   import("../Culling/ray").TrianglePickingPredicate;
-declare type RenderingGroup =
-  import("../Rendering/renderingGroup").RenderingGroup;
+declare type RenderingGroup = import("../Rendering/renderingGroup").RenderingGroup;
 // declare type IEdgesRendererOptions = import("../Rendering/edgesRenderer").IEdgesRendererOptions;
 
 /** @hidden */
@@ -72,10 +65,7 @@ class _FacetDataStorage {
   public facetDepthSortEnabled: boolean = false; // is the facet depth sort initialized
   public depthSortedIndices: IndicesArray; // copy of the indices array to store them once sorted
   public depthSortedFacets: { ind: number; sqDistance: number }[]; // array of depth sorted facets
-  public facetDepthSortFunction: (
-    f1: { ind: number; sqDistance: number },
-    f2: { ind: number; sqDistance: number }
-  ) => number; // facet depth sort function
+  public facetDepthSortFunction: (f1: { ind: number; sqDistance: number }, f2: { ind: number; sqDistance: number }) => number; // facet depth sort function
   public facetDepthSortFrom: Vector3; // location where to depth sort from
   public facetDepthSortOrigin: Vector3; // same as facetDepthSortFrom but expressed in the mesh local space
 
@@ -108,10 +98,7 @@ class _InternalAbstractMeshDataInfo {
 /**
  * Class used to store all common mesh properties
  */
-export class AbstractMesh
-  extends TransformNode
-  implements IDisposable, ICullable, IGetSetVerticesData
-{
+export class AbstractMesh extends TransformNode implements IDisposable, ICullable, IGetSetVerticesData {
   /** No occlusion */
   public static OCCLUSION_TYPE_NONE = 0;
   /** Occlusion set to optimisitic */
@@ -129,16 +116,14 @@ export class AbstractMesh
    *  If not, are the bounding box vertices outside the frustum ?
    *  It not, then the cullable object is in the frustum.
    */
-  public static readonly CULLINGSTRATEGY_STANDARD =
-    Constants.MESHES_CULLINGSTRATEGY_STANDARD;
+  public static readonly CULLINGSTRATEGY_STANDARD = Constants.MESHES_CULLINGSTRATEGY_STANDARD;
   /** Culling strategy : Bounding Sphere Only.
    *  This is an exclusion test. It's faster than the standard strategy because the bounding box is not tested.
    *  It's also less accurate than the standard because some not visible objects can still be selected.
    *  Test : is the bounding sphere outside the frustum ?
    *  If not, then the cullable object is in the frustum.
    */
-  public static readonly CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY =
-    Constants.MESHES_CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY;
+  public static readonly CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY = Constants.MESHES_CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY;
   /** Culling strategy : Optimistic Inclusion.
    *  This in an inclusion test first, then the standard exclusion test.
    *  This can be faster when a cullable object is expected to be almost always in the camera frustum.
@@ -148,8 +133,7 @@ export class AbstractMesh
    *  Is the cullable object bounding sphere center in the frustum ?
    *  If not, apply the default culling strategy.
    */
-  public static readonly CULLINGSTRATEGY_OPTIMISTIC_INCLUSION =
-    Constants.MESHES_CULLINGSTRATEGY_OPTIMISTIC_INCLUSION;
+  public static readonly CULLINGSTRATEGY_OPTIMISTIC_INCLUSION = Constants.MESHES_CULLINGSTRATEGY_OPTIMISTIC_INCLUSION;
   /** Culling strategy : Optimistic Inclusion then Bounding Sphere Only.
    *  This in an inclusion test first, then the bounding sphere only exclusion test.
    *  This can be the fastest test when a cullable object is expected to be almost always in the camera frustum.
@@ -194,8 +178,7 @@ export class AbstractMesh
    * @see https://doc.babylonjs.com/how_to/how_to_use_facetdata#tweaking-the-partitioning
    */
   public get partitioningSubdivisions(): number {
-    return this._internalAbstractMeshDataInfo._facetData
-      .partitioningSubdivisions;
+    return this._internalAbstractMeshDataInfo._facetData.partitioningSubdivisions;
   }
   public set partitioningSubdivisions(nb: number) {
     this._internalAbstractMeshDataInfo._facetData.partitioningSubdivisions = nb;
@@ -460,9 +443,7 @@ export class AbstractMesh
     return this._internalAbstractMeshDataInfo._computeBonesUsingShaders;
   }
   public set computeBonesUsingShaders(value: boolean) {
-    if (
-      this._internalAbstractMeshDataInfo._computeBonesUsingShaders === value
-    ) {
+    if (this._internalAbstractMeshDataInfo._computeBonesUsingShaders === value) {
       return;
     }
 
@@ -979,12 +960,7 @@ export class AbstractMesh
    * @param stride defines the vertex stride (size of an entire vertex). Can be null and in this case will be deduced from vertex data kind
    * @returns the current mesh
    */
-  public setVerticesData(
-    kind: string,
-    data: FloatArray,
-    updatable?: boolean,
-    stride?: number
-  ): AbstractMesh {
+  public setVerticesData(kind: string, data: FloatArray, updatable?: boolean, stride?: number): AbstractMesh {
     return this;
   }
 
@@ -1009,12 +985,7 @@ export class AbstractMesh
    * @param makeItUnique If true, a new global geometry is created from this data and is set to the mesh
    * @returns the current mesh
    */
-  public updateVerticesData(
-    kind: string,
-    data: FloatArray,
-    updateExtends?: boolean,
-    makeItUnique?: boolean
-  ): AbstractMesh {
+  public updateVerticesData(kind: string, data: FloatArray, updateExtends?: boolean, makeItUnique?: boolean): AbstractMesh {
     return this;
   }
 
@@ -1025,10 +996,7 @@ export class AbstractMesh
    * @param totalVertices Defines the total number of vertices
    * @returns the current mesh
    */
-  public setIndices(
-    indices: IndicesArray,
-    totalVertices: Nullable<number>
-  ): AbstractMesh {
+  public setIndices(indices: IndicesArray, totalVertices: Nullable<number>): AbstractMesh {
     return this;
   }
 
@@ -1164,9 +1132,7 @@ export class AbstractMesh
   }
 
   /** @hidden */
-  public _updateSubMeshesBoundingInfo(
-    matrix: DeepImmutable<Matrix>
-  ): AbstractMesh {
+  public _updateSubMeshesBoundingInfo(matrix: DeepImmutable<Matrix>): AbstractMesh {
     if (!this.subMeshes) {
       return this;
     }
@@ -1201,10 +1167,7 @@ export class AbstractMesh
    * @returns true if the mesh is in the frustum planes
    */
   public isInFrustum(frustumPlanes: Plane[]): boolean {
-    return (
-      this._boundingInfo !== null &&
-      this._boundingInfo.isInFrustum(frustumPlanes, this.cullingStrategy)
-    );
+    return this._boundingInfo !== null && this._boundingInfo.isInFrustum(frustumPlanes, this.cullingStrategy);
   }
 
   /**
@@ -1214,10 +1177,7 @@ export class AbstractMesh
    * @returns true if the mesh is completely in the frustum planes
    */
   public isCompletelyInFrustum(frustumPlanes: Plane[]): boolean {
-    return (
-      this._boundingInfo !== null &&
-      this._boundingInfo.isCompletelyInFrustum(frustumPlanes)
-    );
+    return this._boundingInfo !== null && this._boundingInfo.isCompletelyInFrustum(frustumPlanes);
   }
 
   /**
@@ -1227,11 +1187,7 @@ export class AbstractMesh
    * @param includeDescendants Can be set to true to test if the mesh defined in parameters intersects with the current mesh or any child meshes
    * @returns true if there is an intersection
    */
-  public intersectsMesh(
-    mesh: AbstractMesh,
-    precise: boolean = false,
-    includeDescendants?: boolean
-  ): boolean {
+  public intersectsMesh(mesh: AbstractMesh, precise: boolean = false, includeDescendants?: boolean): boolean {
     if (!this._boundingInfo || !mesh._boundingInfo) {
       return false;
     }
@@ -1603,11 +1559,7 @@ export class AbstractMesh
    * @param doNotCloneChildren defines a boolean indicating that children must not be cloned (false by default)
    * @returns the new mesh
    */
-  public clone(
-    name: string,
-    newParent: Nullable<Node>,
-    doNotCloneChildren?: boolean
-  ): Nullable<AbstractMesh> {
+  public clone(name: string, newParent: Nullable<Node>, doNotCloneChildren?: boolean): Nullable<AbstractMesh> {
     return null;
   }
 
@@ -1631,14 +1583,11 @@ export class AbstractMesh
    * @param doNotRecurse Set to true to not recurse into each children (recurse into each children by default)
    * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
    */
-  public dispose(
-    doNotRecurse?: boolean,
-    disposeMaterialAndTextures = false
-  ): void {
+  public dispose(doNotRecurse?: boolean, disposeMaterialAndTextures = false): void {
     var index: number;
 
     // mesh map release.
-    if (this._scene.useMaterialMeshMap) {
+    if (this._scene.sceneNode.useMaterialMeshMap) {
       // remove from material mesh map id needed
       if (this._material && this._material.meshMap) {
         this._material.meshMap[this.uniqueId] = undefined;
@@ -1705,10 +1654,7 @@ export class AbstractMesh
     // });
 
     // SubMeshes
-    if (
-      this.getClassName() !== "InstancedMesh" ||
-      this.getClassName() !== "InstancedLinesMesh"
-    ) {
+    if (this.getClassName() !== "InstancedMesh" || this.getClassName() !== "InstancedLinesMesh") {
       this.releaseSubMeshes();
     }
 
@@ -1793,12 +1739,8 @@ export class AbstractMesh
       data.facetPartitioning = new Array<number[]>();
     }
     data.facetNb = ((<IndicesArray>this.getIndices()).length / 3) | 0;
-    data.partitioningSubdivisions = data.partitioningSubdivisions
-      ? data.partitioningSubdivisions
-      : 10; // default nb of partitioning subdivisions = 10
-    data.partitioningBBoxRatio = data.partitioningBBoxRatio
-      ? data.partitioningBBoxRatio
-      : 1.01; // default ratio 1.01 = the partitioning is 1% bigger than the bounding box
+    data.partitioningSubdivisions = data.partitioningSubdivisions ? data.partitioningSubdivisions : 10; // default nb of partitioning subdivisions = 10
+    data.partitioningBBoxRatio = data.partitioningBBoxRatio ? data.partitioningBBoxRatio : 1.01; // default ratio 1.01 = the partitioning is 1% bigger than the bounding box
     for (var f = 0; f < data.facetNb; f++) {
       data.facetNormals[f] = Vector3.Zero();
       data.facetPositions[f] = Vector3.Zero();
@@ -2028,45 +1970,17 @@ export class AbstractMesh
    * @returns the array of facet indexes
    * @see https://doc.babylonjs.com/how_to/how_to_use_facetdata
    */
-  public getFacetsAtLocalCoordinates(
-    x: number,
-    y: number,
-    z: number
-  ): Nullable<number[]> {
+  public getFacetsAtLocalCoordinates(x: number, y: number, z: number): Nullable<number[]> {
     var bInfo = this.getBoundingInfo();
     const data = this._internalAbstractMeshDataInfo._facetData;
 
-    var ox = Math.floor(
-      ((x - bInfo.minimum.x * data.partitioningBBoxRatio) *
-        data.subDiv.X *
-        data.partitioningBBoxRatio) /
-        data.bbSize.x
-    );
-    var oy = Math.floor(
-      ((y - bInfo.minimum.y * data.partitioningBBoxRatio) *
-        data.subDiv.Y *
-        data.partitioningBBoxRatio) /
-        data.bbSize.y
-    );
-    var oz = Math.floor(
-      ((z - bInfo.minimum.z * data.partitioningBBoxRatio) *
-        data.subDiv.Z *
-        data.partitioningBBoxRatio) /
-        data.bbSize.z
-    );
-    if (
-      ox < 0 ||
-      ox > data.subDiv.max ||
-      oy < 0 ||
-      oy > data.subDiv.max ||
-      oz < 0 ||
-      oz > data.subDiv.max
-    ) {
+    var ox = Math.floor(((x - bInfo.minimum.x * data.partitioningBBoxRatio) * data.subDiv.X * data.partitioningBBoxRatio) / data.bbSize.x);
+    var oy = Math.floor(((y - bInfo.minimum.y * data.partitioningBBoxRatio) * data.subDiv.Y * data.partitioningBBoxRatio) / data.bbSize.y);
+    var oz = Math.floor(((z - bInfo.minimum.z * data.partitioningBBoxRatio) * data.subDiv.Z * data.partitioningBBoxRatio) / data.bbSize.z);
+    if (ox < 0 || ox > data.subDiv.max || oy < 0 || oy > data.subDiv.max || oz < 0 || oz > data.subDiv.max) {
       return null;
     }
-    return data.facetPartitioning[
-      ox + data.subDiv.max * oy + data.subDiv.max * data.subDiv.max * oz
-    ];
+    return data.facetPartitioning[ox + data.subDiv.max * oy + data.subDiv.max * data.subDiv.max * oz];
   }
 
   /**
@@ -2229,11 +2143,7 @@ export class AbstractMesh
    * @param gpuMemoryOnly defines a boolean indicating that only the GPU memory must be updated leaving the CPU version of the indices unchanged (false by default)
    * @returns the current mesh
    */
-  public updateIndices(
-    indices: IndicesArray,
-    offset?: number,
-    gpuMemoryOnly = false
-  ): AbstractMesh {
+  public updateIndices(indices: IndicesArray, offset?: number, gpuMemoryOnly = false): AbstractMesh {
     return this;
   }
 

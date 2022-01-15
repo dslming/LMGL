@@ -685,7 +685,7 @@ export class Material {
       this._scene.sceneNode.addMaterial(this);
     }
 
-    if (this._scene.useMaterialMeshMap) {
+    if (this._scene.sceneNode.useMaterialMeshMap) {
       this.meshMap = {};
     }
   }

@@ -61,7 +61,7 @@ export class SceneRender {
     if ((this.autoClearDepthAndStencil || this.autoClear) && !this.scene.prePass) {
       this.scene._engine.engineDraw.clear(
         this.clearColor,
-        this.autoClear || this.forceWireframe || this.scene.forcePointsCloud,
+        this.autoClear || this.forceWireframe,
         this.autoClearDepthAndStencil,
         this.autoClearDepthAndStencil
       );
