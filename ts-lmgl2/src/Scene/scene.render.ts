@@ -63,13 +63,7 @@ export class SceneRender {
     // Restore back buffer
     var currentActiveCamera = this.scene.activeCamera;
     this.scene.activeCamera = currentActiveCamera;
-    if (
-      this.scene._activeCamera &&
-      this.scene._activeCamera.cameraRigMode !== Camera.RIG_MODE_CUSTOM &&
-      !this.scene.prePass
-    ) {
-      this._bindFrameBuffer();
-    }
+    this._bindFrameBuffer();
 
     // Clear
     if (
@@ -84,7 +78,9 @@ export class SceneRender {
       );
     }
 
-    this._processSubCameras(this.scene.activeCamera);
+    if (this.scene.activeCamera) {
+      this._processSubCameras(this.scene.activeCamera);
+    }
   }
 
   public _renderForCamera(camera: Camera, rigParent?: Camera): void {
@@ -291,27 +287,27 @@ export class SceneRender {
   }
 
   public _bindFrameBuffer() {
-    if (this.scene.activeCamera && this.scene.activeCamera.outputRenderTarget) {
-      var useMultiview =
-        this.scene.getEngine().getCaps().multiview &&
-        this.scene.activeCamera.outputRenderTarget &&
-        this.scene.activeCamera.outputRenderTarget.getViewCount() > 1;
-      if (useMultiview) {
-        this.scene.activeCamera.outputRenderTarget._bindFrameBuffer();
-      } else {
-        var internalTexture =
-          this.scene.activeCamera.outputRenderTarget.getInternalTexture();
-        if (internalTexture) {
-          this.scene
-            .getEngine()
-            .engineFramebuffer.bindFramebuffer(internalTexture);
-        } else {
-          Logger.Error("Camera contains invalid customDefaultRenderTarget");
-        }
-      }
-    } else {
-      this.scene.getEngine().engineFramebuffer.restoreDefaultFramebuffer(); // Restore back buffer if needed
-    }
+    // if (this.scene.activeCamera && this.scene.activeCamera.outputRenderTarget) {
+    //   var useMultiview =
+    //     this.scene.getEngine().getCaps().multiview &&
+    //     this.scene.activeCamera.outputRenderTarget &&
+    //     this.scene.activeCamera.outputRenderTarget.getViewCount() > 1;
+    //   if (useMultiview) {
+    //     this.scene.activeCamera.outputRenderTarget._bindFrameBuffer();
+    //   } else {
+    //     var internalTexture =
+    //       this.scene.activeCamera.outputRenderTarget.getInternalTexture();
+    //     if (internalTexture) {
+    //       this.scene
+    //         .getEngine()
+    //         .engineFramebuffer.bindFramebuffer(internalTexture);
+    //     } else {
+    //       Logger.Error("Camera contains invalid customDefaultRenderTarget");
+    //     }
+    //   }
+    // } else {
+    // }
+    this.scene.getEngine().engineFramebuffer.restoreDefaultFramebuffer(); // Restore back buffer if needed
   }
 
   public _evaluateActiveMeshes(): void {

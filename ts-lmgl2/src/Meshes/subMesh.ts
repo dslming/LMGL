@@ -2,7 +2,7 @@ import { Nullable, IndicesArray, DeepImmutable, FloatArray } from "../types";
 import { Matrix, Vector3 } from "../Maths/math.vector";
 import { Engine } from "../Engine/engine";
 import { VertexBuffer } from "./vertexBuffer";
-import { IntersectionInfo } from "../Collisions/intersectionInfo";
+// import { IntersectionInfo } from "../Collisions/intersectionInfo";
 import { ICullable, BoundingInfo } from "../Culling/boundingInfo";
 import { Effect } from "../Materials/effect";
 import { Constants } from "../Engine/constants";
@@ -10,7 +10,7 @@ import { DataBuffer } from "../Engine/dataBuffer";
 import { extractMinAndMaxIndexed } from "../Maths/math.functions";
 import { Plane } from "../Maths/math.plane";
 
-declare type Collider = import("../Collisions/collider").Collider;
+// declare type Collider = import("../Collisions/collider").Collider;
 declare type Material = import("../Materials/material").Material;
 declare type MaterialDefines =
   import("../Materials/materialDefines").MaterialDefines;
@@ -332,11 +332,11 @@ export class SubMesh implements ICullable {
   }
 
   /** @hidden */
-  public _checkCollision(collider: Collider): boolean {
-    let boundingInfo = this.getBoundingInfo();
+  // public _checkCollision(collider: Collider): boolean {
+  //   let boundingInfo = this.getBoundingInfo();
 
-    return boundingInfo._checkCollision(collider);
-  }
+  //   return boundingInfo._checkCollision(collider);
+  // }
 
   /**
    * Updates the submesh BoundingInfo

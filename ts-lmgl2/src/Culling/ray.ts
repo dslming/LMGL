@@ -3,7 +3,7 @@ import { ArrayTools } from "../Misc/arrayTools";
 import { Matrix, Vector3, TmpVectors } from "../Maths/math.vector";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { PickingInfo } from "../Collisions/pickingInfo";
-import { IntersectionInfo } from "../Collisions/intersectionInfo";
+// import { IntersectionInfo } from "../Collisions/intersectionInfo";
 import { BoundingBox } from "./boundingBox";
 import { BoundingSphere } from "./boundingSphere";
 import { Scene } from "../Scene/scene";

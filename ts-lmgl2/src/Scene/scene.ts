@@ -23,9 +23,9 @@ import { RenderingManager } from "../Rendering/renderingManager";
 import { ISmartArrayLike, SmartArray } from "../Misc/smartArray";
 import { SubMesh } from "../Meshes/subMesh";
 import { Ray } from "../Culling/ray";
-import { Collider } from "../Collisions/collider";
+// import { Collider } from "../Collisions/collider";
 import { PerfCounter } from "../Misc/perfCounter";
-import { ICollisionCoordinator } from "../Collisions/collisionCoordinator";
+// import { ICollisionCoordinator } from "../Collisions/collisionCoordinator";
 import { _DevTools } from "../Misc/devTools";
 
 export class Scene extends AbstractScene {
@@ -34,8 +34,8 @@ export class Scene extends AbstractScene {
   public _totalVertices = new PerfCounter();
   public webGLVersion: number = 2;
   public forcePointsCloud = false;
-  public activeCamera: any;
-  public activeCameras: any;
+  public activeCamera: Nullable<Camera>;
+  public activeCameras: Nullable<Array<Camera>>;
   public sceneClipPlane = new SceneClipPlane();
   public materials = new Array<Material>();
   public transformNodes = new Array<TransformNode>();
@@ -62,26 +62,26 @@ export class Scene extends AbstractScene {
    * @see https://doc.babylonjs.com/babylon101/cameras,_mesh_collisions_and_gravity
    */
   public collisionsEnabled = true;
-  private _collisionCoordinator: ICollisionCoordinator;
+  // private _collisionCoordinator: ICollisionCoordinator;
   sceneCatch: SceneCatch;
 
   /**
    * Factory used to create the a collision coordinator.
    * @returns The collision coordinator
    */
-  public static CollisionCoordinatorFactory(): ICollisionCoordinator {
-    throw _DevTools.WarnImport("DefaultCollisionCoordinator");
-  }
+  // public static CollisionCoordinatorFactory(): ICollisionCoordinator {
+  //   throw _DevTools.WarnImport("DefaultCollisionCoordinator");
+  // }
 
   /** @hidden */
-  public get collisionCoordinator(): ICollisionCoordinator {
-    if (!this._collisionCoordinator) {
-      this._collisionCoordinator = Scene.CollisionCoordinatorFactory();
-      this._collisionCoordinator.init(this);
-    }
+  // public get collisionCoordinator(): ICollisionCoordinator {
+  //   if (!this._collisionCoordinator) {
+  //     this._collisionCoordinator = Scene.CollisionCoordinatorFactory();
+  //     this._collisionCoordinator.init(this);
+  //   }
 
-    return this._collisionCoordinator;
-  }
+  //   return this._collisionCoordinator;
+  // }
 
   /**
    * Gets or sets a boolean indicating if lights must be sorted by priority (off by default)
@@ -242,8 +242,8 @@ export class Scene extends AbstractScene {
   /**
    * Lambda returning the list of potentially colliding sub meshes.
    */
-  public getCollidingSubMeshCandidates: (
-    mesh: AbstractMesh,
-    collider: Collider
-  ) => ISmartArrayLike<SubMesh>;
+  // public getCollidingSubMeshCandidates: (
+  //   mesh: AbstractMesh,
+  //   collider: Collider
+  // ) => ISmartArrayLike<SubMesh>;
 }

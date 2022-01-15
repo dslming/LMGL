@@ -877,30 +877,35 @@ export class SceneNode {
   }
 
   private _defaultSubMeshCandidates: ISmartArrayLike<SubMesh> = {
-      data: [],
-      length: 0
+    data: [],
+    length: 0,
   };
 
   /**
    * @hidden
    */
-  public _getDefaultSubMeshCandidates(mesh: AbstractMesh): ISmartArrayLike<SubMesh> {
-      this._defaultSubMeshCandidates.data = mesh.subMeshes;
-      this._defaultSubMeshCandidates.length = mesh.subMeshes.length;
-      return this._defaultSubMeshCandidates;
+  public _getDefaultSubMeshCandidates(
+    mesh: AbstractMesh
+  ): ISmartArrayLike<SubMesh> {
+    this._defaultSubMeshCandidates.data = mesh.subMeshes;
+    this._defaultSubMeshCandidates.length = mesh.subMeshes.length;
+    return this._defaultSubMeshCandidates;
   }
 
-   /**
+  /**
    * Sets the default candidate providers for the scene.
    * This sets the getActiveMeshCandidates, getActiveSubMeshCandidates, getIntersectingSubMeshCandidates
    * and getCollidingSubMeshCandidates to their default function
    */
   public setDefaultCandidateProviders(): void {
-      this.scene.getActiveMeshCandidates = this._getDefaultMeshCandidates.bind(this);
+    this.scene.getActiveMeshCandidates =
+      this._getDefaultMeshCandidates.bind(this);
 
-      this.scene.getActiveSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-      this.scene.getIntersectingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-      this.scene.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
+    this.scene.getActiveSubMeshCandidates =
+      this._getDefaultSubMeshCandidates.bind(this);
+    this.scene.getIntersectingSubMeshCandidates =
+      this._getDefaultSubMeshCandidates.bind(this);
+    // this.scene.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
   }
 
   /**

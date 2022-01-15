@@ -18,7 +18,7 @@ import { VertexData, IGetSetVerticesData } from "./mesh.vertexData";
 import { TransformNode } from "./transformNode";
 import { SubMesh } from "./subMesh";
 import { PickingInfo } from "../Collisions/pickingInfo";
-import { IntersectionInfo } from "../Collisions/intersectionInfo";
+// import { IntersectionInfo } from "../Collisions/intersectionInfo";
 import { ICullable, BoundingInfo } from "../Culling/boundingInfo";
 import { Material } from "../Materials/material";
 import { MaterialDefines } from "../Materials/materialDefines";
@@ -28,7 +28,7 @@ import { Light } from "../Lights/light";
 // import { SolidParticle } from "../Particles/solidParticle";
 import { Constants } from "../Engine/constants";
 // import { AbstractActionManager } from "../Actions/abstractActionManager";
-import { _MeshCollisionData } from "../Collisions/meshCollisionData";
+// import { _MeshCollisionData } from "../Collisions/meshCollisionData";
 import { _DevTools } from "../Misc/devTools";
 import { RawTexture } from "../Materials/Textures/rawTexture";
 import { extractMinAndMax } from "../Maths/math.functions";
@@ -41,7 +41,7 @@ import { _TypeStore } from "../Misc/typeStore";
 // import { Node } from '../node'
 
 declare type Ray = import("../Culling/ray").Ray;
-declare type Collider = import("../Collisions/collider").Collider;
+// declare type Collider = import("../Collisions/collider").Collider;
 // declare type TrianglePickingPredicate =
 //   import("../Culling/ray").TrianglePickingPredicate;
 declare type RenderingGroup =
@@ -263,15 +263,15 @@ export class AbstractMesh
   public onCollideObservable = new Observable<AbstractMesh>();
 
   /** Set a function to call when this mesh collides with another one */
-  public set onCollide(callback: () => void) {
-    if (this._meshCollisionData._onCollideObserver) {
-      this.onCollideObservable.remove(
-        this._meshCollisionData._onCollideObserver
-      );
-    }
-    this._meshCollisionData._onCollideObserver =
-      this.onCollideObservable.add(callback);
-  }
+  // public set onCollide(callback: () => void) {
+  //   if (this._meshCollisionData._onCollideObserver) {
+  //     this.onCollideObservable.remove(
+  //       this._meshCollisionData._onCollideObserver
+  //     );
+  //   }
+  //   this._meshCollisionData._onCollideObserver =
+  //     this.onCollideObservable.add(callback);
+  // }
 
   /**
    * An event triggered when the collision's position changes
@@ -279,15 +279,15 @@ export class AbstractMesh
   public onCollisionPositionChangeObservable = new Observable<Vector3>();
 
   /** Set a function to call when the collision's position changes */
-  public set onCollisionPositionChange(callback: () => void) {
-    if (this._meshCollisionData._onCollisionPositionChangeObserver) {
-      this.onCollisionPositionChangeObservable.remove(
-        this._meshCollisionData._onCollisionPositionChangeObserver
-      );
-    }
-    this._meshCollisionData._onCollisionPositionChangeObserver =
-      this.onCollisionPositionChangeObservable.add(callback);
-  }
+  // public set onCollisionPositionChange(callback: () => void) {
+  //   if (this._meshCollisionData._onCollisionPositionChangeObserver) {
+  //     this.onCollisionPositionChangeObservable.remove(
+  //       this._meshCollisionData._onCollisionPositionChangeObserver
+  //     );
+  //   }
+  //   this._meshCollisionData._onCollisionPositionChangeObserver =
+  //     this.onCollisionPositionChangeObservable.add(callback);
+  // }
 
   /**
    * An event triggered when material is changed
@@ -537,7 +537,7 @@ export class AbstractMesh
   // public actionManager: Nullable<AbstractActionManager> = null;
 
   // Collisions
-  private _meshCollisionData = new _MeshCollisionData();
+  // private _meshCollisionData = new _MeshCollisionData();
 
   /**
    * Gets or sets the ellipsoid used to impersonate this mesh when using collision engine (default is (0.5, 1, 0.5))
@@ -554,13 +554,13 @@ export class AbstractMesh
    * Gets or sets a collision mask used to mask collisions (default is -1).
    * A collision between A and B will happen if A.collisionGroup & b.collisionMask !== 0
    */
-  public get collisionMask(): number {
-    return this._meshCollisionData._collisionMask;
-  }
+  // public get collisionMask(): number {
+  //   return this._meshCollisionData._collisionMask;
+  // }
 
-  public set collisionMask(mask: number) {
-    this._meshCollisionData._collisionMask = !isNaN(mask) ? mask : -1;
-  }
+  // public set collisionMask(mask: number) {
+  //   this._meshCollisionData._collisionMask = !isNaN(mask) ? mask : -1;
+  // }
 
   /**
    * Gets or sets a collision response flag (default is true).
@@ -568,24 +568,24 @@ export class AbstractMesh
    * This helps creating trigger volume when user wants collision feedback events but not position/velocity
    * to respond to the collision.
    */
-  public get collisionResponse(): boolean {
-    return this._meshCollisionData._collisionResponse;
-  }
+  // public get collisionResponse(): boolean {
+  //   return this._meshCollisionData._collisionResponse;
+  // }
 
-  public set collisionResponse(response: boolean) {
-    this._meshCollisionData._collisionResponse = response;
-  }
-  /**
-   * Gets or sets the current collision group mask (-1 by default).
-   * A collision between A and B will happen if A.collisionGroup & b.collisionMask !== 0
-   */
-  public get collisionGroup(): number {
-    return this._meshCollisionData._collisionGroup;
-  }
+  // public set collisionResponse(response: boolean) {
+  //   this._meshCollisionData._collisionResponse = response;
+  // }
+  // /**
+  //  * Gets or sets the current collision group mask (-1 by default).
+  //  * A collision between A and B will happen if A.collisionGroup & b.collisionMask !== 0
+  //  */
+  // public get collisionGroup(): number {
+  //   return this._meshCollisionData._collisionGroup;
+  // }
 
-  public set collisionGroup(mask: number) {
-    this._meshCollisionData._collisionGroup = !isNaN(mask) ? mask : -1;
-  }
+  // public set collisionGroup(mask: number) {
+  //   this._meshCollisionData._collisionGroup = !isNaN(mask) ? mask : -1;
+  // }
 
   /**
    * Gets or sets current surrounding meshes (null by default).
@@ -596,13 +596,13 @@ export class AbstractMesh
    *
    * Note: if set to an empty array no collision will happen when this mesh is moved.
    */
-  public get surroundingMeshes(): Nullable<AbstractMesh[]> {
-    return this._meshCollisionData._surroundingMeshes;
-  }
+  // public get surroundingMeshes(): Nullable<AbstractMesh[]> {
+  //   return this._meshCollisionData._surroundingMeshes;
+  // }
 
-  public set surroundingMeshes(meshes: Nullable<AbstractMesh[]>) {
-    this._meshCollisionData._surroundingMeshes = meshes;
-  }
+  // public set surroundingMeshes(meshes: Nullable<AbstractMesh[]>) {
+  //   this._meshCollisionData._surroundingMeshes = meshes;
+  // }
 
   // Edges
   /**
@@ -1270,21 +1270,21 @@ export class AbstractMesh
    * Gets or sets a boolean indicating that this mesh can be used in the collision engine
    * @see https://doc.babylonjs.com/babylon101/cameras,_mesh_collisions_and_gravity
    */
-  public get checkCollisions(): boolean {
-    return this._meshCollisionData._checkCollisions;
-  }
+  // public get checkCollisions(): boolean {
+  //   return this._meshCollisionData._checkCollisions;
+  // }
 
-  public set checkCollisions(collisionEnabled: boolean) {
-    this._meshCollisionData._checkCollisions = collisionEnabled;
-  }
+  // public set checkCollisions(collisionEnabled: boolean) {
+  //   this._meshCollisionData._checkCollisions = collisionEnabled;
+  // }
 
   /**
    * Gets Collider object used to compute collisions (not physics)
    * @see https://doc.babylonjs.com/babylon101/cameras,_mesh_collisions_and_gravity
    */
-  public get collider(): Nullable<Collider> {
-    return this._meshCollisionData._collider;
-  }
+  // public get collider(): Nullable<Collider> {
+  //   return this._meshCollisionData._collider;
+  // }
 
   /**
    * Move the mesh using collision engine

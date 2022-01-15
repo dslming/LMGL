@@ -18,7 +18,7 @@ import { ArcRotateCameraInputsManager } from "../Cameras/arcRotateCameraInputsMa
 import { Epsilon } from "../Maths/math.constants";
 import { Tools } from "../Misc/tools";
 
-declare type Collider = import("../Collisions/collider").Collider;
+// declare type Collider = import("../Collisions/collider").Collider;
 
 Node.AddNodeConstructor("ArcRotateCamera", (name, scene) => {
   return () => new ArcRotateCamera("123456", 0, 0, 1.0, Vector3.Zero(), scene);
@@ -633,7 +633,7 @@ export class ArcRotateCamera extends TargetCamera {
    */
   public collisionRadius = new Vector3(0.5, 0.5, 0.5);
 
-  protected _collider: Collider;
+  // protected _collider: Collider;
   protected _previousPosition = Vector3.Zero();
   protected _collisionVelocity = Vector3.Zero();
   protected _newPosition = Vector3.Zero();
@@ -1182,36 +1182,48 @@ export class ArcRotateCamera extends TargetCamera {
     }
 
     target.addToRef(this._computationVector, this._newPosition);
-    if (this.getScene().collisionsEnabled && this.checkCollisions) {
-      const coordinator = this.getScene().collisionCoordinator;
-      if (!this._collider) {
-        this._collider = coordinator.createCollider();
-      }
-      this._collider._radius = this.collisionRadius;
-      this._newPosition.subtractToRef(this._position, this._collisionVelocity);
-      this._collisionTriggered = true;
-      coordinator.getNewPosition(
-        this._position,
-        this._collisionVelocity,
-        this._collider,
-        3,
-        null,
-        this._onCollisionPositionChange,
-        this.uniqueId
-      );
-    } else {
-      this._position.copyFrom(this._newPosition);
+    // if (this.getScene().collisionsEnabled && this.checkCollisions) {
+    //   const coordinator = this.getScene().collisionCoordinator;
+    //   if (!this._collider) {
+    //     this._collider = coordinator.createCollider();
+    //   }
+    //   this._collider._radius = this.collisionRadius;
+    //   this._newPosition.subtractToRef(this._position, this._collisionVelocity);
+    //   this._collisionTriggered = true;
+    //   coordinator.getNewPosition(
+    //     this._position,
+    //     this._collisionVelocity,
+    //     this._collider,
+    //     3,
+    //     null,
+    //     this._onCollisionPositionChange,
+    //     this.uniqueId
+    //   );
+    // } else {
+    //   this._position.copyFrom(this._newPosition);
 
-      var up = this.upVector;
-      if (this.allowUpsideDown && sinb < 0) {
-        up = up.negate();
-      }
+    //   var up = this.upVector;
+    //   if (this.allowUpsideDown && sinb < 0) {
+    //     up = up.negate();
+    //   }
 
-      this._computeViewMatrix(this._position, target, up);
+    //   this._computeViewMatrix(this._position, target, up);
 
-      this._viewMatrix.addAtIndex(12, this.targetScreenOffset.x);
-      this._viewMatrix.addAtIndex(13, this.targetScreenOffset.y);
+    //   this._viewMatrix.addAtIndex(12, this.targetScreenOffset.x);
+    //   this._viewMatrix.addAtIndex(13, this.targetScreenOffset.y);
+    // }
+
+    this._position.copyFrom(this._newPosition);
+
+    var up = this.upVector;
+    if (this.allowUpsideDown && sinb < 0) {
+      up = up.negate();
     }
+
+    this._computeViewMatrix(this._position, target, up);
+
+    this._viewMatrix.addAtIndex(12, this.targetScreenOffset.x);
+    this._viewMatrix.addAtIndex(13, this.targetScreenOffset.y);
     this._currentTarget = target;
     return this._viewMatrix;
   }

@@ -3331,7 +3331,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       mesh.visibility = parsedMesh.visibility;
     }
 
-    mesh.checkCollisions = parsedMesh.checkCollisions;
+    // mesh.checkCollisions = parsedMesh.checkCollisions;
     mesh.overrideMaterialSideOrientation =
       parsedMesh.overrideMaterialSideOrientation;
 
@@ -3517,7 +3517,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
           parsedInstance.checkCollisions != undefined &&
           parsedInstance.checkCollisions != null
         ) {
-          instance.checkCollisions = parsedInstance.checkCollisions;
+          // instance.checkCollisions = parsedInstance.checkCollisions;
         }
         if (
           parsedInstance.pickable != undefined &&
@@ -4411,7 +4411,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     (<VertexData>vertexData).applyToMesh(meshSubclass);
 
     // Setting properties
-    meshSubclass.checkCollisions = source.checkCollisions;
+    // meshSubclass.checkCollisions = source.checkCollisions;
     meshSubclass.overrideMaterialSideOrientation =
       source.overrideMaterialSideOrientation;
 

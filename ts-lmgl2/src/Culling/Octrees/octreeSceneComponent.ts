@@ -8,7 +8,7 @@ import { SceneComponentConstants } from "../../Scene/sceneComponent";
 
 import { Octree } from "./octree";
 
-declare type Collider = import("../../Collisions/collider").Collider;
+// declare type Collider = import("../../Collisions/collider").Collider;
 
 declare module "../../Scene/scene" {
   export interface Scene {
