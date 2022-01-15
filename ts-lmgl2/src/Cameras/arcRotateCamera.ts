@@ -1182,28 +1182,36 @@ export class ArcRotateCamera extends TargetCamera {
     }
 
     target.addToRef(this._computationVector, this._newPosition);
-    // if (this.getScene().collisionsEnabled && this.checkCollisions) {
-    //     const coordinator = this.getScene().collisionCoordinator;
-    //     if (!this._collider) {
-    //         this._collider = coordinator.createCollider();
-    //     }
-    //     this._collider._radius = this.collisionRadius;
-    //     this._newPosition.subtractToRef(this._position, this._collisionVelocity);
-    //     this._collisionTriggered = true;
-    //     coordinator.getNewPosition(this._position, this._collisionVelocity, this._collider, 3, null, this._onCollisionPositionChange, this.uniqueId);
-    // } else {
-    //     this._position.copyFrom(this._newPosition);
+    if (this.getScene().collisionsEnabled && this.checkCollisions) {
+      const coordinator = this.getScene().collisionCoordinator;
+      if (!this._collider) {
+        this._collider = coordinator.createCollider();
+      }
+      this._collider._radius = this.collisionRadius;
+      this._newPosition.subtractToRef(this._position, this._collisionVelocity);
+      this._collisionTriggered = true;
+      coordinator.getNewPosition(
+        this._position,
+        this._collisionVelocity,
+        this._collider,
+        3,
+        null,
+        this._onCollisionPositionChange,
+        this.uniqueId
+      );
+    } else {
+      this._position.copyFrom(this._newPosition);
 
-    //     var up = this.upVector;
-    //     if (this.allowUpsideDown && sinb < 0) {
-    //         up = up.negate();
-    //     }
+      var up = this.upVector;
+      if (this.allowUpsideDown && sinb < 0) {
+        up = up.negate();
+      }
 
-    //     this._computeViewMatrix(this._position, target, up);
+      this._computeViewMatrix(this._position, target, up);
 
-    //     this._viewMatrix.addAtIndex(12, this.targetScreenOffset.x);
-    //     this._viewMatrix.addAtIndex(13, this.targetScreenOffset.y);
-    // }
+      this._viewMatrix.addAtIndex(12, this.targetScreenOffset.x);
+      this._viewMatrix.addAtIndex(13, this.targetScreenOffset.y);
+    }
     this._currentTarget = target;
     return this._viewMatrix;
   }

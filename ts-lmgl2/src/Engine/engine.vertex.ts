@@ -33,6 +33,10 @@ export class EngineVertex {
   constructor(_gl: WebGLRenderingContext, _caps: EngineCapabilities) {
     this._gl = _gl;
     this._caps = _caps;
+    // Prepare buffer pointers
+    for (var i = 0; i < this._caps.maxVertexAttribs; i++) {
+      this._currentBufferPointers[i] = new BufferPointer();
+    }
   }
 
   public _unbindVertexArrayObject(): void {
@@ -45,9 +49,9 @@ export class EngineVertex {
   }
 
   /**
-  * Bind a webGL buffer to the webGL context
-  * @param buffer defines the buffer to bind
-  */
+   * Bind a webGL buffer to the webGL context
+   * @param buffer defines the buffer to bind
+   */
   public bindArrayBuffer(buffer: Nullable<DataBuffer>): void {
     if (!this._vaoRecordInProgress) {
       this._unbindVertexArrayObject();
@@ -56,7 +60,10 @@ export class EngineVertex {
   }
 
   private bindBuffer(buffer: Nullable<DataBuffer>, target: number): void {
-    if (this._vaoRecordInProgress || this._currentBoundBuffer[target] !== buffer) {
+    if (
+      this._vaoRecordInProgress ||
+      this._currentBoundBuffer[target] !== buffer
+    ) {
       this._gl.bindBuffer(target, buffer ? buffer.underlyingResource : null);
       this._currentBoundBuffer[target] = buffer;
     }
@@ -70,7 +77,11 @@ export class EngineVertex {
    * @param effect defines the effect to store
    * @returns the new vertex array object
    */
-  public recordVertexArrayObject(vertexBuffers: { [key: string]: VertexBuffer; }, indexBuffer: Nullable<DataBuffer>, effect: Effect): WebGLVertexArrayObject {
+  public recordVertexArrayObject(
+    vertexBuffers: { [key: string]: VertexBuffer },
+    indexBuffer: Nullable<DataBuffer>,
+    effect: Effect
+  ): WebGLVertexArrayObject {
     var vao = this._gl.createVertexArray();
 
     this._vaoRecordInProgress = true;
@@ -94,7 +105,10 @@ export class EngineVertex {
    * @param vertexArrayObject defines the vertex array object to bind
    * @param indexBuffer defines the index buffer to bind
    */
-  public bindVertexArrayObject(vertexArrayObject: WebGLVertexArrayObject, indexBuffer: Nullable<DataBuffer>): void {
+  public bindVertexArrayObject(
+    vertexArrayObject: WebGLVertexArrayObject,
+    indexBuffer: Nullable<DataBuffer>
+  ): void {
     if (this._cachedVertexArrayObject !== vertexArrayObject) {
       this._cachedVertexArrayObject = vertexArrayObject;
 
@@ -102,7 +116,8 @@ export class EngineVertex {
       this._cachedVertexBuffers = null;
       this._cachedIndexBuffer = null;
 
-      this._uintIndicesCurrentlySet = indexBuffer != null && indexBuffer.is32Bits;
+      this._uintIndicesCurrentlySet =
+        indexBuffer != null && indexBuffer.is32Bits;
       this._mustWipeVertexAttributes = true;
     }
   }
@@ -119,7 +134,15 @@ export class EngineVertex {
     }
   }
 
-  private _vertexAttribPointer(buffer: DataBuffer, indx: number, size: number, type: number, normalized: boolean, stride: number, offset: number): void {
+  private _vertexAttribPointer(
+    buffer: DataBuffer,
+    indx: number,
+    size: number,
+    type: number,
+    normalized: boolean,
+    stride: number,
+    offset: number
+  ): void {
     var pointer = this._currentBufferPointers[indx];
     if (!pointer) {
       return;
@@ -137,24 +160,49 @@ export class EngineVertex {
       pointer.offset = offset;
       pointer.buffer = buffer;
     } else {
-      if (pointer.buffer !== buffer) { pointer.buffer = buffer; changed = true; }
-      if (pointer.size !== size) { pointer.size = size; changed = true; }
-      if (pointer.type !== type) { pointer.type = type; changed = true; }
-      if (pointer.normalized !== normalized) { pointer.normalized = normalized; changed = true; }
-      if (pointer.stride !== stride) { pointer.stride = stride; changed = true; }
-      if (pointer.offset !== offset) { pointer.offset = offset; changed = true; }
+      if (pointer.buffer !== buffer) {
+        pointer.buffer = buffer;
+        changed = true;
+      }
+      if (pointer.size !== size) {
+        pointer.size = size;
+        changed = true;
+      }
+      if (pointer.type !== type) {
+        pointer.type = type;
+        changed = true;
+      }
+      if (pointer.normalized !== normalized) {
+        pointer.normalized = normalized;
+        changed = true;
+      }
+      if (pointer.stride !== stride) {
+        pointer.stride = stride;
+        changed = true;
+      }
+      if (pointer.offset !== offset) {
+        pointer.offset = offset;
+        changed = true;
+      }
     }
 
     if (changed || this._vaoRecordInProgress) {
       this.bindArrayBuffer(buffer);
-      this._gl.vertexAttribPointer(indx, size, type, normalized, stride, offset);
+      this._gl.vertexAttribPointer(
+        indx,
+        size,
+        type,
+        normalized,
+        stride,
+        offset
+      );
     }
   }
 
   /**
-    * Disable the attribute corresponding to the location in parameter
-    * @param attributeLocation defines the attribute location of the attribute to disable
-    */
+   * Disable the attribute corresponding to the location in parameter
+   * @param attributeLocation defines the attribute location of the attribute to disable
+   */
   public disableAttributeByIndex(attributeLocation: number) {
     this._gl.disableVertexAttribArray(attributeLocation);
     this._vertexAttribArraysEnabled[attributeLocation] = false;
@@ -175,7 +223,10 @@ export class EngineVertex {
     }
 
     for (var i = 0, ul = this._vertexAttribArraysEnabled.length; i < ul; i++) {
-      if (i >= this._caps.maxVertexAttribs || !this._vertexAttribArraysEnabled[i]) {
+      if (
+        i >= this._caps.maxVertexAttribs ||
+        !this._vertexAttribArraysEnabled[i]
+      ) {
         continue;
       }
 
@@ -183,7 +234,10 @@ export class EngineVertex {
     }
   }
 
-  private _bindVertexBuffersAttributes(vertexBuffers: { [key: string]: Nullable<VertexBuffer> }, effect: Effect): void {
+  private _bindVertexBuffersAttributes(
+    vertexBuffers: { [key: string]: Nullable<VertexBuffer> },
+    effect: Effect
+  ): void {
     var attributes = effect.getAttributesNames();
 
     if (!this._vaoRecordInProgress) {
@@ -196,7 +250,8 @@ export class EngineVertex {
       var order = effect.getAttributeLocation(index);
 
       if (order >= 0) {
-        var vertexBuffer: Nullable<VertexBuffer> = vertexBuffers[attributes[index]];
+        var vertexBuffer: Nullable<VertexBuffer> =
+          vertexBuffers[attributes[index]];
 
         if (!vertexBuffer) {
           continue;
@@ -209,10 +264,21 @@ export class EngineVertex {
 
         var buffer = vertexBuffer.getBuffer();
         if (buffer) {
-          this._vertexAttribPointer(buffer, order, vertexBuffer.getSize(), vertexBuffer.type, vertexBuffer.normalized, vertexBuffer.byteStride, vertexBuffer.byteOffset);
+          this._vertexAttribPointer(
+            buffer,
+            order,
+            vertexBuffer.getSize(),
+            vertexBuffer.type,
+            vertexBuffer.normalized,
+            vertexBuffer.byteStride,
+            vertexBuffer.byteOffset
+          );
 
           if (vertexBuffer.getIsInstanced()) {
-            this._gl.vertexAttribDivisor(order, vertexBuffer.getInstanceDivisor());
+            this._gl.vertexAttribDivisor(
+              order,
+              vertexBuffer.getInstanceDivisor()
+            );
             if (!this._vaoRecordInProgress) {
               this._currentInstanceLocations.push(order);
               this._currentInstanceBuffers.push(buffer);
@@ -229,8 +295,15 @@ export class EngineVertex {
    * @param indexBuffer defines the index buffer to bind
    * @param effect defines the effect associated with the vertex buffers
    */
-  public bindBuffers(vertexBuffers: { [key: string]: Nullable<VertexBuffer> }, indexBuffer: Nullable<DataBuffer>, effect: Effect): void {
-    if (this._cachedVertexBuffers !== vertexBuffers || this._cachedEffectForVertexBuffers !== effect) {
+  public bindBuffers(
+    vertexBuffers: { [key: string]: Nullable<VertexBuffer> },
+    indexBuffer: Nullable<DataBuffer>,
+    effect: Effect
+  ): void {
+    if (
+      this._cachedVertexBuffers !== vertexBuffers ||
+      this._cachedEffectForVertexBuffers !== effect
+    ) {
       this._cachedVertexBuffers = vertexBuffers;
       this._cachedEffectForVertexBuffers = effect;
 
@@ -248,7 +321,9 @@ export class EngineVertex {
     this._cachedVertexBuffers = null;
   }
 
-  protected _normalizeIndexData(indices: IndicesArray): Uint16Array | Uint32Array {
+  protected _normalizeIndexData(
+    indices: IndicesArray
+  ): Uint16Array | Uint32Array {
     if (indices instanceof Uint16Array) {
       return indices;
     }
@@ -279,7 +354,10 @@ export class EngineVertex {
    * @param updatable defines if the index buffer must be updatable
    * @returns a new webGL buffer
    */
-  public createIndexBuffer(indices: IndicesArray, updatable?: boolean): DataBuffer {
+  public createIndexBuffer(
+    indices: IndicesArray,
+    updatable?: boolean
+  ): DataBuffer {
     var vbo = this._gl.createBuffer();
     let dataBuffer = new WebGLDataBuffer(vbo!);
 
@@ -290,10 +368,14 @@ export class EngineVertex {
     this.bindIndexBuffer(dataBuffer);
 
     const data = this._normalizeIndexData(indices);
-    this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, data, updatable ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW);
+    this._gl.bufferData(
+      this._gl.ELEMENT_ARRAY_BUFFER,
+      data,
+      updatable ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW
+    );
     this._resetIndexBufferBinding();
     dataBuffer.references = 1;
-    dataBuffer.is32Bits = (data.BYTES_PER_ELEMENT === 4);
+    dataBuffer.is32Bits = data.BYTES_PER_ELEMENT === 4;
     return dataBuffer;
   }
 
@@ -308,9 +390,17 @@ export class EngineVertex {
     this.bindArrayBuffer(dataBuffer);
 
     if (data instanceof Array) {
-      this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(data), this._gl.STATIC_DRAW);
+      this._gl.bufferData(
+        this._gl.ARRAY_BUFFER,
+        new Float32Array(data),
+        this._gl.STATIC_DRAW
+      );
     } else {
-      this._gl.bufferData(this._gl.ARRAY_BUFFER, <ArrayBuffer>data, this._gl.STATIC_DRAW);
+      this._gl.bufferData(
+        this._gl.ARRAY_BUFFER,
+        <ArrayBuffer>data,
+        this._gl.STATIC_DRAW
+      );
     }
 
     this._resetVertexBufferBinding();

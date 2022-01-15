@@ -556,8 +556,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       this.getEngine().getCaps().instancedArrays;
   }
 
-
-
   // Methods
   // public instantiateHierarchy(newParent: Nullable<TransformNode> = null, options?: { doNotInstantiate: boolean}, onNewNodeCreated?: (source: TransformNode, clone: TransformNode) => void): Nullable<TransformNode> {
   //     let instance = (this.getTotalVertices() > 0 && (!options || !options.doNotInstantiate)) ? this.createInstance("instance of " + (this.name || this.id)) :  this.clone("Clone of " +  (this.name || this.id), newParent || this.parent, true);
@@ -1879,16 +1877,16 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     // }
 
     // Draw
-    // this._processRendering(
-    //   this,
-    //   subMesh,
-    //   effect,
-    //   fillMode,
-    //   batch,
-    //   hardwareInstancedRendering,
-    //   this._onBeforeDraw,
-    //   this._effectiveMaterial
-    // );
+    this._processRendering(
+      this,
+      subMesh,
+      effect,
+      fillMode,
+      batch,
+      hardwareInstancedRendering,
+      this._onBeforeDraw,
+      this._effectiveMaterial
+    );
 
     // Unbind
     this._effectiveMaterial.unbind();
@@ -3780,82 +3778,82 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
   // }
 
   /** @hidden */
-  // public _processRendering(
-  //   renderingMesh: AbstractMesh,
-  //   subMesh: SubMesh,
-  //   effect: Effect,
-  //   fillMode: number,
-  //   batch: _InstancesBatch,
-  //   hardwareInstancedRendering: boolean,
-  //   onBeforeDraw: (
-  //     isInstance: boolean,
-  //     world: Matrix,
-  //     effectiveMaterial?: Material
-  //   ) => void,
-  //   effectiveMaterial?: Material
-  // ): Mesh {
-  //   var scene = this.getScene();
-  //   var engine = scene.getEngine();
+  public _processRendering(
+    renderingMesh: AbstractMesh,
+    subMesh: SubMesh,
+    effect: Effect,
+    fillMode: number,
+    batch: _InstancesBatch,
+    hardwareInstancedRendering: boolean,
+    onBeforeDraw: (
+      isInstance: boolean,
+      world: Matrix,
+      effectiveMaterial?: Material
+    ) => void,
+    effectiveMaterial?: Material
+  ): Mesh {
+    var scene = this.getScene();
+    var engine = scene.getEngine();
 
-  // if (
-  //   hardwareInstancedRendering &&
-  //   subMesh.getRenderingMesh().hasThinInstances
-  // ) {
-  //   this._renderWithThinInstances(subMesh, fillMode, effect, engine);
-  //   return this;
-  // }
+    if (
+      hardwareInstancedRendering &&
+      subMesh.getRenderingMesh().hasThinInstances
+    ) {
+      // this._renderWithThinInstances(subMesh, fillMode, effect, engine);
+      return this;
+    }
 
-  //   if (hardwareInstancedRendering) {
-  //     this._renderWithInstances(subMesh, fillMode, batch, effect, engine);
-  //   } else {
-  //     let instanceCount = 0;
-  //     if (batch.renderSelf[subMesh._id]) {
-  //       // Draw
-  //       if (onBeforeDraw) {
-  //         onBeforeDraw(
-  //           false,
-  //           renderingMesh._effectiveMesh.getWorldMatrix(),
-  //           effectiveMaterial
-  //         );
-  //       }
-  //       instanceCount++;
+    if (hardwareInstancedRendering) {
+      // this._renderWithInstances(subMesh, fillMode, batch, effect, engine);
+    } else {
+      let instanceCount = 0;
+      if (batch.renderSelf[subMesh._id]) {
+        // Draw
+        if (onBeforeDraw) {
+          onBeforeDraw(
+            false,
+            renderingMesh._effectiveMesh.getWorldMatrix(),
+            effectiveMaterial
+          );
+        }
+        instanceCount++;
 
-  //       this._draw(
-  //         subMesh,
-  //         fillMode,
-  //         this._instanceDataStorage.overridenInstanceCount
-  //       );
-  //     }
+        this._draw(
+          subMesh,
+          fillMode,
+          this._instanceDataStorage.overridenInstanceCount
+        );
+      }
 
-  //     let visibleInstancesForSubMesh = batch.visibleInstances[subMesh._id];
+      let visibleInstancesForSubMesh = batch.visibleInstances[subMesh._id];
 
-  //     if (visibleInstancesForSubMesh) {
-  //       let visibleInstanceCount = visibleInstancesForSubMesh.length;
-  //       instanceCount += visibleInstanceCount;
+      if (visibleInstancesForSubMesh) {
+        let visibleInstanceCount = visibleInstancesForSubMesh.length;
+        instanceCount += visibleInstanceCount;
 
-  //       // Stats
-  //       for (
-  //         var instanceIndex = 0;
-  //         instanceIndex < visibleInstanceCount;
-  //         instanceIndex++
-  //       ) {
-  //         var instance = visibleInstancesForSubMesh[instanceIndex];
+        // Stats
+        for (
+          var instanceIndex = 0;
+          instanceIndex < visibleInstanceCount;
+          instanceIndex++
+        ) {
+          var instance = visibleInstancesForSubMesh[instanceIndex];
 
-  //         // World
-  //         var world = instance.getWorldMatrix();
-  //         if (onBeforeDraw) {
-  //           onBeforeDraw(true, world, effectiveMaterial);
-  //         }
-  //         // Draw
-  //         this._draw(subMesh, fillMode);
-  //       }
-  //     }
+          // World
+          var world = instance.getWorldMatrix();
+          if (onBeforeDraw) {
+            onBeforeDraw(true, world, effectiveMaterial);
+          }
+          // Draw
+          this._draw(subMesh, fillMode);
+        }
+      }
 
-  //     // Stats
-  //     scene._activeIndices.addCount(subMesh.indexCount * instanceCount, false);
-  //   }
-  //   return this;
-  // }
+      // Stats
+      scene._activeIndices.addCount(subMesh.indexCount * instanceCount, false);
+    }
+    return this;
+  }
 
   /**
    * Creates a polygon mesh.Please consider using the same method from the MeshBuilder class instead
@@ -4471,19 +4469,20 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
   //   }
   // }
   /**
-  * Returns an array of integers or a typed array (Int32Array, Uint32Array, Uint16Array) populated with the mesh indices.
-  * @param copyWhenShared If true (default false) and and if the mesh geometry is shared among some other meshes, the returned array is a copy of the internal one.
-  * @param forceCopy defines a boolean indicating that the returned array must be cloned upon returning it
-  * @returns the indices array or an empty array if the mesh has no geometry
-  */
-  public getIndices(copyWhenShared?: boolean, forceCopy?: boolean): Nullable<IndicesArray> {
-
+   * Returns an array of integers or a typed array (Int32Array, Uint32Array, Uint16Array) populated with the mesh indices.
+   * @param copyWhenShared If true (default false) and and if the mesh geometry is shared among some other meshes, the returned array is a copy of the internal one.
+   * @param forceCopy defines a boolean indicating that the returned array must be cloned upon returning it
+   * @returns the indices array or an empty array if the mesh has no geometry
+   */
+  public getIndices(
+    copyWhenShared?: boolean,
+    forceCopy?: boolean
+  ): Nullable<IndicesArray> {
     if (!this._geometry) {
       return [];
     }
     return this._geometry.getIndices(copyWhenShared, forceCopy);
   }
-
 }
 
 _TypeStore.RegisteredTypes["BABYLON.Mesh"] = Mesh;

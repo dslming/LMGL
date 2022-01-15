@@ -140,6 +140,6 @@ export class DefaultCollisionCoordinator implements ICollisionCoordinator {
   }
 }
 
-// Scene.CollisionCoordinatorFactory = () => {
-//   return new DefaultCollisionCoordinator();
-// };
+Scene.CollisionCoordinatorFactory = () => {
+  return new DefaultCollisionCoordinator();
+};

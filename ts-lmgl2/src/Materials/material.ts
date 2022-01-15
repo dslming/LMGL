@@ -973,11 +973,14 @@ export class Material {
    * @param effect defines the effect to bind the view matrix to
    */
   public bindView(effect: Effect): void {
-    // if (!this._useUBO) {
-    //     effect.setMatrix("view", this.getScene().sceneMatrix.getViewMatrix());
-    // } else {
-    //     this.bindSceneUniformBuffer(effect, this.getScene().sceneMatrix.getSceneUniformBuffer());
-    // }
+    if (!this._useUBO) {
+      effect.setMatrix("view", this.getScene().sceneMatrix.getViewMatrix());
+    } else {
+      this.bindSceneUniformBuffer(
+        effect,
+        this.getScene().sceneMatrix.getSceneUniformBuffer()
+      );
+    }
   }
 
   /**

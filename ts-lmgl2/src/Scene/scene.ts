@@ -25,8 +25,11 @@ import { SubMesh } from "../Meshes/subMesh";
 import { Ray } from "../Culling/ray";
 import { Collider } from "../Collisions/collider";
 import { PerfCounter } from "../Misc/perfCounter";
+import { ICollisionCoordinator } from "../Collisions/collisionCoordinator";
+import { _DevTools } from "../Misc/devTools";
 
 export class Scene extends AbstractScene {
+  lightsEnabled: boolean = true;
   public _renderingManager: RenderingManager;
   public _totalVertices = new PerfCounter();
   public webGLVersion: number = 2;
@@ -46,10 +49,39 @@ export class Scene extends AbstractScene {
   }> = null;
   public geometries = new Array<Geometry>();
   public _blockEntityCollection = false;
-  public sceneEventTrigger = new SceneEventTrigger(this);
+  public sceneEventTrigger: SceneEventTrigger;
   public cameras = new Array<Camera>();
   public lights = new Array<Light>();
   public sceneNode = new SceneNode(this);
+
+  public _activeIndices = new PerfCounter();
+
+  // Collisions
+  /**
+   * Gets or sets a boolean indicating if collisions are enabled on this scene
+   * @see https://doc.babylonjs.com/babylon101/cameras,_mesh_collisions_and_gravity
+   */
+  public collisionsEnabled = true;
+  private _collisionCoordinator: ICollisionCoordinator;
+  sceneCatch: SceneCatch;
+
+  /**
+   * Factory used to create the a collision coordinator.
+   * @returns The collision coordinator
+   */
+  public static CollisionCoordinatorFactory(): ICollisionCoordinator {
+    throw _DevTools.WarnImport("DefaultCollisionCoordinator");
+  }
+
+  /** @hidden */
+  public get collisionCoordinator(): ICollisionCoordinator {
+    if (!this._collisionCoordinator) {
+      this._collisionCoordinator = Scene.CollisionCoordinatorFactory();
+      this._collisionCoordinator.init(this);
+    }
+
+    return this._collisionCoordinator;
+  }
 
   /**
    * Gets or sets a boolean indicating if lights must be sorted by priority (off by default)
@@ -58,8 +90,8 @@ export class Scene extends AbstractScene {
   public requireLightSorting = false;
 
   /**
-* Flag indicating that the frame buffer binding is handled by another component
-*/
+   * Flag indicating that the frame buffer binding is handled by another component
+   */
   public prePass: boolean = false;
   public _activeCamera: Nullable<Camera>;
   /**
@@ -69,14 +101,13 @@ export class Scene extends AbstractScene {
   public textures = new Array<BaseTexture>();
   public sceneMatrix: SceneMatrix;
   public _components: ISceneComponent[] = [];
-  public sceneCatch = new SceneCatch(this);
   public _activeMeshes = new SmartArray<AbstractMesh>(256);
   public _processedMaterials = new SmartArray<Material>(256);
 
   /**
-     * Gets or sets a boolean indicating that all submeshes of active meshes must be rendered
-     * Use this boolean to avoid computing frustum clipping on submeshes (This could help when you are CPU bound)
-     */
+   * Gets or sets a boolean indicating that all submeshes of active meshes must be rendered
+   * Use this boolean to avoid computing frustum clipping on submeshes (This could help when you are CPU bound)
+   */
   public dispatchAllSubMeshesOfActiveMeshes: boolean = false;
 
   constructor(engine: Engine) {
@@ -85,6 +116,8 @@ export class Scene extends AbstractScene {
     this.sceneRender = new SceneRender(this);
     this.scenePaddingData = new ScenePaddingData();
     this.sceneMatrix = new SceneMatrix(this, engine);
+    this.sceneCatch = new SceneCatch(this);
+    this.sceneEventTrigger = new SceneEventTrigger(this);
     this.sceneCatch.resetCachedMaterial();
     this._renderingManager = new RenderingManager(this);
     // Uniform Buffer
@@ -187,23 +220,30 @@ export class Scene extends AbstractScene {
   }
 
   /**
-     * Lambda returning the list of potentially active meshes.
-     */
+   * Lambda returning the list of potentially active meshes.
+   */
   public getActiveMeshCandidates: () => ISmartArrayLike<AbstractMesh>;
 
   /**
    * Lambda returning the list of potentially active sub meshes.
    */
-  public getActiveSubMeshCandidates: (mesh: AbstractMesh) => ISmartArrayLike<SubMesh>;
+  public getActiveSubMeshCandidates: (
+    mesh: AbstractMesh
+  ) => ISmartArrayLike<SubMesh>;
 
   /**
    * Lambda returning the list of potentially intersecting sub meshes.
    */
-  public getIntersectingSubMeshCandidates: (mesh: AbstractMesh, localRay: Ray) => ISmartArrayLike<SubMesh>;
+  public getIntersectingSubMeshCandidates: (
+    mesh: AbstractMesh,
+    localRay: Ray
+  ) => ISmartArrayLike<SubMesh>;
 
   /**
    * Lambda returning the list of potentially colliding sub meshes.
    */
-  public getCollidingSubMeshCandidates: (mesh: AbstractMesh, collider: Collider) => ISmartArrayLike<SubMesh>;
-
+  public getCollidingSubMeshCandidates: (
+    mesh: AbstractMesh,
+    collider: Collider
+  ) => ISmartArrayLike<SubMesh>;
 }

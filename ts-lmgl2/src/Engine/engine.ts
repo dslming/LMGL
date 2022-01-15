@@ -21,6 +21,7 @@ import { InternalTexture } from "../Materials/Textures/internalTexture";
 import { IEffectFallbacks } from "../Materials/iEffectFallbacks";
 import { EngineDraw } from "./engine.draw";
 import { EngineRender } from "./engine.render";
+import { DomManagement } from "../Misc/domManagement";
 
 export class Engine {
   public _contextWasLost = false;
@@ -121,6 +122,7 @@ export class Engine {
   public validateShaderPrograms = false;
 
   constructor(canvas: HTMLCanvasElement, options?: EngineOptions) {
+    this._renderingCanvas = canvas;
     // GL
     try {
       this._gl = canvas.getContext("webgl2", options) as any;
@@ -134,6 +136,7 @@ export class Engine {
     if (!this._gl) {
       throw new Error("WebGL not supported");
     }
+    this.resize();
     this._initGLContext();
 
     this.engineVertex = new EngineVertex(this._gl, this._caps);
@@ -145,6 +148,55 @@ export class Engine {
     this.engineViewPort = new EngineViewPort(this);
     this.engineFramebuffer = new EngineFramebuffer(this._gl, this);
     this.engineRender = new EngineRender(this);
+  }
+
+  /**
+   * Resize the view according to the canvas' size
+   */
+  public resize(): void {
+    let width: number;
+    let height: number;
+
+    if (DomManagement.IsWindowObjectExist()) {
+      width = this._renderingCanvas
+        ? this._renderingCanvas.clientWidth || this._renderingCanvas.width
+        : window.innerWidth;
+      height = this._renderingCanvas
+        ? this._renderingCanvas.clientHeight || this._renderingCanvas.height
+        : window.innerHeight;
+    } else {
+      width = this._renderingCanvas ? this._renderingCanvas.width : 100;
+      height = this._renderingCanvas ? this._renderingCanvas.height : 100;
+    }
+
+    this.setSize(width, height);
+  }
+
+  /**
+   * Force a specific size of the canvas
+   * @param width defines the new canvas' width
+   * @param height defines the new canvas' height
+   * @returns true if the size was changed
+   */
+  public setSize(width: number, height: number): boolean {
+    if (!this._renderingCanvas) {
+      return false;
+    }
+
+    width = width | 0;
+    height = height | 0;
+
+    if (
+      this._renderingCanvas.width === width &&
+      this._renderingCanvas.height === height
+    ) {
+      return false;
+    }
+
+    this._renderingCanvas.width = width;
+    this._renderingCanvas.height = height;
+
+    return true;
   }
 
   public getClassName(): string {
@@ -841,7 +893,7 @@ export class Engine {
   /**
    * Begin a new frame
    */
-  public beginFrame(): void { }
+  public beginFrame(): void {}
 
   /**
    * Enf the current frame
@@ -852,6 +904,4 @@ export class Engine {
     //     this.flushFramebuffer();
     // }
   }
-
-
 }
