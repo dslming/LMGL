@@ -23,11 +23,9 @@ import { RenderingManager } from "../Rendering/renderingManager";
 import { ISmartArrayLike, SmartArray } from "../Misc/smartArray";
 import { SubMesh } from "../Meshes/subMesh";
 import { Ray } from "../Culling/ray";
-// import { Collider } from "../Collisions/collider";
 import { PerfCounter } from "../Misc/perfCounter";
-// import { ICollisionCoordinator } from "../Collisions/collisionCoordinator";
 import { _DevTools } from "../Misc/devTools";
-
+import { SceneComponent } from "./scene.component";
 export class Scene extends AbstractScene {
   lightsEnabled: boolean = true;
   public _renderingManager: RenderingManager;
@@ -53,35 +51,10 @@ export class Scene extends AbstractScene {
   public cameras = new Array<Camera>();
   public lights = new Array<Light>();
   public sceneNode = new SceneNode(this);
+  public sceneComponent = new SceneComponent();
 
   public _activeIndices = new PerfCounter();
-
-  // Collisions
-  /**
-   * Gets or sets a boolean indicating if collisions are enabled on this scene
-   * @see https://doc.babylonjs.com/babylon101/cameras,_mesh_collisions_and_gravity
-   */
-  public collisionsEnabled = true;
-  // private _collisionCoordinator: ICollisionCoordinator;
-  sceneCatch: SceneCatch;
-
-  /**
-   * Factory used to create the a collision coordinator.
-   * @returns The collision coordinator
-   */
-  // public static CollisionCoordinatorFactory(): ICollisionCoordinator {
-  //   throw _DevTools.WarnImport("DefaultCollisionCoordinator");
-  // }
-
-  /** @hidden */
-  // public get collisionCoordinator(): ICollisionCoordinator {
-  //   if (!this._collisionCoordinator) {
-  //     this._collisionCoordinator = Scene.CollisionCoordinatorFactory();
-  //     this._collisionCoordinator.init(this);
-  //   }
-
-  //   return this._collisionCoordinator;
-  // }
+  public sceneCatch: SceneCatch;
 
   /**
    * Gets or sets a boolean indicating if lights must be sorted by priority (off by default)
@@ -91,8 +64,10 @@ export class Scene extends AbstractScene {
 
   /**
    * Flag indicating that the frame buffer binding is handled by another component
+   * 指示帧缓冲区绑定由另一个组件处理的标志
    */
   public prePass: boolean = false;
+
   public _activeCamera: Nullable<Camera>;
   /**
    * Gets the list of root nodes (ie. nodes with no parent)
@@ -100,7 +75,6 @@ export class Scene extends AbstractScene {
   public rootNodes = new Array<Node>();
   public textures = new Array<BaseTexture>();
   public sceneMatrix: SceneMatrix;
-  public _components: ISceneComponent[] = [];
   public _activeMeshes = new SmartArray<AbstractMesh>(256);
   public _processedMaterials = new SmartArray<Material>(256);
 
@@ -175,6 +149,7 @@ export class Scene extends AbstractScene {
   private _blockMaterialDirtyMechanism = false;
   /**
    * Gets or sets a boolean blocking all the calls to markAllMaterialsAsDirty (ie. the materials won't be updated if they are out of sync)
+   * 获取或设置一个布尔值，阻止对markAllMaterialsAsDirty的所有调用（即，如果材质不同步，则不会更新）
    */
   public get blockMaterialDirtyMechanism(): boolean {
     return this._blockMaterialDirtyMechanism;
@@ -195,28 +170,6 @@ export class Scene extends AbstractScene {
 
   getClassName(): String {
     return "Scene";
-  }
-
-  public _getComponent(name: string): Nullable<ISceneComponent> {
-    for (let component of this._components) {
-      if (component.name === name) {
-        return component;
-      }
-    }
-    return null;
-  }
-
-  public _addComponent(component: ISceneComponent) {
-    this._components.push(component);
-    // this._transientComponents.push(component);
-
-    // const serializableComponent = component as ISceneSerializableComponent;
-    // if (
-    //   (serializableComponent as any).addFromContainer &&
-    //   serializableComponent.serialize
-    // ) {
-    //   this._serializableComponents.push(serializableComponent);
-    // }
   }
 
   /**

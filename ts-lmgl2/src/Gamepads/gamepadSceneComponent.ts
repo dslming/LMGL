@@ -28,12 +28,12 @@ Object.defineProperty(Scene.prototype, "gamepadManager", {
   get: function (this: Scene) {
     if (!this._gamepadManager) {
       this._gamepadManager = new GamepadManager(this);
-      let component = this._getComponent(
+      let component = this.sceneComponent._getComponent(
         SceneComponentConstants.NAME_GAMEPAD
       ) as GamepadSystemSceneComponent;
       if (!component) {
         component = new GamepadSystemSceneComponent(this);
-        this._addComponent(component);
+        this.sceneComponent._addComponent(component);
       }
     }
 

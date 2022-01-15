@@ -42,10 +42,12 @@ Scene.prototype.createOrUpdateSelectionOctree = function (
   maxCapacity = 64,
   maxDepth = 2
 ): Octree<AbstractMesh> {
-  let component = this._getComponent(SceneComponentConstants.NAME_OCTREE);
+  let component = this.sceneComponent._getComponent(
+    SceneComponentConstants.NAME_OCTREE
+  );
   if (!component) {
     component = new OctreeSceneComponent(this);
-    this._addComponent(component);
+    this.sceneComponent._addComponent(component);
   }
 
   if (!this._selectionOctree) {
@@ -110,10 +112,12 @@ AbstractMesh.prototype.createOrUpdateSubmeshesOctree = function (
   maxDepth = 2
 ): Octree<SubMesh> {
   const scene = this.getScene();
-  let component = scene._getComponent(SceneComponentConstants.NAME_OCTREE);
+  let component = scene.sceneComponent._getComponent(
+    SceneComponentConstants.NAME_OCTREE
+  );
   if (!component) {
     component = new OctreeSceneComponent(scene);
-    scene._addComponent(component);
+    scene.sceneComponent._addComponent(component);
   }
 
   if (!this._submeshesOctree) {
