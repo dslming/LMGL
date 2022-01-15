@@ -42,9 +42,8 @@ export class Scene extends AbstractScene {
   public sceneRender: SceneRender;
   public scenePaddingData: ScenePaddingData;
   public readonly useMaterialMeshMap: boolean = true;
-  public geometriesByUniqueId: Nullable<{
-    [uniqueId: string]: number | undefined;
-  }> = null;
+  public geometriesByUniqueId: Nullable<{ [uniqueId: string]: number | undefined }> = null;
+
   public geometries = new Array<Geometry>();
   public _blockEntityCollection = false;
   public sceneEventTrigger: SceneEventTrigger;
@@ -105,10 +104,7 @@ export class Scene extends AbstractScene {
    * @param flag defines the flag used to specify which material part must be marked as dirty
    * @param predicate If not null, it will be used to specifiy if a material has to be marked as dirty
    */
-  public markAllMaterialsAsDirty(
-    flag: number,
-    predicate?: (mat: Material) => boolean
-  ): void {
+  public markAllMaterialsAsDirty(flag: number, predicate?: (mat: Material) => boolean): void {
     for (var material of this.materials) {
       if (predicate && !predicate(material)) {
         continue;
@@ -180,23 +176,5 @@ export class Scene extends AbstractScene {
   /**
    * Lambda returning the list of potentially active sub meshes.
    */
-  public getActiveSubMeshCandidates: (
-    mesh: AbstractMesh
-  ) => ISmartArrayLike<SubMesh>;
-
-  /**
-   * Lambda returning the list of potentially intersecting sub meshes.
-   */
-  public getIntersectingSubMeshCandidates: (
-    mesh: AbstractMesh,
-    localRay: Ray
-  ) => ISmartArrayLike<SubMesh>;
-
-  /**
-   * Lambda returning the list of potentially colliding sub meshes.
-   */
-  // public getCollidingSubMeshCandidates: (
-  //   mesh: AbstractMesh,
-  //   collider: Collider
-  // ) => ISmartArrayLike<SubMesh>;
+  public getActiveSubMeshCandidates: (mesh: AbstractMesh) => ISmartArrayLike<SubMesh>;
 }
