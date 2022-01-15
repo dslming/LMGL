@@ -64,8 +64,7 @@ export class Material {
   /**
    * Returns the wireframe mode
    */
-  public static readonly WireFrameFillMode =
-    Constants.MATERIAL_WireFrameFillMode;
+  public static readonly WireFrameFillMode = Constants.MATERIAL_WireFrameFillMode;
   /**
    * Returns the point fill mode
    */
@@ -73,8 +72,7 @@ export class Material {
   /**
    * Returns the point list draw mode
    */
-  public static readonly PointListDrawMode =
-    Constants.MATERIAL_PointListDrawMode;
+  public static readonly PointListDrawMode = Constants.MATERIAL_PointListDrawMode;
   /**
    * Returns the line list draw mode
    */
@@ -86,30 +84,25 @@ export class Material {
   /**
    * Returns the line strip draw mode
    */
-  public static readonly LineStripDrawMode =
-    Constants.MATERIAL_LineStripDrawMode;
+  public static readonly LineStripDrawMode = Constants.MATERIAL_LineStripDrawMode;
   /**
    * Returns the triangle strip draw mode
    */
-  public static readonly TriangleStripDrawMode =
-    Constants.MATERIAL_TriangleStripDrawMode;
+  public static readonly TriangleStripDrawMode = Constants.MATERIAL_TriangleStripDrawMode;
   /**
    * Returns the triangle fan draw mode
    */
-  public static readonly TriangleFanDrawMode =
-    Constants.MATERIAL_TriangleFanDrawMode;
+  public static readonly TriangleFanDrawMode = Constants.MATERIAL_TriangleFanDrawMode;
 
   /**
    * Stores the clock-wise side orientation
    */
-  public static readonly ClockWiseSideOrientation =
-    Constants.MATERIAL_ClockWiseSideOrientation;
+  public static readonly ClockWiseSideOrientation = Constants.MATERIAL_ClockWiseSideOrientation;
 
   /**
    * Stores the counter clock-wise side orientation
    */
-  public static readonly CounterClockWiseSideOrientation =
-    Constants.MATERIAL_CounterClockWiseSideOrientation;
+  public static readonly CounterClockWiseSideOrientation = Constants.MATERIAL_CounterClockWiseSideOrientation;
 
   /**
    * The dirty texture flag value
@@ -129,8 +122,7 @@ export class Material {
   /**
    * The dirty attribute flag value
    */
-  public static readonly AttributesDirtyFlag =
-    Constants.MATERIAL_AttributesDirtyFlag;
+  public static readonly AttributesDirtyFlag = Constants.MATERIAL_AttributesDirtyFlag;
 
   /**
    * The dirty misc flag value
@@ -327,9 +319,7 @@ export class Material {
   /**
    * Callback triggered to get the render target textures
    */
-  public getRenderTargetTextures: Nullable<
-    () => SmartArray<RenderTargetTexture>
-  > = null;
+  public getRenderTargetTextures: Nullable<() => SmartArray<RenderTargetTexture>> = null;
 
   /**
    * Gets a boolean indicating that current material needs to register RTT
@@ -573,9 +563,7 @@ export class Material {
    * Sets the state of wireframe mode
    */
   public set wireframe(value: boolean) {
-    this.fillMode = value
-      ? Material.WireFrameFillMode
-      : Material.TriangleFillMode;
+    this.fillMode = value ? Material.WireFrameFillMode : Material.TriangleFillMode;
   }
 
   /**
@@ -691,8 +679,7 @@ export class Material {
     }
 
     this._uniformBuffer = new UniformBuffer(this._scene.getEngine());
-    this._useUBO =
-      this.getScene().getEngine().engineUniform.supportsUniformBuffers;
+    this._useUBO = this.getScene().getEngine().engineUniform.supportsUniformBuffers;
 
     if (!doNotAdd) {
       this._scene.sceneNode.addMaterial(this);
@@ -763,11 +750,7 @@ export class Material {
    * @param useInstances specifies that instances should be used
    * @returns a boolean indicating that the submesh is ready or not
    */
-  public isReadyForSubMesh(
-    mesh: AbstractMesh,
-    subMesh: SubMesh,
-    useInstances?: boolean
-  ): boolean {
+  public isReadyForSubMesh(mesh: AbstractMesh, subMesh: SubMesh, useInstances?: boolean): boolean {
     return false;
   }
 
@@ -832,10 +815,7 @@ export class Material {
    * Returns true if alpha blending should be disabled.
    */
   protected get _disableAlphaBlending(): boolean {
-    return (
-      this._transparencyMode === Material.MATERIAL_OPAQUE ||
-      this._transparencyMode === Material.MATERIAL_ALPHATEST
-    );
+    return this._transparencyMode === Material.MATERIAL_OPAQUE || this._transparencyMode === Material.MATERIAL_ALPHATEST;
   }
 
   /**
@@ -860,9 +840,7 @@ export class Material {
       return false;
     }
 
-    return (
-      this.needAlphaBlending() || mesh.visibility < 1.0 || mesh.hasVertexAlpha
-    );
+    return this.needAlphaBlending() || mesh.visibility < 1.0 || mesh.hasVertexAlpha;
   }
 
   /**
@@ -917,23 +895,14 @@ export class Material {
   }
 
   /** @hidden */
-  public _preBind(
-    effect?: Effect,
-    overrideOrientation: Nullable<number> = null
-  ): boolean {
+  public _preBind(effect?: Effect, overrideOrientation: Nullable<number> = null): boolean {
     var engine = this._scene.getEngine();
 
-    var orientation =
-      overrideOrientation == null ? this.sideOrientation : overrideOrientation;
+    var orientation = overrideOrientation == null ? this.sideOrientation : overrideOrientation;
     var reverse = orientation === Material.ClockWiseSideOrientation;
 
     engine.enableEffect(effect ? effect : this._effect);
-    engine.engineState.setState(
-      this.backFaceCulling,
-      this.zOffset,
-      false,
-      reverse
-    );
+    engine.engineState.setState(this.backFaceCulling, this.zOffset, false, reverse);
 
     return reverse;
   }
@@ -976,10 +945,7 @@ export class Material {
     if (!this._useUBO) {
       effect.setMatrix("view", this.getScene().sceneMatrix.getViewMatrix());
     } else {
-      this.bindSceneUniformBuffer(
-        effect,
-        this.getScene().sceneMatrix.getSceneUniformBuffer()
-      );
+      this.bindSceneUniformBuffer(effect, this.getScene().sceneMatrix.getSceneUniformBuffer());
     }
   }
 
@@ -989,15 +955,9 @@ export class Material {
    */
   public bindViewProjection(effect: Effect): void {
     if (!this._useUBO) {
-      effect.setMatrix(
-        "viewProjection",
-        this.getScene().sceneMatrix.getTransformMatrix()
-      );
+      effect.setMatrix("viewProjection", this.getScene().sceneMatrix.getTransformMatrix());
     } else {
-      this.bindSceneUniformBuffer(
-        effect,
-        this.getScene().sceneMatrix.getSceneUniformBuffer()
-      );
+      this.bindSceneUniformBuffer(effect, this.getScene().sceneMatrix.getSceneUniformBuffer());
     }
   }
 
@@ -1195,24 +1155,14 @@ export class Material {
   //     });
   // }
 
-  private static readonly _AllDirtyCallBack = (defines: MaterialDefines) =>
-    defines.markAllAsDirty();
-  private static readonly _ImageProcessingDirtyCallBack = (
-    defines: MaterialDefines
-  ) => defines.markAsImageProcessingDirty();
-  private static readonly _TextureDirtyCallBack = (defines: MaterialDefines) =>
-    defines.markAsTexturesDirty();
-  private static readonly _FresnelDirtyCallBack = (defines: MaterialDefines) =>
-    defines.markAsFresnelDirty();
-  private static readonly _MiscDirtyCallBack = (defines: MaterialDefines) =>
-    defines.markAsMiscDirty();
-  private static readonly _PrePassDirtyCallBack = (defines: MaterialDefines) =>
-    defines.markAsPrePassDirty();
-  private static readonly _LightsDirtyCallBack = (defines: MaterialDefines) =>
-    defines.markAsLightDirty();
-  private static readonly _AttributeDirtyCallBack = (
-    defines: MaterialDefines
-  ) => defines.markAsAttributesDirty();
+  private static readonly _AllDirtyCallBack = (defines: MaterialDefines) => defines.markAllAsDirty();
+  private static readonly _ImageProcessingDirtyCallBack = (defines: MaterialDefines) => defines.markAsImageProcessingDirty();
+  private static readonly _TextureDirtyCallBack = (defines: MaterialDefines) => defines.markAsTexturesDirty();
+  private static readonly _FresnelDirtyCallBack = (defines: MaterialDefines) => defines.markAsFresnelDirty();
+  private static readonly _MiscDirtyCallBack = (defines: MaterialDefines) => defines.markAsMiscDirty();
+  private static readonly _PrePassDirtyCallBack = (defines: MaterialDefines) => defines.markAsPrePassDirty();
+  private static readonly _LightsDirtyCallBack = (defines: MaterialDefines) => defines.markAsLightDirty();
+  private static readonly _AttributeDirtyCallBack = (defines: MaterialDefines) => defines.markAsAttributesDirty();
 
   private static _FresnelAndMiscDirtyCallBack = (defines: MaterialDefines) => {
     Material._FresnelDirtyCallBack(defines);
@@ -1224,9 +1174,7 @@ export class Material {
     Material._MiscDirtyCallBack(defines);
   };
 
-  private static readonly _DirtyCallbackArray: Array<
-    (defines: MaterialDefines) => void
-  > = [];
+  private static readonly _DirtyCallbackArray: Array<(defines: MaterialDefines) => void> = [];
   private static readonly _RunDirtyCallBacks = (defines: MaterialDefines) => {
     for (const cb of Material._DirtyCallbackArray) {
       cb(defines);
@@ -1238,7 +1186,7 @@ export class Material {
    * @param flag defines a flag used to determine which parts of the material have to be marked as dirty
    */
   public markAsDirty(flag: number): void {
-    if (this.getScene().blockMaterialDirtyMechanism) {
+    if (this.getScene().sceneNode.blockMaterialDirtyMechanism) {
       return;
     }
 
@@ -1280,7 +1228,7 @@ export class Material {
    * @param func defines a function which checks material defines against the submeshes
    */
   protected _markAllSubMeshesAsDirty(func: (defines: MaterialDefines) => void) {
-    if (this.getScene().blockMaterialDirtyMechanism) {
+    if (this.getScene().sceneNode.blockMaterialDirtyMechanism) {
       return;
     }
 
@@ -1403,11 +1351,7 @@ export class Material {
    * @param forceDisposeTextures specifies if textures should be forcefully disposed
    * @param notBoundToMesh specifies if the material that is being disposed is known to be not bound to any mesh
    */
-  public dispose(
-    forceDisposeEffect?: boolean,
-    forceDisposeTextures?: boolean,
-    notBoundToMesh?: boolean
-  ): void {
+  public dispose(forceDisposeEffect?: boolean, forceDisposeTextures?: boolean, notBoundToMesh?: boolean): void {
     const scene = this.getScene();
     // Animations
     // scene.stopAnimation(this);
@@ -1466,10 +1410,7 @@ export class Material {
   }
 
   /** @hidden */
-  private releaseVertexArrayObject(
-    mesh: AbstractMesh,
-    forceDisposeEffect?: boolean
-  ) {
+  private releaseVertexArrayObject(mesh: AbstractMesh, forceDisposeEffect?: boolean) {
     if ((<Mesh>mesh).geometry) {
       var geometry = <Geometry>(<Mesh>mesh).geometry;
       if (this._storeEffectOnSubMeshes) {
@@ -1500,22 +1441,13 @@ export class Material {
    * @param rootUrl defines the root URL to use to load textures
    * @returns a new material
    */
-  public static Parse(
-    parsedMaterial: any,
-    scene: Scene,
-    rootUrl: string
-  ): Nullable<Material> {
+  public static Parse(parsedMaterial: any, scene: Scene, rootUrl: string): Nullable<Material> {
     if (!parsedMaterial.customType) {
       parsedMaterial.customType = "BABYLON.StandardMaterial";
-    } else if (
-      parsedMaterial.customType === "BABYLON.PBRMaterial" &&
-      parsedMaterial.overloadedAlbedo
-    ) {
+    } else if (parsedMaterial.customType === "BABYLON.PBRMaterial" && parsedMaterial.overloadedAlbedo) {
       parsedMaterial.customType = "BABYLON.LegacyPBRMaterial";
       if (!BABYLON.LegacyPBRMaterial) {
-        Logger.Error(
-          "Your scene is trying to load a legacy version of the PBRMaterial, please, include it from the materials library."
-        );
+        Logger.Error("Your scene is trying to load a legacy version of the PBRMaterial, please, include it from the materials library.");
         return null;
       }
     }

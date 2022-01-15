@@ -17,7 +17,6 @@ import { SceneNode } from "./scene.node";
 import { SceneMatrix } from "./scene.matrix";
 import { TransformNode } from "../Meshes/transformNode";
 import { AbstractScene } from "./abstractScene";
-import { ISceneComponent } from "./sceneComponent";
 import { SceneCatch } from "./scene.catch";
 import { RenderingManager } from "../Rendering/renderingManager";
 import { ISmartArrayLike, SmartArray } from "../Misc/smartArray";
@@ -26,8 +25,9 @@ import { Ray } from "../Culling/ray";
 import { PerfCounter } from "../Misc/perfCounter";
 import { _DevTools } from "../Misc/devTools";
 import { SceneComponent } from "./scene.component";
+
 export class Scene extends AbstractScene {
-  lightsEnabled: boolean = true;
+  public lightsEnabled: boolean = true;
   public _renderingManager: RenderingManager;
   public _totalVertices = new PerfCounter();
   public webGLVersion: number = 2;
@@ -99,20 +99,6 @@ export class Scene extends AbstractScene {
     this.sceneNode.setDefaultCandidateProviders();
   }
 
-  /**
-   * Will flag all materials as dirty to trigger new shader compilation
-   * @param flag defines the flag used to specify which material part must be marked as dirty
-   * @param predicate If not null, it will be used to specifiy if a material has to be marked as dirty
-   */
-  public markAllMaterialsAsDirty(flag: number, predicate?: (mat: Material) => boolean): void {
-    for (var material of this.materials) {
-      if (predicate && !predicate(material)) {
-        continue;
-      }
-      material.markAsDirty(flag);
-    }
-  }
-
   public getEngine(): Engine {
     return this._engine;
   }
@@ -135,46 +121,14 @@ export class Scene extends AbstractScene {
       return;
     }
     this._useRightHandedSystem = value;
-    this.markAllMaterialsAsDirty(Constants.MATERIAL_MiscDirtyFlag);
+    this.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_MiscDirtyFlag);
   }
 
   public get useRightHandedSystem(): boolean {
     return this._useRightHandedSystem;
   }
 
-  private _blockMaterialDirtyMechanism = false;
-  /**
-   * Gets or sets a boolean blocking all the calls to markAllMaterialsAsDirty (ie. the materials won't be updated if they are out of sync)
-   * 获取或设置一个布尔值，阻止对markAllMaterialsAsDirty的所有调用（即，如果材质不同步，则不会更新）
-   */
-  public get blockMaterialDirtyMechanism(): boolean {
-    return this._blockMaterialDirtyMechanism;
-  }
-
-  public set blockMaterialDirtyMechanism(value: boolean) {
-    if (this._blockMaterialDirtyMechanism === value) {
-      return;
-    }
-
-    this._blockMaterialDirtyMechanism = value;
-
-    if (!value) {
-      // Do a complete update
-      this.markAllMaterialsAsDirty(Constants.MATERIAL_AllDirtyFlag);
-    }
-  }
-
   getClassName(): String {
     return "Scene";
   }
-
-  /**
-   * Lambda returning the list of potentially active meshes.
-   */
-  public getActiveMeshCandidates: () => ISmartArrayLike<AbstractMesh>;
-
-  /**
-   * Lambda returning the list of potentially active sub meshes.
-   */
-  public getActiveSubMeshCandidates: (mesh: AbstractMesh) => ISmartArrayLike<SubMesh>;
 }

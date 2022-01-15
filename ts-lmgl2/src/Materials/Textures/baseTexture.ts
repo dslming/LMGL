@@ -65,9 +65,7 @@ export class BaseTexture extends ThinTexture {
     }
     this._hasAlpha = value;
     if (this._scene) {
-      this._scene.markAllMaterialsAsDirty(
-        Constants.MATERIAL_TextureDirtyFlag | Constants.MATERIAL_MiscDirtyFlag
-      );
+      this._scene.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag | Constants.MATERIAL_MiscDirtyFlag);
     }
   }
   public get hasAlpha(): boolean {
@@ -120,7 +118,7 @@ export class BaseTexture extends ThinTexture {
     }
     this._coordinatesMode = value;
     if (this._scene) {
-      this._scene.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
+      this._scene.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
     }
   }
   public get coordinatesMode(): number {
@@ -614,7 +612,7 @@ export class BaseTexture extends ThinTexture {
       return;
     }
 
-    scene.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
+    scene.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
   }
 
   /**

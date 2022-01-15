@@ -123,10 +123,7 @@ export class RenderTargetTexture extends Texture {
   /**
    * Override the mesh isReady function with your own one.
    */
-  public customIsReadyFunction: (
-    mesh: AbstractMesh,
-    refreshRate: number
-  ) => boolean;
+  public customIsReadyFunction: (mesh: AbstractMesh, refreshRate: number) => boolean;
   /**
    * Override the render function of the texture with your own one.
    */
@@ -233,10 +230,7 @@ export class RenderTargetTexture extends Texture {
    */
   public clearColor: Color4;
   protected _size: number | { width: number; height: number; layers?: number };
-  protected _initialSizeParameter:
-    | number
-    | { width: number; height: number }
-    | { ratio: number };
+  protected _initialSizeParameter: number | { width: number; height: number } | { ratio: number };
   protected _sizeRatio: Nullable<number>;
   /** @hidden */
   public _generateMipMaps: boolean;
@@ -283,7 +277,7 @@ export class RenderTargetTexture extends Texture {
     this._boundingBoxSize = value;
     let scene = this.getScene();
     if (scene) {
-      scene.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
+      scene.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
     }
   }
   public get boundingBoxSize(): Vector3 {
@@ -318,10 +312,7 @@ export class RenderTargetTexture extends Texture {
    */
   constructor(
     name: string,
-    size:
-      | number
-      | { width: number; height: number; layers?: number }
-      | { ratio: number },
+    size: number | { width: number; height: number; layers?: number } | { ratio: number },
     scene: Nullable<Scene>,
     generateMipMaps?: boolean,
     doNotChangeAspectRatio: boolean = true,
@@ -394,11 +385,7 @@ export class RenderTargetTexture extends Texture {
    * @param bilinearFiltering Specifies whether or not bilinear filtering is enable on the texture
    * @param generateStencil Specifies whether or not a stencil should be allocated in the texture
    */
-  public createDepthStencilTexture(
-    comparisonFunction: number = 0,
-    bilinearFiltering: boolean = true,
-    generateStencil: boolean = false
-  ): void {
+  public createDepthStencilTexture(comparisonFunction: number = 0, bilinearFiltering: boolean = true, generateStencil: boolean = false): void {
     const internalTexture = this.getInternalTexture();
     if (!this.getScene() || !internalTexture) {
       return;
@@ -413,26 +400,16 @@ export class RenderTargetTexture extends Texture {
     // });
   }
 
-  private _processSizeParameter(
-    size: number | { width: number; height: number } | { ratio: number }
-  ): void {
+  private _processSizeParameter(size: number | { width: number; height: number } | { ratio: number }): void {
     if ((<{ ratio: number }>size).ratio) {
       this._sizeRatio = (<{ ratio: number }>size).ratio;
       const engine = this._getEngine()!;
       this._size = {
-        width: this._bestReflectionRenderTargetDimension(
-          engine.engineFramebuffer.getRenderWidth(),
-          this._sizeRatio
-        ),
-        height: this._bestReflectionRenderTargetDimension(
-          engine.engineFramebuffer.getRenderHeight(),
-          this._sizeRatio
-        ),
+        width: this._bestReflectionRenderTargetDimension(engine.engineFramebuffer.getRenderWidth(), this._sizeRatio),
+        height: this._bestReflectionRenderTargetDimension(engine.engineFramebuffer.getRenderHeight(), this._sizeRatio),
       };
     } else {
-      this._size = <
-        number | { width: number; height: number; layers?: number }
-      >size;
+      this._size = <number | { width: number; height: number; layers?: number }>size;
     }
   }
 
@@ -591,9 +568,7 @@ export class RenderTargetTexture extends Texture {
    * @returns the number of layers
    */
   public getRenderLayers(): number {
-    const layers = (<{ width: number; height: number; layers?: number }>(
-      this._size
-    )).layers;
+    const layers = (<{ width: number; height: number; layers?: number }>this._size).layers;
     if (layers) {
       return layers;
     }
@@ -638,9 +613,7 @@ export class RenderTargetTexture extends Texture {
    *   - an object containing { width: number, height: number }
    *   - or an object containing a ratio { ratio: number }
    */
-  public resize(
-    size: number | { width: number; height: number } | { ratio: number }
-  ): void {
+  public resize(size: number | { width: number; height: number } | { ratio: number }): void {
     var wasCube = this.isCube;
 
     this.releaseInternalTexture();
@@ -670,10 +643,7 @@ export class RenderTargetTexture extends Texture {
    * @param useCameraPostProcess Define if camera post processes should be used during the rendering
    * @param dumpForDebug Define if the rendering result should be dumped (copied) for debugging purpose
    */
-  public render(
-    useCameraPostProcess: boolean = false,
-    dumpForDebug: boolean = false
-  ): void {
+  public render(useCameraPostProcess: boolean = false, dumpForDebug: boolean = false): void {
     // var scene = this.getScene();
     // if (!scene) {
     //     return;
@@ -757,15 +727,10 @@ export class RenderTargetTexture extends Texture {
     // scene.sceneCatch.resetCachedMaterial();
   }
 
-  private _bestReflectionRenderTargetDimension(
-    renderDimension: number,
-    scale: number
-  ): number {
+  private _bestReflectionRenderTargetDimension(renderDimension: number, scale: number): number {
     let minimum = 128;
     let x = renderDimension * scale;
-    let curved = EngineTexture.NearestPOT(
-      x + (minimum * minimum) / (minimum + x)
-    );
+    let curved = EngineTexture.NearestPOT(x + (minimum * minimum) / (minimum + x));
 
     // Ensure we don't exceed the render dimension (while staying POT)
     return Math.min(EngineTexture.FloorPOT(renderDimension), curved);
@@ -886,22 +851,12 @@ export class RenderTargetTexture extends Texture {
     if (!this._texture) {
       return;
     }
-    engine.engineFramebuffer.unBindFramebuffer(
-      this._texture,
-      this.isCube,
-      () => {
-        this.onAfterRenderObservable.notifyObservers(faceIndex);
-      }
-    );
+    engine.engineFramebuffer.unBindFramebuffer(this._texture, this.isCube, () => {
+      this.onAfterRenderObservable.notifyObservers(faceIndex);
+    });
   }
 
-  private renderToTarget(
-    faceIndex: number,
-    useCameraPostProcess: boolean,
-    dumpForDebug: boolean,
-    layer = 0,
-    camera: Nullable<Camera> = null
-  ): void {
+  private renderToTarget(faceIndex: number, useCameraPostProcess: boolean, dumpForDebug: boolean, layer = 0, camera: Nullable<Camera> = null): void {
     var scene = this.getScene();
 
     if (!scene) {
@@ -985,12 +940,7 @@ export class RenderTargetTexture extends Texture {
     // }
 
     // Render
-    this._renderingManager.render(
-      this.customRenderFunction,
-      currentRenderList,
-      this.renderParticles,
-      this.renderSprites
-    );
+    this._renderingManager.render(this.customRenderFunction, currentRenderList, this.renderParticles, this.renderSprites);
 
     // After Camera Draw
     // for (let step of scene.sceneStage._afterRenderTargetDrawStage) {
@@ -1040,16 +990,9 @@ export class RenderTargetTexture extends Texture {
     renderingGroupId: number,
     opaqueSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
     alphaTestSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
-    transparentSortCompareFn: Nullable<
-      (a: SubMesh, b: SubMesh) => number
-    > = null
+    transparentSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null
   ): void {
-    this._renderingManager.setRenderingOrder(
-      renderingGroupId,
-      opaqueSortCompareFn,
-      alphaTestSortCompareFn,
-      transparentSortCompareFn
-    );
+    this._renderingManager.setRenderingOrder(renderingGroupId, opaqueSortCompareFn, alphaTestSortCompareFn, transparentSortCompareFn);
   }
 
   /**
@@ -1058,14 +1001,8 @@ export class RenderTargetTexture extends Texture {
    * @param renderingGroupId The rendering group id corresponding to its index
    * @param autoClearDepthStencil Automatically clears depth and stencil between groups if true.
    */
-  public setRenderingAutoClearDepthStencil(
-    renderingGroupId: number,
-    autoClearDepthStencil: boolean
-  ): void {
-    this._renderingManager.setRenderingAutoClearDepthStencil(
-      renderingGroupId,
-      autoClearDepthStencil
-    );
+  public setRenderingAutoClearDepthStencil(renderingGroupId: number, autoClearDepthStencil: boolean): void {
+    this._renderingManager.setRenderingAutoClearDepthStencil(renderingGroupId, autoClearDepthStencil);
     this._renderingManager._useSceneAutoClearSetup = false;
   }
 
@@ -1217,16 +1154,6 @@ export class RenderTargetTexture extends Texture {
   }
 }
 
-Texture._CreateRenderTargetTexture = (
-  name: string,
-  renderTargetSize: number,
-  scene: Scene,
-  generateMipMaps: boolean
-) => {
-  return new RenderTargetTexture(
-    name,
-    renderTargetSize,
-    scene,
-    generateMipMaps
-  );
+Texture._CreateRenderTargetTexture = (name: string, renderTargetSize: number, scene: Scene, generateMipMaps: boolean) => {
+  return new RenderTargetTexture(name, renderTargetSize, scene, generateMipMaps);
 };

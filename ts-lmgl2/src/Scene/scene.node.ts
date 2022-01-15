@@ -9,6 +9,7 @@ import { Nullable } from "../types";
 import { ISmartArrayLike } from "../Misc/smartArray";
 import { TransformNode } from "../Meshes/transformNode";
 import { SubMesh } from "../Meshes/subMesh";
+import { Constants } from "../Engine/constants";
 
 export class SceneNode {
   scene: Scene;
@@ -22,60 +23,7 @@ export class SceneNode {
     this.scene = scene;
   }
 
-  /**
-   * Add a mesh to the list of scene's meshes
-   * @param newMesh defines the mesh to add
-   * @param recursive if all child meshes should also be added to the scene
-   */
-  public addMesh(newMesh: AbstractMesh, recursive = false) {
-    if (this.scene._blockEntityCollection) {
-      return;
-    }
-
-    this.scene.meshes.push(newMesh);
-
-    newMesh._resyncLightSources();
-
-    if (!newMesh.parent) {
-      newMesh._addToSceneRootNodes();
-    }
-
-    this.scene.sceneEventTrigger.onNewMeshAddedObservable.notifyObservers(newMesh);
-
-    if (recursive) {
-      newMesh.getChildMeshes().forEach((m) => {
-        this.addMesh(m);
-      });
-    }
-  }
-
-  /**
-   * Remove a mesh for the list of scene's meshes
-   * @param toRemove defines the mesh to remove
-   * @param recursive if all child meshes should also be removed from the scene
-   * @returns the index where the mesh was in the mesh list
-   */
-  public removeMesh(toRemove: AbstractMesh, recursive = false): number {
-    var index = this.scene.meshes.indexOf(toRemove);
-    if (index !== -1) {
-      // Remove from the scene if mesh found
-      this.scene.meshes[index] = this.scene.meshes[this.scene.meshes.length - 1];
-      this.scene.meshes.pop();
-
-      if (!toRemove.parent) {
-        toRemove._removeFromSceneRootNodes();
-      }
-    }
-
-    this.scene.sceneEventTrigger.onMeshRemovedObservable.notifyObservers(toRemove);
-    if (recursive) {
-      toRemove.getChildMeshes().forEach((m) => {
-        this.removeMesh(m);
-      });
-    }
-    return index;
-  }
-
+  /*----------------------------------- transform node ------------------------------------*/
   /**
    * Add a transform node to the list of scene's transform nodes
    * @param newTransformNode defines the transform node to add
@@ -94,78 +42,7 @@ export class SceneNode {
     //   this.scene.sceneEventTrigger.onNewTransformNodeAddedObservable.notifyObservers(newTransformNode);
   }
 
-  /**
-   * Remove a camera for the list of scene's cameras
-   * @param toRemove defines the camera to remove
-   * @returns the index where the camera was in the camera list
-   */
-  public removeCamera(toRemove: Camera): number {
-    var index = this.scene.cameras.indexOf(toRemove);
-    if (index !== -1) {
-      // Remove from the scene if mesh found
-      this.scene.cameras.splice(index, 1);
-      if (!toRemove.parent) {
-        toRemove._removeFromSceneRootNodes();
-      }
-    }
-    // Remove from activeCameras
-    if (this.scene.activeCameras) {
-      var index2 = this.scene.activeCameras.indexOf(toRemove);
-      if (index2 !== -1) {
-        // Remove from the scene if mesh found
-        this.scene.activeCameras.splice(index2, 1);
-      }
-    }
-    // Reset the activeCamera
-    if (this.scene.activeCamera === toRemove) {
-      if (this.scene.cameras.length > 0) {
-        this.scene.activeCamera = this.scene.cameras[0];
-      } else {
-        this.scene.activeCamera = null;
-      }
-    }
-    this.scene.sceneEventTrigger.onCameraRemovedObservable.notifyObservers(toRemove);
-    return index;
-  }
-
-  /**
-   * Removes the given material from this scene.
-   * @param toRemove The material to remove
-   * @returns The index of the removed material
-   */
-  public removeMaterial(toRemove: Material): number {
-    var index = toRemove._indexInSceneMaterialArray;
-    if (index !== -1 && index < this.scene.materials.length) {
-      if (index !== this.scene.materials.length - 1) {
-        const lastMaterial = this.scene.materials[this.scene.materials.length - 1];
-        this.scene.materials[index] = lastMaterial;
-        lastMaterial._indexInSceneMaterialArray = index;
-      }
-
-      toRemove._indexInSceneMaterialArray = -1;
-      this.scene.materials.pop();
-    }
-
-    // this.scene.sceneEventTrigger.onMaterialRemovedObservable.notifyObservers(toRemove);
-
-    return index;
-  }
-
-  /**
-   * Removes the given texture from this scene.scene.
-   * @param toRemove The texture to remove
-   * @returns The index of the removed texture
-   */
-  public removeTexture(toRemove: BaseTexture): number {
-    var index = this.scene.textures.indexOf(toRemove);
-    if (index !== -1) {
-      this.scene.textures.splice(index, 1);
-    }
-    this.scene.sceneEventTrigger.onTextureRemovedObservable.notifyObservers(toRemove);
-
-    return index;
-  }
-
+  /*----------------------------------- light ------------------------------------*/
   /**
    * Adds the given light to this scene.scene
    * @param newLight The light to add
@@ -201,6 +78,7 @@ export class SceneNode {
     }
   }
 
+  /*----------------------------------- camera ------------------------------------*/
   /**
    * Adds the given camera to this scene.scene
    * @param newCamera The camera to add
@@ -217,7 +95,41 @@ export class SceneNode {
     //     newCamera._addToSceneRootNodes();
     // }
   }
+  /**
+   * Remove a camera for the list of scene's cameras
+   * @param toRemove defines the camera to remove
+   * @returns the index where the camera was in the camera list
+   */
+  public removeCamera(toRemove: Camera): number {
+    var index = this.scene.cameras.indexOf(toRemove);
+    if (index !== -1) {
+      // Remove from the scene if mesh found
+      this.scene.cameras.splice(index, 1);
+      if (!toRemove.parent) {
+        toRemove._removeFromSceneRootNodes();
+      }
+    }
+    // Remove from activeCameras
+    if (this.scene.activeCameras) {
+      var index2 = this.scene.activeCameras.indexOf(toRemove);
+      if (index2 !== -1) {
+        // Remove from the scene if mesh found
+        this.scene.activeCameras.splice(index2, 1);
+      }
+    }
+    // Reset the activeCamera
+    if (this.scene.activeCamera === toRemove) {
+      if (this.scene.cameras.length > 0) {
+        this.scene.activeCamera = this.scene.cameras[0];
+      } else {
+        this.scene.activeCamera = null;
+      }
+    }
+    this.scene.sceneEventTrigger.onCameraRemovedObservable.notifyObservers(toRemove);
+    return index;
+  }
 
+  /*----------------------------------- texture ------------------------------------*/
   /**
    * Adds the given texture to this scene.
    * @param newTexture The texture to add
@@ -229,21 +141,22 @@ export class SceneNode {
     this.scene.textures.push(newTexture);
     this.scene.sceneEventTrigger.onNewTextureAddedObservable.notifyObservers(newTexture);
   }
-
   /**
-   * Adds the given material to this scene.scene
-   * @param newMaterial The material to add
+   * Removes the given texture from this scene.scene.
+   * @param toRemove The texture to remove
+   * @returns The index of the removed texture
    */
-  public addMaterial(newMaterial: Material): void {
-    if (this.scene._blockEntityCollection) {
-      return;
+  public removeTexture(toRemove: BaseTexture): number {
+    var index = this.scene.textures.indexOf(toRemove);
+    if (index !== -1) {
+      this.scene.textures.splice(index, 1);
     }
+    this.scene.sceneEventTrigger.onTextureRemovedObservable.notifyObservers(toRemove);
 
-    newMaterial._indexInSceneMaterialArray = this.scene.materials.length;
-    this.scene.materials.push(newMaterial);
-    this.scene.sceneEventTrigger.onNewMaterialAddedObservable.notifyObservers(newMaterial);
+    return index;
   }
 
+  /*----------------------------------- geometry ------------------------------------*/
   /**
    * Adds the given geometry to this scene.scene
    * @param newGeometry The geometry to add
@@ -331,6 +244,163 @@ export class SceneNode {
     return null;
   }
 
+  /*----------------------------------- mesh ------------------------------------*/
+  /**
+   * Remove a mesh for the list of scene's meshes
+   * @param toRemove defines the mesh to remove
+   * @param recursive if all child meshes should also be removed from the scene
+   * @returns the index where the mesh was in the mesh list
+   */
+  public removeMesh(toRemove: AbstractMesh, recursive = false): number {
+    var index = this.scene.meshes.indexOf(toRemove);
+    if (index !== -1) {
+      // Remove from the scene if mesh found
+      this.scene.meshes[index] = this.scene.meshes[this.scene.meshes.length - 1];
+      this.scene.meshes.pop();
+
+      if (!toRemove.parent) {
+        toRemove._removeFromSceneRootNodes();
+      }
+    }
+
+    this.scene.sceneEventTrigger.onMeshRemovedObservable.notifyObservers(toRemove);
+    if (recursive) {
+      toRemove.getChildMeshes().forEach((m) => {
+        this.removeMesh(m);
+      });
+    }
+    return index;
+  }
+
+  private _defaultSubMeshCandidates: ISmartArrayLike<SubMesh> = {
+    data: [],
+    length: 0,
+  };
+
+  /**
+   * Lambda returning the list of potentially active meshes.
+   */
+  public getActiveMeshCandidates: () => ISmartArrayLike<AbstractMesh>;
+
+  /**
+   * Add a mesh to the list of scene's meshes
+   * @param newMesh defines the mesh to add
+   * @param recursive if all child meshes should also be added to the scene
+   */
+  public addMesh(newMesh: AbstractMesh, recursive = false) {
+    if (this.scene._blockEntityCollection) {
+      return;
+    }
+
+    this.scene.meshes.push(newMesh);
+
+    newMesh._resyncLightSources();
+
+    if (!newMesh.parent) {
+      newMesh._addToSceneRootNodes();
+    }
+
+    this.scene.sceneEventTrigger.onNewMeshAddedObservable.notifyObservers(newMesh);
+
+    if (recursive) {
+      newMesh.getChildMeshes().forEach((m) => {
+        this.addMesh(m);
+      });
+    }
+  }
+
+  /**
+   * Lambda returning the list of potentially active sub meshes.
+   */
+  public getActiveSubMeshCandidates: (mesh: AbstractMesh) => ISmartArrayLike<SubMesh>;
+
+  /**
+   * @hidden
+   */
+  public _getDefaultMeshCandidates(): ISmartArrayLike<AbstractMesh> {
+    this._defaultMeshCandidates.data = this.scene.meshes;
+    this._defaultMeshCandidates.length = this.scene.meshes.length;
+    return this._defaultMeshCandidates;
+  }
+
+  /**
+   * @hidden
+   */
+  public _getDefaultSubMeshCandidates(mesh: AbstractMesh): ISmartArrayLike<SubMesh> {
+    this._defaultSubMeshCandidates.data = mesh.subMeshes;
+    this._defaultSubMeshCandidates.length = mesh.subMeshes.length;
+    return this._defaultSubMeshCandidates;
+  }
+  /**
+   * Sets the default candidate providers for the scene.
+   * This sets the getActiveMeshCandidates, getActiveSubMeshCandidates, getIntersectingSubMeshCandidates
+   * and getCollidingSubMeshCandidates to their default function
+   */
+  public setDefaultCandidateProviders(): void {
+    this.getActiveMeshCandidates = this._getDefaultMeshCandidates.bind(this);
+
+    this.getActiveSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
+    // this.scene.getIntersectingSubMeshCandidates =
+    this._getDefaultSubMeshCandidates.bind(this);
+    // this.scene.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
+  }
+
+  /*----------------------------------- material ------------------------------------*/
+  /**
+   * Freeze all materials
+   * A frozen material will not be updatable but should be faster to render
+   */
+  public freezeMaterials(): void {
+    for (var i = 0; i < this.scene.materials.length; i++) {
+      this.scene.materials[i].freeze();
+    }
+  }
+
+  /**
+   * Unfreeze all scene.materials
+   * A frozen material will not be updatable but should be faster to render
+   */
+  public unfreezeMaterials(): void {
+    for (var i = 0; i < this.scene.materials.length; i++) {
+      this.scene.materials[i].unfreeze();
+    }
+  }
+
+  /**
+   * Will flag all materials as dirty to trigger new shader compilation
+   * @param flag defines the flag used to specify which material part must be marked as dirty
+   * @param predicate If not null, it will be used to specifiy if a material has to be marked as dirty
+   */
+  public markAllMaterialsAsDirty(flag: number, predicate?: (mat: Material) => boolean): void {
+    for (var material of this.scene.materials) {
+      if (predicate && !predicate(material)) {
+        continue;
+      }
+      material.markAsDirty(flag);
+    }
+  }
+
+  private _blockMaterialDirtyMechanism = false;
+  /**
+   * Gets or sets a boolean blocking all the calls to markAllMaterialsAsDirty (ie. the materials won't be updated if they are out of sync)
+   * 获取或设置一个布尔值，阻止对markAllMaterialsAsDirty的所有调用（即，如果材质不同步，则不会更新）
+   */
+  public get blockMaterialDirtyMechanism(): boolean {
+    return this._blockMaterialDirtyMechanism;
+  }
+
+  public set blockMaterialDirtyMechanism(value: boolean) {
+    if (this._blockMaterialDirtyMechanism === value) {
+      return;
+    }
+
+    this._blockMaterialDirtyMechanism = value;
+
+    if (!value) {
+      // Do a complete update
+      this.markAllMaterialsAsDirty(Constants.MATERIAL_AllDirtyFlag);
+    }
+  }
   /**
    * Get a material using its unique id
    * @param uniqueId defines the material's unique id
@@ -392,59 +462,39 @@ export class SceneNode {
   }
 
   /**
-   * @hidden
+   * Adds the given material to this scene.scene
+   * @param newMaterial The material to add
    */
-  public _getDefaultMeshCandidates(): ISmartArrayLike<AbstractMesh> {
-    this._defaultMeshCandidates.data = this.scene.meshes;
-    this._defaultMeshCandidates.length = this.scene.meshes.length;
-    return this._defaultMeshCandidates;
-  }
-
-  private _defaultSubMeshCandidates: ISmartArrayLike<SubMesh> = {
-    data: [],
-    length: 0,
-  };
-
-  /**
-   * @hidden
-   */
-  public _getDefaultSubMeshCandidates(mesh: AbstractMesh): ISmartArrayLike<SubMesh> {
-    this._defaultSubMeshCandidates.data = mesh.subMeshes;
-    this._defaultSubMeshCandidates.length = mesh.subMeshes.length;
-    return this._defaultSubMeshCandidates;
-  }
-
-  /**
-   * Sets the default candidate providers for the scene.
-   * This sets the getActiveMeshCandidates, getActiveSubMeshCandidates, getIntersectingSubMeshCandidates
-   * and getCollidingSubMeshCandidates to their default function
-   */
-  public setDefaultCandidateProviders(): void {
-    this.scene.getActiveMeshCandidates = this._getDefaultMeshCandidates.bind(this);
-
-    this.scene.getActiveSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-    // this.scene.getIntersectingSubMeshCandidates =
-    this._getDefaultSubMeshCandidates.bind(this);
-    // this.scene.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
-  }
-
-  /**
-   * Freeze all materials
-   * A frozen material will not be updatable but should be faster to render
-   */
-  public freezeMaterials(): void {
-    for (var i = 0; i < this.scene.materials.length; i++) {
-      this.scene.materials[i].freeze();
+  public addMaterial(newMaterial: Material): void {
+    if (this.scene._blockEntityCollection) {
+      return;
     }
+
+    newMaterial._indexInSceneMaterialArray = this.scene.materials.length;
+    this.scene.materials.push(newMaterial);
+    this.scene.sceneEventTrigger.onNewMaterialAddedObservable.notifyObservers(newMaterial);
   }
 
   /**
-   * Unfreeze all scene.materials
-   * A frozen material will not be updatable but should be faster to render
+   * Removes the given material from this scene.
+   * @param toRemove The material to remove
+   * @returns The index of the removed material
    */
-  public unfreezeMaterials(): void {
-    for (var i = 0; i < this.scene.materials.length; i++) {
-      this.scene.materials[i].unfreeze();
+  public removeMaterial(toRemove: Material): number {
+    var index = toRemove._indexInSceneMaterialArray;
+    if (index !== -1 && index < this.scene.materials.length) {
+      if (index !== this.scene.materials.length - 1) {
+        const lastMaterial = this.scene.materials[this.scene.materials.length - 1];
+        this.scene.materials[index] = lastMaterial;
+        lastMaterial._indexInSceneMaterialArray = index;
+      }
+
+      toRemove._indexInSceneMaterialArray = -1;
+      this.scene.materials.pop();
     }
+
+    // this.scene.sceneEventTrigger.onMaterialRemovedObservable.notifyObservers(toRemove);
+
+    return index;
   }
 }

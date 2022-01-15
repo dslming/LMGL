@@ -23,11 +23,7 @@ export class SceneRender {
     // Update Cameras
     if (updateCameras) {
       if (this.scene.activeCameras && this.scene.activeCameras.length > 0) {
-        for (
-          var cameraIndex = 0;
-          cameraIndex < this.scene.activeCameras.length;
-          cameraIndex++
-        ) {
+        for (var cameraIndex = 0; cameraIndex < this.scene.activeCameras.length; cameraIndex++) {
           let camera = this.scene.activeCameras[cameraIndex];
           camera.update();
           if (camera.cameraRigMode !== Camera.RIG_MODE_NONE) {
@@ -41,11 +37,7 @@ export class SceneRender {
         this.scene.activeCamera.update();
         if (this.scene.activeCamera.cameraRigMode !== Camera.RIG_MODE_NONE) {
           // rig cameras
-          for (
-            var index = 0;
-            index < this.scene.activeCamera._rigCameras.length;
-            index++
-          ) {
+          for (var index = 0; index < this.scene.activeCamera._rigCameras.length; index++) {
             this.scene.activeCamera._rigCameras[index].update();
           }
         }
@@ -66,10 +58,7 @@ export class SceneRender {
     this._bindFrameBuffer();
 
     // Clear
-    if (
-      (this.autoClearDepthAndStencil || this.autoClear) &&
-      !this.scene.prePass
-    ) {
+    if ((this.autoClearDepthAndStencil || this.autoClear) && !this.scene.prePass) {
       this.scene._engine.engineDraw.clear(
         this.clearColor,
         this.autoClear || this.forceWireframe || this.scene.forcePointsCloud,
@@ -104,10 +93,7 @@ export class SceneRender {
     this.scene.sceneCatch.resetCachedMaterial();
     this._renderId++;
 
-    var useMultiview =
-      this.scene.getEngine().getCaps().multiview &&
-      camera.outputRenderTarget &&
-      camera.outputRenderTarget.getViewCount() > 1;
+    var useMultiview = this.scene.getEngine().getCaps().multiview && camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1;
     if (useMultiview) {
       this.scene.sceneMatrix.setTransformMatrix(
         camera._rigCameras[0].getViewMatrix(),
@@ -119,27 +105,19 @@ export class SceneRender {
       this.scene.sceneMatrix.updateTransformMatrix();
     }
 
-    this.scene.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(
-      this.scene.activeCamera
-    );
+    this.scene.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.scene.activeCamera);
 
     // Meshes
     this._evaluateActiveMeshes();
 
     // Render targets
-    this.scene.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(
-      this.scene
-    );
+    this.scene.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this.scene);
 
     if (camera.customRenderTargets && camera.customRenderTargets.length > 0) {
       // this.scene._renderTargets.concatWithNoDuplicate(camera.customRenderTargets);
     }
 
-    if (
-      rigParent &&
-      rigParent.customRenderTargets &&
-      rigParent.customRenderTargets.length > 0
-    ) {
+    if (rigParent && rigParent.customRenderTargets && rigParent.customRenderTargets.length > 0) {
       // this.scene._renderTargets.concatWithNoDuplicate(rigParent.customRenderTargets);
     }
 
@@ -185,9 +163,7 @@ export class SceneRender {
       this._bindFrameBuffer();
     }
 
-    this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(
-      this.scene
-    );
+    this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this.scene);
 
     // Prepare Frame
     // if (this.scene.postProcessManager && !camera._multiviewTexture && !this.scene.prePass) {
@@ -200,13 +176,9 @@ export class SceneRender {
     // }
 
     // Render
-    this.scene.sceneEventTrigger.onBeforeDrawPhaseObservable.notifyObservers(
-      this.scene
-    );
+    this.scene.sceneEventTrigger.onBeforeDrawPhaseObservable.notifyObservers(this.scene);
     this.scene._renderingManager.render(null, null, true, true);
-    this.scene.sceneEventTrigger.onAfterDrawPhaseObservable.notifyObservers(
-      this.scene
-    );
+    this.scene.sceneEventTrigger.onAfterDrawPhaseObservable.notifyObservers(this.scene);
 
     // After Camera Draw
     // for (let step of this.scene.sceneStage._afterCameraDrawStage) {
@@ -223,44 +195,30 @@ export class SceneRender {
     // Reset some special arrays
     // this.scene._renderTargets.reset();
 
-    this.scene.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(
-      this.scene.activeCamera
-    );
+    this.scene.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(this.scene.activeCamera);
   }
 
   public _processSubCameras(camera: Camera): void {
     if (
       camera.cameraRigMode === Camera.RIG_MODE_NONE ||
-      (camera.outputRenderTarget &&
-        camera.outputRenderTarget.getViewCount() > 1 &&
-        this.scene.getEngine().getCaps().multiview)
+      (camera.outputRenderTarget && camera.outputRenderTarget.getViewCount() > 1 && this.scene.getEngine().getCaps().multiview)
     ) {
       this.scene.sceneRender._renderForCamera(camera);
-      this.scene.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(
-        camera
-      );
+      this.scene.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
       return;
     }
 
     {
       // rig cameras
       for (var index = 0; index < camera._rigCameras.length; index++) {
-        this.scene.sceneRender._renderForCamera(
-          camera._rigCameras[index],
-          camera
-        );
+        this.scene.sceneRender._renderForCamera(camera._rigCameras[index], camera);
       }
     }
 
     // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
     this.scene._activeCamera = camera;
-    this.scene.sceneMatrix.setTransformMatrix(
-      this.scene._activeCamera.getViewMatrix(),
-      this.scene._activeCamera.getProjectionMatrix()
-    );
-    this.scene.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(
-      camera
-    );
+    this.scene.sceneMatrix.setTransformMatrix(this.scene._activeCamera.getViewMatrix(), this.scene._activeCamera.getProjectionMatrix());
+    this.scene.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
   }
 
   private _forceWireframe = false;
@@ -272,7 +230,7 @@ export class SceneRender {
       return;
     }
     this._forceWireframe = value;
-    this.scene.markAllMaterialsAsDirty(Constants.MATERIAL_MiscDirtyFlag);
+    this.scene.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_MiscDirtyFlag);
   }
   public get forceWireframe(): boolean {
     return this._forceWireframe;
@@ -327,9 +285,7 @@ export class SceneRender {
       return;
     }
 
-    this.scene.sceneEventTrigger.onBeforeActiveMeshesEvaluationObservable.notifyObservers(
-      this.scene
-    );
+    this.scene.sceneEventTrigger.onBeforeActiveMeshesEvaluationObservable.notifyObservers(this.scene);
 
     this.scene.activeCamera._activeMeshes.reset();
     this.scene._activeMeshes.reset();
@@ -341,7 +297,7 @@ export class SceneRender {
     // }
 
     // Determine mesh candidates
-    const meshes = this.scene.getActiveMeshCandidates();
+    const meshes = this.scene.sceneNode.getActiveMeshCandidates();
 
     // Check each mesh
     const len = meshes.length;
@@ -354,11 +310,7 @@ export class SceneRender {
 
       this.scene._totalVertices.addCount(mesh.getTotalVertices(), false);
 
-      if (
-        !mesh.isReady() ||
-        !mesh.isEnabled() ||
-        mesh.scaling.lengthSquared() === 0
-      ) {
+      if (!mesh.isReady() || !mesh.isEnabled() || mesh.scaling.lengthSquared() === 0) {
         continue;
       }
 
@@ -413,20 +365,12 @@ export class SceneRender {
       }
     }
 
-    this.scene.sceneEventTrigger.onAfterActiveMeshesEvaluationObservable.notifyObservers(
-      this.scene
-    );
+    this.scene.sceneEventTrigger.onAfterActiveMeshesEvaluationObservable.notifyObservers(this.scene);
   }
 
   private _activeMesh(sourceMesh: AbstractMesh, mesh: AbstractMesh): void {
-    if (
-      mesh !== undefined &&
-      mesh !== null &&
-      mesh.subMeshes !== undefined &&
-      mesh.subMeshes !== null &&
-      mesh.subMeshes.length > 0
-    ) {
-      const subMeshes = this.scene.getActiveSubMeshCandidates(mesh);
+    if (mesh !== undefined && mesh !== null && mesh.subMeshes !== undefined && mesh.subMeshes !== null && mesh.subMeshes.length > 0) {
+      const subMeshes = this.scene.sceneNode.getActiveSubMeshCandidates(mesh);
       const len = subMeshes.length;
       for (let i = 0; i < len; i++) {
         const subMesh = subMeshes.data[i];
@@ -435,11 +379,7 @@ export class SceneRender {
     }
   }
 
-  private _evaluateSubMesh(
-    subMesh: SubMesh,
-    mesh: AbstractMesh,
-    initialMesh: AbstractMesh
-  ): void {
+  private _evaluateSubMesh(subMesh: SubMesh, mesh: AbstractMesh, initialMesh: AbstractMesh): void {
     // if (initialMesh.hasInstances || initialMesh.isAnInstance || this.scene.dispatchAllSubMeshesOfActiveMeshes || this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes)) {
     if (true) {
       // for (let step of this.scene.sceneStage._evaluateSubMeshStage) {

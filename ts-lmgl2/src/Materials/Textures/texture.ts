@@ -394,7 +394,7 @@ export class Texture extends BaseTexture {
     public updateURL(url: string, buffer: Nullable<string | ArrayBuffer | ArrayBufferView | HTMLImageElement | Blob> = null, onLoad?: () => void): void {
         if (this.url) {
             this.releaseInternalTexture();
-            this.getScene()!.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
+            this.getScene()!.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
         }
 
         if (!this.name || StringTools.StartsWith(this.name, "data:")) {
@@ -555,8 +555,8 @@ export class Texture extends BaseTexture {
             return this._cachedTextureMatrix;
         }
 
-        scene.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag, (mat) => {
-            return mat.hasTexture(this);
+        scene.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag, (mat) => {
+          return mat.hasTexture(this);
         });
 
         return this._cachedTextureMatrix;
@@ -628,8 +628,8 @@ export class Texture extends BaseTexture {
                 break;
         }
 
-        scene.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag, (mat) => {
-            return (mat.getActiveTextures().indexOf(this) !== -1);
+        scene.sceneNode.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag, (mat) => {
+          return mat.getActiveTextures().indexOf(this) !== -1;
         });
 
         return this._cachedTextureMatrix;
