@@ -6,10 +6,7 @@ import { Engine } from "./engine";
 export class EngineFramebuffer {
   /** framebuffer */
   public _currentRenderTarget: Nullable<InternalTexture>;
-  private _framebufferDimensionsObject: Nullable<{
-    framebufferWidth: number;
-    framebufferHeight: number;
-  }>;
+  private _framebufferDimensionsObject: Nullable<{ framebufferWidth: number; framebufferHeight: number }>;
   public _currentFramebuffer: Nullable<WebGLFramebuffer> = null;
   public _dummyFramebuffer: Nullable<WebGLFramebuffer> = null;
 
@@ -36,23 +33,12 @@ export class EngineFramebuffer {
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilBuffer);
 
     if (samples > 1 && gl.renderbufferStorageMultisample) {
-      gl.renderbufferStorageMultisample(
-        gl.RENDERBUFFER,
-        samples,
-        msInternalFormat,
-        width,
-        height
-      );
+      gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, msInternalFormat, width, height);
     } else {
       gl.renderbufferStorage(gl.RENDERBUFFER, internalFormat, width, height);
     }
 
-    gl.framebufferRenderbuffer(
-      gl.FRAMEBUFFER,
-      attachment,
-      gl.RENDERBUFFER,
-      depthStencilBuffer
-    );
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, depthStencilBuffer);
 
     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
@@ -71,14 +57,7 @@ export class EngineFramebuffer {
 
     // Create the depth/stencil buffer
     if (generateStencilBuffer && generateDepthBuffer) {
-      return this._getDepthStencilBuffer(
-        width,
-        height,
-        samples,
-        gl.DEPTH_STENCIL,
-        gl.DEPTH24_STENCIL8,
-        gl.DEPTH_STENCIL_ATTACHMENT
-      );
+      return this._getDepthStencilBuffer(width, height, samples, gl.DEPTH_STENCIL, gl.DEPTH24_STENCIL8, gl.DEPTH_STENCIL_ATTACHMENT);
     }
     if (generateDepthBuffer) {
       let depthFormat = gl.DEPTH_COMPONENT16;
@@ -86,24 +65,10 @@ export class EngineFramebuffer {
         depthFormat = gl.DEPTH_COMPONENT32F;
       }
 
-      return this._getDepthStencilBuffer(
-        width,
-        height,
-        samples,
-        depthFormat,
-        depthFormat,
-        gl.DEPTH_ATTACHMENT
-      );
+      return this._getDepthStencilBuffer(width, height, samples, depthFormat, depthFormat, gl.DEPTH_ATTACHMENT);
     }
     if (generateStencilBuffer) {
-      return this._getDepthStencilBuffer(
-        width,
-        height,
-        samples,
-        gl.STENCIL_INDEX8,
-        gl.STENCIL_INDEX8,
-        gl.STENCIL_ATTACHMENT
-      );
+      return this._getDepthStencilBuffer(width, height, samples, gl.STENCIL_INDEX8, gl.STENCIL_INDEX8, gl.STENCIL_ATTACHMENT);
     }
 
     return null;
@@ -159,13 +124,7 @@ export class EngineFramebuffer {
 
     let fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTexture2D(
-      gl.FRAMEBUFFER,
-      gl.COLOR_ATTACHMENT0,
-      gl.TEXTURE_2D,
-      texture,
-      0
-    );
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
     let status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
 
     successful = successful && status === gl.FRAMEBUFFER_COMPLETE;
@@ -234,70 +193,29 @@ export class EngineFramebuffer {
       this.unBindFramebuffer(this._currentRenderTarget);
     }
     this._currentRenderTarget = texture;
-    this._bindUnboundFramebuffer(
-      texture._MSAAFramebuffer ? texture._MSAAFramebuffer : texture._framebuffer
-    );
+    this._bindUnboundFramebuffer(texture._MSAAFramebuffer ? texture._MSAAFramebuffer : texture._framebuffer);
 
     const gl = this._gl;
     if (texture.is2DArray) {
-      gl.framebufferTextureLayer(
-        gl.FRAMEBUFFER,
-        gl.COLOR_ATTACHMENT0,
-        texture._webGLTexture,
-        lodLevel,
-        layer
-      );
+      gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture._webGLTexture, lodLevel, layer);
     } else if (texture.isCube) {
-      gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        gl.COLOR_ATTACHMENT0,
-        gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex,
-        texture._webGLTexture,
-        lodLevel
-      );
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, texture._webGLTexture, lodLevel);
     }
 
     const depthStencilTexture = texture._depthStencilTexture;
     if (depthStencilTexture) {
-      const attachment = depthStencilTexture._generateStencilBuffer
-        ? gl.DEPTH_STENCIL_ATTACHMENT
-        : gl.DEPTH_ATTACHMENT;
+      const attachment = depthStencilTexture._generateStencilBuffer ? gl.DEPTH_STENCIL_ATTACHMENT : gl.DEPTH_ATTACHMENT;
       if (texture.is2DArray) {
-        gl.framebufferTextureLayer(
-          gl.FRAMEBUFFER,
-          attachment,
-          depthStencilTexture._webGLTexture,
-          lodLevel,
-          layer
-        );
+        gl.framebufferTextureLayer(gl.FRAMEBUFFER, attachment, depthStencilTexture._webGLTexture, lodLevel, layer);
       } else if (texture.isCube) {
-        gl.framebufferTexture2D(
-          gl.FRAMEBUFFER,
-          attachment,
-          gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex,
-          depthStencilTexture._webGLTexture,
-          lodLevel
-        );
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, depthStencilTexture._webGLTexture, lodLevel);
       } else {
-        gl.framebufferTexture2D(
-          gl.FRAMEBUFFER,
-          attachment,
-          gl.TEXTURE_2D,
-          depthStencilTexture._webGLTexture,
-          lodLevel
-        );
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, depthStencilTexture._webGLTexture, lodLevel);
       }
     }
 
-    if (
-      this.engine.engineViewPort._cachedViewport &&
-      !forceFullscreenViewport
-    ) {
-      this.engine.engineViewPort.setViewport(
-        this.engine.engineViewPort._cachedViewport,
-        requiredWidth,
-        requiredHeight
-      );
+    if (this.engine.engineViewPort._cachedViewport && !forceFullscreenViewport) {
+      this.engine.engineViewPort.setViewport(this.engine.engineViewPort._cachedViewport, requiredWidth, requiredHeight);
     } else {
       if (!requiredWidth) {
         requiredWidth = texture.width;
@@ -332,11 +250,7 @@ export class EngineFramebuffer {
    * @param disableGenerateMipMaps defines a boolean indicating that mipmaps must not be generated
    * @param onBeforeUnbind defines a function which will be called before the effective unbind
    */
-  public unBindFramebuffer(
-    texture: InternalTexture,
-    disableGenerateMipMaps = false,
-    onBeforeUnbind?: () => void
-  ): void {
+  public unBindFramebuffer(texture: InternalTexture, disableGenerateMipMaps = false, onBeforeUnbind?: () => void): void {
     this._currentRenderTarget = null;
 
     // If MSAA, we need to bitblt back to main texture
@@ -349,26 +263,11 @@ export class EngineFramebuffer {
       }
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, texture._MSAAFramebuffer);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, texture._framebuffer);
-      gl.blitFramebuffer(
-        0,
-        0,
-        texture.width,
-        texture.height,
-        0,
-        0,
-        texture.width,
-        texture.height,
-        gl.COLOR_BUFFER_BIT,
-        gl.NEAREST
-      );
+      gl.blitFramebuffer(0, 0, texture.width, texture.height, 0, 0, texture.width, texture.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
     }
 
     if (texture.generateMipMaps && !disableGenerateMipMaps && !texture.isCube) {
-      this.engine.engineTexture._bindTextureDirectly(
-        gl.TEXTURE_2D,
-        texture,
-        true
-      );
+      this.engine.engineTexture._bindTextureDirectly(gl.TEXTURE_2D, texture, true);
       gl.generateMipmap(gl.TEXTURE_2D);
       this.engine.engineTexture._bindTextureDirectly(gl.TEXTURE_2D, null);
     }
@@ -394,9 +293,7 @@ export class EngineFramebuffer {
       return this._currentRenderTarget.width;
     }
 
-    return this._framebufferDimensionsObject
-      ? this._framebufferDimensionsObject.framebufferWidth
-      : this._gl.drawingBufferWidth;
+    return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferWidth : this._gl.drawingBufferWidth;
   }
 
   /**
@@ -409,9 +306,7 @@ export class EngineFramebuffer {
       return this._currentRenderTarget.height;
     }
 
-    return this._framebufferDimensionsObject
-      ? this._framebufferDimensionsObject.framebufferHeight
-      : this._gl.drawingBufferHeight;
+    return this._framebufferDimensionsObject ? this._framebufferDimensionsObject.framebufferHeight : this._gl.drawingBufferHeight;
   }
 
   /**
@@ -424,11 +319,13 @@ export class EngineFramebuffer {
       this._bindUnboundFramebuffer(null);
     }
     if (this.engine.engineViewPort._cachedViewport) {
-      this.engine.engineViewPort.setViewport(
-        this.engine.engineViewPort._cachedViewport
-      );
+      this.engine.engineViewPort.setViewport(this.engine.engineViewPort._cachedViewport);
     }
 
     this.engine.wipeCaches();
+  }
+
+  public _currentFrameBufferIsDefaultFrameBuffer() {
+    return this._currentFramebuffer === null;
   }
 }
