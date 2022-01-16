@@ -63,9 +63,7 @@ export class Geometry implements IGetSetVerticesData {
   /** @hidden */
   public _boundingInfo: Nullable<BoundingInfo>;
   /** @hidden */
-  public _delayLoadingFunction: Nullable<
-    (any: any, geometry: Geometry) => void
-  >;
+  public _delayLoadingFunction: Nullable<(any: any, geometry: Geometry) => void>;
   /** @hidden */
   public _softwareSkinningFrameId: number;
   private _vertexArrayObjects: { [key: string]: WebGLVertexArrayObject };
@@ -128,13 +126,7 @@ export class Geometry implements IGetSetVerticesData {
    * @param updatable defines if geometry must be updatable (false by default)
    * @param mesh defines the mesh that will be associated with the geometry
    */
-  constructor(
-    id: string,
-    scene: Scene,
-    vertexData?: VertexData,
-    updatable: boolean = false,
-    mesh: Nullable<Mesh> = null
-  ) {
+  constructor(id: string, scene: Scene, vertexData?: VertexData, updatable: boolean = false, mesh: Nullable<Mesh> = null) {
     this.id = id;
     this.uniqueId = scene.getUniqueId();
     this._engine = scene.getEngine();
@@ -163,11 +155,7 @@ export class Geometry implements IGetSetVerticesData {
       mesh.computeWorldMatrix(true);
     }
   }
-  getVerticesData(
-    kind: string,
-    copyWhenShared?: boolean,
-    forceCopy?: boolean
-  ): Nullable<FloatArray> {
+  getVerticesData(kind: string, copyWhenShared?: boolean, forceCopy?: boolean): Nullable<FloatArray> {
     throw new Error("Method not implemented.");
   }
 
@@ -199,10 +187,7 @@ export class Geometry implements IGetSetVerticesData {
    * @returns true if the geometry is ready to be used
    */
   public isReady(): boolean {
-    return (
-      this.delayLoadState === Constants.DELAYLOADSTATE_LOADED ||
-      this.delayLoadState === Constants.DELAYLOADSTATE_NONE
-    );
+    return this.delayLoadState === Constants.DELAYLOADSTATE_LOADED || this.delayLoadState === Constants.DELAYLOADSTATE_NONE;
   }
 
   /**
@@ -226,9 +211,7 @@ export class Geometry implements IGetSetVerticesData {
 
     // Index buffer
     if (this._meshes.length !== 0 && this._indices) {
-      this._indexBuffer = this._engine.engineVertex.createIndexBuffer(
-        this._indices
-      );
+      this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices);
     }
 
     // Vertex buffers
@@ -255,24 +238,12 @@ export class Geometry implements IGetSetVerticesData {
    * @param updatable defines if the vertex must be flagged as updatable (false as default)
    * @param stride defines the stride to use (0 by default). This value is deduced from the kind value if not specified
    */
-  public setVerticesData(
-    kind: string,
-    data: FloatArray,
-    updatable: boolean = false,
-    stride?: number
-  ): void {
+  public setVerticesData(kind: string, data: FloatArray, updatable: boolean = false, stride?: number): void {
     if (updatable && Array.isArray(data)) {
       // to avoid converting to Float32Array at each draw call in engine.updateDynamicVertexBuffer, we make the conversion a single time here
       data = new Float32Array(data);
     }
-    var buffer = new VertexBuffer(
-      this._engine,
-      data,
-      kind,
-      updatable,
-      this._meshes.length === 0,
-      stride
-    );
+    var buffer = new VertexBuffer(this._engine, data, kind, updatable, this._meshes.length === 0, stride);
     this.setVerticesBuffer(buffer);
   }
 
@@ -292,10 +263,7 @@ export class Geometry implements IGetSetVerticesData {
    * @param buffer defines the vertex buffer to use
    * @param totalVertices defines the total number of vertices for position kind (could be null)
    */
-  public setVerticesBuffer(
-    buffer: VertexBuffer,
-    totalVertices: Nullable<number> = null
-  ): void {
+  public setVerticesBuffer(buffer: VertexBuffer, totalVertices: Nullable<number> = null): void {
     var kind = buffer.getKind();
     if (this._vertexBuffers[kind]) {
       this._vertexBuffers[kind].dispose();
@@ -344,12 +312,7 @@ export class Geometry implements IGetSetVerticesData {
    * @param offset defines the offset in the target buffer where to store the data
    * @param useBytes set to true if the offset is in bytes
    */
-  public updateVerticesDataDirectly(
-    kind: string,
-    data: DataArray,
-    offset: number,
-    useBytes: boolean = false
-  ): void {
+  public updateVerticesDataDirectly(kind: string, data: DataArray, offset: number, useBytes: boolean = false): void {
     var vertexBuffer = this.getVertexBuffer(kind);
 
     if (!vertexBuffer) {
@@ -367,11 +330,7 @@ export class Geometry implements IGetSetVerticesData {
    * @param data defines the data to use
    * @param updateExtends defines if the geometry extends must be recomputed (false by default)
    */
-  public updateVerticesData(
-    kind: string,
-    data: FloatArray,
-    updateExtends: boolean = false
-  ): void {
+  public updateVerticesData(kind: string, data: FloatArray, updateExtends: boolean = false): void {
     var vertexBuffer = this.getVertexBuffer(kind);
 
     if (!vertexBuffer) {
@@ -386,10 +345,7 @@ export class Geometry implements IGetSetVerticesData {
     this.notifyUpdate(kind);
   }
 
-  private _updateBoundingInfo(
-    updateExtends: boolean,
-    data: Nullable<FloatArray>
-  ) {
+  private _updateBoundingInfo(updateExtends: boolean, data: Nullable<FloatArray>) {
     // if (updateExtends) {
     //     this._updateExtend(data);
     // }
@@ -411,10 +367,7 @@ export class Geometry implements IGetSetVerticesData {
   }
 
   /** @hidden */
-  public _bind(
-    effect: Nullable<Effect>,
-    indexToBind?: Nullable<DataBuffer>
-  ): void {
+  public _bind(effect: Nullable<Effect>, indexToBind?: Nullable<DataBuffer>): void {
     if (!effect) {
       return;
     }
@@ -435,18 +388,10 @@ export class Geometry implements IGetSetVerticesData {
 
     // Using VAO
     if (!this._vertexArrayObjects[effect.key]) {
-      this._vertexArrayObjects[effect.key] =
-        this._engine.engineVertex.recordVertexArrayObject(
-          vbs,
-          indexToBind,
-          effect
-        );
+      this._vertexArrayObjects[effect.key] = this._engine.engineVertex.recordVertexArrayObject(vbs, indexToBind, effect);
     }
 
-    this._engine.engineVertex.bindVertexArrayObject(
-      this._vertexArrayObjects[effect.key],
-      indexToBind
-    );
+    this._engine.engineVertex.bindVertexArrayObject(this._vertexArrayObjects[effect.key], indexToBind);
   }
 
   /**
@@ -602,11 +547,7 @@ export class Geometry implements IGetSetVerticesData {
    * @param offset defines the offset in the target buffer where to store the data
    * @param gpuMemoryOnly defines a boolean indicating that only the GPU memory must be updated leaving the CPU version of the indices unchanged (false by default)
    */
-  public updateIndices(
-    indices: IndicesArray,
-    offset?: number,
-    gpuMemoryOnly = false
-  ): void {
+  public updateIndices(indices: IndicesArray, offset?: number, gpuMemoryOnly = false): void {
     if (!this._indexBuffer) {
       return;
     }
@@ -634,11 +575,7 @@ export class Geometry implements IGetSetVerticesData {
    * @param totalVertices defines the total number of vertices (could be null)
    * @param updatable defines if the index buffer must be flagged as updatable (false by default)
    */
-  public setIndices(
-    indices: IndicesArray,
-    totalVertices: Nullable<number> = null,
-    updatable: boolean = false
-  ): void {
+  public setIndices(indices: IndicesArray, totalVertices: Nullable<number> = null, updatable: boolean = false): void {
     if (this._indexBuffer) {
       this._engine._releaseBuffer(this._indexBuffer);
     }
@@ -648,10 +585,7 @@ export class Geometry implements IGetSetVerticesData {
     this._indices = indices;
     this._indexBufferIsUpdatable = updatable;
     if (this._meshes.length !== 0 && this._indices) {
-      this._indexBuffer = this._engine.engineVertex.createIndexBuffer(
-        this._indices,
-        updatable
-      );
+      this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices, updatable);
     }
 
     if (totalVertices != undefined) {
@@ -683,10 +617,7 @@ export class Geometry implements IGetSetVerticesData {
    * @param forceCopy defines a boolean indicating that the returned array must be cloned upon returning it
    * @returns the index buffer array
    */
-  public getIndices(
-    copyWhenShared?: boolean,
-    forceCopy?: boolean
-  ): Nullable<IndicesArray> {
+  public getIndices(copyWhenShared?: boolean, forceCopy?: boolean): Nullable<IndicesArray> {
     if (!this.isReady()) {
       return null;
     }
@@ -721,9 +652,7 @@ export class Geometry implements IGetSetVerticesData {
     }
 
     if (this._vertexArrayObjects[effect.key]) {
-      this._engine.engineVertex.releaseVertexArrayObject(
-        this._vertexArrayObjects[effect.key]
-      );
+      this._engine.engineVertex.releaseVertexArrayObject(this._vertexArrayObjects[effect.key]);
       delete this._vertexArrayObjects[effect.key];
     }
   }
@@ -791,13 +720,7 @@ export class Geometry implements IGetSetVerticesData {
         data = this.getVerticesData(VertexBuffer.PositionKind)!;
       }
 
-      this._extend = extractMinAndMax(
-        data,
-        0,
-        this._totalVertices,
-        this.boundingBias,
-        3
-      );
+      this._extend = extractMinAndMax(data, 0, this._totalVertices, this.boundingBias, 3);
     }
   }
 
@@ -822,16 +745,14 @@ export class Geometry implements IGetSetVerticesData {
 
         mesh._createGlobalSubMesh(false);
 
-        // //bounding info was just created again, world matrix should be applied again.
-        // mesh._updateBoundingInfo();
+        //bounding info was just created again, world matrix should be applied again.
+        mesh._updateBoundingInfo();
       }
     }
 
     // indexBuffer
     if (numOfMeshes === 1 && this._indices && this._indices.length > 0) {
-      this._indexBuffer = this._engine.engineVertex.createIndexBuffer(
-        this._indices
-      );
+      this._indexBuffer = this._engine.engineVertex.createIndexBuffer(this._indices);
     }
     if (this._indexBuffer) {
       this._indexBuffer.references = numOfMeshes;
@@ -957,25 +878,12 @@ export class Geometry implements IGetSetVerticesData {
       return false;
     }
 
-    for (
-      let index = this._positionsCache.length * 3,
-        arrayIdx = this._positionsCache.length;
-      index < data.length;
-      index += 3, ++arrayIdx
-    ) {
+    for (let index = this._positionsCache.length * 3, arrayIdx = this._positionsCache.length; index < data.length; index += 3, ++arrayIdx) {
       this._positionsCache[arrayIdx] = Vector3.FromArray(data, index);
     }
 
-    for (
-      let index = 0, arrayIdx = 0;
-      index < data.length;
-      index += 3, ++arrayIdx
-    ) {
-      this._positionsCache[arrayIdx].set(
-        data[0 + index],
-        data[1 + index],
-        data[2 + index]
-      );
+    for (let index = 0, arrayIdx = 0; index < data.length; index += 3, ++arrayIdx) {
+      this._positionsCache[arrayIdx].set(data[0 + index], data[1 + index], data[2 + index]);
     }
 
     // just in case the number of positions was reduced, splice the array
@@ -997,9 +905,7 @@ export class Geometry implements IGetSetVerticesData {
   private _disposeVertexArrayObjects(): void {
     if (this._vertexArrayObjects) {
       for (var kind in this._vertexArrayObjects) {
-        this._engine.engineVertex.releaseVertexArrayObject(
-          this._vertexArrayObjects[kind]
-        );
+        this._engine.engineVertex.releaseVertexArrayObject(this._vertexArrayObjects[kind]);
       }
       this._vertexArrayObjects = {};
     }
@@ -1095,10 +1001,7 @@ export class Geometry implements IGetSetVerticesData {
     }
 
     // Bounding info
-    geometry._boundingInfo = new BoundingInfo(
-      this._extend.minimum,
-      this._extend.maximum
-    );
+    geometry._boundingInfo = new BoundingInfo(this._extend.minimum, this._extend.maximum);
 
     return geometry;
   }
@@ -1120,9 +1023,7 @@ export class Geometry implements IGetSetVerticesData {
     return serializationObject;
   }
 
-  private toNumberArray(
-    origin: Nullable<Float32Array | IndicesArray>
-  ): number[] {
+  private toNumberArray(origin: Nullable<Float32Array | IndicesArray>): number[] {
     if (Array.isArray(origin)) {
       return origin;
     } else {
@@ -1138,99 +1039,77 @@ export class Geometry implements IGetSetVerticesData {
     var serializationObject = this.serialize();
 
     if (this.isVerticesDataPresent(VertexBuffer.PositionKind)) {
-      serializationObject.positions = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.PositionKind)
-      );
+      serializationObject.positions = this.toNumberArray(this.getVerticesData(VertexBuffer.PositionKind));
       if (this.isVertexBufferUpdatable(VertexBuffer.PositionKind)) {
         serializationObject.positions._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.NormalKind)) {
-      serializationObject.normals = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.NormalKind)
-      );
+      serializationObject.normals = this.toNumberArray(this.getVerticesData(VertexBuffer.NormalKind));
       if (this.isVertexBufferUpdatable(VertexBuffer.NormalKind)) {
         serializationObject.normals._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.TangentKind)) {
-      serializationObject.tangets = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.TangentKind)
-      );
+      serializationObject.tangets = this.toNumberArray(this.getVerticesData(VertexBuffer.TangentKind));
       if (this.isVertexBufferUpdatable(VertexBuffer.TangentKind)) {
         serializationObject.tangets._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.UVKind)) {
-      serializationObject.uvs = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.UVKind)
-      );
+      serializationObject.uvs = this.toNumberArray(this.getVerticesData(VertexBuffer.UVKind));
       if (this.isVertexBufferUpdatable(VertexBuffer.UVKind)) {
         serializationObject.uvs._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.UV2Kind)) {
-      serializationObject.uv2s = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.UV2Kind)
-      );
+      serializationObject.uv2s = this.toNumberArray(this.getVerticesData(VertexBuffer.UV2Kind));
       if (this.isVertexBufferUpdatable(VertexBuffer.UV2Kind)) {
         serializationObject.uv2s._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.UV3Kind)) {
-      serializationObject.uv3s = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.UV3Kind)
-      );
+      serializationObject.uv3s = this.toNumberArray(this.getVerticesData(VertexBuffer.UV3Kind));
       if (this.isVertexBufferUpdatable(VertexBuffer.UV3Kind)) {
         serializationObject.uv3s._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.UV4Kind)) {
-      serializationObject.uv4s = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.UV4Kind)
-      );
+      serializationObject.uv4s = this.toNumberArray(this.getVerticesData(VertexBuffer.UV4Kind));
       if (this.isVertexBufferUpdatable(VertexBuffer.UV4Kind)) {
         serializationObject.uv4s._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.UV5Kind)) {
-      serializationObject.uv5s = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.UV5Kind)
-      );
+      serializationObject.uv5s = this.toNumberArray(this.getVerticesData(VertexBuffer.UV5Kind));
       if (this.isVertexBufferUpdatable(VertexBuffer.UV5Kind)) {
         serializationObject.uv5s._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.UV6Kind)) {
-      serializationObject.uv6s = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.UV6Kind)
-      );
+      serializationObject.uv6s = this.toNumberArray(this.getVerticesData(VertexBuffer.UV6Kind));
       if (this.isVertexBufferUpdatable(VertexBuffer.UV6Kind)) {
         serializationObject.uv6s._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.ColorKind)) {
-      serializationObject.colors = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.ColorKind)
-      );
+      serializationObject.colors = this.toNumberArray(this.getVerticesData(VertexBuffer.ColorKind));
       if (this.isVertexBufferUpdatable(VertexBuffer.ColorKind)) {
         serializationObject.colors._updatable = true;
       }
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.MatricesIndicesKind)) {
-      serializationObject.matricesIndices = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.MatricesIndicesKind)
-      );
+      serializationObject.matricesIndices = this.toNumberArray(this.getVerticesData(VertexBuffer.MatricesIndicesKind));
       serializationObject.matricesIndices._isExpanded = true;
       if (this.isVertexBufferUpdatable(VertexBuffer.MatricesIndicesKind)) {
         serializationObject.matricesIndices._updatable = true;
@@ -1238,9 +1117,7 @@ export class Geometry implements IGetSetVerticesData {
     }
 
     if (this.isVerticesDataPresent(VertexBuffer.MatricesWeightsKind)) {
-      serializationObject.matricesWeights = this.toNumberArray(
-        this.getVerticesData(VertexBuffer.MatricesWeightsKind)
-      );
+      serializationObject.matricesWeights = this.toNumberArray(this.getVerticesData(VertexBuffer.MatricesWeightsKind));
       if (this.isVertexBufferUpdatable(VertexBuffer.MatricesWeightsKind)) {
         serializationObject.matricesWeights._updatable = true;
       }

@@ -528,7 +528,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         }
       }
 
-      // this.refreshBoundingInfo();
+      this.refreshBoundingInfo();
       this.computeWorldMatrix(true);
     }
 
@@ -996,15 +996,15 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * @param applySkeleton defines whether to apply the skeleton before computing the bounding info
    * @returns the current mesh
    */
-  // public refreshBoundingInfo(applySkeleton: boolean = false): Mesh {
-  //   if (this._boundingInfo && this._boundingInfo.isLocked) {
-  //     return this;
-  //   }
+  public refreshBoundingInfo(applySkeleton: boolean = false): Mesh {
+    if (this._boundingInfo && this._boundingInfo.isLocked) {
+      return this;
+    }
 
-  //   const bias = this.geometry ? this.geometry.boundingBias : null;
-  //   this._refreshBoundingInfo(this._getPositionData(applySkeleton), bias);
-  //   return this;
-  // }
+    const bias = this.geometry ? this.geometry.boundingBias : null;
+    this._refreshBoundingInfo(this._getPositionData(applySkeleton), bias);
+    return this;
+  }
 
   /** @hidden */
   public _createGlobalSubMesh(force: boolean): Nullable<SubMesh> {

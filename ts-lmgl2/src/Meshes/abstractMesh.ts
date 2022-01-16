@@ -1028,6 +1028,108 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
     return this._boundingInfo!;
   }
 
+  public _refreshBoundingInfo(data: Nullable<FloatArray>, bias: Nullable<Vector2>): void {
+    if (data) {
+      var extend = extractMinAndMax(data, 0, this.getTotalVertices(), bias);
+      if (this._boundingInfo) {
+        this._boundingInfo.reConstruct(extend.minimum, extend.maximum);
+      } else {
+        this._boundingInfo = new BoundingInfo(extend.minimum, extend.maximum);
+      }
+    }
+
+    if (this.subMeshes) {
+      for (var index = 0; index < this.subMeshes.length; index++) {
+        this.subMeshes[index].refreshBoundingInfo(data);
+      }
+    }
+
+    this._updateBoundingInfo();
+  }
+  public _updateBoundingInfo(): AbstractMesh {
+    const effectiveMesh = this; //this._effectiveMesh;
+    if (this._boundingInfo) {
+      this._boundingInfo.update(effectiveMesh.worldMatrixFromCache);
+    } else {
+      this._boundingInfo = new BoundingInfo(this.absolutePosition, this.absolutePosition, effectiveMesh.worldMatrixFromCache);
+    }
+    this._updateSubMeshesBoundingInfo(effectiveMesh.worldMatrixFromCache);
+    return this;
+  }
+
+  /** @hidden */
+  public _updateSubMeshesBoundingInfo(matrix: DeepImmutable<Matrix>): AbstractMesh {
+    if (!this.subMeshes) {
+      return this;
+    }
+    let count = this.subMeshes.length;
+    for (var subIndex = 0; subIndex < count; subIndex++) {
+      var subMesh = this.subMeshes[subIndex];
+      if (count > 1 || !subMesh.IsGlobal) {
+        subMesh.updateBoundingInfo(matrix);
+      }
+    }
+    return this;
+  }
+
+  /** @hidden */
+  public _getPositionData(applySkeleton: boolean): Nullable<FloatArray> {
+    var data = this.getVerticesData(VertexBuffer.PositionKind);
+
+    // if (data && applySkeleton) {
+    //     data = Tools.Slice(data);
+    //     this._generatePointsArray();
+
+    //     var matricesIndicesData = this.getVerticesData(VertexBuffer.MatricesIndicesKind);
+    //     var matricesWeightsData = this.getVerticesData(VertexBuffer.MatricesWeightsKind);
+    //     if (matricesWeightsData && matricesIndicesData) {
+    //         var needExtras = this.numBoneInfluencers > 4;
+    //         var matricesIndicesExtraData = needExtras ? this.getVerticesData(VertexBuffer.MatricesIndicesExtraKind) : null;
+    //         var matricesWeightsExtraData = needExtras ? this.getVerticesData(VertexBuffer.MatricesWeightsExtraKind) : null;
+
+    //         this.skeleton.prepare();
+    //         var skeletonMatrices = this.skeleton.getTransformMatrices(this);
+
+    //         var tempVector = TmpVectors.Vector3[0];
+    //         var finalMatrix = TmpVectors.Matrix[0];
+    //         var tempMatrix = TmpVectors.Matrix[1];
+
+    //         var matWeightIdx = 0;
+    //         for (var index = 0; index < data.length; index += 3, matWeightIdx += 4) {
+    //             finalMatrix.reset();
+
+    //             var inf: number;
+    //             var weight: number;
+    //             for (inf = 0; inf < 4; inf++) {
+    //                 weight = matricesWeightsData[matWeightIdx + inf];
+    //                 if (weight > 0) {
+    //                     Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, Math.floor(matricesIndicesData[matWeightIdx + inf] * 16), weight, tempMatrix);
+    //                     finalMatrix.addToSelf(tempMatrix);
+    //                 }
+    //             }
+    //             if (needExtras) {
+    //                 for (inf = 0; inf < 4; inf++) {
+    //                     weight = matricesWeightsExtraData![matWeightIdx + inf];
+    //                     if (weight > 0) {
+    //                         Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, Math.floor(matricesIndicesExtraData![matWeightIdx + inf] * 16), weight, tempMatrix);
+    //                         finalMatrix.addToSelf(tempMatrix);
+    //                     }
+    //                 }
+    //             }
+
+    //             Vector3.TransformCoordinatesFromFloatsToRef(data[index], data[index + 1], data[index + 2], finalMatrix, tempVector);
+    //             tempVector.toArray(data, index);
+
+    //             if (this._positions) {
+    //                 this._positions[index / 3].copyFrom(tempVector);
+    //             }
+    //         }
+    //     }
+    // }
+
+    return data;
+  }
+
   /**
    * Uniformly scales the mesh to fit inside of a unit cube (1 X 1 X 1 units)
    * @param includeDescendants Use the hierarchy's bounding box instead of the mesh's bounding box. Default is false
@@ -1132,27 +1234,12 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
   }
 
   /** @hidden */
-  public _updateSubMeshesBoundingInfo(matrix: DeepImmutable<Matrix>): AbstractMesh {
-    if (!this.subMeshes) {
-      return this;
-    }
-    let count = this.subMeshes.length;
-    for (var subIndex = 0; subIndex < count; subIndex++) {
-      var subMesh = this.subMeshes[subIndex];
-      if (count > 1 || !subMesh.IsGlobal) {
-        subMesh.updateBoundingInfo(matrix);
-      }
-    }
-    return this;
-  }
-
-  /** @hidden */
   protected _afterComputeWorldMatrix(): void {
     if (this.doNotSyncBoundingInfo) {
       return;
     }
     // Bounding info
-    // this._updateBoundingInfo();
+    this._updateBoundingInfo();
   }
 
   /** @hidden */
@@ -2170,35 +2257,6 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
     return this;
   }
 
-  /**
-   * Align the mesh with a normal
-   * @param normal defines the normal to use
-   * @param upDirection can be used to redefined the up vector to use (will use the (0, 1, 0) by default)
-   * @returns the current mesh
-   */
-  // public alignWithNormal(normal: Vector3, upDirection?: Vector3): AbstractMesh {
-  //   if (!upDirection) {
-  //     upDirection = Axis.Y;
-  //   }
-
-  //   var axisX = TmpVectors.Vector3[0];
-  //   var axisZ = TmpVectors.Vector3[1];
-  //   Vector3.CrossToRef(upDirection, normal, axisZ);
-  //   Vector3.CrossToRef(normal, axisZ, axisX);
-
-  //   if (this.rotationQuaternion) {
-  //     Quaternion.RotationQuaternionFromAxisToRef(
-  //       axisX,
-  //       normal,
-  //       axisZ,
-  //       this.rotationQuaternion
-  //     );
-  //   } else {
-  //     Vector3.RotationFromAxisToRef(axisX, normal, axisZ, this.rotation);
-  //   }
-  //   return this;
-  // }
-
   /** @hidden */
   public _checkOcclusionQuery(): boolean {
     // Will be replaced by correct code if Occlusion queries are referenced
@@ -2212,27 +2270,6 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
   disableEdgesRendering(): AbstractMesh {
     throw _DevTools.WarnImport("EdgesRenderer");
   }
-
-  /**
-   * Enables the edge rendering mode on the mesh.
-   * This mode makes the mesh edges visible
-   * @param epsilon defines the maximal distance between two angles to detect a face
-   * @param checkVerticesInsteadOfIndices indicates that we should check vertex list directly instead of faces
-   * @param options options to the edge renderer
-   * @returns the currentAbstractMesh
-   * @see https://www.babylonjs-playground.com/#19O9TU#0
-   */
-  // enableEdgesRendering(epsilon?: number, checkVerticesInsteadOfIndices?: boolean, options?: IEdgesRendererOptions): AbstractMesh {
-  //     throw _DevTools.WarnImport("EdgesRenderer");
-  // }
-
-  /**
-   * This function returns all of the particle systems in the scene that use the mesh as an emitter.
-   * @returns an array of particle systems in the scene that use the mesh as an emitter
-   */
-  // public getConnectedParticleSystems(): IParticleSystem[] {
-  //     return this._scene.particleSystems.filter((particleSystem) => particleSystem.emitter === this);
-  // }
 }
 
 _TypeStore.RegisteredTypes["BABYLON.AbstractMesh"] = AbstractMesh;
