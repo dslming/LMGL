@@ -2,8 +2,6 @@ import { Nullable } from "../types";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
 import { SmartArray } from "../Misc/smartArray";
-// import { ISpriteManager } from "../Sprites/spriteManager";
-// import { IParticleSystem } from "../Particles/IParticleSystem";
 import { Material } from "../Materials/material";
 import { RenderingGroup } from "./renderingGroup";
 
@@ -79,18 +77,10 @@ export class RenderingManager {
   private _renderingGroups = new Array<RenderingGroup>();
   private _depthStencilBufferAlreadyCleaned: boolean;
 
-  private _autoClearDepthStencil: {
-    [id: number]: IRenderingManagerAutoClearSetup;
-  } = {};
-  private _customOpaqueSortCompareFn: {
-    [id: number]: Nullable<(a: SubMesh, b: SubMesh) => number>;
-  } = {};
-  private _customAlphaTestSortCompareFn: {
-    [id: number]: Nullable<(a: SubMesh, b: SubMesh) => number>;
-  } = {};
-  private _customTransparentSortCompareFn: {
-    [id: number]: Nullable<(a: SubMesh, b: SubMesh) => number>;
-  } = {};
+  private _autoClearDepthStencil: { [id: number]: IRenderingManagerAutoClearSetup } = {};
+  private _customOpaqueSortCompareFn: { [id: number]: Nullable<(a: SubMesh, b: SubMesh) => number> } = {};
+  private _customAlphaTestSortCompareFn: { [id: number]: Nullable<(a: SubMesh, b: SubMesh) => number> } = {};
+  private _customTransparentSortCompareFn: { [id: number]: Nullable<(a: SubMesh, b: SubMesh) => number> } = {};
   private _renderingGroupInfo: Nullable<RenderingGroupInfo> = new RenderingGroupInfo();
 
   /**
@@ -140,14 +130,6 @@ export class RenderingManager {
     info.scene = this._scene;
     info.camera = this._scene.sceneRender.activeCamera;
 
-    // Dispatch sprites
-    // if (this._scene.spriteManagers && renderSprites) {
-    //     for (let index = 0; index < this._scene.spriteManagers.length; index++) {
-    //         var manager = this._scene.spriteManagers[index];
-    //         this.dispatchSprites(manager);
-    //     }
-    // }
-
     // Render
     for (let index = RenderingManager.MIN_RENDERINGGROUPS; index < RenderingManager.MAX_RENDERINGGROUPS; index++) {
       this._depthStencilBufferAlreadyCleaned = index === RenderingManager.MIN_RENDERINGGROUPS;
@@ -160,35 +142,19 @@ export class RenderingManager {
       info.renderingGroupId = index;
 
       // Before Observable
-      //   this._scene.sceneEventTrigger.onBeforeRenderingGroupObservable.notifyObservers(
-      //     info,
-      //     renderingGroupMask
-      //   );
+      this._scene.sceneEventTrigger.onBeforeRenderingGroupObservable.notifyObservers(info, renderingGroupMask);
 
       // Clear depth/stencil if needed
       if (RenderingManager.AUTOCLEAR) {
-        // const autoClear = this._useSceneAutoClearSetup
-        //   ? this._scene.sceneRender.getAutoClearDepthStencilSetup(index)
-        //   : this._autoClearDepthStencil[index];
-        // if (autoClear && autoClear.autoClear) {
-        //   this._clearDepthStencilBuffer(autoClear.depth, autoClear.stencil);
-        // }
+        const autoClear = this._useSceneAutoClearSetup ? this.getAutoClearDepthStencilSetup(index) : this._autoClearDepthStencil[index];
+
+        if (autoClear && autoClear.autoClear) {
+          this._clearDepthStencilBuffer(autoClear.depth, autoClear.stencil);
+        }
       }
 
       // Render
-      //   for (let step of this._scene.sceneStage._beforeRenderingGroupDrawStage) {
-      //     step.action(index);
-      //   }
       renderingGroup.render(customRenderFunction, renderSprites, renderParticles, activeMeshes);
-      //   for (let step of this._scene.sceneStage._afterRenderingGroupDrawStage) {
-      //     step.action(index);
-      //   }
-
-      // After Observable
-      //   this._scene.sceneEventTrigger.onAfterRenderingGroupObservable.notifyObservers(
-      //     info,
-      //     renderingGroupMask
-      //   );
     }
   }
 
@@ -238,30 +204,6 @@ export class RenderingManager {
       );
     }
   }
-
-  /**
-   * Add a sprite manager to the rendering manager in order to render it this frame.
-   * @param spriteManager Define the sprite manager to render
-   */
-  // public dispatchSprites(spriteManager: ISpriteManager) {
-  //     var renderingGroupId = spriteManager.renderingGroupId || 0;
-
-  //     this._prepareRenderingGroup(renderingGroupId);
-
-  //     this._renderingGroups[renderingGroupId].dispatchSprites(spriteManager);
-  // }
-
-  /**
-   * Add a particle system to the rendering manager in order to render it this frame.
-   * @param particleSystem Define the particle system to render
-   */
-  // public dispatchParticles(particleSystem: IParticleSystem) {
-  //     var renderingGroupId = particleSystem.renderingGroupId || 0;
-
-  //     this._prepareRenderingGroup(renderingGroupId);
-
-  //     this._renderingGroups[renderingGroupId].dispatchParticles(particleSystem);
-  // }
 
   /**
    * Add a submesh to the manager in order to render it this frame

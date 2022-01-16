@@ -22,6 +22,7 @@ import { IEffectFallbacks } from "../Materials/iEffectFallbacks";
 import { EngineDraw } from "./engine.draw";
 import { EngineRender } from "./engine.render";
 import { DomManagement } from "../Misc/domManagement";
+import { EngineAlpha } from "./engine.alpha";
 
 export class Engine {
   public _contextWasLost = false;
@@ -37,9 +38,7 @@ export class Engine {
   public useReverseDepthBuffer = false;
   public _doNotHandleContextLost = false;
   public _workingCanvas: Nullable<HTMLCanvasElement | OffscreenCanvas>;
-  public _workingContext: Nullable<
-    CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
-  >;
+  public _workingContext: Nullable<CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D>;
   public _gl: WebGLRenderingContext;
   public _glVersion: string;
   public _webGLVersion: number = 2;
@@ -63,6 +62,7 @@ export class Engine {
   public engineFramebuffer: EngineFramebuffer;
   public engineState: EngineState;
   public engineDraw: EngineDraw;
+  public engineAlpha: EngineAlpha;
 
   protected _renderingCanvas: Nullable<HTMLCanvasElement>;
 
@@ -72,14 +72,10 @@ export class Engine {
    * @param useScreen defines if screen size must be used (or the current render target if any)
    * @returns a number defining the aspect ratio
    */
-  public getAspectRatio(
-    viewportOwner: IViewportOwnerLike,
-    useScreen = false
-  ): number {
+  public getAspectRatio(viewportOwner: IViewportOwnerLike, useScreen = false): number {
     var viewport = viewportOwner.viewport;
     return (
-      (this.engineFramebuffer.getRenderWidth(useScreen) * viewport.width) /
-      (this.engineFramebuffer.getRenderHeight(useScreen) * viewport.height)
+      (this.engineFramebuffer.getRenderWidth(useScreen) * viewport.width) / (this.engineFramebuffer.getRenderHeight(useScreen) * viewport.height)
     );
   }
 
@@ -88,10 +84,7 @@ export class Engine {
    * @returns a number defining the aspect ratio
    */
   public getScreenAspectRatio(): number {
-    return (
-      this.engineFramebuffer.getRenderWidth(true) /
-      this.engineFramebuffer.getRenderHeight(true)
-    );
+    return this.engineFramebuffer.getRenderWidth(true) / this.engineFramebuffer.getRenderHeight(true);
   }
 
   /**
@@ -141,9 +134,10 @@ export class Engine {
 
     this.engineVertex = new EngineVertex(this._gl, this._caps);
     this.engineUniform = new EngineUniform(this._gl);
-    this.engineState = new EngineState(this._gl);
+    this.engineState = new EngineState(this._gl, this);
     this.engineTexture = new EngineTexture(this._gl, this);
     this.engineDraw = new EngineDraw(this._gl, this);
+    this.engineAlpha = new EngineAlpha(this._gl, this);
     this.engineFile = new EngineFile();
     this.engineViewPort = new EngineViewPort(this);
     this.engineFramebuffer = new EngineFramebuffer(this._gl, this);
@@ -158,12 +152,8 @@ export class Engine {
     let height: number;
 
     if (DomManagement.IsWindowObjectExist()) {
-      width = this._renderingCanvas
-        ? this._renderingCanvas.clientWidth || this._renderingCanvas.width
-        : window.innerWidth;
-      height = this._renderingCanvas
-        ? this._renderingCanvas.clientHeight || this._renderingCanvas.height
-        : window.innerHeight;
+      width = this._renderingCanvas ? this._renderingCanvas.clientWidth || this._renderingCanvas.width : window.innerWidth;
+      height = this._renderingCanvas ? this._renderingCanvas.clientHeight || this._renderingCanvas.height : window.innerHeight;
     } else {
       width = this._renderingCanvas ? this._renderingCanvas.width : 100;
       height = this._renderingCanvas ? this._renderingCanvas.height : 100;
@@ -186,10 +176,7 @@ export class Engine {
     width = width | 0;
     height = height | 0;
 
-    if (
-      this._renderingCanvas.width === width &&
-      this._renderingCanvas.height === height
-    ) {
+    if (this._renderingCanvas.width === width && this._renderingCanvas.height === height) {
       return false;
     }
 
@@ -210,56 +197,25 @@ export class Engine {
   protected _initGLContext(): void {
     // Caps
     this._caps = {
-      maxTexturesImageUnits: this._gl.getParameter(
-        this._gl.MAX_TEXTURE_IMAGE_UNITS
-      ),
-      maxCombinedTexturesImageUnits: this._gl.getParameter(
-        this._gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS
-      ),
-      maxVertexTextureImageUnits: this._gl.getParameter(
-        this._gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS
-      ),
+      maxTexturesImageUnits: this._gl.getParameter(this._gl.MAX_TEXTURE_IMAGE_UNITS),
+      maxCombinedTexturesImageUnits: this._gl.getParameter(this._gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+      maxVertexTextureImageUnits: this._gl.getParameter(this._gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
       maxTextureSize: this._gl.getParameter(this._gl.MAX_TEXTURE_SIZE),
-      maxSamples:
-        this._webGLVersion > 1
-          ? this._gl.getParameter(this._gl.MAX_SAMPLES)
-          : 1,
-      maxCubemapTextureSize: this._gl.getParameter(
-        this._gl.MAX_CUBE_MAP_TEXTURE_SIZE
-      ),
-      maxRenderTextureSize: this._gl.getParameter(
-        this._gl.MAX_RENDERBUFFER_SIZE
-      ),
+      maxSamples: this._webGLVersion > 1 ? this._gl.getParameter(this._gl.MAX_SAMPLES) : 1,
+      maxCubemapTextureSize: this._gl.getParameter(this._gl.MAX_CUBE_MAP_TEXTURE_SIZE),
+      maxRenderTextureSize: this._gl.getParameter(this._gl.MAX_RENDERBUFFER_SIZE),
       maxVertexAttribs: this._gl.getParameter(this._gl.MAX_VERTEX_ATTRIBS),
       maxVaryingVectors: this._gl.getParameter(this._gl.MAX_VARYING_VECTORS),
-      maxFragmentUniformVectors: this._gl.getParameter(
-        this._gl.MAX_FRAGMENT_UNIFORM_VECTORS
-      ),
-      maxVertexUniformVectors: this._gl.getParameter(
-        this._gl.MAX_VERTEX_UNIFORM_VECTORS
-      ),
-      parallelShaderCompile: this._gl.getExtension(
-        "KHR_parallel_shader_compile"
-      ),
-      standardDerivatives:
-        this._webGLVersion > 1 ||
-        this._gl.getExtension("OES_standard_derivatives") !== null,
+      maxFragmentUniformVectors: this._gl.getParameter(this._gl.MAX_FRAGMENT_UNIFORM_VECTORS),
+      maxVertexUniformVectors: this._gl.getParameter(this._gl.MAX_VERTEX_UNIFORM_VECTORS),
+      parallelShaderCompile: this._gl.getExtension("KHR_parallel_shader_compile"),
+      standardDerivatives: this._webGLVersion > 1 || this._gl.getExtension("OES_standard_derivatives") !== null,
       maxAnisotropy: 1,
-      astc:
-        this._gl.getExtension("WEBGL_compressed_texture_astc") ||
-        this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_astc"),
-      bptc:
-        this._gl.getExtension("EXT_texture_compression_bptc") ||
-        this._gl.getExtension("WEBKIT_EXT_texture_compression_bptc"),
-      s3tc:
-        this._gl.getExtension("WEBGL_compressed_texture_s3tc") ||
-        this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc"),
-      pvrtc:
-        this._gl.getExtension("WEBGL_compressed_texture_pvrtc") ||
-        this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc"),
-      etc1:
-        this._gl.getExtension("WEBGL_compressed_texture_etc1") ||
-        this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc1"),
+      astc: this._gl.getExtension("WEBGL_compressed_texture_astc") || this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_astc"),
+      bptc: this._gl.getExtension("EXT_texture_compression_bptc") || this._gl.getExtension("WEBKIT_EXT_texture_compression_bptc"),
+      s3tc: this._gl.getExtension("WEBGL_compressed_texture_s3tc") || this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc"),
+      pvrtc: this._gl.getExtension("WEBGL_compressed_texture_pvrtc") || this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc"),
+      etc1: this._gl.getExtension("WEBGL_compressed_texture_etc1") || this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc1"),
       etc2:
         this._gl.getExtension("WEBGL_compressed_texture_etc") ||
         this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc") ||
@@ -268,42 +224,23 @@ export class Engine {
         this._gl.getExtension("EXT_texture_filter_anisotropic") ||
         this._gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic") ||
         this._gl.getExtension("MOZ_EXT_texture_filter_anisotropic"),
-      uintIndices:
-        this._webGLVersion > 1 ||
-        this._gl.getExtension("OES_element_index_uint") !== null,
-      fragmentDepthSupported:
-        this._webGLVersion > 1 ||
-        this._gl.getExtension("EXT_frag_depth") !== null,
+      uintIndices: this._webGLVersion > 1 || this._gl.getExtension("OES_element_index_uint") !== null,
+      fragmentDepthSupported: this._webGLVersion > 1 || this._gl.getExtension("EXT_frag_depth") !== null,
       highPrecisionShaderSupported: false,
-      timerQuery:
-        this._gl.getExtension("EXT_disjoint_timer_query_webgl2") ||
-        this._gl.getExtension("EXT_disjoint_timer_query"),
+      timerQuery: this._gl.getExtension("EXT_disjoint_timer_query_webgl2") || this._gl.getExtension("EXT_disjoint_timer_query"),
       canUseTimestampForTimerQuery: false,
       drawBuffersExtension: false,
       maxMSAASamples: 1,
-      colorBufferFloat:
-        this._webGLVersion > 1 &&
-        this._gl.getExtension("EXT_color_buffer_float"),
-      textureFloat:
-        this._webGLVersion > 1 || this._gl.getExtension("OES_texture_float")
-          ? true
-          : false,
-      textureHalfFloat:
-        this._webGLVersion > 1 ||
-        this._gl.getExtension("OES_texture_half_float")
-          ? true
-          : false,
+      colorBufferFloat: this._webGLVersion > 1 && this._gl.getExtension("EXT_color_buffer_float"),
+      textureFloat: this._webGLVersion > 1 || this._gl.getExtension("OES_texture_float") ? true : false,
+      textureHalfFloat: this._webGLVersion > 1 || this._gl.getExtension("OES_texture_half_float") ? true : false,
       textureHalfFloatRender: false,
       textureFloatLinearFiltering: false,
       textureFloatRender: false,
       textureHalfFloatLinearFiltering: false,
       vertexArrayObject: false,
       instancedArrays: false,
-      textureLOD:
-        this._webGLVersion > 1 ||
-        this._gl.getExtension("EXT_shader_texture_lod")
-          ? true
-          : false,
+      textureLOD: this._webGLVersion > 1 || this._gl.getExtension("EXT_shader_texture_lod") ? true : false,
       blendMinMax: false,
       multiview: this._gl.getExtension("OVR_multiview2"),
       oculusMultiview: this._gl.getExtension("OCULUS_multiview"),
@@ -335,8 +272,7 @@ export class Engine {
    * @param effect defines the effect to bind
    */
   public bindSamplers(effect: Effect): void {
-    let webGLPipelineContext =
-      effect.getPipelineContext() as WebGLPipelineContext;
+    let webGLPipelineContext = effect.getPipelineContext() as WebGLPipelineContext;
     this._setProgram(webGLPipelineContext.program!);
     var samplers = effect.getSamplers();
     for (var index = 0; index < samplers.length; index++) {
@@ -358,12 +294,7 @@ export class Engine {
 
   public _isRenderingStateCompiled(pipelineContext: IPipelineContext): boolean {
     let webGLPipelineContext = pipelineContext as WebGLPipelineContext;
-    if (
-      this._gl.getProgramParameter(
-        webGLPipelineContext.program!,
-        this._caps.parallelShaderCompile!.COMPLETION_STATUS_KHR
-      )
-    ) {
+    if (this._gl.getProgramParameter(webGLPipelineContext.program!, this._caps.parallelShaderCompile!.COMPLETION_STATUS_KHR)) {
       this._finalizePipelineContext(webGLPipelineContext);
       return true;
     }
@@ -382,9 +313,7 @@ export class Engine {
 
   public releaseEffects() {
     for (var name in this._compiledEffects) {
-      let webGLPipelineContext = this._compiledEffects[
-        name
-      ].getPipelineContext() as WebGLPipelineContext;
+      let webGLPipelineContext = this._compiledEffects[name].getPipelineContext() as WebGLPipelineContext;
       this._deletePipelineContext(webGLPipelineContext);
     }
 
@@ -395,9 +324,7 @@ export class Engine {
     if (this._compiledEffects[effect._key]) {
       delete this._compiledEffects[effect._key];
 
-      this._deletePipelineContext(
-        effect.getPipelineContext() as WebGLPipelineContext
-      );
+      this._deletePipelineContext(effect.getPipelineContext() as WebGLPipelineContext);
     }
   }
 
@@ -407,11 +334,7 @@ export class Engine {
    * @param uniform The uniform to set
    * @param texture The render target texture containing the depth stencil texture to apply
    */
-  public setDepthStencilTexture(
-    channel: number,
-    uniform: Nullable<WebGLUniformLocation>,
-    texture: Nullable<RenderTargetTexture>
-  ): void {
+  public setDepthStencilTexture(channel: number, uniform: Nullable<WebGLUniformLocation>, texture: Nullable<RenderTargetTexture>): void {
     if (channel === undefined) {
       return;
     }
@@ -448,21 +371,13 @@ export class Engine {
    * @param attributesNames defines the list of attribute names to get
    * @returns an array of indices indicating the offset of each attribute
    */
-  public getAttributes(
-    pipelineContext: IPipelineContext,
-    attributesNames: string[]
-  ): number[] {
+  public getAttributes(pipelineContext: IPipelineContext, attributesNames: string[]): number[] {
     var results = [];
     let webGLPipelineContext = pipelineContext as WebGLPipelineContext;
 
     for (var index = 0; index < attributesNames.length; index++) {
       try {
-        results.push(
-          this._gl.getAttribLocation(
-            webGLPipelineContext.program!,
-            attributesNames[index]
-          )
-        );
+        results.push(this._gl.getAttribLocation(webGLPipelineContext.program!, attributesNames[index]));
       } catch (e) {
         results.push(-1);
       }
@@ -472,10 +387,7 @@ export class Engine {
   }
 
   /** ---------------------------------------- shader --------------------------------------------------------- */
-  public _executeWhenRenderingStateIsCompiled(
-    pipelineContext: IPipelineContext,
-    action: () => void
-  ) {
+  public _executeWhenRenderingStateIsCompiled(pipelineContext: IPipelineContext, action: () => void) {
     let webGLPipelineContext = pipelineContext as WebGLPipelineContext;
 
     if (!webGLPipelineContext.isParallelCompiled) {
@@ -495,33 +407,19 @@ export class Engine {
     }
   }
 
-  protected static _ConcatenateShader(
-    source: string,
-    defines: Nullable<string>,
-    shaderVersion: string = ""
-  ): string {
+  protected static _ConcatenateShader(source: string, defines: Nullable<string>, shaderVersion: string = ""): string {
     // return shaderVersion + (defines ? defines + "\n" : "") + source;
     return shaderVersion + source;
     // return  source;
   }
 
-  private _compileShader(
-    source: string,
-    type: string,
-    defines: Nullable<string>,
-    shaderVersion: string
-  ): WebGLShader {
-    return this._compileRawShader(
-      Engine._ConcatenateShader(source, defines, shaderVersion),
-      type
-    );
+  private _compileShader(source: string, type: string, defines: Nullable<string>, shaderVersion: string): WebGLShader {
+    return this._compileRawShader(Engine._ConcatenateShader(source, defines, shaderVersion), type);
   }
 
   private _compileRawShader(source: string, type: string): WebGLShader {
     var gl = this._gl;
-    var shader = gl.createShader(
-      type === "vertex" ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER
-    );
+    var shader = gl.createShader(type === "vertex" ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
 
     if (!shader) {
       throw new Error("Something went wrong while compile the shader.");
@@ -555,9 +453,7 @@ export class Engine {
       }
 
       // Fragment
-      if (
-        !this._gl.getShaderParameter(fragmentShader, this._gl.COMPILE_STATUS)
-      ) {
+      if (!this._gl.getShaderParameter(fragmentShader, this._gl.COMPILE_STATUS)) {
         const log = this._gl.getShaderInfoLog(fragmentShader);
         if (log) {
           pipelineContext.fragmentCompilationError = log;
@@ -574,10 +470,7 @@ export class Engine {
 
     if (this.validateShaderPrograms) {
       context.validateProgram(program);
-      var validated = context.getProgramParameter(
-        program,
-        context.VALIDATE_STATUS
-      );
+      var validated = context.getProgramParameter(program, context.VALIDATE_STATUS);
 
       if (!validated) {
         var error = context.getProgramInfoLog(program);
@@ -651,13 +544,7 @@ export class Engine {
     var vertexShader = this._compileRawShader(vertexCode, "vertex");
     var fragmentShader = this._compileRawShader(fragmentCode, "fragment");
 
-    return this._createShaderProgram(
-      pipelineContext as WebGLPipelineContext,
-      vertexShader,
-      fragmentShader,
-      context,
-      transformFeedbackVaryings
-    );
+    return this._createShaderProgram(pipelineContext as WebGLPipelineContext, vertexShader, fragmentShader, context, transformFeedbackVaryings);
   }
 
   /**
@@ -680,28 +567,11 @@ export class Engine {
   ): WebGLProgram {
     context = context || this._gl;
 
-    var shaderVersion =
-      this._webGLVersion > 1 ? "#version 300 es\n#define WEBGL2 \n" : "";
-    var vertexShader = this._compileShader(
-      vertexCode,
-      "vertex",
-      defines,
-      shaderVersion
-    );
-    var fragmentShader = this._compileShader(
-      fragmentCode,
-      "fragment",
-      defines,
-      shaderVersion
-    );
+    var shaderVersion = this._webGLVersion > 1 ? "#version 300 es\n#define WEBGL2 \n" : "";
+    var vertexShader = this._compileShader(vertexCode, "vertex", defines, shaderVersion);
+    var fragmentShader = this._compileShader(fragmentCode, "fragment", defines, shaderVersion);
 
-    return this._createShaderProgram(
-      pipelineContext as WebGLPipelineContext,
-      vertexShader,
-      fragmentShader,
-      context,
-      transformFeedbackVaryings
-    );
+    return this._createShaderProgram(pipelineContext as WebGLPipelineContext, vertexShader, fragmentShader, context, transformFeedbackVaryings);
   }
 
   /** @hidden */
@@ -843,27 +713,10 @@ export class Engine {
     onError?: Nullable<(effect: Effect, errors: string) => void>,
     indexParameters?: any
   ): Effect {
-    var vertex =
-      baseName.vertexElement ||
-      baseName.vertex ||
-      baseName.vertexToken ||
-      baseName.vertexSource ||
-      baseName;
-    var fragment =
-      baseName.fragmentElement ||
-      baseName.fragment ||
-      baseName.fragmentToken ||
-      baseName.fragmentSource ||
-      baseName;
+    var vertex = baseName.vertexElement || baseName.vertex || baseName.vertexToken || baseName.vertexSource || baseName;
+    var fragment = baseName.fragmentElement || baseName.fragment || baseName.fragmentToken || baseName.fragmentSource || baseName;
 
-    var name =
-      vertex +
-      "+" +
-      fragment +
-      "@" +
-      (defines
-        ? defines
-        : (<IEffectCreationOptions>attributesNamesOrOptions).defines);
+    var name = vertex + "+" + fragment + "@" + (defines ? defines : (<IEffectCreationOptions>attributesNamesOrOptions).defines);
     if (this._compiledEffects[name]) {
       var compiledEffect = <Effect>this._compiledEffects[name];
       if (onCompiled && compiledEffect.isReady()) {

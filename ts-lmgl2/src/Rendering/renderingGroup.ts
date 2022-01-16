@@ -142,8 +142,8 @@ export class RenderingGroup {
       this._renderAlphaTest(this._alphaTestSubMeshes);
     }
 
-    // var stencilState = engine.getStencilBuffer();
-    // engine.setStencilBuffer(false);
+    var stencilState = engine.engineState.getStencilBuffer();
+    engine.engineState.setStencilBuffer(false);
 
     // Sprites
     if (renderSprites) {
@@ -161,25 +161,16 @@ export class RenderingGroup {
 
     // Transparent
     if (this._transparentSubMeshes.length !== 0) {
-      //   engine.setStencilBuffer(stencilState);
-      //   this._renderTransparent(this._transparentSubMeshes);
-      //   engine.setAlphaMode(Constants.ALPHA_DISABLE);
+      engine.engineState.setStencilBuffer(stencilState);
+      this._renderTransparent(this._transparentSubMeshes);
+      engine.engineAlpha.setAlphaMode(Constants.ALPHA_DISABLE);
     }
 
     // Set back stencil to false in case it changes before the edge renderer.
-    // engine.setStencilBuffer(false);
-
-    // Edges
-    // if (this._edgesRenderers.length) {
-    //     for (var edgesRendererIndex = 0; edgesRendererIndex < this._edgesRenderers.length; edgesRendererIndex++) {
-    //         this._edgesRenderers.data[edgesRendererIndex].render();
-    //     }
-
-    //     engine.setAlphaMode(Constants.ALPHA_DISABLE);
-    // }
+    engine.engineState.setStencilBuffer(false);
 
     // Restore Stencil state.
-    // engine.setStencilBuffer(stencilState);
+    engine.engineState.setStencilBuffer(stencilState);
   }
 
   /**
@@ -333,9 +324,6 @@ export class RenderingGroup {
     this._transparentSubMeshes.reset();
     this._alphaTestSubMeshes.reset();
     this._depthOnlySubMeshes.reset();
-    // this._particleSystems.reset();
-    // this._spriteManagers.reset();
-    // this._edgesRenderers.reset();
   }
 
   public dispose(): void {
@@ -343,9 +331,6 @@ export class RenderingGroup {
     this._transparentSubMeshes.dispose();
     this._alphaTestSubMeshes.dispose();
     this._depthOnlySubMeshes.dispose();
-    // this._particleSystems.dispose();
-    // this._spriteManagers.dispose();
-    // this._edgesRenderers.dispose();
   }
 
   /**
@@ -386,59 +371,5 @@ export class RenderingGroup {
     }
 
     mesh._renderingGroup = this;
-
-    // if (mesh._edgesRenderer && mesh._edgesRenderer.isEnabled) {
-    //     this._edgesRenderers.pushNoDuplicate(mesh._edgesRenderer);
-    // }
   }
-
-  // public dispatchSprites(spriteManager: ISpriteManager) {
-  //     this._spriteManagers.push(spriteManager);
-  // }
-
-  // public dispatchParticles(particleSystem: IParticleSystem) {
-  //     this._particleSystems.push(particleSystem);
-  // }
-
-  // private _renderParticles(activeMeshes: Nullable<AbstractMesh[]>): void {
-  //     if (this._particleSystems.length === 0) {
-  //         return;
-  //     }
-
-  //     // Particles
-  //     var activeCamera = this._scene.activeCamera;
-  //     this._scene.onBeforeParticlesRenderingObservable.notifyObservers(this._scene);
-  //     for (var particleIndex = 0; particleIndex < this._particleSystems.length; particleIndex++) {
-  //         var particleSystem = this._particleSystems.data[particleIndex];
-
-  //         if ((activeCamera && activeCamera.layerMask & particleSystem.layerMask) === 0) {
-  //             continue;
-  //         }
-
-  //         let emitter: any = particleSystem.emitter;
-  //         if (!emitter.position || !activeMeshes || activeMeshes.indexOf(emitter) !== -1) {
-  //             this._scene._activeParticles.addCount(particleSystem.render(), false);
-  //         }
-  //     }
-  //     this._scene.onAfterParticlesRenderingObservable.notifyObservers(this._scene);
-
-  // }
-
-  // private _renderSprites(): void {
-  //     if (!this._scene.spritesEnabled || this._spriteManagers.length === 0) {
-  //         return;
-  //     }
-
-  //     // Sprites
-  //     var activeCamera = this._scene.activeCamera;
-  //     this._scene.onBeforeSpritesRenderingObservable.notifyObservers(this._scene);
-  //     for (var id = 0; id < this._spriteManagers.length; id++) {
-  //         var spriteManager = this._spriteManagers.data[id];
-
-  //         if (((activeCamera && activeCamera.layerMask & spriteManager.layerMask) !== 0)) {
-  //             spriteManager.render();
-  //         }
-  //     }
-  //     this._scene.onAfterSpritesRenderingObservable.notifyObservers(this._scene);
-  // }
 }

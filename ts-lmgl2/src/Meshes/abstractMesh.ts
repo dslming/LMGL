@@ -1044,7 +1044,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
       }
     }
 
-    this._updateBoundingInfo();
+    // this._updateBoundingInfo();
   }
   public _updateBoundingInfo(): AbstractMesh {
     const effectiveMesh = this; //this._effectiveMesh;
@@ -1239,7 +1239,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
       return;
     }
     // Bounding info
-    this._updateBoundingInfo();
+    // this._updateBoundingInfo();
   }
 
   /** @hidden */

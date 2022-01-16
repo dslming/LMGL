@@ -6,7 +6,7 @@ import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
 import { PerfCounter } from "../Misc/perfCounter";
 import { SmartArray } from "../Misc/smartArray";
-import { RenderingManager } from "../Rendering/renderingManager";
+import { IRenderingManagerAutoClearSetup, RenderingManager } from "../Rendering/renderingManager";
 import { Nullable } from "../types";
 import { Scene } from "./scene";
 
@@ -273,5 +273,15 @@ export class SceneRender {
    */
   public getRenderId(): number {
     return this._renderId;
+  }
+
+  /**
+   * Gets the current auto clear configuration for one rendering group of the rendering
+   * manager.
+   * @param index the rendering group index to get the information for
+   * @returns The auto clear setup for the requested rendering group
+   */
+  public getAutoClearDepthStencilSetup(index: number): IRenderingManagerAutoClearSetup {
+    return this._renderingManager.getAutoClearDepthStencilSetup(index);
   }
 }
