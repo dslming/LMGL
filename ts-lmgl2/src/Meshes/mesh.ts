@@ -1445,159 +1445,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     return batchCache;
   }
 
-  // /** @hidden */
-  // public _renderWithInstances(
-  //   subMesh: SubMesh,
-  //   fillMode: number,
-  //   batch: _InstancesBatch,
-  //   effect: Effect,
-  //   engine: Engine
-  // ): Mesh {
-  //   var visibleInstances = batch.visibleInstances[subMesh._id];
-  //   if (!visibleInstances) {
-  //     return this;
-  //   }
-
-  //   let instanceStorage = this._instanceDataStorage;
-  //   var currentInstancesBufferSize = instanceStorage.instancesBufferSize;
-  //   var instancesBuffer = instanceStorage.instancesBuffer;
-  //   var matricesCount = visibleInstances.length + 1;
-  //   var bufferSize = matricesCount * 16 * 4;
-
-  //   while (instanceStorage.instancesBufferSize < bufferSize) {
-  //     instanceStorage.instancesBufferSize *= 2;
-  //   }
-
-  //   if (
-  //     !instanceStorage.instancesData ||
-  //     currentInstancesBufferSize != instanceStorage.instancesBufferSize
-  //   ) {
-  //     instanceStorage.instancesData = new Float32Array(
-  //       instanceStorage.instancesBufferSize / 4
-  //     );
-  //   }
-
-  //   var offset = 0;
-  //   var instancesCount = 0;
-
-  //   let renderSelf = batch.renderSelf[subMesh._id];
-
-  //   const needUpdateBuffer =
-  //     !instancesBuffer ||
-  //     currentInstancesBufferSize !== instanceStorage.instancesBufferSize;
-
-  //   if (
-  //     !this._instanceDataStorage.manualUpdate &&
-  //     (!instanceStorage.isFrozen || needUpdateBuffer)
-  //   ) {
-  //     var world = this.getWorldMatrix();
-  //     if (renderSelf) {
-  //       world.copyToArray(instanceStorage.instancesData, offset);
-  //       offset += 16;
-  //       instancesCount++;
-  //     }
-
-  //     if (visibleInstances) {
-  //       for (
-  //         var instanceIndex = 0;
-  //         instanceIndex < visibleInstances.length;
-  //         instanceIndex++
-  //       ) {
-  //         var instance = visibleInstances[instanceIndex];
-  //         instance
-  //           .getWorldMatrix()
-  //           .copyToArray(instanceStorage.instancesData, offset);
-  //         offset += 16;
-  //         instancesCount++;
-  //       }
-  //     }
-  //   } else {
-  //     instancesCount = (renderSelf ? 1 : 0) + visibleInstances.length;
-  //   }
-
-  //   if (needUpdateBuffer) {
-  //     if (instancesBuffer) {
-  //       instancesBuffer.dispose();
-  //     }
-
-  //     instancesBuffer = new Buffer(
-  //       engine,
-  //       instanceStorage.instancesData,
-  //       true,
-  //       16,
-  //       false,
-  //       true
-  //     );
-  //     instanceStorage.instancesBuffer = instancesBuffer;
-
-  //     this.setVerticesBuffer(
-  //       instancesBuffer.createVertexBuffer("world0", 0, 4)
-  //     );
-  //     this.setVerticesBuffer(
-  //       instancesBuffer.createVertexBuffer("world1", 4, 4)
-  //     );
-  //     this.setVerticesBuffer(
-  //       instancesBuffer.createVertexBuffer("world2", 8, 4)
-  //     );
-  //     this.setVerticesBuffer(
-  //       instancesBuffer.createVertexBuffer("world3", 12, 4)
-  //     );
-  //   } else {
-  //     if (!this._instanceDataStorage.isFrozen) {
-  //       instancesBuffer!.updateDirectly(
-  //         instanceStorage.instancesData,
-  //         0,
-  //         instancesCount
-  //       );
-  //     }
-  //   }
-
-  //   this._processInstancedBuffers(visibleInstances, renderSelf);
-
-  //   // Stats
-  //   this.getScene()._activeIndices.addCount(
-  //     subMesh.indexCount * instancesCount,
-  //     false
-  //   );
-
-  //   // Draw
-  //   this._bind(subMesh, effect, fillMode);
-  //   this._draw(subMesh, fillMode, instancesCount);
-
-  //   engine.engineVertex.unbindInstanceAttributes();
-  //   return this;
-  // }
-
-  // /** @hidden */
-  // public _renderWithThinInstances(
-  //   subMesh: SubMesh,
-  //   fillMode: number,
-  //   effect: Effect,
-  //   engine: Engine
-  // ) {
-  //   // Stats
-  //   const instancesCount = this._thinInstanceDataStorage?.instancesCount ?? 0;
-
-  //   this.getScene()._activeIndices.addCount(
-  //     subMesh.indexCount * instancesCount,
-  //     false
-  //   );
-
-  //   // Draw
-  //   this._bind(subMesh, effect, fillMode);
-  //   this._draw(subMesh, fillMode, instancesCount);
-
-  //   engine.engineVertex.unbindInstanceAttributes();
-  // }
-
-  // /** @hidden */
-  // public _processInstancedBuffers(
-  //   visibleInstances: InstancedMesh[],
-  //   renderSelf: boolean
-  // ) {
-  //   // Do nothing
-  // }
-
   /** @hidden */
   public _rebuild(): void {
     if (this._instanceDataStorage.instancesBuffer) {
@@ -1693,7 +1540,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
     // Alpha mode
     if (enableAlphaMode) {
-      // engine.setAlphaMode(this._effectiveMaterial.alphaMode);
+      engine.engineAlpha.setAlphaMode(this._effectiveMaterial.alphaMode);
     }
 
     var effect: Nullable<Effect>;
@@ -1702,10 +1549,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     } else {
       effect = this._effectiveMaterial.getEffect();
     }
-
-    // for (let step of scene.sceneStage._beforeRenderingMeshStage) {
-    //   step.action(this, subMesh, batch, effect);
-    // }
 
     if (!effect) {
       return this;
@@ -1753,6 +1596,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     if (this._effectiveMaterial._storeEffectOnSubMeshes) {
       this._effectiveMaterial.bindForSubMesh(world, this, subMesh);
     } else {
+      // bind ubo
       this._effectiveMaterial.bind(world, this);
     }
 
@@ -1767,10 +1611,6 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
     // Unbind
     this._effectiveMaterial.unbind();
-
-    // for (let step of scene.sceneStage._afterRenderingMeshStage) {
-    //   step.action(this, subMesh, batch, effect);
-    // }
 
     if (this._internalMeshDataInfo._onAfterRenderObservable) {
       this._internalMeshDataInfo._onAfterRenderObservable.notifyObservers(this);

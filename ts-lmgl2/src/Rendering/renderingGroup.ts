@@ -3,9 +3,6 @@ import { SubMesh } from "../Meshes/subMesh";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { Nullable, DeepImmutable } from "../types";
 import { Vector3 } from "../Maths/math.vector";
-// import { IParticleSystem } from "../Particles/IParticleSystem";
-// import { IEdgesRenderer } from "./edgesRenderer";
-// import { ISpriteManager } from "../Sprites/spriteManager";
 import { Constants } from "../Engine/constants";
 import { Material } from "../Materials/material";
 import { Scene } from "../Scene/scene";
@@ -15,6 +12,9 @@ import { Camera } from "../Cameras/camera";
  * This represents the object necessary to create a rendering group.
  * This is exclusively used and created by the rendering manager.
  * To modify the behavior, you use the available helpers in your scene or meshes.
+ * 这表示创建渲染组所需的对象。
+ * 这是由渲染管理器专门使用和创建的。
+ * 若要修改行为，请使用场景或网格中的可用辅助对象。
  * @hidden
  */
 export class RenderingGroup {
@@ -24,8 +24,6 @@ export class RenderingGroup {
   private _transparentSubMeshes = new SmartArray<SubMesh>(256);
   private _alphaTestSubMeshes = new SmartArray<SubMesh>(256);
   private _depthOnlySubMeshes = new SmartArray<SubMesh>(256);
-  // private _particleSystems = new SmartArray<IParticleSystem>(256);
-  // private _spriteManagers = new SmartArray<ISpriteManager>(256);
 
   private _opaqueSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number>;
   private _alphaTestSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number>;
@@ -127,9 +125,9 @@ export class RenderingGroup {
 
     // Depth only
     if (this._depthOnlySubMeshes.length !== 0) {
-      //   engine.setColorWrite(false);
-      //   this._renderAlphaTest(this._depthOnlySubMeshes);
-      //   engine.setColorWrite(true);
+      engine.engineState.setColorWrite(false);
+      this._renderAlphaTest(this._depthOnlySubMeshes);
+      engine.engineState.setColorWrite(true);
     }
 
     // Opaque
@@ -144,16 +142,6 @@ export class RenderingGroup {
 
     var stencilState = engine.engineState.getStencilBuffer();
     engine.engineState.setStencilBuffer(false);
-
-    // Sprites
-    if (renderSprites) {
-      // this._renderSprites();
-    }
-
-    // Particles
-    if (renderParticles) {
-      // this._renderParticles(activeMeshes);
-    }
 
     if (this.onBeforeTransparentRendering) {
       this.onBeforeTransparentRendering();
@@ -367,7 +355,8 @@ export class RenderingGroup {
         this._depthOnlySubMeshes.push(subMesh);
       }
 
-      this._opaqueSubMeshes.push(subMesh); // Opaque
+      // Opaque
+      this._opaqueSubMeshes.push(subMesh);
     }
 
     mesh._renderingGroup = this;

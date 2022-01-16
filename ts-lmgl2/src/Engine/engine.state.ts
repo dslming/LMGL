@@ -262,4 +262,23 @@ export class EngineState {
   public setDepthFunctionToLessOrEqual(): void {
     this.setDepthFunction(Constants.LEQUAL);
   }
+
+  /**
+   * Enable or disable color writing
+   * @param enable defines the state to set
+   */
+  public setColorWrite(enable: boolean): void {
+    if (enable !== this._colorWrite) {
+      this._colorWriteChanged = true;
+      this._colorWrite = enable;
+    }
+  }
+
+  /**
+   * Gets a boolean indicating if color writing is enabled
+   * @returns the current color writing state
+   */
+  public getColorWrite(): boolean {
+    return this._colorWrite;
+  }
 }
