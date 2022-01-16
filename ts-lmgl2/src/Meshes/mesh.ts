@@ -3504,7 +3504,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       }
 
       // Stats
-      scene._activeIndices.addCount(subMesh.indexCount * instanceCount, false);
+      scene.sceneRender._activeIndices.addCount(subMesh.indexCount * instanceCount, false);
     }
     return this;
   }

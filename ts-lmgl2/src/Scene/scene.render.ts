@@ -1,9 +1,14 @@
 import { Camera } from "../Cameras/camera";
 import { Constants } from "../Engine/constants";
+import { Material } from "../Materials/material";
 import { Color4 } from "../Maths/math";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
 import { Logger } from "../Misc/logger";
+import { PerfCounter } from "../Misc/perfCounter";
+import { SmartArray } from "../Misc/smartArray";
+import { RenderingManager } from "../Rendering/renderingManager";
+import { Nullable } from "../types";
 import { Scene } from "./scene";
 
 export class SceneRender {
@@ -14,17 +19,38 @@ export class SceneRender {
   public autoClear = true;
   public clearColor: Color4 = new Color4(0.2, 0.2, 0.3, 1.0);
   public _skipFrustumClipping = false;
+  public _processedMaterials = new SmartArray<Material>(256);
+  public _renderingManager: RenderingManager;
+  public _totalVertices = new PerfCounter();
+  public _activeIndices = new PerfCounter();
+  /**
+   * Flag indicating that the frame buffer binding is handled by another component
+   * 指示帧缓冲区绑定由另一个组件处理的标志
+   */
+  public prePass: boolean = false;
+
+  public _activeCamera: Nullable<Camera>;
+  public _activeMeshes = new SmartArray<AbstractMesh>(256);
+  public activeCamera: Nullable<Camera>;
+  public activeCameras: Nullable<Array<Camera>>;
+
+  /**
+   * Gets or sets a boolean indicating that all submeshes of active meshes must be rendered
+   * Use this boolean to avoid computing frustum clipping on submeshes (This could help when you are CPU bound)
+   */
+  public dispatchAllSubMeshesOfActiveMeshes: boolean = false;
 
   constructor(scene: Scene) {
     this.scene = scene;
+    this._renderingManager = new RenderingManager(scene);
   }
 
   private _updateCamera(updateCameras: boolean) {
     // Update Cameras
     if (updateCameras) {
-      if (this.scene.activeCameras && this.scene.activeCameras.length > 0) {
-        for (var cameraIndex = 0; cameraIndex < this.scene.activeCameras.length; cameraIndex++) {
-          let camera = this.scene.activeCameras[cameraIndex];
+      if (this.activeCameras && this.activeCameras.length > 0) {
+        for (var cameraIndex = 0; cameraIndex < this.activeCameras.length; cameraIndex++) {
+          let camera = this.activeCameras[cameraIndex];
           camera.update();
           if (camera.cameraRigMode !== Camera.RIG_MODE_NONE) {
             // rig cameras
@@ -33,12 +59,12 @@ export class SceneRender {
             }
           }
         }
-      } else if (this.scene.activeCamera) {
-        this.scene.activeCamera.update();
-        if (this.scene.activeCamera.cameraRigMode !== Camera.RIG_MODE_NONE) {
+      } else if (this.activeCamera) {
+        this.activeCamera.update();
+        if (this.activeCamera.cameraRigMode !== Camera.RIG_MODE_NONE) {
           // rig cameras
-          for (var index = 0; index < this.scene.activeCamera._rigCameras.length; index++) {
-            this.scene.activeCamera._rigCameras[index].update();
+          for (var index = 0; index < this.activeCamera._rigCameras.length; index++) {
+            this.activeCamera._rigCameras[index].update();
           }
         }
       }
@@ -46,19 +72,19 @@ export class SceneRender {
   }
   public render(updateCameras = true, ignoreAnimations = false): void {
     this._frameId++;
-    this.scene._totalVertices.fetchNewFrame();
-    this.scene._activeIndices.fetchNewFrame();
+    this._totalVertices.fetchNewFrame();
+    this._activeIndices.fetchNewFrame();
     this.scene.sceneCatch.resetCachedMaterial();
 
     this._updateCamera(updateCameras);
 
     // Restore back buffer
-    var currentActiveCamera = this.scene.activeCamera;
-    this.scene.activeCamera = currentActiveCamera;
+    var currentActiveCamera = this.activeCamera;
+    this.activeCamera = currentActiveCamera;
     this._bindFrameBuffer();
 
     // Clear
-    if ((this.autoClearDepthAndStencil || this.autoClear) && !this.scene.prePass) {
+    if ((this.autoClearDepthAndStencil || this.autoClear) && !this.prePass) {
       this.scene._engine.engineDraw.clear(
         this.clearColor,
         this.autoClear || this.forceWireframe,
@@ -67,8 +93,8 @@ export class SceneRender {
       );
     }
 
-    if (this.scene.activeCamera) {
-      this._processSubCameras(this.scene.activeCamera);
+    if (this.activeCamera) {
+      this._processSubCameras(this.activeCamera);
     }
   }
 
@@ -80,14 +106,14 @@ export class SceneRender {
     var engine = this.scene._engine;
 
     // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
-    this.scene._activeCamera = camera;
+    this._activeCamera = camera;
 
-    if (!this.scene.activeCamera) {
+    if (!this.activeCamera) {
       throw new Error("Active camera not set");
     }
 
     // Viewport
-    engine.engineViewPort.setViewport(this.scene.activeCamera.viewport);
+    engine.engineViewPort.setViewport(this.activeCamera.viewport);
 
     // Camera
     this.scene.sceneCatch.resetCachedMaterial();
@@ -105,7 +131,7 @@ export class SceneRender {
       this.scene.sceneMatrix.updateTransformMatrix();
     }
 
-    this.scene.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.scene.activeCamera);
+    this.scene.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.activeCamera);
 
     // Meshes
     this._evaluateActiveMeshes();
@@ -159,7 +185,7 @@ export class SceneRender {
     // }
 
     // Restore framebuffer after rendering to targets
-    if (needRebind && !this.scene.prePass) {
+    if (needRebind && !this.prePass) {
       this._bindFrameBuffer();
     }
 
@@ -177,7 +203,7 @@ export class SceneRender {
 
     // Render
     this.scene.sceneEventTrigger.onBeforeDrawPhaseObservable.notifyObservers(this.scene);
-    this.scene._renderingManager.render(null, null, true, true);
+    this._renderingManager.render(null, null, true, true);
     this.scene.sceneEventTrigger.onAfterDrawPhaseObservable.notifyObservers(this.scene);
 
     // After Camera Draw
@@ -195,7 +221,7 @@ export class SceneRender {
     // Reset some special arrays
     // this.scene._renderTargets.reset();
 
-    this.scene.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(this.scene.activeCamera);
+    this.scene.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(this.activeCamera);
   }
 
   public _processSubCameras(camera: Camera): void {
@@ -216,8 +242,8 @@ export class SceneRender {
     }
 
     // Use _activeCamera instead of activeCamera to avoid onActiveCameraChanged
-    this.scene._activeCamera = camera;
-    this.scene.sceneMatrix.setTransformMatrix(this.scene._activeCamera.getViewMatrix(), this.scene._activeCamera.getProjectionMatrix());
+    this._activeCamera = camera;
+    this.scene.sceneMatrix.setTransformMatrix(this._activeCamera.getViewMatrix(), this._activeCamera.getProjectionMatrix());
     this.scene.sceneEventTrigger.onAfterRenderCameraObservable.notifyObservers(camera);
   }
 
@@ -281,16 +307,16 @@ export class SceneRender {
     //   return;
     // }
 
-    if (!this.scene.activeCamera) {
+    if (!this.activeCamera) {
       return;
     }
 
     this.scene.sceneEventTrigger.onBeforeActiveMeshesEvaluationObservable.notifyObservers(this.scene);
 
-    this.scene.activeCamera._activeMeshes.reset();
-    this.scene._activeMeshes.reset();
-    this.scene._renderingManager.reset();
-    this.scene._processedMaterials.reset();
+    this.activeCamera._activeMeshes.reset();
+    this._activeMeshes.reset();
+    this._renderingManager.reset();
+    this._processedMaterials.reset();
     // this.scene._softwareSkinnedMeshes.reset();
     // for (let step of this.scene.sceneStage._beforeEvaluateActiveMeshStage) {
     //   step.action();
@@ -308,7 +334,7 @@ export class SceneRender {
         continue;
       }
 
-      this.scene._totalVertices.addCount(mesh.getTotalVertices(), false);
+      this._totalVertices.addCount(mesh.getTotalVertices(), false);
 
       if (!mesh.isReady() || !mesh.isEnabled() || mesh.scaling.lengthSquared() === 0) {
         continue;
@@ -338,8 +364,8 @@ export class SceneRender {
 
       // if (mesh.isVisible && mesh.visibility > 0 && ((mesh.layerMask & this.scene.activeCamera.layerMask) !== 0) && (this._skipFrustumClipping || mesh.alwaysSelectAsActiveMesh || mesh.isInFrustum(this.scene.sceneClipPlane.frustumPlanes))) {
       if (true) {
-        this.scene._activeMeshes.push(mesh);
-        this.scene.activeCamera._activeMeshes.push(mesh);
+        this._activeMeshes.push(mesh);
+        this.activeCamera._activeMeshes.push(mesh);
 
         // if (meshToRender !== mesh) {
         //   meshToRender._activate(this._renderId, false);
@@ -398,7 +424,7 @@ export class SceneRender {
         // }
 
         // Dispatch
-        this.scene._renderingManager.dispatch(subMesh, mesh, material);
+        this._renderingManager.dispatch(subMesh, mesh, material);
       }
     }
   }

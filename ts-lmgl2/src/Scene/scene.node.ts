@@ -117,19 +117,19 @@ export class SceneNode {
       }
     }
     // Remove from activeCameras
-    if (this.scene.activeCameras) {
-      var index2 = this.scene.activeCameras.indexOf(toRemove);
+    if (this.scene.sceneRender.activeCameras) {
+      var index2 = this.scene.sceneRender.activeCameras.indexOf(toRemove);
       if (index2 !== -1) {
         // Remove from the scene if mesh found
-        this.scene.activeCameras.splice(index2, 1);
+        this.scene.sceneRender.activeCameras.splice(index2, 1);
       }
     }
     // Reset the activeCamera
-    if (this.scene.activeCamera === toRemove) {
+    if (this.scene.sceneRender.activeCamera === toRemove) {
       if (this.scene.cameras.length > 0) {
-        this.scene.activeCamera = this.scene.cameras[0];
+        this.scene.sceneRender.activeCamera = this.scene.cameras[0];
       } else {
-        this.scene.activeCamera = null;
+        this.scene.sceneRender.activeCamera = null;
       }
     }
     this.scene.sceneEventTrigger.onCameraRemovedObservable.notifyObservers(toRemove);

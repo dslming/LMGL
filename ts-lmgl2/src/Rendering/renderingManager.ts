@@ -91,8 +91,7 @@ export class RenderingManager {
   private _customTransparentSortCompareFn: {
     [id: number]: Nullable<(a: SubMesh, b: SubMesh) => number>;
   } = {};
-  private _renderingGroupInfo: Nullable<RenderingGroupInfo> =
-    new RenderingGroupInfo();
+  private _renderingGroupInfo: Nullable<RenderingGroupInfo> = new RenderingGroupInfo();
 
   /**
    * Instantiates a new rendering group for a particular scene
@@ -101,11 +100,7 @@ export class RenderingManager {
   constructor(scene: Scene) {
     this._scene = scene;
 
-    for (
-      let i = RenderingManager.MIN_RENDERINGGROUPS;
-      i < RenderingManager.MAX_RENDERINGGROUPS;
-      i++
-    ) {
+    for (let i = RenderingManager.MIN_RENDERINGGROUPS; i < RenderingManager.MAX_RENDERINGGROUPS; i++) {
       this._autoClearDepthStencil[i] = {
         autoClear: true,
         depth: true,
@@ -143,7 +138,7 @@ export class RenderingManager {
     // Update the observable context (not null as it only goes away on dispose)
     const info = this._renderingGroupInfo!;
     info.scene = this._scene;
-    info.camera = this._scene.activeCamera;
+    info.camera = this._scene.sceneRender.activeCamera;
 
     // Dispatch sprites
     // if (this._scene.spriteManagers && renderSprites) {
@@ -154,13 +149,8 @@ export class RenderingManager {
     // }
 
     // Render
-    for (
-      let index = RenderingManager.MIN_RENDERINGGROUPS;
-      index < RenderingManager.MAX_RENDERINGGROUPS;
-      index++
-    ) {
-      this._depthStencilBufferAlreadyCleaned =
-        index === RenderingManager.MIN_RENDERINGGROUPS;
+    for (let index = RenderingManager.MIN_RENDERINGGROUPS; index < RenderingManager.MAX_RENDERINGGROUPS; index++) {
+      this._depthStencilBufferAlreadyCleaned = index === RenderingManager.MIN_RENDERINGGROUPS;
       var renderingGroup = this._renderingGroups[index];
       if (!renderingGroup) {
         continue;
@@ -189,12 +179,7 @@ export class RenderingManager {
       //   for (let step of this._scene.sceneStage._beforeRenderingGroupDrawStage) {
       //     step.action(index);
       //   }
-      renderingGroup.render(
-        customRenderFunction,
-        renderSprites,
-        renderParticles,
-        activeMeshes
-      );
+      renderingGroup.render(customRenderFunction, renderSprites, renderParticles, activeMeshes);
       //   for (let step of this._scene.sceneStage._afterRenderingGroupDrawStage) {
       //     step.action(index);
       //   }
@@ -212,11 +197,7 @@ export class RenderingManager {
    * @hidden
    */
   public reset(): void {
-    for (
-      let index = RenderingManager.MIN_RENDERINGGROUPS;
-      index < RenderingManager.MAX_RENDERINGGROUPS;
-      index++
-    ) {
+    for (let index = RenderingManager.MIN_RENDERINGGROUPS; index < RenderingManager.MAX_RENDERINGGROUPS; index++) {
       var renderingGroup = this._renderingGroups[index];
       if (renderingGroup) {
         renderingGroup.prepare();
@@ -238,11 +219,7 @@ export class RenderingManager {
    * Clear the info related to rendering groups preventing retention points during dispose.
    */
   public freeRenderingGroups(): void {
-    for (
-      let index = RenderingManager.MIN_RENDERINGGROUPS;
-      index < RenderingManager.MAX_RENDERINGGROUPS;
-      index++
-    ) {
+    for (let index = RenderingManager.MIN_RENDERINGGROUPS; index < RenderingManager.MAX_RENDERINGGROUPS; index++) {
       var renderingGroup = this._renderingGroups[index];
       if (renderingGroup) {
         renderingGroup.dispose();
@@ -292,11 +269,7 @@ export class RenderingManager {
    * @param mesh Optional reference to the submeshes's mesh. Provide if you have an exiting reference to improve performance.
    * @param material Optional reference to the submeshes's material. Provide if you have an exiting reference to improve performance.
    */
-  public dispatch(
-    subMesh: SubMesh,
-    mesh?: AbstractMesh,
-    material?: Nullable<Material>
-  ): void {
+  public dispatch(subMesh: SubMesh, mesh?: AbstractMesh, material?: Nullable<Material>): void {
     if (mesh === undefined) {
       mesh = subMesh.getMesh();
     }
@@ -320,24 +293,17 @@ export class RenderingManager {
     renderingGroupId: number,
     opaqueSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
     alphaTestSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
-    transparentSortCompareFn: Nullable<
-      (a: SubMesh, b: SubMesh) => number
-    > = null
+    transparentSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null
   ) {
     this._customOpaqueSortCompareFn[renderingGroupId] = opaqueSortCompareFn;
-    this._customAlphaTestSortCompareFn[renderingGroupId] =
-      alphaTestSortCompareFn;
-    this._customTransparentSortCompareFn[renderingGroupId] =
-      transparentSortCompareFn;
+    this._customAlphaTestSortCompareFn[renderingGroupId] = alphaTestSortCompareFn;
+    this._customTransparentSortCompareFn[renderingGroupId] = transparentSortCompareFn;
 
     if (this._renderingGroups[renderingGroupId]) {
       var group = this._renderingGroups[renderingGroupId];
-      group.opaqueSortCompareFn =
-        this._customOpaqueSortCompareFn[renderingGroupId];
-      group.alphaTestSortCompareFn =
-        this._customAlphaTestSortCompareFn[renderingGroupId];
-      group.transparentSortCompareFn =
-        this._customTransparentSortCompareFn[renderingGroupId];
+      group.opaqueSortCompareFn = this._customOpaqueSortCompareFn[renderingGroupId];
+      group.alphaTestSortCompareFn = this._customAlphaTestSortCompareFn[renderingGroupId];
+      group.transparentSortCompareFn = this._customTransparentSortCompareFn[renderingGroupId];
     }
   }
 
@@ -349,12 +315,7 @@ export class RenderingManager {
    * @param depth Automatically clears depth between groups if true and autoClear is true.
    * @param stencil Automatically clears stencil between groups if true and autoClear is true.
    */
-  public setRenderingAutoClearDepthStencil(
-    renderingGroupId: number,
-    autoClearDepthStencil: boolean,
-    depth = true,
-    stencil = true
-  ): void {
+  public setRenderingAutoClearDepthStencil(renderingGroupId: number, autoClearDepthStencil: boolean, depth = true, stencil = true): void {
     this._autoClearDepthStencil[renderingGroupId] = {
       autoClear: autoClearDepthStencil,
       depth: depth,
@@ -368,9 +329,7 @@ export class RenderingManager {
    * @param index the rendering group index to get the information for
    * @returns The auto clear setup for the requested rendering group
    */
-  public getAutoClearDepthStencilSetup(
-    index: number
-  ): IRenderingManagerAutoClearSetup {
+  public getAutoClearDepthStencilSetup(index: number): IRenderingManagerAutoClearSetup {
     return this._autoClearDepthStencil[index];
   }
 }

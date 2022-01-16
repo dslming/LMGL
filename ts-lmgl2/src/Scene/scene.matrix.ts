@@ -52,16 +52,8 @@ export class SceneMatrix {
    * @param viewR defines the right View matrix to use (if provided)
    * @param projectionR defines the right Projection matrix to use (if provided)
    */
-  public setTransformMatrix(
-    viewL: Matrix,
-    projectionL: Matrix,
-    viewR?: Matrix,
-    projectionR?: Matrix
-  ): void {
-    if (
-      this._viewUpdateFlag === viewL.updateFlag &&
-      this._projectionUpdateFlag === projectionL.updateFlag
-    ) {
+  public setTransformMatrix(viewL: Matrix, projectionL: Matrix, viewR?: Matrix, projectionR?: Matrix): void {
+    if (this._viewUpdateFlag === viewL.updateFlag && this._projectionUpdateFlag === projectionL.updateFlag) {
       return;
     }
 
@@ -70,21 +62,13 @@ export class SceneMatrix {
     this._viewMatrix = viewL;
     this._projectionMatrix = projectionL;
 
-    this._viewMatrix.multiplyToRef(
-      this._projectionMatrix,
-      this._transformMatrix
-    );
+    this._viewMatrix.multiplyToRef(this._projectionMatrix, this._transformMatrix);
 
     // Update frustum
     if (!this.scene.sceneClipPlane.frustumPlanes) {
-      this.scene.sceneClipPlane.frustumPlanes = Frustum.GetPlanes(
-        this._transformMatrix
-      );
+      this.scene.sceneClipPlane.frustumPlanes = Frustum.GetPlanes(this._transformMatrix);
     } else {
-      Frustum.GetPlanesToRef(
-        this._transformMatrix,
-        this.scene.sceneClipPlane.frustumPlanes
-      );
+      Frustum.GetPlanesToRef(this._transformMatrix, this.scene.sceneClipPlane.frustumPlanes);
     }
 
     if (this._sceneUbo.useUbo) {
@@ -180,12 +164,9 @@ export class SceneMatrix {
    * @param force defines a boolean used to force the update even if cache is up to date
    */
   public updateTransformMatrix(force?: boolean): void {
-    if (!this.scene.activeCamera) {
+    if (!this.scene.sceneRender.activeCamera) {
       return;
     }
-    this.setTransformMatrix(
-      this.scene.activeCamera.getViewMatrix(),
-      this.scene.activeCamera.getProjectionMatrix(force)
-    );
+    this.setTransformMatrix(this.scene.sceneRender.activeCamera.getViewMatrix(), this.scene.sceneRender.activeCamera.getProjectionMatrix(force));
   }
 }

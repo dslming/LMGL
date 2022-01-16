@@ -330,8 +330,8 @@ export class Camera extends Node {
 
         this.getScene().sceneNode.addCamera(this);
 
-        if (setActiveOnSceneIfNoneActive && !this.getScene().activeCamera) {
-            this.getScene().activeCamera = this;
+        if (setActiveOnSceneIfNoneActive && !this.getScene().sceneRender.activeCamera) {
+          this.getScene().sceneRender.activeCamera = this;
         }
 
         this.position = position;

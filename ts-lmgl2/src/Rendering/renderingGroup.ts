@@ -44,9 +44,7 @@ export class RenderingGroup {
    * Set the opaque sort comparison function.
    * If null the sub meshes will be render in the order they were created
    */
-  public set opaqueSortCompareFn(
-    value: Nullable<(a: SubMesh, b: SubMesh) => number>
-  ) {
+  public set opaqueSortCompareFn(value: Nullable<(a: SubMesh, b: SubMesh) => number>) {
     this._opaqueSortCompareFn = value;
     if (value) {
       this._renderOpaque = this.renderOpaqueSorted;
@@ -59,9 +57,7 @@ export class RenderingGroup {
    * Set the alpha test sort comparison function.
    * If null the sub meshes will be render in the order they were created
    */
-  public set alphaTestSortCompareFn(
-    value: Nullable<(a: SubMesh, b: SubMesh) => number>
-  ) {
+  public set alphaTestSortCompareFn(value: Nullable<(a: SubMesh, b: SubMesh) => number>) {
     this._alphaTestSortCompareFn = value;
     if (value) {
       this._renderAlphaTest = this.renderAlphaTestSorted;
@@ -74,14 +70,11 @@ export class RenderingGroup {
    * Set the transparent sort comparison function.
    * If null the sub meshes will be render in the order they were created
    */
-  public set transparentSortCompareFn(
-    value: Nullable<(a: SubMesh, b: SubMesh) => number>
-  ) {
+  public set transparentSortCompareFn(value: Nullable<(a: SubMesh, b: SubMesh) => number>) {
     if (value) {
       this._transparentSortCompareFn = value;
     } else {
-      this._transparentSortCompareFn =
-        RenderingGroup.defaultTransparentSortCompare;
+      this._transparentSortCompareFn = RenderingGroup.defaultTransparentSortCompare;
     }
     this._renderTransparent = this.renderTransparentSorted;
   }
@@ -98,9 +91,7 @@ export class RenderingGroup {
     scene: Scene,
     opaqueSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
     alphaTestSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null,
-    transparentSortCompareFn: Nullable<
-      (a: SubMesh, b: SubMesh) => number
-    > = null
+    transparentSortCompareFn: Nullable<(a: SubMesh, b: SubMesh) => number> = null
   ) {
     this._scene = scene;
 
@@ -128,12 +119,7 @@ export class RenderingGroup {
     activeMeshes: Nullable<AbstractMesh[]>
   ): void {
     if (customRenderFunction) {
-      customRenderFunction(
-        this._opaqueSubMeshes,
-        this._alphaTestSubMeshes,
-        this._transparentSubMeshes,
-        this._depthOnlySubMeshes
-      );
+      customRenderFunction(this._opaqueSubMeshes, this._alphaTestSubMeshes, this._transparentSubMeshes, this._depthOnlySubMeshes);
       return;
     }
 
@@ -201,12 +187,7 @@ export class RenderingGroup {
    * @param subMeshes The submeshes to render
    */
   private renderOpaqueSorted(subMeshes: SmartArray<SubMesh>): void {
-    return RenderingGroup.renderSorted(
-      subMeshes,
-      this._opaqueSortCompareFn,
-      this._scene.activeCamera,
-      false
-    );
+    return RenderingGroup.renderSorted(subMeshes, this._opaqueSortCompareFn, this._scene.sceneRender.activeCamera, false);
   }
 
   /**
@@ -214,12 +195,7 @@ export class RenderingGroup {
    * @param subMeshes The submeshes to render
    */
   private renderAlphaTestSorted(subMeshes: SmartArray<SubMesh>): void {
-    return RenderingGroup.renderSorted(
-      subMeshes,
-      this._alphaTestSortCompareFn,
-      this._scene.activeCamera,
-      false
-    );
+    return RenderingGroup.renderSorted(subMeshes, this._alphaTestSortCompareFn, this._scene.sceneRender.activeCamera, false);
   }
 
   /**
@@ -227,12 +203,7 @@ export class RenderingGroup {
    * @param subMeshes The submeshes to render
    */
   private renderTransparentSorted(subMeshes: SmartArray<SubMesh>): void {
-    return RenderingGroup.renderSorted(
-      subMeshes,
-      this._transparentSortCompareFn,
-      this._scene.activeCamera,
-      true
-    );
+    return RenderingGroup.renderSorted(subMeshes, this._transparentSortCompareFn, this._scene.sceneRender.activeCamera, true);
   }
 
   /**
@@ -250,16 +221,11 @@ export class RenderingGroup {
   ): void {
     let subIndex = 0;
     let subMesh: SubMesh;
-    let cameraPosition = camera
-      ? camera.globalPosition
-      : RenderingGroup._zeroVector;
+    let cameraPosition = camera ? camera.globalPosition : RenderingGroup._zeroVector;
     for (; subIndex < subMeshes.length; subIndex++) {
       subMesh = subMeshes.data[subIndex];
       subMesh._alphaIndex = subMesh.getMesh().alphaIndex;
-      subMesh._distanceToCamera = Vector3.Distance(
-        subMesh.getBoundingInfo().boundingSphere.centerWorld,
-        cameraPosition
-      );
+      subMesh._distanceToCamera = Vector3.Distance(subMesh.getBoundingInfo().boundingSphere.centerWorld, cameraPosition);
     }
 
     let sortedArray = subMeshes.data.slice(0, subMeshes.length);
@@ -388,11 +354,7 @@ export class RenderingGroup {
    * @param [mesh] Optional reference to the submeshes's mesh. Provide if you have an exiting reference to improve performance.
    * @param [material] Optional reference to the submeshes's material. Provide if you have an exiting reference to improve performance.
    */
-  public dispatch(
-    subMesh: SubMesh,
-    mesh?: AbstractMesh,
-    material?: Nullable<Material>
-  ): void {
+  public dispatch(subMesh: SubMesh, mesh?: AbstractMesh, material?: Nullable<Material>): void {
     // Get mesh and materials if not provided
     if (mesh === undefined) {
       mesh = subMesh.getMesh();

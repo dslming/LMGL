@@ -87,7 +87,7 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
     // } else {
     //     return this._scene.activeCamera;
     // }
-    return this._scene.activeCamera;
+    return this._scene.sceneRender.activeCamera;
   }
 
   /**
@@ -107,15 +107,9 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
     var lastSixDofOriginPosition = new Vector3(0, 0, 0);
 
     // Setup virtual meshes to be used for dragging without dirtying the existing scene
-    this._virtualOriginMesh = new AbstractMesh(
-      "",
-      SixDofDragBehavior._virtualScene
-    );
+    this._virtualOriginMesh = new AbstractMesh("", SixDofDragBehavior._virtualScene);
     this._virtualOriginMesh.rotationQuaternion = new Quaternion();
-    this._virtualDragMesh = new AbstractMesh(
-      "",
-      SixDofDragBehavior._virtualScene
-    );
+    this._virtualDragMesh = new AbstractMesh("", SixDofDragBehavior._virtualScene);
     this._virtualDragMesh.rotationQuaternion = new Quaternion();
 
     var pickPredicate = (m: AbstractMesh) => {
@@ -222,63 +216,37 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
 
     var tmpQuaternion = new Quaternion();
     // On every frame move towards target scaling to avoid jitter caused by vr controllers
-    this._sceneRenderObserver = ownerNode
-      .getScene()
-      .sceneEventTrigger.onBeforeRenderObservable.add(() => {
-        if (this.dragging && this._moving && pickedMesh) {
-          PivotTools._RemoveAndStorePivotPoint(pickedMesh);
+    this._sceneRenderObserver = ownerNode.getScene().sceneEventTrigger.onBeforeRenderObservable.add(() => {
+      if (this.dragging && this._moving && pickedMesh) {
+        PivotTools._RemoveAndStorePivotPoint(pickedMesh);
+        // Slowly move mesh to avoid jitter
+        pickedMesh.position.addInPlace(this._targetPosition.subtract(pickedMesh.position).scale(this.dragDeltaRatio));
+
+        if (this.rotateDraggedObject) {
+          // Get change in rotation
+          tmpQuaternion.copyFrom(this._startingOrientation);
+          tmpQuaternion.x = -tmpQuaternion.x;
+          tmpQuaternion.y = -tmpQuaternion.y;
+          tmpQuaternion.z = -tmpQuaternion.z;
+          this._virtualDragMesh.rotationQuaternion!.multiplyToRef(tmpQuaternion, tmpQuaternion);
+          // Convert change in rotation to only y axis rotation
+          Quaternion.RotationYawPitchRollToRef(tmpQuaternion.toEulerAngles("xyz").y, 0, 0, tmpQuaternion);
+          tmpQuaternion.multiplyToRef(this._startingOrientation, tmpQuaternion);
           // Slowly move mesh to avoid jitter
-          pickedMesh.position.addInPlace(
-            this._targetPosition
-              .subtract(pickedMesh.position)
-              .scale(this.dragDeltaRatio)
-          );
+          var oldParent = pickedMesh.parent;
 
-          if (this.rotateDraggedObject) {
-            // Get change in rotation
-            tmpQuaternion.copyFrom(this._startingOrientation);
-            tmpQuaternion.x = -tmpQuaternion.x;
-            tmpQuaternion.y = -tmpQuaternion.y;
-            tmpQuaternion.z = -tmpQuaternion.z;
-            this._virtualDragMesh.rotationQuaternion!.multiplyToRef(
-              tmpQuaternion,
-              tmpQuaternion
-            );
-            // Convert change in rotation to only y axis rotation
-            Quaternion.RotationYawPitchRollToRef(
-              tmpQuaternion.toEulerAngles("xyz").y,
-              0,
-              0,
-              tmpQuaternion
-            );
-            tmpQuaternion.multiplyToRef(
-              this._startingOrientation,
-              tmpQuaternion
-            );
-            // Slowly move mesh to avoid jitter
-            var oldParent = pickedMesh.parent;
-
-            // Only rotate the mesh if it's parent has uniform scaling
-            if (
-              !oldParent ||
-              ((oldParent as Mesh).scaling &&
-                !(oldParent as Mesh).scaling.isNonUniformWithinEpsilon(0.001))
-            ) {
-              pickedMesh.setParent(null);
-              Quaternion.SlerpToRef(
-                pickedMesh.rotationQuaternion!,
-                tmpQuaternion,
-                this.dragDeltaRatio,
-                pickedMesh.rotationQuaternion!
-              );
-              pickedMesh.setParent(oldParent);
-            }
+          // Only rotate the mesh if it's parent has uniform scaling
+          if (!oldParent || ((oldParent as Mesh).scaling && !(oldParent as Mesh).scaling.isNonUniformWithinEpsilon(0.001))) {
+            pickedMesh.setParent(null);
+            Quaternion.SlerpToRef(pickedMesh.rotationQuaternion!, tmpQuaternion, this.dragDeltaRatio, pickedMesh.rotationQuaternion!);
+            pickedMesh.setParent(oldParent);
           }
-          PivotTools._RestorePivotPoint(pickedMesh);
-
-          this.onDragObservable.notifyObservers();
         }
-      });
+        PivotTools._RestorePivotPoint(pickedMesh);
+
+        this.onDragObservable.notifyObservers();
+      }
+    });
   }
   /**
    *  Detaches the behavior from the mesh
@@ -292,11 +260,7 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
       // this._scene.sceneEventTrigger.onPointerObservable.remove(this._pointerObserver);
     }
     if (this._ownerNode) {
-      this._ownerNode
-        .getScene()
-        .sceneEventTrigger.onBeforeRenderObservable.remove(
-          this._sceneRenderObserver
-        );
+      this._ownerNode.getScene().sceneEventTrigger.onBeforeRenderObservable.remove(this._sceneRenderObserver);
     }
     if (this._virtualOriginMesh) {
       this._virtualOriginMesh.dispose();

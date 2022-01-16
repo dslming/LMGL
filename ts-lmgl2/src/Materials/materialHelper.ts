@@ -33,10 +33,7 @@ export class MaterialHelper {
    * @param effect defines the effect to bind to the scene uniform buffer
    * @param sceneUbo defines the uniform buffer storing scene data
    */
-  public static BindSceneUniformBuffer(
-    effect: Effect,
-    sceneUbo: UniformBuffer
-  ): void {
+  public static BindSceneUniformBuffer(effect: Effect, sceneUbo: UniformBuffer): void {
     sceneUbo.bindToEffect(effect, "Scene");
   }
 
@@ -47,11 +44,7 @@ export class MaterialHelper {
    * @param defines The defines to update
    * @param key The channel key "diffuse", "specular"... used in the shader
    */
-  public static PrepareDefinesForMergedUV(
-    texture: BaseTexture,
-    defines: any,
-    key: string
-  ): void {
+  public static PrepareDefinesForMergedUV(texture: BaseTexture, defines: any, key: string): void {
     defines._needUVs = true;
     defines[key] = true;
     if (texture.getTextureMatrix().isIdentityAs3x2()) {
@@ -68,11 +61,7 @@ export class MaterialHelper {
    * @param uniformBuffer The uniform buffer receiving the data
    * @param key The channel key "diffuse", "specular"... used in the shader
    */
-  public static BindTextureMatrix(
-    texture: BaseTexture,
-    uniformBuffer: UniformBuffer,
-    key: string
-  ): void {
+  public static BindTextureMatrix(texture: BaseTexture, uniformBuffer: UniformBuffer, key: string): void {
     var matrix = texture.getTextureMatrix();
 
     uniformBuffer.updateMatrix(key + "Matrix", matrix);
@@ -288,10 +277,7 @@ export class MaterialHelper {
    * @param mesh The mesh containing the geometry data we will draw
    * @param defines The defines to update
    */
-  public static PrepareDefinesForBakedVertexAnimation(
-    mesh: AbstractMesh,
-    defines: any
-  ) {
+  public static PrepareDefinesForBakedVertexAnimation(mesh: AbstractMesh, defines: any) {
     // const manager = (<Mesh>mesh).bakedVertexAnimationManager;
     // defines["BAKED_VERTEX_ANIMATION_TEXTURE"] =
     //   manager && manager.isEnabled ? true : false;
@@ -317,25 +303,16 @@ export class MaterialHelper {
     useVertexAlpha = true,
     useBakedVertexAnimation = true
   ): boolean {
-    if (
-      !defines._areAttributesDirty &&
-      defines._needNormals === defines._normals &&
-      defines._needUVs === defines._uvs
-    ) {
+    if (!defines._areAttributesDirty && defines._needNormals === defines._normals && defines._needUVs === defines._uvs) {
       return false;
     }
 
     defines._normals = defines._needNormals;
     defines._uvs = defines._needUVs;
 
-    defines["NORMAL"] =
-      defines._needNormals &&
-      mesh.isVerticesDataPresent(VertexBuffer.NormalKind);
+    defines["NORMAL"] = defines._needNormals && mesh.isVerticesDataPresent(VertexBuffer.NormalKind);
 
-    if (
-      defines._needNormals &&
-      mesh.isVerticesDataPresent(VertexBuffer.TangentKind)
-    ) {
+    if (defines._needNormals && mesh.isVerticesDataPresent(VertexBuffer.TangentKind)) {
       defines["TANGENT"] = true;
     }
 
@@ -346,12 +323,9 @@ export class MaterialHelper {
     // }
 
     if (useVertexColor) {
-      var hasVertexColors =
-        mesh.useVertexColors &&
-        mesh.isVerticesDataPresent(VertexBuffer.ColorKind);
+      var hasVertexColors = mesh.useVertexColors && mesh.isVerticesDataPresent(VertexBuffer.ColorKind);
       defines["VERTEXCOLOR"] = hasVertexColors;
-      defines["VERTEXALPHA"] =
-        mesh.hasVertexAlpha && hasVertexColors && useVertexAlpha;
+      defines["VERTEXALPHA"] = mesh.hasVertexAlpha && hasVertexColors && useVertexAlpha;
     }
 
     if (useBones) {
@@ -375,11 +349,10 @@ export class MaterialHelper {
    * @param defines The defines to update
    */
   public static PrepareDefinesForMultiview(scene: Scene, defines: any) {
-    if (scene.activeCamera) {
+    if (scene.sceneRender.activeCamera) {
       var previousMultiview = defines.MULTIVIEW;
       defines.MULTIVIEW =
-        scene.activeCamera.outputRenderTarget !== null &&
-        scene.activeCamera.outputRenderTarget.getViewCount() > 1;
+        scene.sceneRender.activeCamera.outputRenderTarget !== null && scene.sceneRender.activeCamera.outputRenderTarget.getViewCount() > 1;
       if (defines.MULTIVIEW != previousMultiview) {
         defines.markAsUnprocessed();
       }
@@ -392,11 +365,7 @@ export class MaterialHelper {
    * @param defines The defines to update
    * @param needAlphaBlending Determines if the material needs alpha blending
    */
-  public static PrepareDefinesForOIT(
-    scene: Scene,
-    defines: any,
-    needAlphaBlending: boolean
-  ) {
+  public static PrepareDefinesForOIT(scene: Scene, defines: any, needAlphaBlending: boolean) {
     const previousDefine = defines.ORDER_INDEPENDENT_TRANSPARENCY;
     const previousDefine16Bits = defines.ORDER_INDEPENDENT_TRANSPARENCY_16BITS;
 
@@ -405,10 +374,7 @@ export class MaterialHelper {
     // defines.ORDER_INDEPENDENT_TRANSPARENCY_16BITS = !scene.getEngine().getCaps()
     //   .textureFloatLinearFiltering;
 
-    if (
-      previousDefine !== defines.ORDER_INDEPENDENT_TRANSPARENCY ||
-      previousDefine16Bits !== defines.ORDER_INDEPENDENT_TRANSPARENCY_16BITS
-    ) {
+    if (previousDefine !== defines.ORDER_INDEPENDENT_TRANSPARENCY || previousDefine16Bits !== defines.ORDER_INDEPENDENT_TRANSPARENCY_16BITS) {
       defines.markAsUnprocessed();
     }
   }
@@ -419,11 +385,7 @@ export class MaterialHelper {
    * @param defines The defines to update
    * @param canRenderToMRT Indicates if this material renders to several textures in the prepass
    */
-  public static PrepareDefinesForPrePass(
-    scene: Scene,
-    defines: any,
-    canRenderToMRT: boolean
-  ) {
+  public static PrepareDefinesForPrePass(scene: Scene, defines: any, canRenderToMRT: boolean) {
     const previousPrePass = defines.PREPASS;
 
     if (!defines._arePrePassDirty) {
@@ -598,8 +560,7 @@ export class MaterialHelper {
     if (light.lightmapMode != Light.LIGHTMAP_DEFAULT) {
       state.lightmapMode = true;
       defines["LIGHTMAPEXCLUDED" + lightIndex] = true;
-      defines["LIGHTMAPNOSPECULAR" + lightIndex] =
-        light.lightmapMode == Light.LIGHTMAP_SHADOWSONLY;
+      defines["LIGHTMAPNOSPECULAR" + lightIndex] = light.lightmapMode == Light.LIGHTMAP_SHADOWSONLY;
     } else {
       defines["LIGHTMAPEXCLUDED" + lightIndex] = false;
       defines["LIGHTMAPNOSPECULAR" + lightIndex] = false;
@@ -639,15 +600,7 @@ export class MaterialHelper {
 
     if (scene.lightsEnabled && !disableLighting) {
       for (var light of mesh.lightSources) {
-        this.PrepareDefinesForLight(
-          scene,
-          mesh,
-          light,
-          lightIndex,
-          defines,
-          specularSupported,
-          state
-        );
+        this.PrepareDefinesForLight(scene, mesh, light, lightIndex, defines, specularSupported, state);
 
         lightIndex++;
         if (lightIndex === maxSimultaneousLights) {
@@ -693,8 +646,7 @@ export class MaterialHelper {
 
     defines["SHADOWFLOAT"] =
       state.shadowEnabled &&
-      ((caps.textureFloatRender && caps.textureFloatLinearFiltering) ||
-        (caps.textureHalfFloatRender && caps.textureHalfFloatLinearFiltering));
+      ((caps.textureFloatRender && caps.textureFloatLinearFiltering) || (caps.textureHalfFloatRender && caps.textureHalfFloatLinearFiltering));
     defines["LIGHTMAPEXCLUDED"] = state.lightmapMode;
 
     if (state.needRebuild) {
@@ -822,12 +774,7 @@ export class MaterialHelper {
    * @param rank the current rank of the Effect
    * @returns The newly affected rank
    */
-  public static HandleFallbacksForShadows(
-    defines: any,
-    fallbacks: EffectFallbacks,
-    maxSimultaneousLights = 4,
-    rank = 0
-  ): number {
+  public static HandleFallbacksForShadows(defines: any, fallbacks: EffectFallbacks, maxSimultaneousLights = 4, rank = 0): number {
     let lightFallbackRank = 0;
     for (var lightIndex = 0; lightIndex < maxSimultaneousLights; lightIndex++) {
       if (!defines["LIGHT" + lightIndex]) {
@@ -941,13 +888,8 @@ export class MaterialHelper {
    * @param mesh The mesh to prepare the morph targets attributes for
    * @param defines The current Defines of the effect
    */
-  public static PrepareAttributesForBakedVertexAnimation(
-    attribs: string[],
-    mesh: AbstractMesh,
-    defines: any
-  ): void {
-    const enabled =
-      defines["BAKED_VERTEX_ANIMATION_TEXTURE"] && defines["INSTANCES"];
+  public static PrepareAttributesForBakedVertexAnimation(attribs: string[], mesh: AbstractMesh, defines: any): void {
+    const enabled = defines["BAKED_VERTEX_ANIMATION_TEXTURE"] && defines["INSTANCES"];
 
     if (enabled) {
       attribs.push("bakedVertexAnimationSettingsInstanced");
@@ -961,12 +903,7 @@ export class MaterialHelper {
    * @param defines The current Defines of the effect
    * @param fallbacks The current effect fallback strategy
    */
-  public static PrepareAttributesForBones(
-    attribs: string[],
-    mesh: AbstractMesh,
-    defines: any,
-    fallbacks: EffectFallbacks
-  ): void {
+  public static PrepareAttributesForBones(attribs: string[], mesh: AbstractMesh, defines: any, fallbacks: EffectFallbacks): void {
     if (defines["NUM_BONE_INFLUENCERS"] > 0) {
       fallbacks.addCPUSkinningFallback(0, mesh);
 
@@ -984,10 +921,7 @@ export class MaterialHelper {
    * @param attribs The current list of supported attribs
    * @param defines The current MaterialDefines of the effect
    */
-  public static PrepareAttributesForInstances(
-    attribs: string[],
-    defines: MaterialDefines
-  ): void {
+  public static PrepareAttributesForInstances(attribs: string[], defines: MaterialDefines): void {
     if (defines["INSTANCES"] || defines["THIN_INSTANCES"]) {
       this.PushAttributesForInstances(attribs, !!defines["PREPASS_VELOCITY"]);
     }
@@ -998,10 +932,7 @@ export class MaterialHelper {
    * @param attribs The current list of supported attribs
    * @param needsPreviousMatrices If the shader needs previous matrices
    */
-  public static PushAttributesForInstances(
-    attribs: string[],
-    needsPreviousMatrices: boolean = false
-  ): void {
+  public static PushAttributesForInstances(attribs: string[], needsPreviousMatrices: boolean = false): void {
     attribs.push("world0");
     attribs.push("world1");
     attribs.push("world2");
@@ -1020,11 +951,7 @@ export class MaterialHelper {
    * @param effect The effect we are binding the data to
    * @param lightIndex The light index in the effect used to render
    */
-  public static BindLightProperties(
-    light: Light,
-    effect: Effect,
-    lightIndex: number
-  ): void {
+  public static BindLightProperties(light: Light, effect: Effect, lightIndex: number): void {
     light.transferToEffect(effect, lightIndex + "");
   }
 
@@ -1037,14 +964,7 @@ export class MaterialHelper {
    * @param useSpecular Defines if specular is supported
    * @param receiveShadows Defines if the effect (mesh) we bind the light for receives shadows
    */
-  public static BindLight(
-    light: Light,
-    lightIndex: number,
-    scene: Scene,
-    effect: Effect,
-    useSpecular: boolean,
-    receiveShadows = true
-  ): void {
+  public static BindLight(light: Light, lightIndex: number, scene: Scene, effect: Effect, useSpecular: boolean, receiveShadows = true): void {
     light._bindLight(lightIndex, scene, effect, useSpecular, receiveShadows);
   }
 
@@ -1056,25 +976,12 @@ export class MaterialHelper {
    * @param defines The generated defines for the effect
    * @param maxSimultaneousLights The maximum number of light that can be bound to the effect
    */
-  public static BindLights(
-    scene: Scene,
-    mesh: AbstractMesh,
-    effect: Effect,
-    defines: any,
-    maxSimultaneousLights = 4
-  ): void {
+  public static BindLights(scene: Scene, mesh: AbstractMesh, effect: Effect, defines: any, maxSimultaneousLights = 4): void {
     let len = Math.min(mesh.lightSources.length, maxSimultaneousLights);
 
     for (var i = 0; i < len; i++) {
       let light = mesh.lightSources[i];
-      this.BindLight(
-        light,
-        i,
-        scene,
-        effect,
-        typeof defines === "boolean" ? defines : defines["SPECULARTERM"],
-        mesh.receiveShadows
-      );
+      this.BindLight(light, i, scene, effect, typeof defines === "boolean" ? defines : defines["SPECULARTERM"], mesh.receiveShadows);
     }
   }
 
@@ -1086,12 +993,7 @@ export class MaterialHelper {
    * @param effect The effect we are binding the data to
    * @param linearSpace Defines if the fog effect is applied in linear space
    */
-  public static BindFogParameters(
-    scene: Scene,
-    mesh: AbstractMesh,
-    effect: Effect,
-    linearSpace = false
-  ): void {
+  public static BindFogParameters(scene: Scene, mesh: AbstractMesh, effect: Effect, linearSpace = false): void {
     // if (scene.fogEnabled && mesh.applyFog && scene.fogMode !== Scene.FOGMODE_NONE) {
     //     effect.setFloat4("vFogInfos", scene.fogMode, scene.fogStart, scene.fogEnd, scene.fogDensity);
     //     // Convert fog color to linear space if used in a linear space computed shader.
@@ -1145,10 +1047,7 @@ export class MaterialHelper {
   //   }
 
   // Copies the bones transformation matrices into the target array and returns the target's reference
-  private static _CopyBonesTransformationMatrices(
-    source: Float32Array,
-    target: Float32Array
-  ): Float32Array {
+  private static _CopyBonesTransformationMatrices(source: Float32Array, target: Float32Array): Float32Array {
     target.set(source);
 
     return target;
@@ -1159,10 +1058,7 @@ export class MaterialHelper {
    * @param abstractMesh The mesh we are binding the information to render
    * @param effect The effect we are binding the data to
    */
-  public static BindMorphTargetParameters(
-    abstractMesh: AbstractMesh,
-    effect: Effect
-  ): void {
+  public static BindMorphTargetParameters(abstractMesh: AbstractMesh, effect: Effect): void {
     // let manager = (<Mesh>abstractMesh).morphTargetManager;
     // if (!abstractMesh || !manager) {
     //     return;

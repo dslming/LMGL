@@ -118,12 +118,7 @@ export class ShaderMaterial extends Material {
    *  * string: "./COMMON_NAME", used with external files COMMON_NAME.vertex.fx and COMMON_NAME.fragment.fx in index.html folder.
    * @param options Define the options used to create the shader
    */
-  constructor(
-    name: string,
-    scene: Scene,
-    shaderPath: any,
-    options: Partial<IShaderMaterialOptions> = {}
-  ) {
+  constructor(name: string, scene: Scene, shaderPath: any, options: Partial<IShaderMaterialOptions> = {}) {
     super(name, scene);
     this._shaderPath = shaderPath;
 
@@ -215,10 +210,7 @@ export class ShaderMaterial extends Material {
    * @param textures Define the list of textures to bind to this sampler
    * @return the material itself allowing "fluent" like uniform updates
    */
-  public setTextureArray(
-    name: string,
-    textures: BaseTexture[]
-  ): ShaderMaterial {
+  public setTextureArray(name: string, textures: BaseTexture[]): ShaderMaterial {
     if (this._options.samplers.indexOf(name) === -1) {
       this._options.samplers.push(name);
     }
@@ -405,10 +397,7 @@ export class ShaderMaterial extends Material {
    * @param value Define the value to give to the uniform
    * @return the material itself allowing "fluent" like uniform updates
    */
-  public setMatrix3x3(
-    name: string,
-    value: Float32Array | Array<number>
-  ): ShaderMaterial {
+  public setMatrix3x3(name: string, value: Float32Array | Array<number>): ShaderMaterial {
     this._checkUniform(name);
     this._matrices3x3[name] = value;
 
@@ -421,10 +410,7 @@ export class ShaderMaterial extends Material {
    * @param value Define the value to give to the uniform
    * @return the material itself allowing "fluent" like uniform updates
    */
-  public setMatrix2x2(
-    name: string,
-    value: Float32Array | Array<number>
-  ): ShaderMaterial {
+  public setMatrix2x2(name: string, value: Float32Array | Array<number>): ShaderMaterial {
     this._checkUniform(name);
     this._matrices2x2[name] = value;
 
@@ -475,11 +461,7 @@ export class ShaderMaterial extends Material {
       return true;
     }
 
-    if (
-      this._effect &&
-      (this._effect.defines.indexOf("#define INSTANCES") !== -1) !==
-        useInstances
-    ) {
+    if (this._effect && (this._effect.defines.indexOf("#define INSTANCES") !== -1) !== useInstances) {
       return false;
     }
 
@@ -493,11 +475,7 @@ export class ShaderMaterial extends Material {
    * @param useInstances specifies that instances should be used
    * @returns a boolean indicating that the submesh is ready or not
    */
-  public isReadyForSubMesh(
-    mesh: AbstractMesh,
-    subMesh: SubMesh,
-    useInstances?: boolean
-  ): boolean {
+  public isReadyForSubMesh(mesh: AbstractMesh, subMesh: SubMesh, useInstances?: boolean): boolean {
     return this.isReady(mesh, useInstances);
   }
 
@@ -533,16 +511,13 @@ export class ShaderMaterial extends Material {
     // global multiview
     if (
       engine.getCaps().multiview &&
-      scene.activeCamera &&
-      scene.activeCamera.outputRenderTarget &&
-      scene.activeCamera.outputRenderTarget.getViewCount() > 1
+      scene.sceneRender.activeCamera &&
+      scene.sceneRender.activeCamera.outputRenderTarget &&
+      scene.sceneRender.activeCamera.outputRenderTarget.getViewCount() > 1
     ) {
       // this._multiview = true;
       defines.push("#define MULTIVIEW");
-      if (
-        this._options.uniforms.indexOf("viewProjection") !== -1 &&
-        this._options.uniforms.push("viewProjectionR") === -1
-      ) {
+      if (this._options.uniforms.indexOf("viewProjection") !== -1 && this._options.uniforms.push("viewProjectionR") === -1) {
         this._options.uniforms.push("viewProjectionR");
       }
     }
@@ -592,14 +567,7 @@ export class ShaderMaterial extends Material {
       uniforms = uniforms.slice();
       uniformBuffers = uniformBuffers.slice();
       samplers = samplers.slice();
-      shaderName = this.customShaderNameResolve(
-        shaderName,
-        uniforms,
-        uniformBuffers,
-        samplers,
-        defines,
-        attribs
-      );
+      shaderName = this.customShaderNameResolve(shaderName, uniforms, uniformBuffers, samplers, defines, attribs);
     }
 
     var previousEffect = this._effect;
@@ -649,10 +617,7 @@ export class ShaderMaterial extends Material {
    * @param world defines the world transformation matrix
    * @param effectOverride - If provided, use this effect instead of internal effect
    */
-  public bindOnlyWorldMatrix(
-    world: Matrix,
-    effectOverride?: Nullable<Effect>
-  ): void {
+  public bindOnlyWorldMatrix(world: Matrix, effectOverride?: Nullable<Effect>): void {
     var scene = this.getScene();
 
     const effect = effectOverride ?? this._effect;
@@ -666,22 +631,13 @@ export class ShaderMaterial extends Material {
     }
 
     if (this._options.uniforms.indexOf("worldView") !== -1) {
-      world.multiplyToRef(
-        scene.sceneMatrix.getViewMatrix(),
-        this._cachedWorldViewMatrix
-      );
+      world.multiplyToRef(scene.sceneMatrix.getViewMatrix(), this._cachedWorldViewMatrix);
       effect.setMatrix("worldView", this._cachedWorldViewMatrix);
     }
 
     if (this._options.uniforms.indexOf("worldViewProjection") !== -1) {
-      world.multiplyToRef(
-        scene.sceneMatrix.getTransformMatrix(),
-        this._cachedWorldViewProjectionMatrix
-      );
-      effect.setMatrix(
-        "worldViewProjection",
-        this._cachedWorldViewProjectionMatrix
-      );
+      world.multiplyToRef(scene.sceneMatrix.getTransformMatrix(), this._cachedWorldViewProjectionMatrix);
+      effect.setMatrix("worldViewProjection", this._cachedWorldViewProjectionMatrix);
     }
   }
 
@@ -701,11 +657,7 @@ export class ShaderMaterial extends Material {
    * @param mesh defines the mesh to bind the material to
    * @param effectOverride - If provided, use this effect instead of internal effect
    */
-  public bind(
-    world: Matrix,
-    mesh?: Mesh,
-    effectOverride?: Nullable<Effect>
-  ): void {
+  public bind(world: Matrix, mesh?: Mesh, effectOverride?: Nullable<Effect>): void {
     // Std values
     this.bindOnlyWorldMatrix(world, effectOverride);
 
@@ -717,17 +669,11 @@ export class ShaderMaterial extends Material {
       }
 
       if (this._options.uniforms.indexOf("projection") !== -1) {
-        effect.setMatrix(
-          "projection",
-          this.getScene().sceneMatrix.getProjectionMatrix()
-        );
+        effect.setMatrix("projection", this.getScene().sceneMatrix.getProjectionMatrix());
       }
 
       if (this._options.uniforms.indexOf("viewProjection") !== -1) {
-        effect.setMatrix(
-          "viewProjection",
-          this.getScene().sceneMatrix.getTransformMatrix()
-        );
+        effect.setMatrix("viewProjection", this.getScene().sceneMatrix.getTransformMatrix());
         // if (this._multiview) {
         //   effect.setMatrix(
         //     "viewProjectionR",
@@ -736,14 +682,8 @@ export class ShaderMaterial extends Material {
         // }
       }
 
-      if (
-        this.getScene().activeCamera &&
-        this._options.uniforms.indexOf("cameraPosition") !== -1
-      ) {
-        effect.setVector3(
-          "cameraPosition",
-          this.getScene().activeCamera!.globalPosition
-        );
+      if (this.getScene().sceneRender.activeCamera && this._options.uniforms.indexOf("cameraPosition") !== -1) {
+        effect.setVector3("cameraPosition", this.getScene().sceneRender.activeCamera!.globalPosition);
       }
 
       // Bones
@@ -921,16 +861,7 @@ export class ShaderMaterial extends Material {
    * @returns the cloned material
    */
   public clone(name: string): ShaderMaterial {
-    var result = SerializationHelper.Clone(
-      () =>
-        new ShaderMaterial(
-          name,
-          this.getScene(),
-          this._shaderPath,
-          this._options
-        ),
-      this
-    );
+    var result = SerializationHelper.Clone(() => new ShaderMaterial(name, this.getScene(), this._shaderPath, this._options), this);
 
     result.name = name;
     result.id = name;
@@ -943,14 +874,12 @@ export class ShaderMaterial extends Material {
     // Options
     this._options = { ...this._options };
 
-    (Object.keys(this._options) as Array<keyof IShaderMaterialOptions>).forEach(
-      (propName) => {
-        const propValue = this._options[propName];
-        if (Array.isArray(propValue)) {
-          (<string[]>this._options[propName]) = propValue.slice(0);
-        }
+    (Object.keys(this._options) as Array<keyof IShaderMaterialOptions>).forEach((propName) => {
+      const propValue = this._options[propName];
+      if (Array.isArray(propValue)) {
+        (<string[]>this._options[propName]) = propValue.slice(0);
       }
-    );
+    });
 
     // Texture
     for (var key in this._textures) {
@@ -1016,11 +945,7 @@ export class ShaderMaterial extends Material {
    * @param forceDisposeTextures specifies if textures should be forcefully disposed
    * @param notBoundToMesh specifies if the material that is being disposed is known to be not bound to any mesh
    */
-  public dispose(
-    forceDisposeEffect?: boolean,
-    forceDisposeTextures?: boolean,
-    notBoundToMesh?: boolean
-  ): void {
+  public dispose(forceDisposeEffect?: boolean, forceDisposeTextures?: boolean, notBoundToMesh?: boolean): void {
     if (forceDisposeTextures) {
       var name: string;
       for (name in this._textures) {
@@ -1175,32 +1100,14 @@ export class ShaderMaterial extends Material {
    * @param rootUrl defines the root URL to use to load textures and relative dependencies
    * @returns a new material
    */
-  public static Parse(
-    source: any,
-    scene: Scene,
-    rootUrl: string
-  ): ShaderMaterial {
-    var material = SerializationHelper.Parse(
-      () =>
-        new ShaderMaterial(
-          source.name,
-          scene,
-          source.shaderPath,
-          source.options
-        ),
-      source,
-      scene,
-      rootUrl
-    );
+  public static Parse(source: any, scene: Scene, rootUrl: string): ShaderMaterial {
+    var material = SerializationHelper.Parse(() => new ShaderMaterial(source.name, scene, source.shaderPath, source.options), source, scene, rootUrl);
 
     var name: string;
 
     // Texture
     for (name in source.textures) {
-      material.setTexture(
-        name,
-        <Texture>Texture.Parse(source.textures[name], scene, rootUrl)
-      );
+      material.setTexture(name, <Texture>Texture.Parse(source.textures[name], scene, rootUrl));
     }
 
     // Texture arrays

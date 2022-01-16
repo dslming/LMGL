@@ -1,10 +1,5 @@
 import { DeepImmutable } from "../types";
-import {
-  serialize,
-  serializeAsVector3,
-  serializeAsQuaternion,
-  SerializationHelper,
-} from "../Misc/decorators";
+import { serialize, serializeAsVector3, serializeAsQuaternion, SerializationHelper } from "../Misc/decorators";
 import { Observable } from "../Misc/observable";
 
 import { Nullable } from "../types";
@@ -252,12 +247,7 @@ export class TransformNode extends Node {
    */
   public get forward(): Vector3 {
     return Vector3.Normalize(
-      Vector3.TransformNormal(
-        this.getScene().useRightHandedSystem
-          ? this._forwardInverted
-          : this._forward,
-        this.getWorldMatrix()
-      )
+      Vector3.TransformNormal(this.getScene().useRightHandedSystem ? this._forwardInverted : this._forward, this.getWorldMatrix())
     );
   }
 
@@ -265,9 +255,7 @@ export class TransformNode extends Node {
    * The up direction of that transform in world space.
    */
   public get up(): Vector3 {
-    return Vector3.Normalize(
-      Vector3.TransformNormal(this._up, this.getWorldMatrix())
-    );
+    return Vector3.Normalize(Vector3.TransformNormal(this._up, this.getWorldMatrix()));
   }
 
   /**
@@ -275,12 +263,7 @@ export class TransformNode extends Node {
    */
   public get right(): Vector3 {
     return Vector3.Normalize(
-      Vector3.TransformNormal(
-        this.getScene().useRightHandedSystem
-          ? this._rightInverted
-          : this._right,
-        this.getWorldMatrix()
-      )
+      Vector3.TransformNormal(this.getScene().useRightHandedSystem ? this._rightInverted : this._right, this.getWorldMatrix())
     );
   }
 
@@ -313,10 +296,7 @@ export class TransformNode extends Node {
   public _isSynchronized(): boolean {
     let cache = this._cache;
 
-    if (
-      this.billboardMode !== cache.billboardMode ||
-      this.billboardMode !== TransformNode.BILLBOARDMODE_NONE
-    ) {
+    if (this.billboardMode !== cache.billboardMode || this.billboardMode !== TransformNode.BILLBOARDMODE_NONE) {
       return false;
     }
 
@@ -336,10 +316,7 @@ export class TransformNode extends Node {
       return false;
     }
 
-    if (
-      (this._rotationQuaternion && this._rotationQuaternion._isDirty) ||
-      this.rotation._isDirty
-    ) {
+    if ((this._rotationQuaternion && this._rotationQuaternion._isDirty) || this.rotation._isDirty) {
       return false;
     }
 
@@ -408,10 +385,7 @@ export class TransformNode extends Node {
    * @param postMultiplyPivotMatrix defines if the pivot matrix must be cancelled in the world matrix. When this parameter is set to true (default), the inverse of the pivot matrix is also applied at the end to cancel the transformation effect
    * @returns the current TransformNode
    */
-  public setPivotMatrix(
-    matrix: DeepImmutable<Matrix>,
-    postMultiplyPivotMatrix = true
-  ): TransformNode {
+  public setPivotMatrix(matrix: DeepImmutable<Matrix>, postMultiplyPivotMatrix = true): TransformNode {
     this._pivotMatrix.copyFrom(matrix);
     this._usePivotMatrix = !this._pivotMatrix.isIdentity();
 
@@ -450,11 +424,7 @@ export class TransformNode extends Node {
     options?: { doNotInstantiate: boolean },
     onNewNodeCreated?: (source: TransformNode, clone: TransformNode) => void
   ): Nullable<TransformNode> {
-    let clone = this.clone(
-      "Clone of " + (this.name || this.id),
-      newParent || this.parent,
-      true
-    );
+    let clone = this.clone("Clone of " + (this.name || this.id), newParent || this.parent, true);
 
     if (clone) {
       if (onNewNodeCreated) {
@@ -474,9 +444,7 @@ export class TransformNode extends Node {
    * @param newWorldMatrix defines an optional matrix to use as world matrix
    * @returns the TransformNode.
    */
-  public freezeWorldMatrix(
-    newWorldMatrix: Nullable<Matrix> = null
-  ): TransformNode {
+  public freezeWorldMatrix(newWorldMatrix: Nullable<Matrix> = null): TransformNode {
     if (newWorldMatrix) {
       this._worldMatrix = newWorldMatrix;
     } else {
@@ -541,13 +509,7 @@ export class TransformNode extends Node {
     if (this.parent) {
       const invertParentWorldMatrix = TmpVectors.Matrix[0];
       this.parent.getWorldMatrix().invertToRef(invertParentWorldMatrix);
-      Vector3.TransformCoordinatesFromFloatsToRef(
-        absolutePositionX,
-        absolutePositionY,
-        absolutePositionZ,
-        invertParentWorldMatrix,
-        this.position
-      );
+      Vector3.TransformCoordinatesFromFloatsToRef(absolutePositionX, absolutePositionY, absolutePositionZ, invertParentWorldMatrix, this.position);
     } else {
       this.position.x = absolutePositionX;
       this.position.y = absolutePositionY;
@@ -602,16 +564,9 @@ export class TransformNode extends Node {
    * @param space the choosen space of the target
    * @returns the TransformNode.
    */
-  public lookAt(
-    targetPoint: Vector3,
-    yawCor: number = 0,
-    pitchCor: number = 0,
-    rollCor: number = 0,
-    space: Space = Space.LOCAL
-  ): TransformNode {
+  public lookAt(targetPoint: Vector3, yawCor: number = 0, pitchCor: number = 0, rollCor: number = 0, space: Space = Space.LOCAL): TransformNode {
     var dv = TransformNode._lookAtVectorCache;
-    var pos =
-      space === Space.LOCAL ? this.position : this.getAbsolutePosition();
+    var pos = space === Space.LOCAL ? this.position : this.getAbsolutePosition();
     targetPoint.subtractToRef(pos, dv);
     this.setDirection(dv, yawCor, pitchCor, rollCor);
 
@@ -624,9 +579,7 @@ export class TransformNode extends Node {
 
         // Offset rotation by parent's inverted rotation matrix to correct in world space
         var parentRotationMatrix = TmpVectors.Matrix[1];
-        this.parent
-          .getWorldMatrix()
-          .getRotationMatrixToRef(parentRotationMatrix);
+        this.parent.getWorldMatrix().getRotationMatrixToRef(parentRotationMatrix);
         parentRotationMatrix.invert();
         rotationMatrix.multiplyToRef(parentRotationMatrix, rotationMatrix);
         this.rotationQuaternion.fromRotationMatrix(rotationMatrix);
@@ -639,9 +592,7 @@ export class TransformNode extends Node {
 
         // Offset rotation by parent's inverted rotation matrix to correct in world space
         var parentRotationMatrix = TmpVectors.Matrix[1];
-        this.parent
-          .getWorldMatrix()
-          .getRotationMatrixToRef(parentRotationMatrix);
+        this.parent.getWorldMatrix().getRotationMatrixToRef(parentRotationMatrix);
         parentRotationMatrix.invert();
         rotationMatrix.multiplyToRef(parentRotationMatrix, rotationMatrix);
         quaternionRotation.fromRotationMatrix(rotationMatrix);
@@ -687,22 +638,12 @@ export class TransformNode extends Node {
    * @param rollCor optional roll (z-axis) correction in radians
    * @returns this TransformNode
    */
-  public setDirection(
-    localAxis: Vector3,
-    yawCor: number = 0,
-    pitchCor: number = 0,
-    rollCor: number = 0
-  ): TransformNode {
+  public setDirection(localAxis: Vector3, yawCor: number = 0, pitchCor: number = 0, rollCor: number = 0): TransformNode {
     var yaw = -Math.atan2(localAxis.z, localAxis.x) + Math.PI / 2;
     var len = Math.sqrt(localAxis.x * localAxis.x + localAxis.z * localAxis.z);
     var pitch = -Math.atan2(localAxis.y, len);
     if (this.rotationQuaternion) {
-      Quaternion.RotationYawPitchRollToRef(
-        yaw + yawCor,
-        pitch + pitchCor,
-        rollCor,
-        this.rotationQuaternion
-      );
+      Quaternion.RotationYawPitchRollToRef(yaw + yawCor, pitch + pitchCor, rollCor, this.rotationQuaternion);
     } else {
       this.rotation.x = pitch + pitchCor;
       this.rotation.y = yaw + yawCor;
@@ -717,10 +658,7 @@ export class TransformNode extends Node {
    * @param space defines if the point is in world or local space (local by default)
    * @returns the current TransformNode
    */
-  public setPivotPoint(
-    point: Vector3,
-    space: Space = Space.LOCAL
-  ): TransformNode {
+  public setPivotPoint(point: Vector3, space: Space = Space.LOCAL): TransformNode {
     if (this.getScene().sceneRender.getRenderId() == 0) {
       this.computeWorldMatrix(true);
     }
@@ -733,10 +671,7 @@ export class TransformNode extends Node {
       point = Vector3.TransformCoordinates(point, tmat);
     }
 
-    return this.setPivotMatrix(
-      Matrix.Translation(-point.x, -point.y, -point.z),
-      true
-    );
+    return this.setPivotMatrix(Matrix.Translation(-point.x, -point.y, -point.z), true);
   }
 
   /**
@@ -898,30 +833,16 @@ export class TransformNode extends Node {
     }
     var rotationQuaternion: Quaternion;
     if (!space || (space as any) === Space.LOCAL) {
-      rotationQuaternion = Quaternion.RotationAxisToRef(
-        axis,
-        amount,
-        TransformNode._rotationAxisCache
-      );
-      this.rotationQuaternion.multiplyToRef(
-        rotationQuaternion,
-        this.rotationQuaternion
-      );
+      rotationQuaternion = Quaternion.RotationAxisToRef(axis, amount, TransformNode._rotationAxisCache);
+      this.rotationQuaternion.multiplyToRef(rotationQuaternion, this.rotationQuaternion);
     } else {
       if (this.parent) {
         const invertParentWorldMatrix = TmpVectors.Matrix[0];
         this.parent.getWorldMatrix().invertToRef(invertParentWorldMatrix);
         axis = Vector3.TransformNormal(axis, invertParentWorldMatrix);
       }
-      rotationQuaternion = Quaternion.RotationAxisToRef(
-        axis,
-        amount,
-        TransformNode._rotationAxisCache
-      );
-      rotationQuaternion.multiplyToRef(
-        this.rotationQuaternion,
-        this.rotationQuaternion
-      );
+      rotationQuaternion = Quaternion.RotationAxisToRef(axis, amount, TransformNode._rotationAxisCache);
+      rotationQuaternion.multiplyToRef(this.rotationQuaternion, this.rotationQuaternion);
     }
     return this;
   }
@@ -936,18 +857,10 @@ export class TransformNode extends Node {
    * @param amount the amount to rotate in radians
    * @returns the TransformNode
    */
-  public rotateAround(
-    point: Vector3,
-    axis: Vector3,
-    amount: number
-  ): TransformNode {
+  public rotateAround(point: Vector3, axis: Vector3, amount: number): TransformNode {
     axis.normalize();
     if (!this.rotationQuaternion) {
-      this.rotationQuaternion = Quaternion.RotationYawPitchRoll(
-        this.rotation.y,
-        this.rotation.x,
-        this.rotation.z
-      );
+      this.rotationQuaternion = Quaternion.RotationYawPitchRoll(this.rotation.y, this.rotation.x, this.rotation.z);
       this.rotation.setAll(0);
     }
 
@@ -963,18 +876,8 @@ export class TransformNode extends Node {
     const finalMatrix = TmpVectors.Matrix[3]; // T' x R x T
 
     point.subtractToRef(this.position, tmpVector);
-    Matrix.TranslationToRef(
-      tmpVector.x,
-      tmpVector.y,
-      tmpVector.z,
-      translationMatrix
-    ); // T
-    Matrix.TranslationToRef(
-      -tmpVector.x,
-      -tmpVector.y,
-      -tmpVector.z,
-      translationMatrixInv
-    ); // T'
+    Matrix.TranslationToRef(tmpVector.x, tmpVector.y, tmpVector.z, translationMatrix); // T
+    Matrix.TranslationToRef(-tmpVector.x, -tmpVector.y, -tmpVector.z, translationMatrixInv); // T'
     Matrix.RotationAxisToRef(axis, amount, rotationMatrix); // R
 
     translationMatrixInv.multiplyToRef(rotationMatrix, finalMatrix); // T' x R
@@ -983,10 +886,7 @@ export class TransformNode extends Node {
     finalMatrix.decompose(finalScale, finalRotation, finalTranslation);
 
     this.position.addInPlace(finalTranslation);
-    finalRotation.multiplyToRef(
-      this.rotationQuaternion,
-      this.rotationQuaternion
-    );
+    finalRotation.multiplyToRef(this.rotationQuaternion, this.rotationQuaternion);
 
     return this;
   }
@@ -999,20 +899,13 @@ export class TransformNode extends Node {
    * @param space Space to rotate in (Default: local)
    * @returns the TransformNode.
    */
-  public translate(
-    axis: Vector3,
-    distance: number,
-    space?: Space
-  ): TransformNode {
+  public translate(axis: Vector3, distance: number, space?: Space): TransformNode {
     var displacementVector = axis.scale(distance);
     if (!space || (space as any) === Space.LOCAL) {
-      var tempV3 =
-        this.getPositionExpressedInLocalSpace().add(displacementVector);
+      var tempV3 = this.getPositionExpressedInLocalSpace().add(displacementVector);
       this.setPositionWithLocalVector(tempV3);
     } else {
-      this.setAbsolutePosition(
-        this.getAbsolutePosition().add(displacementVector)
-      );
+      this.setAbsolutePosition(this.getAbsolutePosition().add(displacementVector));
     }
     return this;
   }
@@ -1040,12 +933,7 @@ export class TransformNode extends Node {
       rotationQuaternion = this.rotationQuaternion;
     } else {
       rotationQuaternion = TmpVectors.Quaternion[1];
-      Quaternion.RotationYawPitchRollToRef(
-        this.rotation.y,
-        this.rotation.x,
-        this.rotation.z,
-        rotationQuaternion
-      );
+      Quaternion.RotationYawPitchRollToRef(this.rotation.y, this.rotation.x, this.rotation.z, rotationQuaternion);
     }
     var accumulation = TmpVectors.Quaternion[0];
     Quaternion.RotationYawPitchRollToRef(y, x, z, accumulation);
@@ -1079,35 +967,23 @@ export class TransformNode extends Node {
       return this._worldMatrix;
     }
 
-    let camera = <Camera>this.getScene().activeCamera;
-    const useBillboardPosition =
-      (this._billboardMode & TransformNode.BILLBOARDMODE_USE_POSITION) !== 0;
-    const useBillboardPath =
-      this._billboardMode !== TransformNode.BILLBOARDMODE_NONE &&
-      !this.preserveParentRotationForBillboard;
+    let camera = <Camera>this.getScene().sceneRender.activeCamera;
+    const useBillboardPosition = (this._billboardMode & TransformNode.BILLBOARDMODE_USE_POSITION) !== 0;
+    const useBillboardPath = this._billboardMode !== TransformNode.BILLBOARDMODE_NONE && !this.preserveParentRotationForBillboard;
 
     // Billboarding based on camera position
     if (useBillboardPath && camera && useBillboardPosition) {
       this.lookAt(camera.position);
 
-      if (
-        (this.billboardMode & TransformNode.BILLBOARDMODE_X) !==
-        TransformNode.BILLBOARDMODE_X
-      ) {
+      if ((this.billboardMode & TransformNode.BILLBOARDMODE_X) !== TransformNode.BILLBOARDMODE_X) {
         this.rotation.x = 0;
       }
 
-      if (
-        (this.billboardMode & TransformNode.BILLBOARDMODE_Y) !==
-        TransformNode.BILLBOARDMODE_Y
-      ) {
+      if ((this.billboardMode & TransformNode.BILLBOARDMODE_Y) !== TransformNode.BILLBOARDMODE_Y) {
         this.rotation.y = 0;
       }
 
-      if (
-        (this.billboardMode & TransformNode.BILLBOARDMODE_Z) !==
-        TransformNode.BILLBOARDMODE_Z
-      ) {
+      if ((this.billboardMode & TransformNode.BILLBOARDMODE_Z) !== TransformNode.BILLBOARDMODE_Z) {
         this.rotation.z = 0;
       }
     }
@@ -1134,11 +1010,7 @@ export class TransformNode extends Node {
     if (this._infiniteDistance) {
       if (!this.parent && camera) {
         var cameraWorldMatrix = camera.getWorldMatrix();
-        var cameraGlobalPosition = new Vector3(
-          cameraWorldMatrix.m[12],
-          cameraWorldMatrix.m[13],
-          cameraWorldMatrix.m[14]
-        );
+        var cameraGlobalPosition = new Vector3(cameraWorldMatrix.m[12], cameraWorldMatrix.m[13], cameraWorldMatrix.m[14]);
 
         translation = TransformNode._TmpTranslation;
         translation.copyFromFloats(
@@ -1164,24 +1036,13 @@ export class TransformNode extends Node {
       if (this.reIntegrateRotationIntoRotationQuaternion) {
         var len = this.rotation.lengthSquared();
         if (len) {
-          this._rotationQuaternion.multiplyInPlace(
-            Quaternion.RotationYawPitchRoll(
-              this._rotation.y,
-              this._rotation.x,
-              this._rotation.z
-            )
-          );
+          this._rotationQuaternion.multiplyInPlace(Quaternion.RotationYawPitchRoll(this._rotation.y, this._rotation.x, this._rotation.z));
           this._rotation.copyFromFloats(0, 0, 0);
         }
       }
     } else {
       rotation = TransformNode._TmpRotation;
-      Quaternion.RotationYawPitchRollToRef(
-        this._rotation.y,
-        this._rotation.x,
-        this._rotation.z,
-        rotation
-      );
+      Quaternion.RotationYawPitchRollToRef(this._rotation.y, this._rotation.x, this._rotation.z, rotation);
     }
 
     // Compose
@@ -1199,17 +1060,10 @@ export class TransformNode extends Node {
 
       // Post multiply inverse of pivotMatrix
       if (this._postMultiplyPivotMatrix) {
-        this._localMatrix.multiplyToRef(
-          this._pivotMatrixInverse,
-          this._localMatrix
-        );
+        this._localMatrix.multiplyToRef(this._pivotMatrixInverse, this._localMatrix);
       }
 
-      this._localMatrix.addTranslationFromFloats(
-        translation.x,
-        translation.y,
-        translation.z
-      );
+      this._localMatrix.addTranslationFromFloats(translation.x, translation.y, translation.z);
     } else {
       Matrix.ComposeToRef(scaling, rotation, translation, this._localMatrix);
     }
@@ -1221,12 +1075,7 @@ export class TransformNode extends Node {
       }
       if (useBillboardPath) {
         if (this._transformToBoneReferal) {
-          parent
-            .getWorldMatrix()
-            .multiplyToRef(
-              this._transformToBoneReferal.getWorldMatrix(),
-              TmpVectors.Matrix[7]
-            );
+          parent.getWorldMatrix().multiplyToRef(this._transformToBoneReferal.getWorldMatrix(), TmpVectors.Matrix[7]);
         } else {
           TmpVectors.Matrix[7].copyFrom(parent.getWorldMatrix());
         }
@@ -1238,25 +1087,13 @@ export class TransformNode extends Node {
         Matrix.ScalingToRef(scale.x, scale.y, scale.z, TmpVectors.Matrix[7]);
         TmpVectors.Matrix[7].setTranslation(translation);
 
-        this._localMatrix.multiplyToRef(
-          TmpVectors.Matrix[7],
-          this._worldMatrix
-        );
+        this._localMatrix.multiplyToRef(TmpVectors.Matrix[7], this._worldMatrix);
       } else {
         if (this._transformToBoneReferal) {
-          this._localMatrix.multiplyToRef(
-            parent.getWorldMatrix(),
-            TmpVectors.Matrix[6]
-          );
-          TmpVectors.Matrix[6].multiplyToRef(
-            this._transformToBoneReferal.getWorldMatrix(),
-            this._worldMatrix
-          );
+          this._localMatrix.multiplyToRef(parent.getWorldMatrix(), TmpVectors.Matrix[6]);
+          TmpVectors.Matrix[6].multiplyToRef(this._transformToBoneReferal.getWorldMatrix(), this._worldMatrix);
         } else {
-          this._localMatrix.multiplyToRef(
-            parent.getWorldMatrix(),
-            this._worldMatrix
-          );
+          this._localMatrix.multiplyToRef(parent.getWorldMatrix(), this._worldMatrix);
         }
       }
       this._markSyncedWithParent();
@@ -1265,12 +1102,7 @@ export class TransformNode extends Node {
     }
 
     // Billboarding based on camera orientation (testing PG:http://www.babylonjs-playground.com/#UJEIL#13)
-    if (
-      useBillboardPath &&
-      camera &&
-      this.billboardMode &&
-      !useBillboardPosition
-    ) {
+    if (useBillboardPath && camera && this.billboardMode && !useBillboardPosition) {
       let storedTranslation = TmpVectors.Vector3[0];
       this._worldMatrix.getTranslationToRef(storedTranslation); // Save translation
 
@@ -1279,45 +1111,24 @@ export class TransformNode extends Node {
       TmpVectors.Matrix[1].setTranslationFromFloats(0, 0, 0);
       TmpVectors.Matrix[1].invertToRef(TmpVectors.Matrix[0]);
 
-      if (
-        (this.billboardMode & TransformNode.BILLBOARDMODE_ALL) !==
-        TransformNode.BILLBOARDMODE_ALL
-      ) {
-        TmpVectors.Matrix[0].decompose(
-          undefined,
-          TmpVectors.Quaternion[0],
-          undefined
-        );
+      if ((this.billboardMode & TransformNode.BILLBOARDMODE_ALL) !== TransformNode.BILLBOARDMODE_ALL) {
+        TmpVectors.Matrix[0].decompose(undefined, TmpVectors.Quaternion[0], undefined);
         let eulerAngles = TmpVectors.Vector3[1];
         TmpVectors.Quaternion[0].toEulerAnglesToRef(eulerAngles);
 
-        if (
-          (this.billboardMode & TransformNode.BILLBOARDMODE_X) !==
-          TransformNode.BILLBOARDMODE_X
-        ) {
+        if ((this.billboardMode & TransformNode.BILLBOARDMODE_X) !== TransformNode.BILLBOARDMODE_X) {
           eulerAngles.x = 0;
         }
 
-        if (
-          (this.billboardMode & TransformNode.BILLBOARDMODE_Y) !==
-          TransformNode.BILLBOARDMODE_Y
-        ) {
+        if ((this.billboardMode & TransformNode.BILLBOARDMODE_Y) !== TransformNode.BILLBOARDMODE_Y) {
           eulerAngles.y = 0;
         }
 
-        if (
-          (this.billboardMode & TransformNode.BILLBOARDMODE_Z) !==
-          TransformNode.BILLBOARDMODE_Z
-        ) {
+        if ((this.billboardMode & TransformNode.BILLBOARDMODE_Z) !== TransformNode.BILLBOARDMODE_Z) {
           eulerAngles.z = 0;
         }
 
-        Matrix.RotationYawPitchRollToRef(
-          eulerAngles.y,
-          eulerAngles.x,
-          eulerAngles.z,
-          TmpVectors.Matrix[0]
-        );
+        Matrix.RotationYawPitchRollToRef(eulerAngles.y, eulerAngles.x, eulerAngles.z, TmpVectors.Matrix[0]);
       }
       this._worldMatrix.setTranslationFromFloats(0, 0, 0);
       this._worldMatrix.multiplyToRef(TmpVectors.Matrix[0], this._worldMatrix);
@@ -1331,9 +1142,7 @@ export class TransformNode extends Node {
       if (this._scaling.isNonUniformWithinEpsilon(0.000001)) {
         this._updateNonUniformScalingState(true);
       } else if (parent && (<TransformNode>parent)._nonUniformScaling) {
-        this._updateNonUniformScalingState(
-          (<TransformNode>parent)._nonUniformScaling
-        );
+        this._updateNonUniformScalingState((<TransformNode>parent)._nonUniformScaling);
       } else {
         this._updateNonUniformScalingState(false);
       }
@@ -1344,11 +1153,7 @@ export class TransformNode extends Node {
     this._afterComputeWorldMatrix();
 
     // Absolute position
-    this._absolutePosition.copyFromFloats(
-      this._worldMatrix.m[12],
-      this._worldMatrix.m[13],
-      this._worldMatrix.m[14]
-    );
+    this._absolutePosition.copyFromFloats(this._worldMatrix.m[12], this._worldMatrix.m[13], this._worldMatrix.m[14]);
     this._isAbsoluteSynced = false;
 
     // Callbacks
@@ -1379,11 +1184,7 @@ export class TransformNode extends Node {
           let bakedMatrix = TmpVectors.Matrix[0];
           child._localMatrix.multiplyToRef(this._localMatrix, bakedMatrix);
           let tmpRotationQuaternion = TmpVectors.Quaternion[0];
-          bakedMatrix.decompose(
-            child.scaling,
-            tmpRotationQuaternion,
-            child.position
-          );
+          bakedMatrix.decompose(child.scaling, tmpRotationQuaternion, child.position);
           if (child.rotationQuaternion) {
             child.rotationQuaternion = tmpRotationQuaternion;
           } else {
@@ -1411,9 +1212,7 @@ export class TransformNode extends Node {
    *
    * @returns the TransformNode.
    */
-  public registerAfterWorldMatrixUpdate(
-    func: (mesh: TransformNode) => void
-  ): TransformNode {
+  public registerAfterWorldMatrixUpdate(func: (mesh: TransformNode) => void): TransformNode {
     this.onAfterWorldMatrixUpdateObservable.add(func);
     return this;
   }
@@ -1423,9 +1222,7 @@ export class TransformNode extends Node {
    * @param func callback function to remove
    * @returns the TransformNode.
    */
-  public unregisterAfterWorldMatrixUpdate(
-    func: (mesh: TransformNode) => void
-  ): TransformNode {
+  public unregisterAfterWorldMatrixUpdate(func: (mesh: TransformNode) => void): TransformNode {
     this.onAfterWorldMatrixUpdateObservable.removeCallback(func);
     return this;
   }
@@ -1437,13 +1234,10 @@ export class TransformNode extends Node {
    */
   public getPositionInCameraSpace(camera: Nullable<Camera> = null): Vector3 {
     if (!camera) {
-      camera = <Camera>this.getScene().activeCamera;
+      camera = <Camera>this.getScene().sceneRender.activeCamera;
     }
 
-    return Vector3.TransformCoordinates(
-      this.getAbsolutePosition(),
-      camera.getViewMatrix()
-    );
+    return Vector3.TransformCoordinates(this.getAbsolutePosition(), camera.getViewMatrix());
   }
 
   /**
@@ -1453,7 +1247,7 @@ export class TransformNode extends Node {
    */
   public getDistanceToCamera(camera: Nullable<Camera> = null): number {
     if (!camera) {
-      camera = <Camera>this.getScene().activeCamera;
+      camera = <Camera>this.getScene().sceneRender.activeCamera;
     }
     return this.getAbsolutePosition().subtract(camera.globalPosition).length();
   }
@@ -1465,15 +1259,8 @@ export class TransformNode extends Node {
    * @param doNotCloneChildren Do not clone children hierarchy
    * @returns the new transform node
    */
-  public clone(
-    name: string,
-    newParent: Nullable<Node>,
-    doNotCloneChildren?: boolean
-  ): Nullable<TransformNode> {
-    var result = SerializationHelper.Clone(
-      () => new TransformNode(name, this.getScene()),
-      this
-    );
+  public clone(name: string, newParent: Nullable<Node>, doNotCloneChildren?: boolean): Nullable<TransformNode> {
+    var result = SerializationHelper.Clone(() => new TransformNode(name, this.getScene()), this);
 
     result.name = name;
     result.id = name;
@@ -1503,10 +1290,7 @@ export class TransformNode extends Node {
    * @returns the serialized object
    */
   public serialize(currentSerializationObject?: any): any {
-    let serializationObject = SerializationHelper.Serialize(
-      this,
-      currentSerializationObject
-    );
+    let serializationObject = SerializationHelper.Serialize(this, currentSerializationObject);
     serializationObject.type = this.getClassName();
 
     // Parent
@@ -1534,26 +1318,13 @@ export class TransformNode extends Node {
    * @param rootUrl is a string, it's the root URL to prefix the `delayLoadingFile` property with
    * @returns a new TransformNode object parsed from the source provided.
    */
-  public static Parse(
-    parsedTransformNode: any,
-    scene: Scene,
-    rootUrl: string
-  ): TransformNode {
-    var transformNode = SerializationHelper.Parse(
-      () => new TransformNode(parsedTransformNode.name, scene),
-      parsedTransformNode,
-      scene,
-      rootUrl
-    );
+  public static Parse(parsedTransformNode: any, scene: Scene, rootUrl: string): TransformNode {
+    var transformNode = SerializationHelper.Parse(() => new TransformNode(parsedTransformNode.name, scene), parsedTransformNode, scene, rootUrl);
 
     if (parsedTransformNode.localMatrix) {
-      transformNode.setPreTransformMatrix(
-        Matrix.FromArray(parsedTransformNode.localMatrix)
-      );
+      transformNode.setPreTransformMatrix(Matrix.FromArray(parsedTransformNode.localMatrix));
     } else if (parsedTransformNode.pivotMatrix) {
-      transformNode.setPivotMatrix(
-        Matrix.FromArray(parsedTransformNode.pivotMatrix)
-      );
+      transformNode.setPivotMatrix(Matrix.FromArray(parsedTransformNode.pivotMatrix));
     }
 
     transformNode.setEnabled(parsedTransformNode.isEnabled);
@@ -1572,10 +1343,7 @@ export class TransformNode extends Node {
    * @param predicate defines an optional predicate that will be called on every evaluated child, the predicate must return true for a given child to be part of the result, otherwise it will be ignored
    * @returns an array of TransformNode
    */
-  public getChildTransformNodes(
-    directDescendantsOnly?: boolean,
-    predicate?: (node: Node) => boolean
-  ): TransformNode[] {
+  public getChildTransformNodes(directDescendantsOnly?: boolean, predicate?: (node: Node) => boolean): TransformNode[] {
     var results: Array<TransformNode> = [];
     this._getDescendants(results, directDescendantsOnly, (node: Node) => {
       return (!predicate || predicate(node)) && node instanceof TransformNode;
@@ -1588,10 +1356,7 @@ export class TransformNode extends Node {
    * @param doNotRecurse Set to true to not recurse into each children (recurse into each children by default)
    * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
    */
-  public dispose(
-    doNotRecurse?: boolean,
-    disposeMaterialAndTextures = false
-  ): void {
+  public dispose(doNotRecurse?: boolean, disposeMaterialAndTextures = false): void {
     // Animations
     // this.getScene().stopAnimation(this);
 
@@ -1661,10 +1426,7 @@ export class TransformNode extends Node {
 
   private _syncAbsoluteScalingAndRotation(): void {
     if (!this._isAbsoluteSynced) {
-      this._worldMatrix.decompose(
-        this._absoluteScaling,
-        this._absoluteRotationQuaternion
-      );
+      this._worldMatrix.decompose(this._absoluteScaling, this._absoluteRotationQuaternion);
       this._isAbsoluteSynced = true;
     }
   }
