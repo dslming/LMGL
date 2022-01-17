@@ -31,8 +31,8 @@ class App {
     sphere.position.z = 0;
 
     var grass0 = new BABYLON.StandardMaterial("grass0", scene);
-    grass0.diffuseTexture = new BABYLON.Texture("textures/grass.png", scene);
-    grass0.diffuseTexture.wrapR = BABYLON.Texture.CLAMP_ADDRESSMODE;
+    // grass0.diffuseTexture = new BABYLON.Texture("textures/grass.png", scene);
+    // grass0.diffuseTexture.wrapR = BABYLON.Texture.CLAMP_ADDRESSMODE;
 
     sphere.material = grass0;
     this.scene = scene;

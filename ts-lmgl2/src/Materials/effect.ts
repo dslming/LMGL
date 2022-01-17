@@ -10,6 +10,7 @@ import { DataBuffer } from "../Engine/dataBuffer";
 import { IMatrixLike, IVector2Like, IVector3Like, IVector4Like, IColor3Like, IColor4Like } from "../Maths/math.like";
 import { Engine } from "../Engine/engine";
 import { IEffectFallbacks } from "./iEffectFallbacks";
+import { ShaderProcessor } from "../Engine/Processors/shaderProcessor";
 
 // declare type Engine = import("../Engines/engine").Engine;
 declare type InternalTexture = import("./Textures/internalTexture").InternalTexture;
@@ -281,67 +282,37 @@ export class Effect implements IDisposable {
       fragmentSource = baseName.fragment || baseName;
     }
 
-    this._useFinalCode(
-      `
-precision highp float;
-layout(std140,column_major) uniform;
-uniform mat4 world;
-uniform Scene {
-  mat4 viewProjection;
-  mat4 view;
-};
+    let processorOptions = {
+        defines: this.defines.split("\n"),
+        indexParameters: this._indexParameters,
+        isFragment: false,
+        shouldUseHighPrecisionShader: this._engine._shouldUseHighPrecisionShader,
+        processor: this._engine._shaderProcessor,
+        supportsUniformBuffers: this._engine.engineUniform.supportsUniformBuffers,
+        shadersRepository: Effect.ShadersRepository,
+        includesShadersStore: Effect.IncludesShadersStore,
+        version: (this._engine._webGLVersion * 100).toString(),
+        platformName: this._engine._webGLVersion >= 2 ? "WEBGL2" : "WEBGL1"
+    };
 
-in vec3 position;
-in vec3 normal;
-
-void main(void) {
-  vec3 positionUpdated=position;
-  mat4 finalWorld=world;
-  vec4 worldPos=finalWorld*vec4(positionUpdated,1.0);
-  gl_Position=viewProjection*worldPos;
-}
-`,
-      `
-    precision highp float;
-
-out vec4 glFragColor;
-void main(void) {
-  glFragColor=vec4(1.0);
-}
-`,
-      null
-    );
-    // let processorOptions = {
-    //     defines: this.defines.split("\n"),
-    //     indexParameters: this._indexParameters,
-    //     isFragment: false,
-    //     shouldUseHighPrecisionShader: this._engine._shouldUseHighPrecisionShader,
-    //     processor: this._engine._shaderProcessor,
-    //     supportsUniformBuffers: this._engine.engineUniform.supportsUniformBuffers,
-    //     shadersRepository: Effect.ShadersRepository,
-    //     includesShadersStore: Effect.IncludesShadersStore,
-    //     version: (this._engine.webGLVersion * 100).toString(),
-    //     platformName: this._engine.webGLVersion >= 2 ? "WEBGL2" : "WEBGL1"
-    // };
-
-    // this._loadShader(vertexSource, "Vertex", "", (vertexCode) => {
-    //     this._rawVertexSourceCode = vertexCode;
-    //     this._loadShader(fragmentSource, "Fragment", "Pixel", (fragmentCode) => {
-    //         this._rawFragmentSourceCode = fragmentCode;
-    //         ShaderProcessor.Process(vertexCode, processorOptions, (migratedVertexCode) => {
-    //             if (processFinalCode) {
-    //                 migratedVertexCode = processFinalCode("vertex", migratedVertexCode);
-    //             }
-    //             processorOptions.isFragment = true;
-    //             ShaderProcessor.Process(fragmentCode, processorOptions, (migratedFragmentCode) => {
-    //                 if (processFinalCode) {
-    //                     migratedFragmentCode = processFinalCode("fragment", migratedFragmentCode);
-    //                 }
-    //                 this._useFinalCode(migratedVertexCode, migratedFragmentCode, baseName);
-    //             }, this._engine);
-    //         }, this._engine);
-    //     });
-    // });
+    this._loadShader(vertexSource, "Vertex", "", (vertexCode) => {
+        this._rawVertexSourceCode = vertexCode;
+        this._loadShader(fragmentSource, "Fragment", "Pixel", (fragmentCode) => {
+            this._rawFragmentSourceCode = fragmentCode;
+            ShaderProcessor.Process(vertexCode, processorOptions, (migratedVertexCode) => {
+                if (processFinalCode) {
+                    migratedVertexCode = processFinalCode("vertex", migratedVertexCode);
+                }
+                processorOptions.isFragment = true;
+                ShaderProcessor.Process(fragmentCode, processorOptions, (migratedFragmentCode) => {
+                    if (processFinalCode) {
+                        migratedFragmentCode = processFinalCode("fragment", migratedFragmentCode);
+                    }
+                    this._useFinalCode(migratedVertexCode, migratedFragmentCode, baseName);
+                }, this._engine);
+            }, this._engine);
+        });
+    });
   }
 
   private _useFinalCode(migratedVertexCode: string, migratedFragmentCode: string, baseName: any) {

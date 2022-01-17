@@ -25,6 +25,7 @@ import { DomManagement } from "../Misc/domManagement";
 import { EngineAlpha } from "./engine.alpha";
 import { Material } from "../Materials/material";
 import { EngineStore } from "./engineStore";
+import { WebGL2ShaderProcessor } from "./webGL2ShaderProcessors";
 
 export class Engine {
   public _contextWasLost = false;
@@ -49,6 +50,15 @@ export class Engine {
   protected _currentProgram: Nullable<WebGLProgram>;
   protected _currentEffect: Nullable<Effect>;
   public scenes = new Array<Scene>();
+  protected _highPrecisionShadersAllowed = true;
+  public get _shouldUseHighPrecisionShader(): boolean {
+    return !!(
+      this._caps.highPrecisionShaderSupported &&
+      this._highPrecisionShadersAllowed
+    );
+  }
+
+  public _shaderProcessor: WebGL2ShaderProcessor;
 
   /**
    * Gets or sets a boolean indicating that cache can be kept between frames
@@ -144,6 +154,7 @@ export class Engine {
     this.engineViewPort = new EngineViewPort(this);
     this.engineFramebuffer = new EngineFramebuffer(this._gl, this);
     this.engineRender = new EngineRender(this);
+    this._shaderProcessor = new WebGL2ShaderProcessor();
   }
 
   /**
