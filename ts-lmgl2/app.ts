@@ -21,9 +21,13 @@ class App {
     var scene = new BABYLON.Scene(engine);
     var camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 5, BABYLON.Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
+    // var light = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(-1, 1, 0), scene);
+    // light.diffuse = new BABYLON.Color3(0.1, 0.9, 0);
+    // light.specular = new BABYLON.Color3(0, 0.87, 0);
     var light = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(-1, 1, 0), scene);
-    light.diffuse = new BABYLON.Color3(0.1, 0.9, 0);
-    light.specular = new BABYLON.Color3(0, 0.87, 0);
+    light.diffuse = new BABYLON.Color3(1, 0, 0);
+    light.specular = new BABYLON.Color3(0, 1, 0);
+    light.groundColor = new BABYLON.Color3(0, 1, 0);
 
     var sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {}, scene);
     sphere.position.z = 0;
