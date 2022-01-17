@@ -18,6 +18,7 @@ import { SmartArray } from "../Misc/smartArray";
 import { PerfCounter } from "../Misc/perfCounter";
 import { _DevTools } from "../Misc/devTools";
 import { SceneComponent } from "./scene.component";
+import { SceneFog } from "./scene.fog";
 
 export class Scene extends AbstractScene {
   public _engine: Engine;
@@ -31,6 +32,7 @@ export class Scene extends AbstractScene {
   public sceneComponent = new SceneComponent();
   public sceneCatch: SceneCatch;
   public sceneMatrix: SceneMatrix;
+  public sceneFog = new SceneFog(this);
 
   constructor(engine: Engine) {
     super();

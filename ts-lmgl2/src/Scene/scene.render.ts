@@ -1,7 +1,8 @@
 import { Camera } from "../Cameras/camera";
 import { Constants } from "../Engine/constants";
+import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
 import { Material } from "../Materials/material";
-import { Color4 } from "../Maths/math";
+import { Color3, Color4 } from "../Maths/math";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
 import { PerfCounter } from "../Misc/perfCounter";
@@ -41,9 +42,27 @@ export class SceneRender {
    */
   public dispatchAllSubMeshesOfActiveMeshes: boolean = false;
 
+  /**
+   * Defines the color used to simulate the ambient color (Default is (0, 0, 0))
+   */
+  public ambientColor = new Color3(0, 0, 0);
+
   constructor(scene: Scene) {
     this.scene = scene;
     this._renderingManager = new RenderingManager(scene);
+  }
+
+  protected _imageProcessingConfiguration: ImageProcessingConfiguration;
+  /**
+   * Default image processing configuration used either in the rendering
+   * Forward main pass or through the imageProcessingPostProcess if present.
+   * As in the majority of the scene they are the same (exception for multi camera),
+   * this is easier to reference from here than from all the materials and post process.
+   *
+   * No setter as we it is a shared configuration, you can set the values instead.
+   */
+  public get imageProcessingConfiguration(): ImageProcessingConfiguration {
+    return this._imageProcessingConfiguration;
   }
 
   /*------------------------------------------ wireframe -------------------------------------- */

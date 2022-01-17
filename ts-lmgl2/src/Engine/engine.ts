@@ -23,6 +23,8 @@ import { EngineDraw } from "./engine.draw";
 import { EngineRender } from "./engine.render";
 import { DomManagement } from "../Misc/domManagement";
 import { EngineAlpha } from "./engine.alpha";
+import { Material } from "../Materials/material";
+import { EngineStore } from "./engineStore";
 
 export class Engine {
   public _contextWasLost = false;
@@ -756,5 +758,25 @@ export class Engine {
     // if (this._badOS) {
     //     this.flushFramebuffer();
     // }
+  }
+
+  /** Gets the list of created engines */
+  public static get Instances(): Engine[] {
+    return EngineStore.Instances;
+  }
+
+  /**
+   * Will flag all materials in all scenes in all engines as dirty to trigger new shader compilation
+   * @param flag defines which part of the materials must be marked as dirty
+   * @param predicate defines a predicate used to filter which materials should be affected
+   */
+  public static MarkAllMaterialsAsDirty(flag: number, predicate?: (mat: Material) => boolean): void {
+    for (var engineIndex = 0; engineIndex < Engine.Instances.length; engineIndex++) {
+      var engine = Engine.Instances[engineIndex];
+
+      for (var sceneIndex = 0; sceneIndex < engine.scenes.length; sceneIndex++) {
+        engine.scenes[sceneIndex].sceneNode.markAllMaterialsAsDirty(flag, predicate);
+      }
+    }
   }
 }

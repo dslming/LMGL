@@ -353,6 +353,7 @@ export class Material {
    */
   private _onDisposeObserver: Nullable<Observer<Material>> = null;
   private _onUnBindObservable: Nullable<Observable<Material>> = null;
+  protected _onEffectCreatedObservable: Nullable<Observable<{ effect: Effect; subMesh: Nullable<SubMesh> }>>;
 
   /**
    * Called during a dispose event

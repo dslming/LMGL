@@ -10,6 +10,7 @@ import { ISmartArrayLike } from "../Misc/smartArray";
 import { TransformNode } from "../Meshes/transformNode";
 import { SubMesh } from "../Meshes/subMesh";
 import { Constants } from "../Engine/constants";
+import { Vector3 } from "../Maths/math";
 
 export class SceneNode {
   public _blockEntityCollection = false;
@@ -86,6 +87,9 @@ export class SceneNode {
   }
 
   /*----------------------------------- camera ------------------------------------*/
+  // Mirror
+  /** @hidden */
+  public _mirroredCameraPosition: Nullable<Vector3>;
   /**
    * Adds the given camera to this scene.scene
    * @param newCamera The camera to add
@@ -135,8 +139,37 @@ export class SceneNode {
     this.scene.sceneEventTrigger.onCameraRemovedObservable.notifyObservers(toRemove);
     return index;
   }
+  /**
+   * Gets a camera using its id
+   * @param id defines the id to look for
+   * @returns the camera or null if not found
+   */
+  public getCameraByID(id: string): Nullable<Camera> {
+    for (var index = 0; index < this.scene.cameras.length; index++) {
+      if (this.scene.cameras[index].id === id) {
+        return this.scene.cameras[index];
+      }
+    }
 
+    return null;
+  }
   /*----------------------------------- texture ------------------------------------*/
+  // Textures
+  private _texturesEnabled = true;
+  /**
+   * Gets or sets a boolean indicating if textures are enabled on this scene
+   */
+  public set texturesEnabled(value: boolean) {
+    if (this._texturesEnabled === value) {
+      return;
+    }
+    this._texturesEnabled = value;
+    this.markAllMaterialsAsDirty(Constants.MATERIAL_TextureDirtyFlag);
+  }
+
+  public get texturesEnabled(): boolean {
+    return this._texturesEnabled;
+  }
   /**
    * Adds the given texture to this scene.
    * @param newTexture The texture to add
@@ -353,7 +386,20 @@ export class SceneNode {
     this._getDefaultSubMeshCandidates.bind(this);
     // this.scene.getCollidingSubMeshCandidates = this._getDefaultSubMeshCandidates.bind(this);
   }
+  /**
+   * Gets a the last added mesh using a given id
+   * @param id defines the id to search for
+   * @return the found mesh or null if not found at all.
+   */
+  public getLastMeshByID(id: string): Nullable<AbstractMesh> {
+    for (var index = this.scene.meshes.length - 1; index >= 0; index--) {
+      if (this.scene.meshes[index].id === id) {
+        return this.scene.meshes[index];
+      }
+    }
 
+    return null;
+  }
   /*----------------------------------- material ------------------------------------*/
   public readonly useMaterialMeshMap: boolean = true;
 
