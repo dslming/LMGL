@@ -19,51 +19,29 @@ class App {
 
   createScene(engine: any, canvas: any) {
     var scene = new BABYLON.Scene(engine);
-    var camera = new BABYLON.ArcRotateCamera(
-      "Camera",
-      -Math.PI / 2,
-      Math.PI / 2,
-      5,
-      BABYLON.Vector3.Zero(),
-      scene
-    );
+    var camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 5, BABYLON.Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
-    var light = new BABYLON.HemisphericLight(
-      "hemiLight",
-      new BABYLON.Vector3(-1, 1, 0),
-      scene
-    );
+    var light = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(-1, 1, 0), scene);
     light.diffuse = new BABYLON.Color3(0.1, 0.9, 0);
     light.specular = new BABYLON.Color3(0, 0.87, 0);
     var sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {}, scene);
     sphere.position.z = 0;
 
-    var myShaderMaterial = new BABYLON.ShaderMaterial(
-      "shader",
-      scene,
-      "./COMMON_NAME",
-      {
-        attributes: ["position", "normal", "uv"],
-        uniforms: [
-          "world",
-          "worldView",
-          "worldViewProjection",
-          "view",
-          "projection",
-          "time",
-          "direction",
-        ],
-        samplers: ["textureSampler"],
-        defines: ["MyDefine"],
-        uniformBuffers: ["Scene"],
-        // needAlphaBlending: true,
-        // needAlphaTesting: true
-      }
-    );
+    var myShaderMaterial = new BABYLON.ShaderMaterial("shader", scene, "./COMMON_NAME", {
+      attributes: ["position", "normal", "uv"],
+      uniforms: ["world", "worldView", "worldViewProjection", "view", "projection", "time", "direction"],
+      samplers: ["textureSampler"],
+      defines: ["MyDefine"],
+      uniformBuffers: ["Scene"],
+      // needAlphaBlending: true,
+      // needAlphaTesting: true
+    });
 
     // var grass0 = new BABYLON.StandardMaterial("grass0", scene);
     // grass0.diffuseTexture = new BABYLON.Texture("textures/grass.png", scene);
     // grass0.diffuseTexture.wrapR = BABYLON.Texture.CLAMP_ADDRESSMODE;
+    var grass0 = new BABYLON.StandardMaterial("grass0", scene);
+
     sphere.material = myShaderMaterial;
     this.scene = scene;
     // this.sphere = sphere;
