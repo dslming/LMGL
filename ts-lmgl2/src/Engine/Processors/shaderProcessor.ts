@@ -231,6 +231,7 @@ export class ShaderProcessor {
         cursor.lines = sourceCode.split("\n");
 
         // Decompose (We keep it in 2 steps so it is easier to maintain and perf hit is insignificant)
+        // 分解（我们将其分为 2 个步骤，因此更易于维护，并且性能命中无关紧要）
         this._MoveCursor(cursor, rootNode);
 
         // Recompose

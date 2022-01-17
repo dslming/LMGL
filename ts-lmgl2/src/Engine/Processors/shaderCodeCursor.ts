@@ -16,6 +16,7 @@ export class ShaderCodeCursor {
 
         for (var line of value) {
             // Prevent removing line break in macros.
+            // 防止删除宏中的换行符。
             if (line[0] === "#") {
                 this._lines.push(line);
                 continue;
