@@ -21,7 +21,7 @@ export class ShaderCodeInliner {
     public inlineToken: string;
 
     /** Gets or sets the debug mode */
-    public debug: boolean = false;
+    public debug: boolean = true;
 
     /** Gets the code after the inlining process */
     public get code(): string {

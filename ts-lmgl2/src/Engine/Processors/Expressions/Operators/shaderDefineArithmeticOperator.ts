@@ -1,6 +1,7 @@
 import { ShaderDefineExpression } from '../shaderDefineExpression';
 
 /** @hidden */
+//着色器定义算术运算符
 export class ShaderDefineArithmeticOperator extends ShaderDefineExpression {
     public constructor(public define: string, public operand: string, public testValue: string) {
         super();
