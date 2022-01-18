@@ -145,7 +145,7 @@ export class InstancedMesh extends AbstractMesh {
    * Returns the total number of vertices (integer).
    */
   public getTotalVertices(): number {
-    return this._sourceMesh ? this._sourceMesh.getTotalVertices() : 0;
+    return this._sourceMesh ? this._sourceMesh.meshGeometry.getTotalVertices() : 0;
   }
 
   /**
@@ -153,7 +153,7 @@ export class InstancedMesh extends AbstractMesh {
    * @returns the numner of indices or zero if the mesh has no geometry.
    */
   public getTotalIndices(): number {
-    return this._sourceMesh.getTotalIndices();
+    return this._sourceMesh.meshGeometry.getTotalIndices();
   }
 
   /**
@@ -192,7 +192,7 @@ export class InstancedMesh extends AbstractMesh {
     kind: string,
     copyWhenShared?: boolean
   ): Nullable<FloatArray> {
-    return this._sourceMesh.getVerticesData(kind, copyWhenShared);
+    return this._sourceMesh.meshGeometry.getVerticesData(kind, copyWhenShared);
   }
 
   /**
@@ -227,7 +227,7 @@ export class InstancedMesh extends AbstractMesh {
     stride?: number
   ): AbstractMesh {
     if (this.sourceMesh) {
-      this.sourceMesh.setVerticesData(kind, data, updatable, stride);
+      this.sourceMesh.meshGeometry.setVerticesData(kind, data, updatable, stride);
     }
     return this.sourceMesh;
   }
@@ -263,7 +263,7 @@ export class InstancedMesh extends AbstractMesh {
     makeItUnique?: boolean
   ): Mesh {
     if (this.sourceMesh) {
-      this.sourceMesh.updateVerticesData(
+      this.sourceMesh.meshGeometry.updateVerticesData(
         kind,
         data,
         updateExtends,
@@ -285,7 +285,7 @@ export class InstancedMesh extends AbstractMesh {
     totalVertices: Nullable<number> = null
   ): Mesh {
     if (this.sourceMesh) {
-      this.sourceMesh.setIndices(indices, totalVertices);
+      this.sourceMesh.meshGeometry.setIndices(indices, totalVertices);
     }
     return this.sourceMesh;
   }
@@ -301,7 +301,7 @@ export class InstancedMesh extends AbstractMesh {
    * Returns an array of indices (IndicesArray).
    */
   public getIndices(): Nullable<IndicesArray> {
-    return this._sourceMesh.getIndices();
+    return this._sourceMesh.meshGeometry.getIndices();
   }
 
   public get _positions(): Nullable<Vector3[]> {
@@ -319,8 +319,8 @@ export class InstancedMesh extends AbstractMesh {
       return this;
     }
 
-    const bias = this._sourceMesh.geometry
-      ? this._sourceMesh.geometry.boundingBias
+    const bias = this._sourceMesh.meshGeometry.geometry
+      ? this._sourceMesh.meshGeometry.geometry.boundingBias
       : null;
     // this._refreshBoundingInfo(
     //   this._sourceMesh._getPositionData(applySkeleton),
@@ -442,7 +442,7 @@ export class InstancedMesh extends AbstractMesh {
 
   /** @hidden */
   public _generatePointsArray(): boolean {
-    return this._sourceMesh._generatePointsArray();
+    return this._sourceMesh.meshGeometry._generatePointsArray();
   }
 
   /** @hidden */
@@ -594,7 +594,7 @@ Mesh.prototype.registerInstancedBuffer = function (
   stride: number
 ): void {
   // Remove existing one
-  this.removeVerticesData(kind);
+  this.meshGeometry.removeVerticesData(kind);
 
   // Creates the instancedBuffer field if not present
   if (!this.instancedBuffers) {

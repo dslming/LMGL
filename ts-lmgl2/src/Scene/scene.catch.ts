@@ -31,7 +31,7 @@ export class SceneCatch implements iSceneCatch {
     public clearCachedVertexData(): void {
         for (var meshIndex = 0; meshIndex < this.scene.meshes.length; meshIndex++) {
             var mesh = this.scene.meshes[meshIndex];
-            var geometry = (<Mesh>mesh).geometry;
+            var geometry = (<Mesh>mesh).meshGeometry.geometry;
 
             if (geometry) {
                 geometry._indices = [];

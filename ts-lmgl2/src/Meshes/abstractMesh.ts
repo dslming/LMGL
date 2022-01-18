@@ -32,6 +32,7 @@ import { Plane } from "../Maths/math.plane";
 import { Axis } from "../Maths/math.axis";
 // import { IParticleSystem } from '../Particles/IParticleSystem';
 import { _TypeStore } from "../Misc/typeStore";
+import { MeshGeometry } from "./mesh.geometry";
 // import { Node } from '../node'
 
 declare type Ray = import("../Culling/ray").Ray;
@@ -98,7 +99,7 @@ class _InternalAbstractMeshDataInfo {
 /**
  * Class used to store all common mesh properties
  */
-export class AbstractMesh extends TransformNode implements IDisposable, ICullable, IGetSetVerticesData {
+export class AbstractMesh extends TransformNode implements IDisposable, ICullable {
   /** No occlusion */
   public static OCCLUSION_TYPE_NONE = 0;
   /** Occlusion set to optimisitic */
@@ -284,6 +285,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
    */
   public definedFacingForward = true;
 
+  public meshGeometry: MeshGeometry;
   /** @hidden */
   public _occlusionQuery: Nullable<WebGLQuery> = null;
 
@@ -908,97 +910,97 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
    * Returns 0 by default. Implemented by child classes
    * @returns an integer
    */
-  public getTotalVertices(): number {
-    return 0;
-  }
+  // public getTotalVertices(): number {
+  //   return 0;
+  // }
 
   /**
    * Returns a positive integer : the total number of indices in this mesh geometry.
    * @returns the numner of indices or zero if the mesh has no geometry.
    */
-  public getTotalIndices(): number {
-    return 0;
-  }
+  // public getTotalIndices(): number {
+  //   return 0;
+  // }
 
   /**
    * Returns null by default. Implemented by child classes
    * @returns null
    */
-  public getIndices(): Nullable<IndicesArray> {
-    return null;
-  }
+  // public getIndices(): Nullable<IndicesArray> {
+  //   return null;
+  // }
 
   /**
    * Returns the array of the requested vertex data kind. Implemented by child classes
    * @param kind defines the vertex data kind to use
    * @returns null
    */
-  public getVerticesData(kind: string): Nullable<FloatArray> {
-    return null;
-  }
+  // public getVerticesData(kind: string): Nullable<FloatArray> {
+  //   return null;
+  // }
 
-  /**
-   * Sets the vertex data of the mesh geometry for the requested `kind`.
-   * If the mesh has no geometry, a new Geometry object is set to the mesh and then passed this vertex data.
-   * Note that a new underlying VertexBuffer object is created each call.
-   * If the `kind` is the `PositionKind`, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
-   * @param kind defines vertex data kind:
-   * * VertexBuffer.PositionKind
-   * * VertexBuffer.UVKind
-   * * VertexBuffer.UV2Kind
-   * * VertexBuffer.UV3Kind
-   * * VertexBuffer.UV4Kind
-   * * VertexBuffer.UV5Kind
-   * * VertexBuffer.UV6Kind
-   * * VertexBuffer.ColorKind
-   * * VertexBuffer.MatricesIndicesKind
-   * * VertexBuffer.MatricesIndicesExtraKind
-   * * VertexBuffer.MatricesWeightsKind
-   * * VertexBuffer.MatricesWeightsExtraKind
-   * @param data defines the data source
-   * @param updatable defines if the data must be flagged as updatable (or static)
-   * @param stride defines the vertex stride (size of an entire vertex). Can be null and in this case will be deduced from vertex data kind
-   * @returns the current mesh
-   */
-  public setVerticesData(kind: string, data: FloatArray, updatable?: boolean, stride?: number): AbstractMesh {
-    return this;
-  }
+  // /**
+  //  * Sets the vertex data of the mesh geometry for the requested `kind`.
+  //  * If the mesh has no geometry, a new Geometry object is set to the mesh and then passed this vertex data.
+  //  * Note that a new underlying VertexBuffer object is created each call.
+  //  * If the `kind` is the `PositionKind`, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
+  //  * @param kind defines vertex data kind:
+  //  * * VertexBuffer.PositionKind
+  //  * * VertexBuffer.UVKind
+  //  * * VertexBuffer.UV2Kind
+  //  * * VertexBuffer.UV3Kind
+  //  * * VertexBuffer.UV4Kind
+  //  * * VertexBuffer.UV5Kind
+  //  * * VertexBuffer.UV6Kind
+  //  * * VertexBuffer.ColorKind
+  //  * * VertexBuffer.MatricesIndicesKind
+  //  * * VertexBuffer.MatricesIndicesExtraKind
+  //  * * VertexBuffer.MatricesWeightsKind
+  //  * * VertexBuffer.MatricesWeightsExtraKind
+  //  * @param data defines the data source
+  //  * @param updatable defines if the data must be flagged as updatable (or static)
+  //  * @param stride defines the vertex stride (size of an entire vertex). Can be null and in this case will be deduced from vertex data kind
+  //  * @returns the current mesh
+  //  */
+  // public setVerticesData(kind: string, data: FloatArray, updatable?: boolean, stride?: number): AbstractMesh {
+  //   return this;
+  // }
 
-  /**
-   * Updates the existing vertex data of the mesh geometry for the requested `kind`.
-   * If the mesh has no geometry, it is simply returned as it is.
-   * @param kind defines vertex data kind:
-   * * VertexBuffer.PositionKind
-   * * VertexBuffer.UVKind
-   * * VertexBuffer.UV2Kind
-   * * VertexBuffer.UV3Kind
-   * * VertexBuffer.UV4Kind
-   * * VertexBuffer.UV5Kind
-   * * VertexBuffer.UV6Kind
-   * * VertexBuffer.ColorKind
-   * * VertexBuffer.MatricesIndicesKind
-   * * VertexBuffer.MatricesIndicesExtraKind
-   * * VertexBuffer.MatricesWeightsKind
-   * * VertexBuffer.MatricesWeightsExtraKind
-   * @param data defines the data source
-   * @param updateExtends If `kind` is `PositionKind` and if `updateExtends` is true, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed
-   * @param makeItUnique If true, a new global geometry is created from this data and is set to the mesh
-   * @returns the current mesh
-   */
-  public updateVerticesData(kind: string, data: FloatArray, updateExtends?: boolean, makeItUnique?: boolean): AbstractMesh {
-    return this;
-  }
+  // /**
+  //  * Updates the existing vertex data of the mesh geometry for the requested `kind`.
+  //  * If the mesh has no geometry, it is simply returned as it is.
+  //  * @param kind defines vertex data kind:
+  //  * * VertexBuffer.PositionKind
+  //  * * VertexBuffer.UVKind
+  //  * * VertexBuffer.UV2Kind
+  //  * * VertexBuffer.UV3Kind
+  //  * * VertexBuffer.UV4Kind
+  //  * * VertexBuffer.UV5Kind
+  //  * * VertexBuffer.UV6Kind
+  //  * * VertexBuffer.ColorKind
+  //  * * VertexBuffer.MatricesIndicesKind
+  //  * * VertexBuffer.MatricesIndicesExtraKind
+  //  * * VertexBuffer.MatricesWeightsKind
+  //  * * VertexBuffer.MatricesWeightsExtraKind
+  //  * @param data defines the data source
+  //  * @param updateExtends If `kind` is `PositionKind` and if `updateExtends` is true, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed
+  //  * @param makeItUnique If true, a new global geometry is created from this data and is set to the mesh
+  //  * @returns the current mesh
+  //  */
+  // public updateVerticesData(kind: string, data: FloatArray, updateExtends?: boolean, makeItUnique?: boolean): AbstractMesh {
+  //   return this;
+  // }
 
-  /**
-   * Sets the mesh indices,
-   * If the mesh has no geometry, a new Geometry object is created and set to the mesh.
-   * @param indices Expects an array populated with integers or a typed array (Int32Array, Uint32Array, Uint16Array)
-   * @param totalVertices Defines the total number of vertices
-   * @returns the current mesh
-   */
-  public setIndices(indices: IndicesArray, totalVertices: Nullable<number>): AbstractMesh {
-    return this;
-  }
+  // /**
+  //  * Sets the mesh indices,
+  //  * If the mesh has no geometry, a new Geometry object is created and set to the mesh.
+  //  * @param indices Expects an array populated with integers or a typed array (Int32Array, Uint32Array, Uint16Array)
+  //  * @param totalVertices Defines the total number of vertices
+  //  * @returns the current mesh
+  //  */
+  // public setIndices(indices: IndicesArray, totalVertices: Nullable<number>): AbstractMesh {
+  //   return this;
+  // }
 
   /**
    * Gets a boolean indicating if specific vertex data is present
@@ -1030,7 +1032,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
 
   public _refreshBoundingInfo(data: Nullable<FloatArray>, bias: Nullable<Vector2>): void {
     if (data) {
-      var extend = extractMinAndMax(data, 0, this.getTotalVertices(), bias);
+      var extend = extractMinAndMax(data, 0, this.meshGeometry.getTotalVertices(), bias);
       if (this._boundingInfo) {
         this._boundingInfo.reConstruct(extend.minimum, extend.maximum);
       } else {
@@ -1074,7 +1076,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
 
   /** @hidden */
   public _getPositionData(applySkeleton: boolean): Nullable<FloatArray> {
-    var data = this.getVerticesData(VertexBuffer.PositionKind);
+    var data = this.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
 
     // if (data && applySkeleton) {
     //     data = Tools.Slice(data);
@@ -1825,7 +1827,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
     if (!data.facetPartitioning) {
       data.facetPartitioning = new Array<number[]>();
     }
-    data.facetNb = ((<IndicesArray>this.getIndices()).length / 3) | 0;
+    data.facetNb = ((<IndicesArray>this.meshGeometry.getIndices()).length / 3) | 0;
     data.partitioningSubdivisions = data.partitioningSubdivisions ? data.partitioningSubdivisions : 10; // default nb of partitioning subdivisions = 10
     data.partitioningBBoxRatio = data.partitioningBBoxRatio ? data.partitioningBBoxRatio : 1.01; // default ratio 1.01 = the partitioning is 1% bigger than the bounding box
     for (var f = 0; f < data.facetNb; f++) {
@@ -2240,12 +2242,12 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
    * @returns the current mesh
    */
   public createNormals(updatable: boolean): AbstractMesh {
-    var positions = this.getVerticesData(VertexBuffer.PositionKind);
-    var indices = this.getIndices();
+    var positions = this.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
+    var indices = this.meshGeometry.getIndices();
     var normals: FloatArray;
 
     if (this.isVerticesDataPresent(VertexBuffer.NormalKind)) {
-      normals = <FloatArray>this.getVerticesData(VertexBuffer.NormalKind);
+      normals = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
     } else {
       normals = [];
     }
@@ -2253,7 +2255,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
     VertexData.ComputeNormals(positions, indices, normals, {
       useRightHandedSystem: this.getScene().useRightHandedSystem,
     });
-    this.setVerticesData(VertexBuffer.NormalKind, normals, updatable);
+    this.meshGeometry.setVerticesData(VertexBuffer.NormalKind, normals, updatable);
     return this;
   }
 

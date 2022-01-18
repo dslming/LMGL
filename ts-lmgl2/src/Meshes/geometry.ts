@@ -407,68 +407,6 @@ export class Geometry implements IGetSetVerticesData {
   }
 
   /**
-   * Gets a specific vertex data attached to this geometry. Float data is constructed if the vertex buffer data cannot be returned directly.
-   * @param kind defines the data kind (Position, normal, etc...)
-   * @param copyWhenShared defines if the returned array must be cloned upon returning it if the current geometry is shared between multiple meshes
-   * @param forceCopy defines a boolean indicating that the returned array must be cloned upon returning it
-   * @returns a float array containing vertex data
-   */
-  // public getVerticesData(kind: string, copyWhenShared?: boolean, forceCopy?: boolean): Nullable<FloatArray> {
-  // const vertexBuffer = this.getVertexBuffer(kind);
-  // if (!vertexBuffer) {
-  //     return null;
-  // }
-
-  // let data = vertexBuffer.getData();
-  // if (!data) {
-  //     return null;
-  // }
-
-  // const tightlyPackedByteStride = vertexBuffer.getSize() * VertexBuffer.GetTypeByteLength(vertexBuffer.type);
-  // const count = this._totalVertices * vertexBuffer.getSize();
-
-  // if (vertexBuffer.type !== VertexBuffer.FLOAT || vertexBuffer.byteStride !== tightlyPackedByteStride) {
-  //     const copy: number[] = [];
-  //     vertexBuffer.forEach(count, (value) => copy.push(value));
-  //     return copy;
-  // }
-
-  // if (!(data instanceof Array || data instanceof Float32Array) || vertexBuffer.byteOffset !== 0 || data.length !== count) {
-  //     if (data instanceof Array) {
-  //         const offset = vertexBuffer.byteOffset / 4;
-  //         return Tools.Slice(data, offset, offset + count);
-  //     } else if (data instanceof ArrayBuffer) {
-  //         return new Float32Array(data, vertexBuffer.byteOffset, count);
-  //     } else {
-  //         let offset = data.byteOffset + vertexBuffer.byteOffset;
-  //         if (forceCopy || (copyWhenShared && this._meshes.length !== 1)) {
-  //             let result = new Float32Array(count);
-  //             let source = new Float32Array(data.buffer, offset, count);
-
-  //             result.set(source);
-
-  //             return result;
-  //         }
-
-  //         // Portect against bad data
-  //         let remainder = offset % 4;
-
-  //         if (remainder) {
-  //             offset = Math.max(0, offset - remainder);
-  //         }
-
-  //         return new Float32Array(data.buffer, offset, count);
-  //     }
-  // }
-
-  // if (forceCopy || (copyWhenShared && this._meshes.length !== 1)) {
-  //     return Tools.Slice(data);
-  // }
-
-  // return data;
-  // }
-
-  /**
    * Returns a boolean defining if the vertex data for the requested `kind` is updatable
    * @param kind defines the data kind (Position, normal, etc...)
    * @returns true if the vertex buffer with the specified kind is updatable
@@ -672,7 +610,7 @@ export class Geometry implements IGetSetVerticesData {
 
     meshes.splice(index, 1);
 
-    mesh._geometry = null;
+    mesh.meshGeometry._geometry = null;
 
     if (meshes.length === 0 && shouldDispose) {
       this.dispose();
@@ -684,11 +622,11 @@ export class Geometry implements IGetSetVerticesData {
    * @param mesh defines the mesh to apply geometry to
    */
   public applyToMesh(mesh: Mesh): void {
-    if (mesh._geometry === this) {
+    if (mesh.meshGeometry._geometry === this) {
       return;
     }
 
-    var previousGeometry = mesh._geometry;
+    var previousGeometry = mesh.meshGeometry._geometry;
     if (previousGeometry) {
       previousGeometry.releaseForMesh(mesh);
     }
@@ -696,7 +634,7 @@ export class Geometry implements IGetSetVerticesData {
     var meshes = this._meshes;
 
     // must be done before setting vertexBuffers because of mesh._createGlobalSubMesh()
-    mesh._geometry = this;
+    mesh.meshGeometry._geometry = this;
 
     this._scene.sceneNode.pushGeometry(this);
 
@@ -1137,7 +1075,7 @@ export class Geometry implements IGetSetVerticesData {
    * @returns the new geometry object
    */
   public static ExtractFromMesh(mesh: Mesh, id: string): Nullable<Geometry> {
-    var geometry = mesh._geometry;
+    var geometry = mesh.meshGeometry._geometry;
 
     if (!geometry) {
       return null;
@@ -1156,368 +1094,4 @@ export class Geometry implements IGetSetVerticesData {
   public static RandomId(): string {
     return Tools.RandomId();
   }
-
-  // /** @hidden */
-  // public static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void {
-  //     var scene = mesh.getScene();
-
-  //     // Geometry
-  //     var geometryId = parsedGeometry.geometryId;
-  //     if (geometryId) {
-  //         var geometry = scene.sceneNode.getGeometryByID(geometryId);
-  //         if (geometry) {
-  //             geometry.applyToMesh(mesh);
-  //         }
-  //     } else if (parsedGeometry instanceof ArrayBuffer) {
-  //         var binaryInfo = mesh._binaryInfo;
-
-  //         if (binaryInfo.positionsAttrDesc && binaryInfo.positionsAttrDesc.count > 0) {
-  //             var positionsData = new Float32Array(parsedGeometry, binaryInfo.positionsAttrDesc.offset, binaryInfo.positionsAttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.PositionKind, positionsData, false);
-  //         }
-
-  //         if (binaryInfo.normalsAttrDesc && binaryInfo.normalsAttrDesc.count > 0) {
-  //             var normalsData = new Float32Array(parsedGeometry, binaryInfo.normalsAttrDesc.offset, binaryInfo.normalsAttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.NormalKind, normalsData, false);
-  //         }
-
-  //         if (binaryInfo.tangetsAttrDesc && binaryInfo.tangetsAttrDesc.count > 0) {
-  //             var tangentsData = new Float32Array(parsedGeometry, binaryInfo.tangetsAttrDesc.offset, binaryInfo.tangetsAttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.TangentKind, tangentsData, false);
-  //         }
-
-  //         if (binaryInfo.uvsAttrDesc && binaryInfo.uvsAttrDesc.count > 0) {
-  //             var uvsData = new Float32Array(parsedGeometry, binaryInfo.uvsAttrDesc.offset, binaryInfo.uvsAttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.UVKind, uvsData, false);
-  //         }
-
-  //         if (binaryInfo.uvs2AttrDesc && binaryInfo.uvs2AttrDesc.count > 0) {
-  //             var uvs2Data = new Float32Array(parsedGeometry, binaryInfo.uvs2AttrDesc.offset, binaryInfo.uvs2AttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.UV2Kind, uvs2Data, false);
-  //         }
-
-  //         if (binaryInfo.uvs3AttrDesc && binaryInfo.uvs3AttrDesc.count > 0) {
-  //             var uvs3Data = new Float32Array(parsedGeometry, binaryInfo.uvs3AttrDesc.offset, binaryInfo.uvs3AttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.UV3Kind, uvs3Data, false);
-  //         }
-
-  //         if (binaryInfo.uvs4AttrDesc && binaryInfo.uvs4AttrDesc.count > 0) {
-  //             var uvs4Data = new Float32Array(parsedGeometry, binaryInfo.uvs4AttrDesc.offset, binaryInfo.uvs4AttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.UV4Kind, uvs4Data, false);
-  //         }
-
-  //         if (binaryInfo.uvs5AttrDesc && binaryInfo.uvs5AttrDesc.count > 0) {
-  //             var uvs5Data = new Float32Array(parsedGeometry, binaryInfo.uvs5AttrDesc.offset, binaryInfo.uvs5AttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.UV5Kind, uvs5Data, false);
-  //         }
-
-  //         if (binaryInfo.uvs6AttrDesc && binaryInfo.uvs6AttrDesc.count > 0) {
-  //             var uvs6Data = new Float32Array(parsedGeometry, binaryInfo.uvs6AttrDesc.offset, binaryInfo.uvs6AttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.UV6Kind, uvs6Data, false);
-  //         }
-
-  //         if (binaryInfo.colorsAttrDesc && binaryInfo.colorsAttrDesc.count > 0) {
-  //             var colorsData = new Float32Array(parsedGeometry, binaryInfo.colorsAttrDesc.offset, binaryInfo.colorsAttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.ColorKind, colorsData, false, binaryInfo.colorsAttrDesc.stride);
-  //         }
-
-  //         if (binaryInfo.matricesIndicesAttrDesc && binaryInfo.matricesIndicesAttrDesc.count > 0) {
-  //             var matricesIndicesData = new Int32Array(parsedGeometry, binaryInfo.matricesIndicesAttrDesc.offset, binaryInfo.matricesIndicesAttrDesc.count);
-  //             var floatIndices = [];
-  //             for (var i = 0; i < matricesIndicesData.length; i++) {
-  //                 var index = matricesIndicesData[i];
-  //                 floatIndices.push(index & 0x000000ff);
-  //                 floatIndices.push((index & 0x0000ff00) >> 8);
-  //                 floatIndices.push((index & 0x00ff0000) >> 16);
-  //                 floatIndices.push((index >> 24) & 0xff); // & 0xFF to convert to v + 256 if v < 0
-  //             }
-  //             mesh.setVerticesData(VertexBuffer.MatricesIndicesKind, floatIndices, false);
-  //         }
-
-  //         if (binaryInfo.matricesIndicesExtraAttrDesc && binaryInfo.matricesIndicesExtraAttrDesc.count > 0) {
-  //             var matricesIndicesData = new Int32Array(parsedGeometry, binaryInfo.matricesIndicesExtraAttrDesc.offset, binaryInfo.matricesIndicesExtraAttrDesc.count);
-  //             var floatIndices = [];
-  //             for (var i = 0; i < matricesIndicesData.length; i++) {
-  //                 var index = matricesIndicesData[i];
-  //                 floatIndices.push(index & 0x000000ff);
-  //                 floatIndices.push((index & 0x0000ff00) >> 8);
-  //                 floatIndices.push((index & 0x00ff0000) >> 16);
-  //                 floatIndices.push((index >> 24) & 0xff); // & 0xFF to convert to v + 256 if v < 0
-  //             }
-  //             mesh.setVerticesData(VertexBuffer.MatricesIndicesExtraKind, floatIndices, false);
-  //         }
-
-  //         if (binaryInfo.matricesWeightsAttrDesc && binaryInfo.matricesWeightsAttrDesc.count > 0) {
-  //             var matricesWeightsData = new Float32Array(parsedGeometry, binaryInfo.matricesWeightsAttrDesc.offset, binaryInfo.matricesWeightsAttrDesc.count);
-  //             mesh.setVerticesData(VertexBuffer.MatricesWeightsKind, matricesWeightsData, false);
-  //         }
-
-  //         if (binaryInfo.indicesAttrDesc && binaryInfo.indicesAttrDesc.count > 0) {
-  //             var indicesData = new Int32Array(parsedGeometry, binaryInfo.indicesAttrDesc.offset, binaryInfo.indicesAttrDesc.count);
-  //             mesh.setIndices(indicesData, null);
-  //         }
-
-  //         if (binaryInfo.subMeshesAttrDesc && binaryInfo.subMeshesAttrDesc.count > 0) {
-  //             var subMeshesData = new Int32Array(parsedGeometry, binaryInfo.subMeshesAttrDesc.offset, binaryInfo.subMeshesAttrDesc.count * 5);
-
-  //             // mesh.subMeshes = [];
-  //             for (var i = 0; i < binaryInfo.subMeshesAttrDesc.count; i++) {
-  //                 var materialIndex = subMeshesData[i * 5 + 0];
-  //                 var verticesStart = subMeshesData[i * 5 + 1];
-  //                 var verticesCount = subMeshesData[i * 5 + 2];
-  //                 var indexStart = subMeshesData[i * 5 + 3];
-  //                 var indexCount = subMeshesData[i * 5 + 4];
-
-  //                 SubMesh.AddToMesh(materialIndex, verticesStart, verticesCount, indexStart, indexCount, <AbstractMesh>mesh);
-  //             }
-  //         }
-  //     } else if (parsedGeometry.positions && parsedGeometry.normals && parsedGeometry.indices) {
-  //         mesh.setVerticesData(VertexBuffer.PositionKind, parsedGeometry.positions, parsedGeometry.positions._updatable);
-
-  //         mesh.setVerticesData(VertexBuffer.NormalKind, parsedGeometry.normals, parsedGeometry.normals._updatable);
-
-  //         if (parsedGeometry.tangents) {
-  //             mesh.setVerticesData(VertexBuffer.TangentKind, parsedGeometry.tangents, parsedGeometry.tangents._updatable);
-  //         }
-
-  //         if (parsedGeometry.uvs) {
-  //             mesh.setVerticesData(VertexBuffer.UVKind, parsedGeometry.uvs, parsedGeometry.uvs._updatable);
-  //         }
-
-  //         if (parsedGeometry.uvs2) {
-  //             mesh.setVerticesData(VertexBuffer.UV2Kind, parsedGeometry.uvs2, parsedGeometry.uvs2._updatable);
-  //         }
-
-  //         if (parsedGeometry.uvs3) {
-  //             mesh.setVerticesData(VertexBuffer.UV3Kind, parsedGeometry.uvs3, parsedGeometry.uvs3._updatable);
-  //         }
-
-  //         if (parsedGeometry.uvs4) {
-  //             mesh.setVerticesData(VertexBuffer.UV4Kind, parsedGeometry.uvs4, parsedGeometry.uvs4._updatable);
-  //         }
-
-  //         if (parsedGeometry.uvs5) {
-  //             mesh.setVerticesData(VertexBuffer.UV5Kind, parsedGeometry.uvs5, parsedGeometry.uvs5._updatable);
-  //         }
-
-  //         if (parsedGeometry.uvs6) {
-  //             mesh.setVerticesData(VertexBuffer.UV6Kind, parsedGeometry.uvs6, parsedGeometry.uvs6._updatable);
-  //         }
-
-  //         if (parsedGeometry.colors) {
-  //             mesh.setVerticesData(VertexBuffer.ColorKind, Color4.CheckColors4(parsedGeometry.colors, parsedGeometry.positions.length / 3), parsedGeometry.colors._updatable);
-  //         }
-
-  //         if (parsedGeometry.matricesIndices) {
-  //             if (!parsedGeometry.matricesIndices._isExpanded) {
-  //                 var floatIndices = [];
-
-  //                 for (var i = 0; i < parsedGeometry.matricesIndices.length; i++) {
-  //                     var matricesIndex = parsedGeometry.matricesIndices[i];
-
-  //                     floatIndices.push(matricesIndex & 0x000000ff);
-  //                     floatIndices.push((matricesIndex & 0x0000ff00) >> 8);
-  //                     floatIndices.push((matricesIndex & 0x00ff0000) >> 16);
-  //                     floatIndices.push((matricesIndex >> 24) & 0xff); // & 0xFF to convert to v + 256 if v < 0
-  //                 }
-
-  //                 mesh.setVerticesData(VertexBuffer.MatricesIndicesKind, floatIndices, parsedGeometry.matricesIndices._updatable);
-  //             } else {
-  //                 delete parsedGeometry.matricesIndices._isExpanded;
-  //                 mesh.setVerticesData(VertexBuffer.MatricesIndicesKind, parsedGeometry.matricesIndices, parsedGeometry.matricesIndices._updatable);
-  //             }
-  //         }
-
-  //         if (parsedGeometry.matricesIndicesExtra) {
-  //             if (!parsedGeometry.matricesIndicesExtra._isExpanded) {
-  //                 var floatIndices = [];
-
-  //                 for (var i = 0; i < parsedGeometry.matricesIndicesExtra.length; i++) {
-  //                     var matricesIndex = parsedGeometry.matricesIndicesExtra[i];
-
-  //                     floatIndices.push(matricesIndex & 0x000000ff);
-  //                     floatIndices.push((matricesIndex & 0x0000ff00) >> 8);
-  //                     floatIndices.push((matricesIndex & 0x00ff0000) >> 16);
-  //                     floatIndices.push((matricesIndex >> 24) & 0xff); // & 0xFF to convert to v + 256 if v < 0
-  //                 }
-
-  //                 mesh.setVerticesData(VertexBuffer.MatricesIndicesExtraKind, floatIndices, parsedGeometry.matricesIndicesExtra._updatable);
-  //             } else {
-  //                 delete parsedGeometry.matricesIndices._isExpanded;
-  //                 mesh.setVerticesData(VertexBuffer.MatricesIndicesExtraKind, parsedGeometry.matricesIndicesExtra, parsedGeometry.matricesIndicesExtra._updatable);
-  //             }
-  //         }
-
-  //         if (parsedGeometry.matricesWeights) {
-  //             Geometry._CleanMatricesWeights(parsedGeometry, mesh);
-  //             mesh.setVerticesData(VertexBuffer.MatricesWeightsKind, parsedGeometry.matricesWeights, parsedGeometry.matricesWeights._updatable);
-  //         }
-
-  //         if (parsedGeometry.matricesWeightsExtra) {
-  //             mesh.setVerticesData(VertexBuffer.MatricesWeightsExtraKind, parsedGeometry.matricesWeightsExtra, parsedGeometry.matricesWeights._updatable);
-  //         }
-
-  //         mesh.setIndices(parsedGeometry.indices, null);
-  //     }
-
-  //     // SubMeshes
-  //     if (parsedGeometry.subMeshes) {
-  //         // mesh.subMeshes = [];
-  //         for (var subIndex = 0; subIndex < parsedGeometry.subMeshes.length; subIndex++) {
-  //             var parsedSubMesh = parsedGeometry.subMeshes[subIndex];
-
-  //             SubMesh.AddToMesh(parsedSubMesh.materialIndex, parsedSubMesh.verticesStart, parsedSubMesh.verticesCount, parsedSubMesh.indexStart, parsedSubMesh.indexCount, <AbstractMesh>mesh);
-  //         }
-  //     }
-
-  //     // Flat shading
-  //     // if (mesh._shouldGenerateFlatShading) {
-  //     //     mesh.convertToFlatShadedMesh();
-  //     //     mesh._shouldGenerateFlatShading = false;
-  //     // }
-
-  //     // Update
-  //     mesh.computeWorldMatrix(true);
-
-  //     scene.sceneEventTrigger.onMeshImportedObservable.notifyObservers(<AbstractMesh>mesh);
-  // }
-
-  private static _CleanMatricesWeights(parsedGeometry: any, mesh: Mesh): void {
-    // const epsilon: number = 1e-3;
-    // if (!SceneLoaderFlags.CleanBoneMatrixWeights) {
-    //     return;
-    // }
-    // let noInfluenceBoneIndex = 0.0;
-    // if (parsedGeometry.skeletonId > -1) {
-    //     // let skeleton = mesh.getScene().getLastSkeletonByID(parsedGeometry.skeletonId);
-    //     // if (!skeleton) {
-    //     // }
-    //     return;
-    //     // noInfluenceBoneIndex = skeleton.bones.length;
-    // } else {
-    //     return;
-    // }
-    // let matricesIndices = <FloatArray>mesh.getVerticesData(VertexBuffer.MatricesIndicesKind);
-    // let matricesIndicesExtra = <FloatArray>mesh.getVerticesData(VertexBuffer.MatricesIndicesExtraKind);
-    // let matricesWeights = parsedGeometry.matricesWeights;
-    // let matricesWeightsExtra = parsedGeometry.matricesWeightsExtra;
-    // let influencers = parsedGeometry.numBoneInfluencer;
-    // let size = matricesWeights.length;
-    // for (var i = 0; i < size; i += 4) {
-    //     let weight = 0.0;
-    //     let firstZeroWeight = -1;
-    //     for (var j = 0; j < 4; j++) {
-    //         let w = matricesWeights[i + j];
-    //         weight += w;
-    //         if (w < epsilon && firstZeroWeight < 0) {
-    //             firstZeroWeight = j;
-    //         }
-    //     }
-    //     if (matricesWeightsExtra) {
-    //         for (var j = 0; j < 4; j++) {
-    //             let w = matricesWeightsExtra[i + j];
-    //             weight += w;
-    //             if (w < epsilon && firstZeroWeight < 0) {
-    //                 firstZeroWeight = j + 4;
-    //             }
-    //         }
-    //     }
-    //     if (firstZeroWeight < 0 || firstZeroWeight > influencers - 1) {
-    //         firstZeroWeight = influencers - 1;
-    //     }
-    //     if (weight > epsilon) {
-    //         let mweight = 1.0 / weight;
-    //         for (var j = 0; j < 4; j++) {
-    //             matricesWeights[i + j] *= mweight;
-    //         }
-    //         if (matricesWeightsExtra) {
-    //             for (var j = 0; j < 4; j++) {
-    //                 matricesWeightsExtra[i + j] *= mweight;
-    //             }
-    //         }
-    //     } else {
-    //         if (firstZeroWeight >= 4) {
-    //             matricesWeightsExtra[i + firstZeroWeight - 4] = 1.0 - weight;
-    //             matricesIndicesExtra[i + firstZeroWeight - 4] = noInfluenceBoneIndex;
-    //         } else {
-    //             matricesWeights[i + firstZeroWeight] = 1.0 - weight;
-    //             matricesIndices[i + firstZeroWeight] = noInfluenceBoneIndex;
-    //         }
-    //     }
-    // }
-    // mesh.setVerticesData(VertexBuffer.MatricesIndicesKind, matricesIndices);
-    // if (parsedGeometry.matricesWeightsExtra) {
-    //     mesh.setVerticesData(VertexBuffer.MatricesIndicesExtraKind, matricesIndicesExtra);
-    // }
-  }
-
-  /**
-   * Create a new geometry from persisted data (Using .babylon file format)
-   * @param parsedVertexData defines the persisted data
-   * @param scene defines the hosting scene
-   * @param rootUrl defines the root url to use to load assets (like delayed data)
-   * @returns the new geometry object
-   */
-  // public static Parse(parsedVertexData: any, scene: Scene, rootUrl: string): Nullable<Geometry> {
-  //     if (scene.sceneNode.getGeometryByID(parsedVertexData.id)) {
-  //         return null; // null since geometry could be something else than a box...
-  //     }
-
-  //     var geometry = new Geometry(parsedVertexData.id, scene, undefined, parsedVertexData.updatable);
-
-  //     if (Tags) {
-  //         Tags.AddTagsTo(geometry, parsedVertexData.tags);
-  //     }
-
-  //     if (parsedVertexData.delayLoadingFile) {
-  //         geometry.delayLoadState = Constants.DELAYLOADSTATE_NOTLOADED;
-  //         geometry.delayLoadingFile = rootUrl + parsedVertexData.delayLoadingFile;
-  //         geometry._boundingInfo = new BoundingInfo(Vector3.FromArray(parsedVertexData.boundingBoxMinimum), Vector3.FromArray(parsedVertexData.boundingBoxMaximum));
-
-  //         geometry._delayInfo = [];
-  //         if (parsedVertexData.hasUVs) {
-  //             geometry._delayInfo.push(VertexBuffer.UVKind);
-  //         }
-
-  //         if (parsedVertexData.hasUVs2) {
-  //             geometry._delayInfo.push(VertexBuffer.UV2Kind);
-  //         }
-
-  //         if (parsedVertexData.hasUVs3) {
-  //             geometry._delayInfo.push(VertexBuffer.UV3Kind);
-  //         }
-
-  //         if (parsedVertexData.hasUVs4) {
-  //             geometry._delayInfo.push(VertexBuffer.UV4Kind);
-  //         }
-
-  //         if (parsedVertexData.hasUVs5) {
-  //             geometry._delayInfo.push(VertexBuffer.UV5Kind);
-  //         }
-
-  //         if (parsedVertexData.hasUVs6) {
-  //             geometry._delayInfo.push(VertexBuffer.UV6Kind);
-  //         }
-
-  //         if (parsedVertexData.hasColors) {
-  //             geometry._delayInfo.push(VertexBuffer.ColorKind);
-  //         }
-
-  //         if (parsedVertexData.hasMatricesIndices) {
-  //             geometry._delayInfo.push(VertexBuffer.MatricesIndicesKind);
-  //         }
-
-  //         if (parsedVertexData.hasMatricesWeights) {
-  //             geometry._delayInfo.push(VertexBuffer.MatricesWeightsKind);
-  //         }
-
-  //         geometry._delayLoadingFunction = VertexData.ImportVertexData;
-  //     } else {
-  //         VertexData.ImportVertexData(parsedVertexData, geometry);
-  //     }
-
-  //     scene.sceneNode.pushGeometry(geometry, true);
-
-  //     return geometry;
-  // }
 }

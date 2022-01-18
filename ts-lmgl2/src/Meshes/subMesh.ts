@@ -181,7 +181,7 @@ export class SubMesh implements ICullable {
   public get IsGlobal(): boolean {
     return (
       this.verticesStart === 0 &&
-      this.verticesCount === this._mesh.getTotalVertices()
+      this.verticesCount === this._mesh.meshGeometry.getTotalVertices()
     );
   }
 
@@ -287,13 +287,13 @@ export class SubMesh implements ICullable {
     if (
       this.IsGlobal ||
       !this._renderingMesh ||
-      !this._renderingMesh.geometry
+      !this._renderingMesh.meshGeometry.geometry
     ) {
       return this;
     }
 
     if (!data) {
-      data = this._renderingMesh.getVerticesData(VertexBuffer.PositionKind);
+      data = this._renderingMesh.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
     }
 
     if (!data) {
@@ -301,7 +301,7 @@ export class SubMesh implements ICullable {
       return this;
     }
 
-    var indices = <IndicesArray>this._renderingMesh.getIndices();
+    var indices = <IndicesArray>this._renderingMesh.meshGeometry.getIndices();
     var extend: { minimum: Vector3; maximum: Vector3 };
 
     //is this the only submesh?
@@ -319,7 +319,7 @@ export class SubMesh implements ICullable {
         indices,
         this.indexStart,
         this.indexCount,
-        this._renderingMesh.geometry.boundingBias
+        this._renderingMesh.meshGeometry.geometry.boundingBias
       );
     }
 
@@ -796,7 +796,7 @@ export class SubMesh implements ICullable {
     var maxVertexIndex = -Number.MAX_VALUE;
 
     const whatWillRender = renderingMesh || mesh;
-    var indices = whatWillRender!.getIndices()!;
+    var indices = whatWillRender!.meshGeometry.getIndices()!;
 
     for (var index = startIndex; index < startIndex + indexCount; index++) {
       var vertexIndex = indices[index];

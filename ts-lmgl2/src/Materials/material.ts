@@ -1412,8 +1412,8 @@ export class Material {
 
   /** @hidden */
   private releaseVertexArrayObject(mesh: AbstractMesh, forceDisposeEffect?: boolean) {
-    if ((<Mesh>mesh).geometry) {
-      var geometry = <Geometry>(<Mesh>mesh).geometry;
+    if ((<Mesh>mesh).meshGeometry.geometry) {
+      var geometry = <Geometry>(<Mesh>mesh).meshGeometry.geometry;
       if (this._storeEffectOnSubMeshes) {
         for (var subMesh of mesh.subMeshes) {
           geometry._releaseVertexArrayObject(subMesh._materialEffect);

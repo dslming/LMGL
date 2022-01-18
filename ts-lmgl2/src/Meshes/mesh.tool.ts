@@ -84,7 +84,7 @@ export class MeshTool {
       // Counting vertices
       for (index = 0; index < meshes.length; index++) {
         if (meshes[index]) {
-          totalVertices += meshes[index].getTotalVertices();
+          totalVertices += meshes[index].meshGeometry.getTotalVertices();
 
           if (totalVertices >= 65536) {
             Logger.Warn(
@@ -120,7 +120,7 @@ export class MeshTool {
           source = mesh;
         }
         if (subdivideWithSubMeshes) {
-          indiceArray.push(mesh.getTotalIndices());
+          indiceArray.push(mesh.meshGeometry.getTotalIndices());
         }
       }
     }
@@ -287,41 +287,41 @@ export class MeshTool {
         mesh._binaryInfo = parsedMesh._binaryInfo;
       }
 
-      mesh._delayInfo = [];
+      mesh.meshGeometry._delayInfo = [];
       if (parsedMesh.hasUVs) {
-        mesh._delayInfo.push(VertexBuffer.UVKind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.UVKind);
       }
 
       if (parsedMesh.hasUVs2) {
-        mesh._delayInfo.push(VertexBuffer.UV2Kind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.UV2Kind);
       }
 
       if (parsedMesh.hasUVs3) {
-        mesh._delayInfo.push(VertexBuffer.UV3Kind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.UV3Kind);
       }
 
       if (parsedMesh.hasUVs4) {
-        mesh._delayInfo.push(VertexBuffer.UV4Kind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.UV4Kind);
       }
 
       if (parsedMesh.hasUVs5) {
-        mesh._delayInfo.push(VertexBuffer.UV5Kind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.UV5Kind);
       }
 
       if (parsedMesh.hasUVs6) {
-        mesh._delayInfo.push(VertexBuffer.UV6Kind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.UV6Kind);
       }
 
       if (parsedMesh.hasColors) {
-        mesh._delayInfo.push(VertexBuffer.ColorKind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.ColorKind);
       }
 
       if (parsedMesh.hasMatricesIndices) {
-        mesh._delayInfo.push(VertexBuffer.MatricesIndicesKind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.MatricesIndicesKind);
       }
 
       if (parsedMesh.hasMatricesWeights) {
-        mesh._delayInfo.push(VertexBuffer.MatricesWeightsKind);
+        mesh.meshGeometry._delayInfo.push(VertexBuffer.MatricesWeightsKind);
       }
 
       // mesh._delayLoadingFunction = Geometry._ImportGeometry;

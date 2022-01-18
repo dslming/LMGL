@@ -28,6 +28,7 @@ import { Path3D } from "../Maths/math.path";
 import { Plane } from "../Maths/math.plane";
 // import { TransformNode } from './transformNode';
 import { CanvasGenerator } from "../Misc/canvasGenerator";
+import { MeshGeometry } from "./mesh.geometry";
 // import { LinesMesh } from "./linesMesh";
 declare type InstancedMesh = import("./instancedMesh").InstancedMesh;
 // declare type GroundMesh = import("./groundMesh").GroundMesh;
@@ -122,7 +123,7 @@ class _InternalMeshDataInfo {
 /**
  * Class used to represent renderable models
  */
-export class Mesh extends AbstractMesh implements IGetSetVerticesData {
+export class Mesh extends AbstractMesh {
   // Consts
 
   /**
@@ -206,6 +207,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * Mesh tile positioning : part tiles on bottom
    */
   public static readonly BOTTOM = 4;
+  public meshGeometry: MeshGeometry;
 
   /**
    * Gets the default side orientation.
@@ -339,9 +341,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
   public _creationDataStorage: Nullable<_CreationDataStorage> = null;
 
   /** @hidden */
-  public _geometry: Nullable<Geometry> = null;
   /** @hidden */
-  public _delayInfo: Array<string>;
   /** @hidden */
   public _delayLoadingFunction: (any: any, mesh: Mesh) => void;
 
@@ -432,10 +432,11 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
     scene = this.getScene();
 
+    this.meshGeometry = new MeshGeometry(this);
     if (source) {
       // Geometry
-      if (source._geometry) {
-        source._geometry.applyToMesh(this);
+      if (source.meshGeometry._geometry) {
+        source.meshGeometry._geometry.applyToMesh(this);
       }
 
       // Deep copy
@@ -634,189 +635,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
   //     return this;
   // }
 
-  /**
-   * Gets the mesh internal Geometry object
-   */
-  public get geometry(): Nullable<Geometry> {
-    return this._geometry;
-  }
 
-  /**
-   * Returns the total number of vertices within the mesh geometry or zero if the mesh has no geometry.
-   * @returns the total number of vertices
-   */
-  public getTotalVertices(): number {
-    if (this._geometry === null || this._geometry === undefined) {
-      return 0;
-    }
-    return this._geometry.getTotalVertices();
-  }
-
-  /**
-   * Returns the content of an associated vertex buffer
-   * @param kind defines which buffer to read from (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   * @param copyWhenShared defines a boolean indicating that if the mesh geometry is shared among some other meshes, the returned array is a copy of the internal one
-   * @param forceCopy defines a boolean forcing the copy of the buffer no matter what the value of copyWhenShared is
-   * @returns a FloatArray or null if the mesh has no geometry or no vertex buffer for this kind.
-   */
-  public getVerticesData(kind: string, copyWhenShared?: boolean, forceCopy?: boolean): Nullable<FloatArray> {
-    if (!this._geometry) {
-      return null;
-    }
-    return this._geometry.getVerticesData(kind, copyWhenShared, forceCopy);
-  }
-
-  /**
-   * Returns the mesh VertexBuffer object from the requested `kind`
-   * @param kind defines which buffer to read from (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.NormalKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   * @returns a FloatArray or null if the mesh has no vertex buffer for this kind.
-   */
-  public getVertexBuffer(kind: string): Nullable<VertexBuffer> {
-    if (!this._geometry) {
-      return null;
-    }
-    return this._geometry.getVertexBuffer(kind);
-  }
-
-  /**
-   * Tests if a specific vertex buffer is associated with this mesh
-   * @param kind defines which buffer to check (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.NormalKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   * @returns a boolean
-   */
-  public isVerticesDataPresent(kind: string): boolean {
-    if (!this._geometry) {
-      if (this._delayInfo) {
-        return this._delayInfo.indexOf(kind) !== -1;
-      }
-      return false;
-    }
-    return this._geometry.isVerticesDataPresent(kind);
-  }
-
-  /**
-   * Returns a boolean defining if the vertex data for the requested `kind` is updatable.
-   * @param kind defines which buffer to check (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   * @returns a boolean
-   */
-  public isVertexBufferUpdatable(kind: string): boolean {
-    if (!this._geometry) {
-      if (this._delayInfo) {
-        return this._delayInfo.indexOf(kind) !== -1;
-      }
-      return false;
-    }
-    return this._geometry.isVertexBufferUpdatable(kind);
-  }
-
-  /**
-   * Returns a string which contains the list of existing `kinds` of Vertex Data associated with this mesh.
-   * @param kind defines which buffer to read from (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.NormalKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   * @returns an array of strings
-   */
-  public getVerticesDataKinds(): string[] {
-    if (!this._geometry) {
-      var result = new Array<string>();
-      if (this._delayInfo) {
-        this._delayInfo.forEach(function (kind) {
-          result.push(kind);
-        });
-      }
-      return result;
-    }
-    return this._geometry.getVerticesDataKinds();
-  }
-
-  /**
-   * Returns a positive integer : the total number of indices in this mesh geometry.
-   * @returns the numner of indices or zero if the mesh has no geometry.
-   */
-  public getTotalIndices(): number {
-    if (!this._geometry) {
-      return 0;
-    }
-    return this._geometry.getTotalIndices();
-  }
-
-  /**
-   * Returns an array of integers or a typed array (Int32Array, Uint32Array, Uint16Array) populated with the mesh indices.
-   * @param copyWhenShared If true (default false) and and if the mesh geometry is shared among some other meshes, the returned array is a copy of the internal one.
-   * @param forceCopy defines a boolean indicating that the returned array must be cloned upon returning it
-   * @returns the indices array or an empty array if the mesh has no geometry
-   */
-  // public getIndices(copyWhenShared?: boolean, forceCopy?: boolean): Nullable<IndicesArray> {
-
-  //     if (!this._geometry) {
-  //         return [];
-  //     }
-  //     return this._geometry.getIndices(copyWhenShared, forceCopy);
-  // }
-
-  // public get isBlocked(): boolean {
-  //     return this._masterMesh !== null && this._masterMesh !== undefined;
-  // }
 
   /**
    * Determine if the current mesh is ready to be rendered
@@ -1001,21 +820,21 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       return this;
     }
 
-    const bias = this.geometry ? this.geometry.boundingBias : null;
+    const bias = this.meshGeometry.geometry ? this.meshGeometry.geometry.boundingBias : null;
     this._refreshBoundingInfo(this._getPositionData(applySkeleton), bias);
     return this;
   }
 
   /** @hidden */
   public _createGlobalSubMesh(force: boolean): Nullable<SubMesh> {
-    var totalVertices = this.getTotalVertices();
-    if (!totalVertices || !this.getIndices()) {
+    var totalVertices = this.meshGeometry.getTotalVertices();
+    if (!totalVertices || !this.meshGeometry.getIndices()) {
       return null;
     }
 
     // Check if we need to recreate the submeshes
     if (this.subMeshes && this.subMeshes.length > 0) {
-      let ib = this.getIndices();
+      let ib = this.meshGeometry.getIndices();
 
       if (!ib) {
         return null;
@@ -1046,7 +865,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     }
 
     this.releaseSubMeshes();
-    return new SubMesh(0, 0, totalVertices, 0, this.getTotalIndices(), this);
+    return new SubMesh(0, 0, totalVertices, 0, this.meshGeometry.getTotalIndices(), this);
   }
 
   /**
@@ -1058,7 +877,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       return;
     }
 
-    var totalIndices = this.getTotalIndices();
+    var totalIndices = this.meshGeometry.getTotalIndices();
     var subdivisionSize = (totalIndices / count) | 0;
     var offset = 0;
 
@@ -1081,63 +900,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     // this.synchronizeInstances();
   }
 
-  /**
-   * Copy a FloatArray into a specific associated vertex buffer
-   * @param kind defines which buffer to write to (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   * @param data defines the data source
-   * @param updatable defines if the updated vertex buffer must be flagged as updatable
-   * @param stride defines the data stride size (can be null)
-   * @returns the current mesh
-   */
-  public setVerticesData(kind: string, data: FloatArray, updatable: boolean = false, stride?: number): AbstractMesh {
-    if (!this._geometry) {
-      var vertexData = new VertexData();
-      vertexData.set(data, kind);
 
-      var scene = this.getScene();
-
-      new Geometry(Geometry.RandomId(), scene, vertexData, updatable, this);
-    } else {
-      this._geometry.setVerticesData(kind, data, updatable, stride);
-    }
-    return this;
-  }
-
-  /**
-   * Delete a vertex buffer associated with this mesh
-   * @param kind defines which buffer to delete (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   */
-  public removeVerticesData(kind: string) {
-    if (!this._geometry) {
-      return;
-    }
-
-    this._geometry.removeVerticesData(kind);
-  }
 
   /**
    * Flags an associated vertex buffer as updatable
@@ -1157,13 +920,13 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * @param updatable defines if the updated vertex buffer must be flagged as updatable
    */
   public markVerticesDataAsUpdatable(kind: string, updatable = true) {
-    let vb = this.getVertexBuffer(kind);
+    let vb = this.meshGeometry.getVertexBuffer(kind);
 
     if (!vb || vb.isUpdatable() === updatable) {
       return;
     }
 
-    this.setVerticesData(kind, <FloatArray>this.getVerticesData(kind), updatable);
+    this.meshGeometry.setVerticesData(kind, <FloatArray>this.meshGeometry.getVerticesData(kind), updatable);
   }
 
   /**
@@ -1172,46 +935,15 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * @returns the current mesh
    */
   public setVerticesBuffer(buffer: VertexBuffer): Mesh {
-    if (!this._geometry) {
-      this._geometry = Geometry.CreateGeometryForMesh(this);
+    if (!this.meshGeometry._geometry) {
+      this.meshGeometry._geometry = Geometry.CreateGeometryForMesh(this);
     }
 
-    this._geometry.setVerticesBuffer(buffer);
+    this.meshGeometry._geometry.setVerticesBuffer(buffer);
     return this;
   }
 
-  /**
-   * Update a specific associated vertex buffer
-   * @param kind defines which buffer to write to (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   * @param data defines the data source
-   * @param updateExtends defines if extends info of the mesh must be updated (can be null). This is mostly useful for "position" kind
-   * @param makeItUnique defines if the geometry associated with the mesh must be cloned to make the change only for this mesh (and not all meshes associated with the same geometry)
-   * @returns the current mesh
-   */
-  public updateVerticesData(kind: string, data: FloatArray, updateExtends?: boolean, makeItUnique?: boolean): AbstractMesh {
-    if (!this._geometry) {
-      return this;
-    }
-    if (!makeItUnique) {
-      this._geometry.updateVerticesData(kind, data, updateExtends);
-    } else {
-      this.makeGeometryUnique();
-      this.updateVerticesData(kind, data, updateExtends, false);
-    }
-    return this;
-  }
+
 
   /**
    * This method updates the vertex positions of an updatable mesh according to the `positionFunction` returned values.
@@ -1221,100 +953,37 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * @returns the current mesh
    */
   public updateMeshPositions(positionFunction: (data: FloatArray) => void, computeNormals: boolean = true): Mesh {
-    var positions = this.getVerticesData(VertexBuffer.PositionKind);
+    var positions = this.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
     if (!positions) {
       return this;
     }
 
     positionFunction(positions);
-    this.updateVerticesData(VertexBuffer.PositionKind, positions, false, false);
+    this.meshGeometry.updateVerticesData(VertexBuffer.PositionKind, positions, false, false);
 
     if (computeNormals) {
-      var indices = this.getIndices();
-      var normals = this.getVerticesData(VertexBuffer.NormalKind);
+      var indices = this.meshGeometry.getIndices();
+      var normals = this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
 
       if (!normals) {
         return this;
       }
 
       VertexData.ComputeNormals(positions, indices, normals);
-      this.updateVerticesData(VertexBuffer.NormalKind, normals, false, false);
+      this.meshGeometry.updateVerticesData(VertexBuffer.NormalKind, normals, false, false);
     }
     return this;
   }
 
-  /**
-   * Creates a un-shared specific occurence of the geometry for the mesh.
-   * @returns the current mesh
-   */
-  public makeGeometryUnique(): Mesh {
-    if (!this._geometry) {
-      return this;
-    }
 
-    if (this._geometry.meshes.length === 1) {
-      return this;
-    }
 
-    var oldGeometry = this._geometry;
-    var geometry = this._geometry.copy(Geometry.RandomId());
-    oldGeometry.releaseForMesh(this, true);
-    geometry.applyToMesh(this);
-    return this;
-  }
 
-  /**
-   * Set the index buffer of this mesh
-   * @param indices defines the source data
-   * @param totalVertices defines the total number of vertices referenced by this index data (can be null)
-   * @param updatable defines if the updated index buffer must be flagged as updatable (default is false)
-   * @returns the current mesh
-   */
-  public setIndices(indices: IndicesArray, totalVertices: Nullable<number> = null, updatable: boolean = false): AbstractMesh {
-    if (!this._geometry) {
-      var vertexData = new VertexData();
-      vertexData.indices = indices;
 
-      var scene = this.getScene();
 
-      new Geometry(Geometry.RandomId(), scene, vertexData, updatable, this);
-    } else {
-      this._geometry.setIndices(indices, totalVertices, updatable);
-    }
-    return this;
-  }
-
-  /**
-   * Update the current index buffer
-   * @param indices defines the source data
-   * @param offset defines the offset in the index buffer where to store the new data (can be null)
-   * @param gpuMemoryOnly defines a boolean indicating that only the GPU memory must be updated leaving the CPU version of the indices unchanged (false by default)
-   * @returns the current mesh
-   */
-  public updateIndices(indices: IndicesArray, offset?: number, gpuMemoryOnly = false): AbstractMesh {
-    if (!this._geometry) {
-      return this;
-    }
-
-    this._geometry.updateIndices(indices, offset, gpuMemoryOnly);
-    return this;
-  }
-
-  /**
-   * Invert the geometry to move from a right handed system to a left handed one.
-   * @returns the current mesh
-   */
-  public toLeftHanded(): Mesh {
-    if (!this._geometry) {
-      return this;
-    }
-    this._geometry.toLeftHanded();
-    return this;
-  }
 
   /** @hidden */
   public _bind(subMesh: SubMesh, effect: Effect, fillMode: number): Mesh {
-    if (!this._geometry) {
+    if (!this.meshGeometry._geometry) {
       return this;
     }
 
@@ -1331,23 +1000,23 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
           indexToBind = null;
           break;
         case Material.WireFrameFillMode:
-          indexToBind = subMesh._getLinesIndexBuffer(<IndicesArray>this.getIndices(), engine);
+          indexToBind = subMesh._getLinesIndexBuffer(<IndicesArray>this.meshGeometry.getIndices(), engine);
           break;
         default:
         case Material.TriangleFillMode:
-          indexToBind = this._geometry.getIndexBuffer();
+          indexToBind = this.meshGeometry._geometry.getIndexBuffer();
           break;
       }
     }
 
     // VBOs
-    this._geometry._bind(effect, indexToBind);
+    this.meshGeometry._geometry._bind(effect, indexToBind);
     return this;
   }
 
   /** @hidden */
   public _draw(subMesh: SubMesh, fillMode: number, instancesCount?: number): Mesh {
-    if (!this._geometry || !this._geometry.getVertexBuffers() || (!this._unIndexed && !this._geometry.getIndexBuffer())) {
+    if (!this.meshGeometry._geometry || !this.meshGeometry._geometry.getVertexBuffers() || (!this._unIndexed && !this.meshGeometry._geometry.getIndexBuffer())) {
       return this;
     }
 
@@ -1504,7 +1173,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     // }
 
     // Checking geometry state
-    if (!this._geometry || !this._geometry.getVertexBuffers() || (!this._unIndexed && !this._geometry.getIndexBuffer())) {
+    if (!this.meshGeometry._geometry || !this.meshGeometry._geometry.getVertexBuffers() || (!this._unIndexed && !this.meshGeometry._geometry.getIndexBuffer())) {
       return this;
     }
 
@@ -1526,7 +1195,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     }
 
     // Material
-    if (!this._effectiveMaterial || this._effectiveMaterial !== material) {
+    if (!instanceDataStorage.isFrozen || !this._effectiveMaterial || this._effectiveMaterial !== material) {
       if (material._storeEffectOnSubMeshes) {
         if (!material.isReadyForSubMesh(this, subMesh, hardwareInstancedRendering)) {
           return this;
@@ -1642,7 +1311,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
   // faster 4 weight version.
   private normalizeSkinFourWeights(): void {
-    let matricesWeights = <FloatArray>this.getVerticesData(VertexBuffer.MatricesWeightsKind);
+    let matricesWeights = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.MatricesWeightsKind);
     let numWeights = matricesWeights.length;
 
     for (var a = 0; a < numWeights; a += 4) {
@@ -1660,7 +1329,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         matricesWeights[a + 3] *= recip;
       }
     }
-    this.setVerticesData(VertexBuffer.MatricesWeightsKind, matricesWeights);
+    this.meshGeometry.setVerticesData(VertexBuffer.MatricesWeightsKind, matricesWeights);
   }
 
   /** @hidden */
@@ -1762,9 +1431,9 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
     var submeshes = this.subMeshes.splice(0);
 
-    this._resetPointsArrayCache();
+    this.meshGeometry._resetPointsArrayCache();
 
-    var data = <FloatArray>this.getVerticesData(VertexBuffer.PositionKind);
+    var data = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
 
     var temp = new Array<number>();
     var index: number;
@@ -1772,16 +1441,16 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       Vector3.TransformCoordinates(Vector3.FromArray(data, index), transform).toArray(temp, index);
     }
 
-    this.setVerticesData(VertexBuffer.PositionKind, temp, (<VertexBuffer>this.getVertexBuffer(VertexBuffer.PositionKind)).isUpdatable());
+    this.meshGeometry.setVerticesData(VertexBuffer.PositionKind, temp, (<VertexBuffer>this.meshGeometry.getVertexBuffer(VertexBuffer.PositionKind)).isUpdatable());
 
     // Normals
     if (this.isVerticesDataPresent(VertexBuffer.NormalKind)) {
-      data = <FloatArray>this.getVerticesData(VertexBuffer.NormalKind);
+      data = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
       temp = [];
       for (index = 0; index < data.length; index += 3) {
         Vector3.TransformNormal(Vector3.FromArray(data, index), transform).normalize().toArray(temp, index);
       }
-      this.setVerticesData(VertexBuffer.NormalKind, temp, (<VertexBuffer>this.getVertexBuffer(VertexBuffer.NormalKind)).isUpdatable());
+      this.meshGeometry.setVerticesData(VertexBuffer.NormalKind, temp, (<VertexBuffer>this.meshGeometry.getVertexBuffer(VertexBuffer.NormalKind)).isUpdatable());
     }
 
     // flip faces?
@@ -1810,31 +1479,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     return this;
   }
 
-  // Cache
 
-  /** @hidden */
-  public get _positions(): Nullable<Vector3[]> {
-    if (this._geometry) {
-      return this._geometry._positions;
-    }
-    return null;
-  }
-
-  /** @hidden */
-  public _resetPointsArrayCache(): Mesh {
-    if (this._geometry) {
-      this._geometry._resetPointsArrayCache();
-    }
-    return this;
-  }
-
-  /** @hidden */
-  public _generatePointsArray(): boolean {
-    if (this._geometry) {
-      return this._geometry._generatePointsArray();
-    }
-    return false;
-  }
 
   /**
    * Returns a new Mesh object generated from the current mesh properties.
@@ -1857,8 +1502,8 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
   public dispose(doNotRecurse?: boolean, disposeMaterialAndTextures = false): void {
     // this.morphTargetManager = null;
 
-    if (this._geometry) {
-      this._geometry.releaseForMesh(this, true);
+    if (this.meshGeometry._geometry) {
+      this.meshGeometry._geometry.releaseForMesh(this, true);
     }
 
     let internalDataInfo = this._internalMeshDataInfo;
@@ -2015,9 +1660,9 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       return this;
     }
 
-    var positions = <FloatArray>this.getVerticesData(VertexBuffer.PositionKind, true, true);
-    var normals = <FloatArray>this.getVerticesData(VertexBuffer.NormalKind);
-    var uvs = <number[]>this.getVerticesData(VertexBuffer.UVKind);
+    var positions = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.PositionKind, true, true);
+    var normals = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
+    var uvs = <number[]>this.meshGeometry.getVerticesData(VertexBuffer.UVKind);
     var position = Vector3.Zero();
     var normal = Vector3.Zero();
     var uv = Vector2.Zero();
@@ -2048,14 +1693,14 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       position.toArray(positions, index);
     }
 
-    VertexData.ComputeNormals(positions, this.getIndices(), normals);
+    VertexData.ComputeNormals(positions, this.meshGeometry.getIndices(), normals);
 
     if (forceUpdate) {
-      this.setVerticesData(VertexBuffer.PositionKind, positions);
-      this.setVerticesData(VertexBuffer.NormalKind, normals);
+      this.meshGeometry.setVerticesData(VertexBuffer.PositionKind, positions);
+      this.meshGeometry.setVerticesData(VertexBuffer.NormalKind, normals);
     } else {
-      this.updateVerticesData(VertexBuffer.PositionKind, positions);
-      this.updateVerticesData(VertexBuffer.NormalKind, normals);
+      this.meshGeometry.updateVerticesData(VertexBuffer.PositionKind, positions);
+      this.meshGeometry.updateVerticesData(VertexBuffer.NormalKind, normals);
     }
     return this;
   }
@@ -2067,7 +1712,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * @returns current mesh
    */
   public convertToFlatShadedMesh(): Mesh {
-    var kinds = this.getVerticesDataKinds();
+    var kinds = this.meshGeometry.getVerticesDataKinds();
     var vbs: { [key: string]: VertexBuffer } = {};
     var data: { [key: string]: FloatArray } = {};
     var newdata: { [key: string]: Array<number> } = {};
@@ -2076,7 +1721,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     var kind: string;
     for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
       kind = kinds[kindIndex];
-      var vertexBuffer = <VertexBuffer>this.getVertexBuffer(kind);
+      var vertexBuffer = <VertexBuffer>this.meshGeometry.getVertexBuffer(kind);
 
       if (kind === VertexBuffer.NormalKind) {
         updatableNormals = vertexBuffer.isUpdatable();
@@ -2093,8 +1738,8 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     // Save previous submeshes
     var previousSubmeshes = this.subMeshes.slice(0);
 
-    var indices = <IndicesArray>this.getIndices();
-    var totalIndices = this.getTotalIndices();
+    var indices = <IndicesArray>this.meshGeometry.getIndices();
+    var totalIndices = this.meshGeometry.getTotalIndices();
 
     // Generating unique vertices per face
     var index: number;
@@ -2136,13 +1781,13 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       }
     }
 
-    this.setIndices(indices);
-    this.setVerticesData(VertexBuffer.NormalKind, normals, updatableNormals);
+    this.meshGeometry.setIndices(indices);
+    this.meshGeometry.setVerticesData(VertexBuffer.NormalKind, normals, updatableNormals);
 
     // Updating vertex buffers
     for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
       kind = kinds[kindIndex];
-      this.setVerticesData(kind, newdata[kind], vbs[kind].isUpdatable());
+      this.meshGeometry.setVerticesData(kind, newdata[kind], vbs[kind].isUpdatable());
     }
 
     // Updating submeshes
@@ -2170,7 +1815,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * @returns current mesh
    */
   public convertToUnIndexedMesh(): Mesh {
-    var kinds = this.getVerticesDataKinds();
+    var kinds = this.meshGeometry.getVerticesDataKinds();
     var vbs: { [key: string]: VertexBuffer } = {};
     var data: { [key: string]: FloatArray } = {};
     var newdata: { [key: string]: Array<number> } = {};
@@ -2178,7 +1823,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     var kind: string;
     for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
       kind = kinds[kindIndex];
-      var vertexBuffer = <VertexBuffer>this.getVertexBuffer(kind);
+      var vertexBuffer = <VertexBuffer>this.meshGeometry.getVertexBuffer(kind);
       vbs[kind] = vertexBuffer;
       data[kind] = <FloatArray>vbs[kind].getData();
       newdata[kind] = [];
@@ -2187,8 +1832,8 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     // Save previous submeshes
     var previousSubmeshes = this.subMeshes.slice(0);
 
-    var indices = <IndicesArray>this.getIndices();
-    var totalIndices = this.getTotalIndices();
+    var indices = <IndicesArray>this.meshGeometry.getIndices();
+    var totalIndices = this.meshGeometry.getTotalIndices();
 
     // Generating unique vertices per face
     var index: number;
@@ -2212,12 +1857,12 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       indices[index + 2] = index + 2;
     }
 
-    this.setIndices(indices);
+    this.meshGeometry.setIndices(indices);
 
     // Updating vertex buffers
     for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
       kind = kinds[kindIndex];
-      this.setVerticesData(kind, newdata[kind], vbs[kind].isUpdatable());
+      this.meshGeometry.setVerticesData(kind, newdata[kind], vbs[kind].isUpdatable());
     }
 
     // Updating submeshes
@@ -2265,7 +1910,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       }
     }
 
-    vertex_data.applyToMesh(this, this.isVertexBufferUpdatable(VertexBuffer.PositionKind));
+    vertex_data.applyToMesh(this, this.meshGeometry.isVertexBufferUpdatable(VertexBuffer.PositionKind));
     return this;
   }
 
@@ -2391,7 +2036,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
       }
 
       vertex_data.indices = indices;
-      vertex_data.applyToMesh(this, this.isVertexBufferUpdatable(VertexBuffer.PositionKind));
+      vertex_data.applyToMesh(this, this.meshGeometry.isVertexBufferUpdatable(VertexBuffer.PositionKind));
     }
   }
 
@@ -2480,7 +2125,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         vertex_data.colors = colors;
       }
 
-      vertex_data.applyToMesh(this, this.isVertexBufferUpdatable(VertexBuffer.PositionKind));
+      vertex_data.applyToMesh(this, this.meshGeometry.isVertexBufferUpdatable(VertexBuffer.PositionKind));
     }
   }
 
@@ -2497,7 +2142,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * @returns a new InstancedMesh
    */
   public createInstance(name: string): InstancedMesh {
-    let geometry = this.geometry;
+    let geometry = this.meshGeometry.geometry;
 
     if (geometry && geometry.meshes.length > 1) {
       let others = geometry.meshes.slice(0);
@@ -2505,7 +2150,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         if (other === this) {
           continue;
         }
-        other.makeGeometryUnique();
+        other.meshGeometry.makeGeometryUnique();
       }
     }
 
@@ -2520,8 +2165,8 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
    * @returns the current mesh
    */
   public optimizeIndices(successCallback?: (mesh?: Mesh) => void): Mesh {
-    var indices = <IndicesArray>this.getIndices();
-    var positions = this.getVerticesData(VertexBuffer.PositionKind);
+    var indices = <IndicesArray>this.meshGeometry.getIndices();
+    var positions = this.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
 
     if (!positions || !indices) {
       return this;
@@ -2554,7 +2199,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
         //indices are now reordered
         var originalSubMeshes = this.subMeshes.slice(0);
-        this.setIndices(indices);
+        this.meshGeometry.setIndices(indices);
         this.subMeshes = originalSubMeshes;
         if (successCallback) {
           successCallback(this);
@@ -2650,18 +2295,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
   //     this.instances.pop();
   //   }
   // }
-  /**
-   * Returns an array of integers or a typed array (Int32Array, Uint32Array, Uint16Array) populated with the mesh indices.
-   * @param copyWhenShared If true (default false) and and if the mesh geometry is shared among some other meshes, the returned array is a copy of the internal one.
-   * @param forceCopy defines a boolean indicating that the returned array must be cloned upon returning it
-   * @returns the indices array or an empty array if the mesh has no geometry
-   */
-  public getIndices(copyWhenShared?: boolean, forceCopy?: boolean): Nullable<IndicesArray> {
-    if (!this._geometry) {
-      return [];
-    }
-    return this._geometry.getIndices(copyWhenShared, forceCopy);
-  }
+
 }
 
 _TypeStore.RegisteredTypes["BABYLON.Mesh"] = Mesh;

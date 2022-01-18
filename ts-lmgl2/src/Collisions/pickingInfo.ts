@@ -71,7 +71,7 @@ export class PickingInfo {
       return null;
     }
 
-    var indices = this.pickedMesh.getIndices();
+    var indices = this.pickedMesh.meshGeometry.getIndices();
 
     if (!indices) {
       return null;
@@ -81,7 +81,7 @@ export class PickingInfo {
 
     if (useVerticesNormals) {
       var normals = <FloatArray>(
-        this.pickedMesh.getVerticesData(VertexBuffer.NormalKind)
+        this.pickedMesh.meshGeometry.getVerticesData(VertexBuffer.NormalKind)
       );
 
       var normal0 = Vector3.FromArray(normals, indices[this.faceId * 3] * 3);
@@ -105,7 +105,7 @@ export class PickingInfo {
       );
     } else {
       var positions = <FloatArray>(
-        this.pickedMesh.getVerticesData(VertexBuffer.PositionKind)
+        this.pickedMesh.meshGeometry.getVerticesData(VertexBuffer.PositionKind)
       );
 
       var vertex1 = Vector3.FromArray(positions, indices[this.faceId * 3] * 3);
@@ -157,12 +157,12 @@ export class PickingInfo {
       return null;
     }
 
-    var indices = this.pickedMesh.getIndices();
+    var indices = this.pickedMesh.meshGeometry.getIndices();
     if (!indices) {
       return null;
     }
 
-    var uvs = this.pickedMesh.getVerticesData(VertexBuffer.UVKind);
+    var uvs = this.pickedMesh.meshGeometry.getVerticesData(VertexBuffer.UVKind);
     if (!uvs) {
       return null;
     }

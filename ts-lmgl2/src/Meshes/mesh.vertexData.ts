@@ -232,7 +232,7 @@ export class VertexData {
      * @returns the VertexData
      */
     public applyToMesh(mesh: Mesh, updatable?: boolean): VertexData {
-        this._applyTo(mesh, updatable);
+        this._applyTo(mesh.meshGeometry, updatable);
         return this;
     }
 
@@ -256,7 +256,7 @@ export class VertexData {
      * @returns VertexData
      */
     public updateMesh(mesh: Mesh): VertexData {
-        this._update(mesh);
+        this._update(mesh.meshGeometry);
         return this;
     }
 
@@ -683,7 +683,7 @@ export class VertexData {
      * @returns the object VertexData associated to the passed mesh
      */
     public static ExtractFromMesh(mesh: Mesh, copyWhenShared?: boolean, forceCopy?: boolean): VertexData {
-        return VertexData._ExtractFrom(mesh, copyWhenShared, forceCopy);
+        return VertexData._ExtractFrom(mesh.meshGeometry, copyWhenShared, forceCopy);
     }
 
     /**
