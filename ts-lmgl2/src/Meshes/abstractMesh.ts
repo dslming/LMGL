@@ -1007,9 +1007,9 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
    * @param kind defines the vertex data kind to use
    * @returns true is data kind is present
    */
-  public isVerticesDataPresent(kind: string): boolean {
-    return false;
-  }
+  // public isVerticesDataPresent(kind: string): boolean {
+  //   return false;
+  // }
 
   /**
    * Returns the mesh BoundingInfo object or creates a new one and returns if it was undefined.
@@ -2246,7 +2246,7 @@ export class AbstractMesh extends TransformNode implements IDisposable, ICullabl
     var indices = this.meshGeometry.getIndices();
     var normals: FloatArray;
 
-    if (this.isVerticesDataPresent(VertexBuffer.NormalKind)) {
+    if (this.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind)) {
       normals = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
     } else {
       normals = [];

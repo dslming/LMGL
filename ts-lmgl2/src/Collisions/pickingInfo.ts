@@ -60,14 +60,8 @@ export class PickingInfo {
    * @param useVerticesNormals If the vertices normals should be used to calculate the normal instead of the normal map
    * @returns The normal correspodning to the face the pick collided with
    */
-  public getNormal(
-    useWorldCoordinates = false,
-    useVerticesNormals = true
-  ): Nullable<Vector3> {
-    if (
-      !this.pickedMesh ||
-      !this.pickedMesh.isVerticesDataPresent(VertexBuffer.NormalKind)
-    ) {
+  public getNormal(useWorldCoordinates = false, useVerticesNormals = true): Nullable<Vector3> {
+    if (!this.pickedMesh || !this.pickedMesh.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind)) {
       return null;
     }
 
@@ -80,43 +74,23 @@ export class PickingInfo {
     var result: Vector3;
 
     if (useVerticesNormals) {
-      var normals = <FloatArray>(
-        this.pickedMesh.meshGeometry.getVerticesData(VertexBuffer.NormalKind)
-      );
+      var normals = <FloatArray>this.pickedMesh.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
 
       var normal0 = Vector3.FromArray(normals, indices[this.faceId * 3] * 3);
-      var normal1 = Vector3.FromArray(
-        normals,
-        indices[this.faceId * 3 + 1] * 3
-      );
-      var normal2 = Vector3.FromArray(
-        normals,
-        indices[this.faceId * 3 + 2] * 3
-      );
+      var normal1 = Vector3.FromArray(normals, indices[this.faceId * 3 + 1] * 3);
+      var normal2 = Vector3.FromArray(normals, indices[this.faceId * 3 + 2] * 3);
 
       normal0 = normal0.scale(this.bu);
       normal1 = normal1.scale(this.bv);
       normal2 = normal2.scale(1.0 - this.bu - this.bv);
 
-      result = new Vector3(
-        normal0.x + normal1.x + normal2.x,
-        normal0.y + normal1.y + normal2.y,
-        normal0.z + normal1.z + normal2.z
-      );
+      result = new Vector3(normal0.x + normal1.x + normal2.x, normal0.y + normal1.y + normal2.y, normal0.z + normal1.z + normal2.z);
     } else {
-      var positions = <FloatArray>(
-        this.pickedMesh.meshGeometry.getVerticesData(VertexBuffer.PositionKind)
-      );
+      var positions = <FloatArray>this.pickedMesh.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
 
       var vertex1 = Vector3.FromArray(positions, indices[this.faceId * 3] * 3);
-      var vertex2 = Vector3.FromArray(
-        positions,
-        indices[this.faceId * 3 + 1] * 3
-      );
-      var vertex3 = Vector3.FromArray(
-        positions,
-        indices[this.faceId * 3 + 2] * 3
-      );
+      var vertex2 = Vector3.FromArray(positions, indices[this.faceId * 3 + 1] * 3);
+      var vertex3 = Vector3.FromArray(positions, indices[this.faceId * 3 + 2] * 3);
 
       var p1p2 = vertex1.subtract(vertex2);
       var p3p2 = vertex3.subtract(vertex2);
@@ -150,10 +124,7 @@ export class PickingInfo {
    * @returns the vector containing the coordnates of the texture
    */
   public getTextureCoordinates(): Nullable<Vector2> {
-    if (
-      !this.pickedMesh ||
-      !this.pickedMesh.isVerticesDataPresent(VertexBuffer.UVKind)
-    ) {
+    if (!this.pickedMesh || !this.pickedMesh.meshGeometry.isVerticesDataPresent(VertexBuffer.UVKind)) {
       return null;
     }
 

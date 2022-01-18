@@ -34,6 +34,28 @@ declare type InstancedMesh = import("./instancedMesh").InstancedMesh;
 // declare type GroundMesh = import("./groundMesh").GroundMesh;
 declare var earcut: any;
 
+/**
+ * @hidden
+ **/
+export class _InternalMeshDataInfo {
+  // Events
+  public _onBeforeRenderObservable: Nullable<Observable<Mesh>>;
+  public _onBeforeBindObservable: Nullable<Observable<Mesh>>;
+  public _onAfterRenderObservable: Nullable<Observable<Mesh>>;
+  public _onBeforeDrawObservable: Nullable<Observable<Mesh>>;
+
+  public _areNormalsFrozen: boolean = false; // Will be used by ribbons mainly
+  public _sourcePositions: Float32Array; // Will be used to save original positions when using software skinning
+  public _sourceNormals: Float32Array; // Will be used to save original normals when using software skinning
+
+  // Will be used to save a source mesh reference, If any
+  public _source: Nullable<Mesh> = null;
+  // Will be used to for fast cloned mesh lookup
+  public meshMap: Nullable<{ [id: string]: Mesh | undefined }> = null;
+
+  public _preActivateId: number = -1;
+}
+
 export class _InstancesBatch {
   public mustReturn = false;
   public visibleInstances = new Array<Nullable<Array<InstancedMesh>>>();
@@ -99,33 +121,12 @@ class _ThinInstanceDataStorage {
 }
 
 /**
- * @hidden
- **/
-class _InternalMeshDataInfo {
-  // Events
-  public _onBeforeRenderObservable: Nullable<Observable<Mesh>>;
-  public _onBeforeBindObservable: Nullable<Observable<Mesh>>;
-  public _onAfterRenderObservable: Nullable<Observable<Mesh>>;
-  public _onBeforeDrawObservable: Nullable<Observable<Mesh>>;
-
-  public _areNormalsFrozen: boolean = false; // Will be used by ribbons mainly
-  public _sourcePositions: Float32Array; // Will be used to save original positions when using software skinning
-  public _sourceNormals: Float32Array; // Will be used to save original normals when using software skinning
-
-  // Will be used to save a source mesh reference, If any
-  public _source: Nullable<Mesh> = null;
-  // Will be used to for fast cloned mesh lookup
-  public meshMap: Nullable<{ [id: string]: Mesh | undefined }> = null;
-
-  public _preActivateId: number = -1;
-}
-
-/**
  * Class used to represent renderable models
  */
 export class Mesh extends AbstractMesh {
-  // Consts
+  private _internalMeshDataInfo = new _InternalMeshDataInfo();
 
+  // Consts
   /**
    * Mesh side orientation : usually the external or front surface
    */
@@ -219,9 +220,6 @@ export class Mesh extends AbstractMesh {
     return orientation || Mesh.FRONTSIDE; // works as Mesh.FRONTSIDE is 0
   }
 
-  // Internal data
-  private _internalMeshDataInfo = new _InternalMeshDataInfo();
-
   // public get computeBonesUsingShaders(): boolean {
   //     return this._internalAbstractMeshDataInfo._computeBonesUsingShaders;
   // }
@@ -241,62 +239,6 @@ export class Mesh extends AbstractMesh {
   //     this._internalAbstractMeshDataInfo._computeBonesUsingShaders = value;
   //     this._markSubMeshesAsAttributesDirty();
   // }
-
-  /**
-   * An event triggered before rendering the mesh
-   */
-  public get onBeforeRenderObservable(): Observable<Mesh> {
-    if (!this._internalMeshDataInfo._onBeforeRenderObservable) {
-      this._internalMeshDataInfo._onBeforeRenderObservable = new Observable<Mesh>();
-    }
-
-    return this._internalMeshDataInfo._onBeforeRenderObservable;
-  }
-
-  /**
-   * An event triggered before binding the mesh
-   */
-  public get onBeforeBindObservable(): Observable<Mesh> {
-    if (!this._internalMeshDataInfo._onBeforeBindObservable) {
-      this._internalMeshDataInfo._onBeforeBindObservable = new Observable<Mesh>();
-    }
-
-    return this._internalMeshDataInfo._onBeforeBindObservable;
-  }
-
-  /**
-   * An event triggered after rendering the mesh
-   */
-  public get onAfterRenderObservable(): Observable<Mesh> {
-    if (!this._internalMeshDataInfo._onAfterRenderObservable) {
-      this._internalMeshDataInfo._onAfterRenderObservable = new Observable<Mesh>();
-    }
-
-    return this._internalMeshDataInfo._onAfterRenderObservable;
-  }
-
-  /**
-   * An event triggered before drawing the mesh
-   */
-  public get onBeforeDrawObservable(): Observable<Mesh> {
-    if (!this._internalMeshDataInfo._onBeforeDrawObservable) {
-      this._internalMeshDataInfo._onBeforeDrawObservable = new Observable<Mesh>();
-    }
-
-    return this._internalMeshDataInfo._onBeforeDrawObservable;
-  }
-
-  private _onBeforeDrawObserver: Nullable<Observer<Mesh>>;
-
-  /**
-   * Sets a callback to call before drawing the mesh. It is recommended to use onBeforeDrawObservable instead
-   */
-  public set onBeforeDraw(callback: () => void) {
-    if (this._onBeforeDrawObserver) {
-      this.onBeforeDrawObservable.remove(this._onBeforeDrawObserver);
-    }
-    this._onBeforeDrawObserver = this.onBeforeDrawObservable.add(callback);
-  }
 
   // public get hasInstances(): boolean {
   //     return this.instances.length > 0;
@@ -580,62 +522,14 @@ export class Mesh extends AbstractMesh {
     return true;
   }
 
-  /**
-   * Returns a description of this mesh
-   * @param fullDetails define if full details about this mesh must be used
-   * @returns a descriptive string representing this mesh
-   */
-  // public toString(fullDetails?: boolean): string {
-  //     var ret = super.toString(fullDetails);
-  //     ret += ", n vertices: " + this.getTotalVertices();
-  //     ret += ", parent: " + (this._waitingParentId ? this._waitingParentId : (this.parent ? this.parent.name : "NONE"));
-
-  //     if (fullDetails) {
-
-  //         if (this._geometry) {
-  //             let ib = this.getIndices();
-  //             let vb = this.getVerticesData(VertexBuffer.PositionKind);
-
-  //             if (vb && ib) {
-  //                 ret += ", flat shading: " + (vb.length / 3 === ib.length ? "YES" : "NO");
-  //             }
-  //         } else {
-  //             ret += ", flat shading: UNKNOWN";
-  //         }
-  //     }
-  //     return ret;
-  // }
-
   /** @hidden */
   // public _unBindEffect() {
-  //     super._unBindEffect();
+  //   super._unBindEffect();
 
-  //     for (var instance of this.instances) {
-  //         instance._unBindEffect();
-  //     }
+  //   for (var instance of this.instances) {
+  //     instance._unBindEffect();
+  //   }
   // }
-
-  // /**
-  //  * Add a mesh as LOD level triggered at the given distance.
-  //  * @see https://doc.babylonjs.com/how_to/how_to_use_lod
-  //  * @param distance The distance from the center of the object to show this level
-  //  * @param mesh The mesh to be added as LOD level (can be null)
-  //  * @return This mesh (for chaining)
-  //  */
-  // public addLODLevel(distance: number, mesh: Nullable<Mesh>): Mesh {
-  //     if (mesh && mesh._masterMesh) {
-  //         Logger.Warn("You cannot use a mesh as LOD level twice");
-  //         return this;
-  //     }
-
-  //     if (mesh) {
-  //         mesh._masterMesh = this;
-  //     }
-
-  //     return this;
-  // }
-
-
 
   /**
    * Determine if the current mesh is ready to be rendered
@@ -772,10 +666,7 @@ export class Mesh extends AbstractMesh {
   }
 
   /** @hidden */
-  public _registerInstanceForRenderId(
-    instance: InstancedMesh,
-    renderId: number
-  ): Mesh {
+  public _registerInstanceForRenderId(instance: InstancedMesh, renderId: number): Mesh {
     if (!this._instanceDataStorage.visibleInstances) {
       this._instanceDataStorage.visibleInstances = {
         defaultRenderId: renderId,
@@ -784,17 +675,11 @@ export class Mesh extends AbstractMesh {
     }
 
     if (!this._instanceDataStorage.visibleInstances[renderId]) {
-      if (
-        this._instanceDataStorage.previousRenderId !== undefined &&
-        this._instanceDataStorage.isFrozen
-      ) {
-        this._instanceDataStorage.visibleInstances[
-          this._instanceDataStorage.previousRenderId
-        ] = null;
+      if (this._instanceDataStorage.previousRenderId !== undefined && this._instanceDataStorage.isFrozen) {
+        this._instanceDataStorage.visibleInstances[this._instanceDataStorage.previousRenderId] = null;
       }
       this._instanceDataStorage.previousRenderId = renderId;
-      this._instanceDataStorage.visibleInstances[renderId] =
-        new Array<InstancedMesh>();
+      this._instanceDataStorage.visibleInstances[renderId] = new Array<InstancedMesh>();
     }
 
     this._instanceDataStorage.visibleInstances[renderId].push(instance);
@@ -868,155 +753,13 @@ export class Mesh extends AbstractMesh {
     return new SubMesh(0, 0, totalVertices, 0, this.meshGeometry.getTotalIndices(), this);
   }
 
-  /**
-   * This function will subdivide the mesh into multiple submeshes
-   * @param count defines the expected number of submeshes
-   */
-  public subdivide(count: number): void {
-    if (count < 1) {
-      return;
-    }
-
-    var totalIndices = this.meshGeometry.getTotalIndices();
-    var subdivisionSize = (totalIndices / count) | 0;
-    var offset = 0;
-
-    // Ensure that subdivisionSize is a multiple of 3
-    while (subdivisionSize % 3 !== 0) {
-      subdivisionSize++;
-    }
-
-    this.releaseSubMeshes();
-    for (var index = 0; index < count; index++) {
-      if (offset >= totalIndices) {
-        break;
-      }
-
-      SubMesh.CreateFromIndices(0, offset, index === count - 1 ? totalIndices - offset : subdivisionSize, this);
-
-      offset += subdivisionSize;
-    }
-
-    // this.synchronizeInstances();
-  }
-
-
-
-  /**
-   * Flags an associated vertex buffer as updatable
-   * @param kind defines which buffer to use (positions, indices, normals, etc). Possible `kind` values :
-   * - VertexBuffer.PositionKind
-   * - VertexBuffer.UVKind
-   * - VertexBuffer.UV2Kind
-   * - VertexBuffer.UV3Kind
-   * - VertexBuffer.UV4Kind
-   * - VertexBuffer.UV5Kind
-   * - VertexBuffer.UV6Kind
-   * - VertexBuffer.ColorKind
-   * - VertexBuffer.MatricesIndicesKind
-   * - VertexBuffer.MatricesIndicesExtraKind
-   * - VertexBuffer.MatricesWeightsKind
-   * - VertexBuffer.MatricesWeightsExtraKind
-   * @param updatable defines if the updated vertex buffer must be flagged as updatable
-   */
-  public markVerticesDataAsUpdatable(kind: string, updatable = true) {
-    let vb = this.meshGeometry.getVertexBuffer(kind);
-
-    if (!vb || vb.isUpdatable() === updatable) {
-      return;
-    }
-
-    this.meshGeometry.setVerticesData(kind, <FloatArray>this.meshGeometry.getVerticesData(kind), updatable);
-  }
-
-  /**
-   * Sets the mesh global Vertex Buffer
-   * @param buffer defines the buffer to use
-   * @returns the current mesh
-   */
-  public setVerticesBuffer(buffer: VertexBuffer): Mesh {
-    if (!this.meshGeometry._geometry) {
-      this.meshGeometry._geometry = Geometry.CreateGeometryForMesh(this);
-    }
-
-    this.meshGeometry._geometry.setVerticesBuffer(buffer);
-    return this;
-  }
-
-
-
-  /**
-   * This method updates the vertex positions of an updatable mesh according to the `positionFunction` returned values.
-   * @see https://doc.babylonjs.com/how_to/how_to_dynamically_morph_a_mesh#other-shapes-updatemeshpositions
-   * @param positionFunction is a simple JS function what is passed the mesh `positions` array. It doesn't need to return anything
-   * @param computeNormals is a boolean (default true) to enable/disable the mesh normal recomputation after the vertex position update
-   * @returns the current mesh
-   */
-  public updateMeshPositions(positionFunction: (data: FloatArray) => void, computeNormals: boolean = true): Mesh {
-    var positions = this.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
-    if (!positions) {
-      return this;
-    }
-
-    positionFunction(positions);
-    this.meshGeometry.updateVerticesData(VertexBuffer.PositionKind, positions, false, false);
-
-    if (computeNormals) {
-      var indices = this.meshGeometry.getIndices();
-      var normals = this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
-
-      if (!normals) {
-        return this;
-      }
-
-      VertexData.ComputeNormals(positions, indices, normals);
-      this.meshGeometry.updateVerticesData(VertexBuffer.NormalKind, normals, false, false);
-    }
-    return this;
-  }
-
-
-
-
-
-
-
-  /** @hidden */
-  public _bind(subMesh: SubMesh, effect: Effect, fillMode: number): Mesh {
-    if (!this.meshGeometry._geometry) {
-      return this;
-    }
-
-    var engine = this.getScene().getEngine();
-
-    // Wireframe
-    var indexToBind;
-
-    if (this._unIndexed) {
-      indexToBind = null;
-    } else {
-      switch (fillMode) {
-        case Material.PointFillMode:
-          indexToBind = null;
-          break;
-        case Material.WireFrameFillMode:
-          indexToBind = subMesh._getLinesIndexBuffer(<IndicesArray>this.meshGeometry.getIndices(), engine);
-          break;
-        default:
-        case Material.TriangleFillMode:
-          indexToBind = this.meshGeometry._geometry.getIndexBuffer();
-          break;
-      }
-    }
-
-    // VBOs
-    this.meshGeometry._geometry._bind(effect, indexToBind);
-    return this;
-  }
-
   /** @hidden */
   public _draw(subMesh: SubMesh, fillMode: number, instancesCount?: number): Mesh {
-    if (!this.meshGeometry._geometry || !this.meshGeometry._geometry.getVertexBuffers() || (!this._unIndexed && !this.meshGeometry._geometry.getIndexBuffer())) {
+    if (
+      !this.meshGeometry._geometry ||
+      !this.meshGeometry._geometry.getVertexBuffers() ||
+      (!this._unIndexed && !this.meshGeometry._geometry.getIndexBuffer())
+    ) {
       return this;
     }
 
@@ -1037,46 +780,6 @@ export class Mesh extends AbstractMesh {
       engine.engineDraw.drawElementsType(fillMode, subMesh.indexStart, subMesh.indexCount, instancesCount);
     }
 
-    return this;
-  }
-
-  /**
-   * Registers for this mesh a javascript function called just before the rendering process
-   * @param func defines the function to call before rendering this mesh
-   * @returns the current mesh
-   */
-  public registerBeforeRender(func: (mesh: AbstractMesh) => void): Mesh {
-    this.onBeforeRenderObservable.add(func);
-    return this;
-  }
-
-  /**
-   * Disposes a previously registered javascript function called before the rendering
-   * @param func defines the function to remove
-   * @returns the current mesh
-   */
-  public unregisterBeforeRender(func: (mesh: AbstractMesh) => void): Mesh {
-    this.onBeforeRenderObservable.removeCallback(func);
-    return this;
-  }
-
-  /**
-   * Registers for this mesh a javascript function called just after the rendering is complete
-   * @param func defines the function to call after rendering this mesh
-   * @returns the current mesh
-   */
-  public registerAfterRender(func: (mesh: AbstractMesh) => void): Mesh {
-    this.onAfterRenderObservable.add(func);
-    return this;
-  }
-
-  /**
-   * Disposes a previously registered javascript function called after the rendering.
-   * @param func defines the function to remove
-   * @returns the current mesh
-   */
-  public unregisterAfterRender(func: (mesh: AbstractMesh) => void): Mesh {
-    this.onAfterRenderObservable.removeCallback(func);
     return this;
   }
 
@@ -1173,7 +876,11 @@ export class Mesh extends AbstractMesh {
     // }
 
     // Checking geometry state
-    if (!this.meshGeometry._geometry || !this.meshGeometry._geometry.getVertexBuffers() || (!this._unIndexed && !this.meshGeometry._geometry.getIndexBuffer())) {
+    if (
+      !this.meshGeometry._geometry ||
+      !this.meshGeometry._geometry.getVertexBuffers() ||
+      (!this._unIndexed && !this.meshGeometry._geometry.getIndexBuffer())
+    ) {
       return this;
     }
 
@@ -1257,7 +964,7 @@ export class Mesh extends AbstractMesh {
 
     if (!hardwareInstancedRendering) {
       // Binding will be done later because we need to add more info to the VB
-      this._bind(subMesh, effect, fillMode);
+      this.meshGeometry._bind(subMesh, effect, fillMode);
     }
 
     var world = effectiveMesh.getWorldMatrix();
@@ -1300,8 +1007,8 @@ export class Mesh extends AbstractMesh {
    *   We check in the function for extra's present and if so we use the normalizeSkinWeightsWithExtras rather than the FourWeights version.
    */
   public cleanMatrixWeights(): void {
-    if (this.isVerticesDataPresent(VertexBuffer.MatricesWeightsKind)) {
-      if (this.isVerticesDataPresent(VertexBuffer.MatricesWeightsExtraKind)) {
+    if (this.meshGeometry.isVerticesDataPresent(VertexBuffer.MatricesWeightsKind)) {
+      if (this.meshGeometry.isVerticesDataPresent(VertexBuffer.MatricesWeightsExtraKind)) {
         // this.normalizeSkinWeightsAndExtra();
       } else {
         this.normalizeSkinFourWeights();
@@ -1331,48 +1038,6 @@ export class Mesh extends AbstractMesh {
     }
     this.meshGeometry.setVerticesData(VertexBuffer.MatricesWeightsKind, matricesWeights);
   }
-
-  /** @hidden */
-  // public _checkDelayState(): Mesh {
-  //   var scene = this.getScene();
-  //   if (this._geometry) {
-  //     this._geometry.load(scene);
-  //   } else if (this.delayLoadState === Constants.DELAYLOADSTATE_NOTLOADED) {
-  //     this.delayLoadState = Constants.DELAYLOADSTATE_LOADING;
-
-  //     this._queueLoad(scene);
-  //   }
-  //   return this;
-  // }
-
-  // private _queueLoad(scene: Scene): Mesh {
-  //   scene._addPendingData(this);
-
-  //   var getBinaryData =
-  //     this.delayLoadingFile.indexOf(".babylonbinarymeshdata") !== -1;
-
-  //   Tools.LoadFile(
-  //     this.delayLoadingFile,
-  //     (data) => {
-  //       if (data instanceof ArrayBuffer) {
-  //         this._delayLoadingFunction(data, this);
-  //       } else {
-  //         this._delayLoadingFunction(JSON.parse(data), this);
-  //       }
-
-  //       this.instances.forEach((instance) => {
-  //         instance.refreshBoundingInfo();
-  //         instance._syncSubMeshes();
-  //       });
-
-  //       this.delayLoadState = Constants.DELAYLOADSTATE_LOADED;
-  //       scene._removePendingData(this);
-  //     },
-  //     () => {},
-  //     getBinaryData
-  //   );
-  //   return this;
-  // }
 
   /**
    * Returns `true` if the mesh is within the frustum defined by the passed array of planes.
@@ -1425,7 +1090,7 @@ export class Mesh extends AbstractMesh {
    */
   public bakeTransformIntoVertices(transform: Matrix): Mesh {
     // Position
-    if (!this.isVerticesDataPresent(VertexBuffer.PositionKind)) {
+    if (!this.meshGeometry.isVerticesDataPresent(VertexBuffer.PositionKind)) {
       return this;
     }
 
@@ -1441,16 +1106,24 @@ export class Mesh extends AbstractMesh {
       Vector3.TransformCoordinates(Vector3.FromArray(data, index), transform).toArray(temp, index);
     }
 
-    this.meshGeometry.setVerticesData(VertexBuffer.PositionKind, temp, (<VertexBuffer>this.meshGeometry.getVertexBuffer(VertexBuffer.PositionKind)).isUpdatable());
+    this.meshGeometry.setVerticesData(
+      VertexBuffer.PositionKind,
+      temp,
+      (<VertexBuffer>this.meshGeometry.getVertexBuffer(VertexBuffer.PositionKind)).isUpdatable()
+    );
 
     // Normals
-    if (this.isVerticesDataPresent(VertexBuffer.NormalKind)) {
+    if (this.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind)) {
       data = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
       temp = [];
       for (index = 0; index < data.length; index += 3) {
         Vector3.TransformNormal(Vector3.FromArray(data, index), transform).normalize().toArray(temp, index);
       }
-      this.meshGeometry.setVerticesData(VertexBuffer.NormalKind, temp, (<VertexBuffer>this.meshGeometry.getVertexBuffer(VertexBuffer.NormalKind)).isUpdatable());
+      this.meshGeometry.setVerticesData(
+        VertexBuffer.NormalKind,
+        temp,
+        (<VertexBuffer>this.meshGeometry.getVertexBuffer(VertexBuffer.NormalKind)).isUpdatable()
+      );
     }
 
     // flip faces?
@@ -1478,8 +1151,6 @@ export class Mesh extends AbstractMesh {
     this.resetLocalMatrix(bakeIndependenlyOfChildren);
     return this;
   }
-
-
 
   /**
    * Returns a new Mesh object generated from the current mesh properties.
@@ -1652,9 +1323,9 @@ export class Mesh extends AbstractMesh {
     forceUpdate = false
   ): Mesh {
     if (
-      !this.isVerticesDataPresent(VertexBuffer.PositionKind) ||
-      !this.isVerticesDataPresent(VertexBuffer.NormalKind) ||
-      !this.isVerticesDataPresent(VertexBuffer.UVKind)
+      !this.meshGeometry.isVerticesDataPresent(VertexBuffer.PositionKind) ||
+      !this.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind) ||
+      !this.meshGeometry.isVerticesDataPresent(VertexBuffer.UVKind)
     ) {
       Logger.Warn("Cannot call applyDisplacementMap: Given mesh is not complete. Position, Normal or UV are missing");
       return this;
@@ -1894,7 +1565,7 @@ export class Mesh extends AbstractMesh {
   public flipFaces(flipNormals: boolean = false): Mesh {
     var vertex_data = VertexData.ExtractFromMesh(this);
     var i: number;
-    if (flipNormals && this.isVerticesDataPresent(VertexBuffer.NormalKind) && vertex_data.normals) {
+    if (flipNormals && this.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind) && vertex_data.normals) {
       for (i = 0; i < vertex_data.normals.length; i++) {
         vertex_data.normals[i] *= -1;
       }
@@ -1912,221 +1583,6 @@ export class Mesh extends AbstractMesh {
 
     vertex_data.applyToMesh(this, this.meshGeometry.isVertexBufferUpdatable(VertexBuffer.PositionKind));
     return this;
-  }
-
-  /**
-   * Increase the number of facets and hence vertices in a mesh
-   * Vertex normals are interpolated from existing vertex normals
-   * Warning : the mesh is really modified even if not set originally as updatable. A new VertexBuffer is created under the hood each call.
-   * @param numberPerEdge the number of new vertices to add to each edge of a facet, optional default 1
-   */
-  public increaseVertices(numberPerEdge: number): void {
-    var vertex_data = VertexData.ExtractFromMesh(this);
-    var uvs = vertex_data.uvs;
-    var currentIndices = vertex_data.indices;
-    var positions = vertex_data.positions;
-    var normals = vertex_data.normals;
-
-    if (!currentIndices || !positions || !normals || !uvs) {
-      Logger.Warn("VertexData contains null entries");
-    } else {
-      var segments: number = numberPerEdge + 1; //segments per current facet edge, become sides of new facets
-      var tempIndices: Array<Array<number>> = new Array();
-      for (var i = 0; i < segments + 1; i++) {
-        tempIndices[i] = new Array();
-      }
-      var a: number; //vertex index of one end of a side
-      var b: number; //vertex index of other end of the side
-      var deltaPosition: Vector3 = new Vector3(0, 0, 0);
-      var deltaNormal: Vector3 = new Vector3(0, 0, 0);
-      var deltaUV: Vector2 = new Vector2(0, 0);
-      var indices: number[] = new Array();
-      var vertexIndex: number[] = new Array();
-      var side: Array<Array<Array<number>>> = new Array();
-      var len: number;
-      var positionPtr: number = positions.length;
-      var uvPtr: number = uvs.length;
-
-      for (var i = 0; i < currentIndices.length; i += 3) {
-        vertexIndex[0] = currentIndices[i];
-        vertexIndex[1] = currentIndices[i + 1];
-        vertexIndex[2] = currentIndices[i + 2];
-        for (var j = 0; j < 3; j++) {
-          a = vertexIndex[j];
-          b = vertexIndex[(j + 1) % 3];
-          if (side[a] === undefined && side[b] === undefined) {
-            side[a] = new Array();
-            side[b] = new Array();
-          } else {
-            if (side[a] === undefined) {
-              side[a] = new Array();
-            }
-            if (side[b] === undefined) {
-              side[b] = new Array();
-            }
-          }
-          if (side[a][b] === undefined && side[b][a] === undefined) {
-            side[a][b] = [];
-            deltaPosition.x = (positions[3 * b] - positions[3 * a]) / segments;
-            deltaPosition.y = (positions[3 * b + 1] - positions[3 * a + 1]) / segments;
-            deltaPosition.z = (positions[3 * b + 2] - positions[3 * a + 2]) / segments;
-            deltaNormal.x = (normals[3 * b] - normals[3 * a]) / segments;
-            deltaNormal.y = (normals[3 * b + 1] - normals[3 * a + 1]) / segments;
-            deltaNormal.z = (normals[3 * b + 2] - normals[3 * a + 2]) / segments;
-            deltaUV.x = (uvs[2 * b] - uvs[2 * a]) / segments;
-            deltaUV.y = (uvs[2 * b + 1] - uvs[2 * a + 1]) / segments;
-            side[a][b].push(a);
-            for (var k = 1; k < segments; k++) {
-              side[a][b].push(positions.length / 3);
-              positions[positionPtr] = positions[3 * a] + k * deltaPosition.x;
-              normals[positionPtr++] = normals[3 * a] + k * deltaNormal.x;
-              positions[positionPtr] = positions[3 * a + 1] + k * deltaPosition.y;
-              normals[positionPtr++] = normals[3 * a + 1] + k * deltaNormal.y;
-              positions[positionPtr] = positions[3 * a + 2] + k * deltaPosition.z;
-              normals[positionPtr++] = normals[3 * a + 2] + k * deltaNormal.z;
-              uvs[uvPtr++] = uvs[2 * a] + k * deltaUV.x;
-              uvs[uvPtr++] = uvs[2 * a + 1] + k * deltaUV.y;
-            }
-            side[a][b].push(b);
-            side[b][a] = new Array();
-            len = side[a][b].length;
-            for (var idx = 0; idx < len; idx++) {
-              side[b][a][idx] = side[a][b][len - 1 - idx];
-            }
-          }
-        }
-        //Calculate positions, normals and uvs of new internal vertices
-        tempIndices[0][0] = currentIndices[i];
-        tempIndices[1][0] = side[currentIndices[i]][currentIndices[i + 1]][1];
-        tempIndices[1][1] = side[currentIndices[i]][currentIndices[i + 2]][1];
-        for (var k = 2; k < segments; k++) {
-          tempIndices[k][0] = side[currentIndices[i]][currentIndices[i + 1]][k];
-          tempIndices[k][k] = side[currentIndices[i]][currentIndices[i + 2]][k];
-          deltaPosition.x = (positions[3 * tempIndices[k][k]] - positions[3 * tempIndices[k][0]]) / k;
-          deltaPosition.y = (positions[3 * tempIndices[k][k] + 1] - positions[3 * tempIndices[k][0] + 1]) / k;
-          deltaPosition.z = (positions[3 * tempIndices[k][k] + 2] - positions[3 * tempIndices[k][0] + 2]) / k;
-          deltaNormal.x = (normals[3 * tempIndices[k][k]] - normals[3 * tempIndices[k][0]]) / k;
-          deltaNormal.y = (normals[3 * tempIndices[k][k] + 1] - normals[3 * tempIndices[k][0] + 1]) / k;
-          deltaNormal.z = (normals[3 * tempIndices[k][k] + 2] - normals[3 * tempIndices[k][0] + 2]) / k;
-          deltaUV.x = (uvs[2 * tempIndices[k][k]] - uvs[2 * tempIndices[k][0]]) / k;
-          deltaUV.y = (uvs[2 * tempIndices[k][k] + 1] - uvs[2 * tempIndices[k][0] + 1]) / k;
-          for (var j = 1; j < k; j++) {
-            tempIndices[k][j] = positions.length / 3;
-            positions[positionPtr] = positions[3 * tempIndices[k][0]] + j * deltaPosition.x;
-            normals[positionPtr++] = normals[3 * tempIndices[k][0]] + j * deltaNormal.x;
-            positions[positionPtr] = positions[3 * tempIndices[k][0] + 1] + j * deltaPosition.y;
-            normals[positionPtr++] = normals[3 * tempIndices[k][0] + 1] + j * deltaNormal.y;
-            positions[positionPtr] = positions[3 * tempIndices[k][0] + 2] + j * deltaPosition.z;
-            normals[positionPtr++] = normals[3 * tempIndices[k][0] + 2] + j * deltaNormal.z;
-            uvs[uvPtr++] = uvs[2 * tempIndices[k][0]] + j * deltaUV.x;
-            uvs[uvPtr++] = uvs[2 * tempIndices[k][0] + 1] + j * deltaUV.y;
-          }
-        }
-        tempIndices[segments] = side[currentIndices[i + 1]][currentIndices[i + 2]];
-
-        // reform indices
-        indices.push(tempIndices[0][0], tempIndices[1][0], tempIndices[1][1]);
-        for (var k = 1; k < segments; k++) {
-          for (var j = 0; j < k; j++) {
-            indices.push(tempIndices[k][j], tempIndices[k + 1][j], tempIndices[k + 1][j + 1]);
-            indices.push(tempIndices[k][j], tempIndices[k + 1][j + 1], tempIndices[k][j + 1]);
-          }
-          indices.push(tempIndices[k][j], tempIndices[k + 1][j], tempIndices[k + 1][j + 1]);
-        }
-      }
-
-      vertex_data.indices = indices;
-      vertex_data.applyToMesh(this, this.meshGeometry.isVertexBufferUpdatable(VertexBuffer.PositionKind));
-    }
-  }
-
-  /**
-   * Force adjacent facets to share vertices and remove any facets that have all vertices in a line
-   * This will undo any application of covertToFlatShadedMesh
-   * Warning : the mesh is really modified even if not set originally as updatable. A new VertexBuffer is created under the hood each call.
-   */
-  public forceSharedVertices(): void {
-    var vertex_data = VertexData.ExtractFromMesh(this);
-    var currentUVs = vertex_data.uvs;
-    var currentIndices = vertex_data.indices;
-    var currentPositions = vertex_data.positions;
-    var currentColors = vertex_data.colors;
-
-    if (currentIndices === void 0 || currentPositions === void 0 || currentIndices === null || currentPositions === null) {
-      Logger.Warn("VertexData contains empty entries");
-    } else {
-      var positions: Array<number> = new Array();
-      var indices: Array<number> = new Array();
-      var uvs: Array<number> = new Array();
-      var colors: Array<number> = new Array();
-      var pstring: Array<string> = new Array(); //lists facet vertex positions (a,b,c) as string "a|b|c"
-
-      var indexPtr: number = 0; // pointer to next available index value
-      var uniquePositions: { [key: string]: number } = {}; // unique vertex positions
-      var ptr: number; // pointer to element in uniquePositions
-      var facet: Array<number>;
-
-      for (var i = 0; i < currentIndices.length; i += 3) {
-        facet = [currentIndices[i], currentIndices[i + 1], currentIndices[i + 2]]; //facet vertex indices
-        pstring = new Array();
-        for (var j = 0; j < 3; j++) {
-          pstring[j] = "";
-          for (var k = 0; k < 3; k++) {
-            //small values make 0
-            if (Math.abs(currentPositions[3 * facet[j] + k]) < 0.00000001) {
-              currentPositions[3 * facet[j] + k] = 0;
-            }
-            pstring[j] += currentPositions[3 * facet[j] + k] + "|";
-          }
-        }
-        //check facet vertices to see that none are repeated
-        // do not process any facet that has a repeated vertex, ie is a line
-        if (!(pstring[0] == pstring[1] || pstring[0] == pstring[2] || pstring[1] == pstring[2])) {
-          //for each facet position check if already listed in uniquePositions
-          // if not listed add to uniquePositions and set index pointer
-          // if listed use its index in uniquePositions and new index pointer
-          for (var j = 0; j < 3; j++) {
-            ptr = uniquePositions[pstring[j]];
-            if (ptr === undefined) {
-              uniquePositions[pstring[j]] = indexPtr;
-              ptr = indexPtr++;
-              //not listed so add individual x, y, z coordinates to positions
-              for (var k = 0; k < 3; k++) {
-                positions.push(currentPositions[3 * facet[j] + k]);
-              }
-              if (currentColors !== null && currentColors !== void 0) {
-                for (var k = 0; k < 4; k++) {
-                  colors.push(currentColors[4 * facet[j] + k]);
-                }
-              }
-              if (currentUVs !== null && currentUVs !== void 0) {
-                for (var k = 0; k < 2; k++) {
-                  uvs.push(currentUVs[2 * facet[j] + k]);
-                }
-              }
-            }
-            // add new index pointer to indices array
-            indices.push(ptr);
-          }
-        }
-      }
-
-      var normals: Array<number> = new Array();
-      VertexData.ComputeNormals(positions, indices, normals);
-
-      //create new vertex data object and update
-      vertex_data.positions = positions;
-      vertex_data.indices = indices;
-      vertex_data.normals = normals;
-      if (currentUVs !== null && currentUVs !== void 0) {
-        vertex_data.uvs = uvs;
-      }
-      if (currentColors !== null && currentColors !== void 0) {
-        vertex_data.colors = colors;
-      }
-
-      vertex_data.applyToMesh(this, this.meshGeometry.isVertexBufferUpdatable(VertexBuffer.PositionKind));
-    }
   }
 
   // Instances
@@ -2295,7 +1751,6 @@ export class Mesh extends AbstractMesh {
   //     this.instances.pop();
   //   }
   // }
-
 }
 
 _TypeStore.RegisteredTypes["BABYLON.Mesh"] = Mesh;

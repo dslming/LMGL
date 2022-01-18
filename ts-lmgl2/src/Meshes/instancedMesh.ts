@@ -136,9 +136,7 @@ export class InstancedMesh extends AbstractMesh {
     }
 
     //no-op with warning
-    Logger.Warn(
-      "Note - setting renderingGroupId of an instanced mesh has no effect on the scene"
-    );
+    Logger.Warn("Note - setting renderingGroupId of an instanced mesh has no effect on the scene");
   }
 
   /**
@@ -188,10 +186,7 @@ export class InstancedMesh extends AbstractMesh {
    * @param copyWhenShared If true (default false) and and if the mesh geometry is shared among some other meshes, the returned array is a copy of the internal one.
    * @returns a float array or a Float32Array of the requested kind of data : positons, normals, uvs, etc.
    */
-  public getVerticesData(
-    kind: string,
-    copyWhenShared?: boolean
-  ): Nullable<FloatArray> {
+  public getVerticesData(kind: string, copyWhenShared?: boolean): Nullable<FloatArray> {
     return this._sourceMesh.meshGeometry.getVerticesData(kind, copyWhenShared);
   }
 
@@ -220,12 +215,7 @@ export class InstancedMesh extends AbstractMesh {
    *
    * Returns the Mesh.
    */
-  public setVerticesData(
-    kind: string,
-    data: FloatArray,
-    updatable?: boolean,
-    stride?: number
-  ): AbstractMesh {
+  public setVerticesData(kind: string, data: FloatArray, updatable?: boolean, stride?: number): AbstractMesh {
     if (this.sourceMesh) {
       this.sourceMesh.meshGeometry.setVerticesData(kind, data, updatable, stride);
     }
@@ -256,19 +246,9 @@ export class InstancedMesh extends AbstractMesh {
    *
    * Returns the Mesh.
    */
-  public updateVerticesData(
-    kind: string,
-    data: FloatArray,
-    updateExtends?: boolean,
-    makeItUnique?: boolean
-  ): Mesh {
+  public updateVerticesData(kind: string, data: FloatArray, updateExtends?: boolean, makeItUnique?: boolean): Mesh {
     if (this.sourceMesh) {
-      this.sourceMesh.meshGeometry.updateVerticesData(
-        kind,
-        data,
-        updateExtends,
-        makeItUnique
-      );
+      this.sourceMesh.meshGeometry.updateVerticesData(kind, data, updateExtends, makeItUnique);
     }
     return this.sourceMesh;
   }
@@ -280,10 +260,7 @@ export class InstancedMesh extends AbstractMesh {
    * This method creates a new index buffer each call.
    * Returns the Mesh.
    */
-  public setIndices(
-    indices: IndicesArray,
-    totalVertices: Nullable<number> = null
-  ): Mesh {
+  public setIndices(indices: IndicesArray, totalVertices: Nullable<number> = null): Mesh {
     if (this.sourceMesh) {
       this.sourceMesh.meshGeometry.setIndices(indices, totalVertices);
     }
@@ -294,7 +271,7 @@ export class InstancedMesh extends AbstractMesh {
    * Boolean : True if the mesh owns the requested kind of data.
    */
   public isVerticesDataPresent(kind: string): boolean {
-    return this._sourceMesh.isVerticesDataPresent(kind);
+    return this._sourceMesh.meshGeometry.isVerticesDataPresent(kind);
   }
 
   /**
@@ -319,9 +296,7 @@ export class InstancedMesh extends AbstractMesh {
       return this;
     }
 
-    const bias = this._sourceMesh.meshGeometry.geometry
-      ? this._sourceMesh.meshGeometry.geometry.boundingBias
-      : null;
+    const bias = this._sourceMesh.meshGeometry.geometry ? this._sourceMesh.meshGeometry.geometry.boundingBias : null;
     // this._refreshBoundingInfo(
     //   this._sourceMesh._getPositionData(applySkeleton),
     //   bias
@@ -344,9 +319,7 @@ export class InstancedMesh extends AbstractMesh {
     }
 
     if (this._currentLOD) {
-      let differentSign =
-        this._currentLOD._getWorldMatrixDeterminant() > 0 !==
-        this._getWorldMatrixDeterminant() > 0;
+      let differentSign = this._currentLOD._getWorldMatrixDeterminant() > 0 !== this._getWorldMatrixDeterminant() > 0;
       if (differentSign) {
         this._internalAbstractMeshDataInfo._actAsRegularMesh = true;
         return true;
@@ -356,17 +329,13 @@ export class InstancedMesh extends AbstractMesh {
       //   this._currentLOD._registerInstanceForRenderId(this, renderId);
 
       if (intermediateRendering) {
-        if (
-          !this._currentLOD._internalAbstractMeshDataInfo._isActiveIntermediate
-        ) {
-          this._currentLOD._internalAbstractMeshDataInfo._onlyForInstancesIntermediate =
-            true;
+        if (!this._currentLOD._internalAbstractMeshDataInfo._isActiveIntermediate) {
+          this._currentLOD._internalAbstractMeshDataInfo._onlyForInstancesIntermediate = true;
           return true;
         }
       } else {
         if (!this._currentLOD._internalAbstractMeshDataInfo._isActive) {
-          this._currentLOD._internalAbstractMeshDataInfo._onlyForInstances =
-            true;
+          this._currentLOD._internalAbstractMeshDataInfo._onlyForInstances = true;
           return true;
         }
       }
@@ -451,11 +420,7 @@ export class InstancedMesh extends AbstractMesh {
     if (this._boundingInfo) {
       this._boundingInfo.update(effectiveMesh.worldMatrixFromCache);
     } else {
-      this._boundingInfo = new BoundingInfo(
-        this.absolutePosition,
-        this.absolutePosition,
-        effectiveMesh.worldMatrixFromCache
-      );
+      this._boundingInfo = new BoundingInfo(this.absolutePosition, this.absolutePosition, effectiveMesh.worldMatrixFromCache);
     }
     this._updateSubMeshesBoundingInfo(effectiveMesh.worldMatrixFromCache);
     return this;
@@ -469,11 +434,7 @@ export class InstancedMesh extends AbstractMesh {
    *
    * Returns the clone.
    */
-  public clone(
-    name: string,
-    newParent: Nullable<Node> = null,
-    doNotCloneChildren?: boolean
-  ): InstancedMesh {
+  public clone(name: string, newParent: Nullable<Node> = null, doNotCloneChildren?: boolean): InstancedMesh {
     var result = this._sourceMesh.createInstance(name);
 
     // Deep copy
@@ -542,10 +503,7 @@ export class InstancedMesh extends AbstractMesh {
    * Disposes the InstancedMesh.
    * Returns nothing.
    */
-  public dispose(
-    doNotRecurse?: boolean,
-    disposeMaterialAndTextures = false
-  ): void {
+  public dispose(doNotRecurse?: boolean, disposeMaterialAndTextures = false): void {
     // Remove from mesh
     // this._sourceMesh.removeInstance(this);
     super.dispose(doNotRecurse, disposeMaterialAndTextures);
@@ -589,10 +547,7 @@ declare module "./abstractMesh" {
 
 Mesh.prototype.edgesShareWithInstances = false;
 
-Mesh.prototype.registerInstancedBuffer = function (
-  kind: string,
-  stride: number
-): void {
+Mesh.prototype.registerInstancedBuffer = function (kind: string, stride: number): void {
   // Remove existing one
   this.meshGeometry.removeVerticesData(kind);
 
@@ -617,9 +572,7 @@ Mesh.prototype.registerInstancedBuffer = function (
 
   this._userInstancedBuffersStorage.strides[kind] = stride;
   this._userInstancedBuffersStorage.sizes[kind] = stride * 32; // Initial size
-  this._userInstancedBuffersStorage.data[kind] = new Float32Array(
-    this._userInstancedBuffersStorage.sizes[kind]
-  );
+  this._userInstancedBuffersStorage.data[kind] = new Float32Array(this._userInstancedBuffersStorage.sizes[kind]);
   this._userInstancedBuffersStorage.vertexBuffers[kind] = new VertexBuffer(
     this.getEngine(),
     this._userInstancedBuffersStorage.data[kind],
@@ -629,9 +582,7 @@ Mesh.prototype.registerInstancedBuffer = function (
     stride,
     true
   );
-  this.setVerticesBuffer(
-    this._userInstancedBuffersStorage.vertexBuffers[kind]!
-  );
+  this.meshGeometry.setVerticesBuffer(this._userInstancedBuffersStorage.vertexBuffers[kind]!);
 
   //   for (var instance of this.instances) {
   //     instance.instancedBuffers[kind] = null;

@@ -530,7 +530,7 @@ export class ShaderMaterial extends Material {
       attribs.push(this._options.attributes[index]);
     }
 
-    if (mesh && mesh.isVerticesDataPresent(VertexBuffer.ColorKind)) {
+    if (mesh && mesh.meshGeometry.isVerticesDataPresent(VertexBuffer.ColorKind)) {
       attribs.push(VertexBuffer.ColorKind);
       defines.push("#define VERTEXCOLOR");
     }

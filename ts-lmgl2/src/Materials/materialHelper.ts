@@ -310,9 +310,9 @@ export class MaterialHelper {
     defines._normals = defines._needNormals;
     defines._uvs = defines._needUVs;
 
-    defines["NORMAL"] = defines._needNormals && mesh.isVerticesDataPresent(VertexBuffer.NormalKind);
+    defines["NORMAL"] = defines._needNormals && mesh.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind);
 
-    if (defines._needNormals && mesh.isVerticesDataPresent(VertexBuffer.TangentKind)) {
+    if (defines._needNormals && mesh.meshGeometry.isVerticesDataPresent(VertexBuffer.TangentKind)) {
       defines["TANGENT"] = true;
     }
 
@@ -323,7 +323,7 @@ export class MaterialHelper {
     // }
 
     if (useVertexColor) {
-      var hasVertexColors = mesh.useVertexColors && mesh.isVerticesDataPresent(VertexBuffer.ColorKind);
+      var hasVertexColors = mesh.useVertexColors && mesh.meshGeometry.isVerticesDataPresent(VertexBuffer.ColorKind);
       defines["VERTEXCOLOR"] = hasVertexColors;
       defines["VERTEXALPHA"] = mesh.hasVertexAlpha && hasVertexColors && useVertexAlpha;
     }
