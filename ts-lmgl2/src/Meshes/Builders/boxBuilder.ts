@@ -101,15 +101,15 @@ VertexData.CreateBox = function(options: { size?: number, width?: number, height
     return vertexData;
 };
 
-Mesh.CreateBox = (name: string, size: number, scene: Nullable<Scene> = null, updatable?: boolean, sideOrientation?: number): Mesh => {
-    var options = {
-        size: size,
-        sideOrientation: sideOrientation,
-        updatable: updatable
-    };
+// Mesh.CreateBox = (name: string, size: number, scene: Nullable<Scene> = null, updatable?: boolean, sideOrientation?: number): Mesh => {
+//     var options = {
+//         size: size,
+//         sideOrientation: sideOrientation,
+//         updatable: updatable
+//     };
 
-    return BoxBuilder.CreateBox(name, options, scene);
-};
+//     return BoxBuilder.CreateBox(name, options, scene);
+// };
 
 /**
  * Class containing static functions to help procedurally build meshes

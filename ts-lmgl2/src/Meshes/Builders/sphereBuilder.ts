@@ -88,18 +88,18 @@ VertexData.CreateSphere = function(options: { segments?: number, diameter?: numb
     return vertexData;
 };
 
-Mesh.CreateSphere = (name: string, segments: number, diameter: number, scene?: Scene, updatable?: boolean, sideOrientation?: number): Mesh => {
-    var options = {
-        segments: segments,
-        diameterX: diameter,
-        diameterY: diameter,
-        diameterZ: diameter,
-        sideOrientation: sideOrientation,
-        updatable: updatable
-    };
+// Mesh.CreateSphere = (name: string, segments: number, diameter: number, scene?: Scene, updatable?: boolean, sideOrientation?: number): Mesh => {
+//     var options = {
+//         segments: segments,
+//         diameterX: diameter,
+//         diameterY: diameter,
+//         diameterZ: diameter,
+//         sideOrientation: sideOrientation,
+//         updatable: updatable
+//     };
 
-    return SphereBuilder.CreateSphere(name, options, scene);
-};
+//     return SphereBuilder.CreateSphere(name, options, scene);
+// };
 
 /**
  * Class containing static functions to help procedurally build meshes

@@ -198,13 +198,13 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
         // });
       }
     }
-    this._dragPlane = Mesh.CreatePlane(
-      "pointerDragPlane",
-      this._debugMode ? 1 : 10000,
-      PointerDragBehavior._planeScene,
-      false,
-      Mesh.DOUBLESIDE
-    );
+    // this._dragPlane = Mesh.CreatePlane(
+    //   "pointerDragPlane",
+    //   this._debugMode ? 1 : 10000,
+    //   PointerDragBehavior._planeScene,
+    //   false,
+    //   Mesh.DOUBLESIDE
+    // );
 
     // State of the drag
     this.lastDragPosition = new Vector3(0, 0, 0);

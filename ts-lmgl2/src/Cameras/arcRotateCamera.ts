@@ -17,6 +17,7 @@ import { TargetCamera } from "./targetCamera";
 import { ArcRotateCameraInputsManager } from "../Cameras/arcRotateCameraInputsManager";
 import { Epsilon } from "../Maths/math.constants";
 import { Tools } from "../Misc/tools";
+import { MeshTool } from "../Meshes/mesh.tool";
 
 // declare type Collider = import("../Collisions/collider").Collider;
 
@@ -1283,7 +1284,7 @@ export class ArcRotateCamera extends TargetCamera {
   public zoomOn(meshes?: AbstractMesh[], doNotUpdateMaxZ = false): void {
     meshes = meshes || this.getScene().meshes;
 
-    var minMaxVector = Mesh.MinMax(meshes);
+    var minMaxVector = MeshTool.MinMax(meshes);
     var distance = Vector3.Distance(minMaxVector.min, minMaxVector.max);
 
     this.radius = distance * this.zoomOnFactor;
@@ -1314,7 +1315,7 @@ export class ArcRotateCamera extends TargetCamera {
       var meshes =
         <AbstractMesh[]>meshesOrMinMaxVectorAndDistance ||
         this.getScene().meshes;
-      meshesOrMinMaxVector = Mesh.MinMax(meshes);
+      meshesOrMinMaxVector = MeshTool.MinMax(meshes);
       distance = Vector3.Distance(
         meshesOrMinMaxVector.min,
         meshesOrMinMaxVector.max
@@ -1326,7 +1327,7 @@ export class ArcRotateCamera extends TargetCamera {
       distance = minMaxVectorAndDistance.distance;
     }
 
-    this._target = Mesh.Center(meshesOrMinMaxVector);
+    this._target = MeshTool.Center(meshesOrMinMaxVector);
 
     if (!doNotUpdateMaxZ) {
       this.maxZ = distance * 2;

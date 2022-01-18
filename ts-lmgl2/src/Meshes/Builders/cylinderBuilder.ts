@@ -266,28 +266,28 @@ VertexData.CreateCylinder = function(options: { height?: number, diameterTop?: n
     return vertexData;
 };
 
-Mesh.CreateCylinder = (name: string, height: number, diameterTop: number, diameterBottom: number, tessellation: number, subdivisions: any, scene?: Scene, updatable?: any, sideOrientation?: number): Mesh => {
-    if (scene === undefined || !(scene instanceof Scene)) {
-        if (scene !== undefined) {
-            sideOrientation = updatable || Mesh.DEFAULTSIDE;
-            updatable = scene;
-        }
-        scene = <Scene>subdivisions;
-        subdivisions = 1;
-    }
+// Mesh.CreateCylinder = (name: string, height: number, diameterTop: number, diameterBottom: number, tessellation: number, subdivisions: any, scene?: Scene, updatable?: any, sideOrientation?: number): Mesh => {
+//     if (scene === undefined || !(scene instanceof Scene)) {
+//         if (scene !== undefined) {
+//             sideOrientation = updatable || Mesh.DEFAULTSIDE;
+//             updatable = scene;
+//         }
+//         scene = <Scene>subdivisions;
+//         subdivisions = 1;
+//     }
 
-    var options = {
-        height: height,
-        diameterTop: diameterTop,
-        diameterBottom: diameterBottom,
-        tessellation: tessellation,
-        subdivisions: subdivisions,
-        sideOrientation: sideOrientation,
-        updatable: updatable
-    };
+//     var options = {
+//         height: height,
+//         diameterTop: diameterTop,
+//         diameterBottom: diameterBottom,
+//         tessellation: tessellation,
+//         subdivisions: subdivisions,
+//         sideOrientation: sideOrientation,
+//         updatable: updatable
+//     };
 
-    return CylinderBuilder.CreateCylinder(name, options, scene);
-};
+//     return CylinderBuilder.CreateCylinder(name, options, scene);
+// };
 
 /**
  * Class containing static functions to help procedurally build meshes
