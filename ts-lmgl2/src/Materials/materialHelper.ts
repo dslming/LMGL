@@ -209,70 +209,6 @@ export class MaterialHelper {
   }
 
   /**
-   * Prepares the defines for bones
-   * @param mesh The mesh containing the geometry data we will draw
-   * @param defines The defines to update
-   */
-  //   public static PrepareDefinesForBones(mesh: AbstractMesh, defines: any) {
-  //     if (mesh.useBones && mesh.computeBonesUsingShaders && mesh.skeleton) {
-  //       defines["NUM_BONE_INFLUENCERS"] = mesh.numBoneInfluencers;
-
-  //       const materialSupportsBoneTexture = defines["BONETEXTURE"] !== undefined;
-
-  //       if (
-  //         mesh.skeleton.isUsingTextureForMatrices &&
-  //         materialSupportsBoneTexture
-  //       ) {
-  //         defines["BONETEXTURE"] = true;
-  //       } else {
-  //         // defines["BonesPerMesh"] = mesh.skeleton.bones.length + 1;
-  //         defines["BONETEXTURE"] = materialSupportsBoneTexture
-  //           ? false
-  //           : undefined;
-
-  //         // const prePassRenderer = mesh.getScene().prePassRenderer;
-  //         // if (prePassRenderer && prePassRenderer.enabled) {
-  //         //   const nonExcluded =
-  //         //     prePassRenderer.excludedSkinnedMesh.indexOf(mesh) === -1;
-  //         //   defines["BONES_VELOCITY_ENABLED"] = nonExcluded;
-  //         // }
-  //       }
-  //     } else {
-  //       defines["NUM_BONE_INFLUENCERS"] = 0;
-  //       defines["BonesPerMesh"] = 0;
-  //     }
-  //   }
-
-  /**
-   * Prepares the defines for morph targets
-   * @param mesh The mesh containing the geometry data we will draw
-   * @param defines The defines to update
-   */
-  //   public static PrepareDefinesForMorphTargets(
-  //     mesh: AbstractMesh,
-  //     defines: any
-  //   ) {
-  //     var manager = (<Mesh>mesh).morphTargetManager;
-  //     if (manager) {
-  //       defines["MORPHTARGETS_UV"] = manager.supportsUVs && defines["UV1"];
-  //       defines["MORPHTARGETS_TANGENT"] =
-  //         manager.supportsTangents && defines["TANGENT"];
-  //       defines["MORPHTARGETS_NORMAL"] =
-  //         manager.supportsNormals && defines["NORMAL"];
-  //       defines["MORPHTARGETS"] = manager.numInfluencers > 0;
-  //       defines["NUM_MORPH_INFLUENCERS"] = manager.numInfluencers;
-
-  //       defines["MORPHTARGETS_TEXTURE"] = manager.isUsingTextureForTargets;
-  //     } else {
-  //       defines["MORPHTARGETS_UV"] = false;
-  //       defines["MORPHTARGETS_TANGENT"] = false;
-  //       defines["MORPHTARGETS_NORMAL"] = false;
-  //       defines["MORPHTARGETS"] = false;
-  //       defines["NUM_MORPH_INFLUENCERS"] = 0;
-  //     }
-  //   }
-
-  /**
    * Prepares the defines for baked vertex animation
    * @param mesh The mesh containing the geometry data we will draw
    * @param defines The defines to update
@@ -816,71 +752,6 @@ export class MaterialHelper {
   }
 
   private static _TmpMorphInfluencers = { NUM_MORPH_INFLUENCERS: 0 };
-  /**
-   * Prepares the list of attributes required for morph targets according to the effect defines.
-   * @param attribs The current list of supported attribs
-   * @param mesh The mesh to prepare the morph targets attributes for
-   * @param influencers The number of influencers
-   */
-  //   public static PrepareAttributesForMorphTargetsInfluencers(
-  //     attribs: string[],
-  //     mesh: AbstractMesh,
-  //     influencers: number
-  //   ): void {
-  //     this._TmpMorphInfluencers.NUM_MORPH_INFLUENCERS = influencers;
-  //     this.PrepareAttributesForMorphTargets(
-  //       attribs,
-  //       mesh,
-  //       this._TmpMorphInfluencers
-  //     );
-  //   }
-
-  /**
-   * Prepares the list of attributes required for morph targets according to the effect defines.
-   * @param attribs The current list of supported attribs
-   * @param mesh The mesh to prepare the morph targets attributes for
-   * @param defines The current Defines of the effect
-   */
-  //   public static PrepareAttributesForMorphTargets(
-  //     attribs: string[],
-  //     mesh: AbstractMesh,
-  //     defines: any
-  //   ): void {
-  //     var influencers = defines["NUM_MORPH_INFLUENCERS"];
-
-  //     if (influencers > 0 && EngineStore.LastCreatedEngine) {
-  //       var maxAttributesCount =
-  //         EngineStore.LastCreatedEngine.getCaps().maxVertexAttribs;
-  //       var manager = (<Mesh>mesh).morphTargetManager;
-  //       if (manager?.isUsingTextureForTargets) {
-  //         return;
-  //       }
-  //       var normal = manager && manager.supportsNormals && defines["NORMAL"];
-  //       var tangent = manager && manager.supportsTangents && defines["TANGENT"];
-  //       var uv = manager && manager.supportsUVs && defines["UV1"];
-  //       for (var index = 0; index < influencers; index++) {
-  //         attribs.push(VertexBuffer.PositionKind + index);
-
-  //         if (normal) {
-  //           attribs.push(VertexBuffer.NormalKind + index);
-  //         }
-
-  //         if (tangent) {
-  //           attribs.push(VertexBuffer.TangentKind + index);
-  //         }
-
-  //         if (uv) {
-  //           attribs.push(VertexBuffer.UVKind + "_" + index);
-  //         }
-
-  //         if (attribs.length > maxAttributesCount) {
-  //           Logger.Error(
-  //             "Cannot add more vertex attributes for mesh " + mesh.name
-  //           );
-  //         }
-  //       }
-  //     }
-  //   }
 
   /**
    * Prepares the list of attributes required for baked vertex animations according to the effect defines.
@@ -1052,41 +923,6 @@ export class MaterialHelper {
 
     return target;
   }
-
-  /**
-   * Binds the morph targets information from the mesh to the effect.
-   * @param abstractMesh The mesh we are binding the information to render
-   * @param effect The effect we are binding the data to
-   */
-  public static BindMorphTargetParameters(abstractMesh: AbstractMesh, effect: Effect): void {
-    // let manager = (<Mesh>abstractMesh).morphTargetManager;
-    // if (!abstractMesh || !manager) {
-    //     return;
-    // }
-    // effect.setFloatArray("morphTargetInfluences", manager.influences);
-  }
-
-  /**
-   * Binds the logarithmic depth information from the scene to the effect for the given defines.
-   * @param defines The generated defines used in the effect
-   * @param effect The effect we are binding the data to
-   * @param scene The scene we are willing to render with logarithmic scale for
-   */
-  //   public static BindLogDepth(defines: any, effect: Effect, scene: Scene): void {
-  //     if (!defines || defines["LOGARITHMICDEPTH"]) {
-  //       const camera = <Camera>scene.activeCamera;
-  //       if (camera.mode === Camera.ORTHOGRAPHIC_CAMERA) {
-  //         Logger.Error(
-  //           "Logarithmic depth is not compatible with orthographic cameras!",
-  //           20
-  //         );
-  //       }
-  //       effect.setFloat(
-  //         "logarithmicDepthConstant",
-  //         2.0 / (Math.log(camera.maxZ + 1.0) / Math.LN2)
-  //       );
-  //     }
-  //   }
 
   /**
    * Bind the current view position to an effect.

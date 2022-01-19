@@ -1708,7 +1708,7 @@ export class StandardMaterial extends PushMaterial {
 
       // Morph targets
       if (defines.NUM_MORPH_INFLUENCERS) {
-        MaterialHelper.BindMorphTargetParameters(mesh, effect);
+        // MaterialHelper.BindMorphTargetParameters(mesh, effect);
       }
 
       // Log. depth
