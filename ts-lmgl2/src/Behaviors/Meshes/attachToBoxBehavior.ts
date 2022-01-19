@@ -108,8 +108,8 @@ export class AttachToBoxBehavior implements Behavior<Mesh> {
         cameraPos = (<any>this._scene.sceneRender.activeCamera).devicePosition;
       }
       var facing = this._closestFace(cameraPos.subtract(target.position));
-      // if (this._scene.activeCamera.leftCamera) {
-      //     this._scene.activeCamera.leftCamera.computeWorldMatrix().getRotationMatrixToRef(this._tmpMatrix);
+      // if (this._scene.sceneRender.activeCamera.leftCamera) {
+      //     this._scene.sceneRender.activeCamera.leftCamera.computeWorldMatrix().getRotationMatrixToRef(this._tmpMatrix);
       // } else {
       // }
       this._scene.sceneRender.activeCamera.computeWorldMatrix().getRotationMatrixToRef(this._tmpMatrix);

@@ -16,8 +16,8 @@ import { Texture } from "./texture";
 import { RenderingManager } from "../../Rendering/renderingManager";
 import { Constants } from "../../Engine/constants";
 
-import "../../Engines/Extensions/engine.renderTarget";
-import "../../Engines/Extensions/engine.renderTargetCube";
+import "../../Engine/Extensions/engine.renderTarget";
+import "../../Engine/Extensions/engine.renderTargetCube";
 import { Engine } from "../../Engine/engine";
 import { EngineTexture } from "../../Engine/engine.texture";
 
@@ -689,12 +689,12 @@ export class RenderTargetTexture extends Texture {
     // if (this.activeCamera) {
     //     camera = this.activeCamera;
     //     engine.engineViewPort.setViewport(this.activeCamera.viewport, this.getRenderWidth(), this.getRenderHeight());
-    //     if (this.activeCamera !== scene.activeCamera) {
+    //     if (this.activeCamera !== scene.sceneRender.activeCamera) {
     //         scene.sceneMatrix.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(true));
     //     }
     // }
     // else {
-    //     camera = scene.activeCamera;
+    //     camera = scene.sceneRender.activeCamera;
     //     if (camera) {
     //         engine.engineViewPort.setViewport(camera.viewport, this.getRenderWidth(), this.getRenderHeight());
     //     }
@@ -717,12 +717,12 @@ export class RenderTargetTexture extends Texture {
     //     this.renderToTarget(0, useCameraPostProcess, dumpForDebug, undefined, camera);
     // }
     // this.onAfterUnbindObservable.notifyObservers(this);
-    // if (scene.activeCamera) {
+    // if (scene.sceneRender.activeCamera) {
     //     // Do not avoid setting uniforms when multiple scenes are active as another camera may have overwrite these
-    //     if (scene.getEngine().scenes.length > 1 || (this.activeCamera && this.activeCamera !== scene.activeCamera)) {
-    //         scene.sceneMatrix.setTransformMatrix(scene.activeCamera.getViewMatrix(), scene.activeCamera.getProjectionMatrix(true));
+    //     if (scene.getEngine().scenes.length > 1 || (this.activeCamera && this.activeCamera !== scene.sceneRender.activeCamera)) {
+    //         scene.sceneMatrix.setTransformMatrix(scene.sceneRender.activeCamera.getViewMatrix(), scene.sceneRender.activeCamera.getProjectionMatrix(true));
     //     }
-    //     engine.engineViewPort.setViewport(scene.activeCamera.viewport);
+    //     engine.engineViewPort.setViewport(scene.sceneRender.activeCamera.viewport);
     // }
     // scene.sceneCatch.resetCachedMaterial();
   }
@@ -766,8 +766,8 @@ export class RenderTargetTexture extends Texture {
     //             continue;
     //         }
 
-    //         if (!mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate && scene.activeCamera) {
-    //             mesh._internalAbstractMeshDataInfo._currentLOD = scene.customLODSelector ? scene.customLODSelector(mesh, scene.activeCamera) : mesh.getLOD(scene.activeCamera);
+    //         if (!mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate && scene.sceneRender.activeCamera) {
+    //             mesh._internalAbstractMeshDataInfo._currentLOD = scene.customLODSelector ? scene.customLODSelector(mesh, scene.sceneRender.activeCamera) : mesh.getLOD(scene.sceneRender.activeCamera);
     //             mesh._internalAbstractMeshDataInfo._currentLODIsUpToDate = true;
     //         }
     //         if (!mesh._internalAbstractMeshDataInfo._currentLOD) {

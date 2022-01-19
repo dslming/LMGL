@@ -85,6 +85,20 @@ export class SceneNode {
       this.scene.lights.sort(Light.CompareLightsPriority);
     }
   }
+  /**
+    * Gets a light node using its id
+    * @param id defines the light's id
+    * @return the light or null if none found.
+    */
+  public getLightByID(id: string): Nullable<Light> {
+    for (var index = 0; index < this.scene.lights.length; index++) {
+      if (this.scene.lights[index].id === id) {
+        return this.scene.lights[index];
+      }
+    }
+
+    return null;
+  }
 
   /*----------------------------------- camera ------------------------------------*/
   // Mirror
@@ -400,6 +414,20 @@ export class SceneNode {
 
     return null;
   }
+  /**
+     * Gets the first added mesh found of a given ID
+     * @param id defines the id to search for
+     * @return the mesh found or null if not found at all
+     */
+  public getMeshByID(id: string): Nullable<AbstractMesh> {
+    for (var index = 0; index < this.scene.meshes.length; index++) {
+      if (this.scene.meshes[index].id === id) {
+        return this.scene.meshes[index];
+      }
+    }
+
+    return null;
+  }
   /*----------------------------------- material ------------------------------------*/
   public readonly useMaterialMeshMap: boolean = true;
 
@@ -553,5 +581,20 @@ export class SceneNode {
     // this.scene.sceneEventTrigger.onMaterialRemovedObservable.notifyObservers(toRemove);
 
     return index;
+  }
+
+  /**
+   * Gets a mesh with its auto-generated unique id
+   * @param uniqueId defines the unique id to search for
+   * @return the found mesh or null if not found at all.
+   */
+  public getMeshByUniqueID(uniqueId: number): Nullable<AbstractMesh> {
+    for (var index = 0; index < this.scene.meshes.length; index++) {
+      if (this.scene.meshes[index].uniqueId === uniqueId) {
+        return this.scene.meshes[index];
+      }
+    }
+
+    return null;
   }
 }

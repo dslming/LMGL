@@ -331,12 +331,12 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
     this._moving = false;
 
     // Reattach camera controls
-    // if (this.detachCameraControls && this._attachedToElement && this._scene.activeCamera && !this._scene.activeCamera.leftCamera) {
-    //     if (this._scene.activeCamera.getClassName() === "ArcRotateCamera") {
-    //         const arcRotateCamera = this._scene.activeCamera as ArcRotateCamera;
+    // if (this.detachCameraControls && this._attachedToElement && this._scene.sceneRender.activeCamera && !this._scene.sceneRender.activeCamera.leftCamera) {
+    //     if (this._scene.sceneRender.activeCamera.getClassName() === "ArcRotateCamera") {
+    //         const arcRotateCamera = this._scene.sceneRender.activeCamera as ArcRotateCamera;
     //         arcRotateCamera.attachControl(arcRotateCamera.inputs ? arcRotateCamera.inputs.noPreventDefault : true, arcRotateCamera._useCtrlForPanning, arcRotateCamera._panningMouseButton);
     //     } else {
-    //         this._scene.activeCamera.attachControl(this._scene.activeCamera.inputs ? this._scene.activeCamera.inputs.noPreventDefault : true);
+    //         this._scene.sceneRender.activeCamera.attachControl(this._scene.sceneRender.activeCamera.inputs ? this._scene.sceneRender.activeCamera.inputs.noPreventDefault : true);
     //     }
     //     this._attachedToElement = false;
     // }
@@ -373,7 +373,7 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
   //   fromRay?: Ray,
   //   startPickedPoint?: Vector3
   // ) {
-  //   if (!this._scene.activeCamera || this.dragging || !this.attachedNode) {
+  //   if (!this._scene.sceneRender.activeCamera || this.dragging || !this.attachedNode) {
   //     return;
   //   }
 
@@ -383,10 +383,10 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
   //     this._startDragRay.direction.copyFrom(fromRay.direction);
   //     this._startDragRay.origin.copyFrom(fromRay.origin);
   //   } else {
-  //     this._startDragRay.origin.copyFrom(this._scene.activeCamera.position);
+  //     this._startDragRay.origin.copyFrom(this._scene.sceneRender.activeCamera.position);
   //     this.attachedNode.getWorldMatrix().getTranslationToRef(this._tmpVector);
   //     this._tmpVector.subtractToRef(
-  //       this._scene.activeCamera.position,
+  //       this._scene.sceneRender.activeCamera.position,
   //       this._startDragRay.direction
   //     );
   //   }
@@ -408,9 +408,9 @@ export class PointerDragBehavior implements Behavior<AbstractMesh> {
   //     this._targetPosition.copyFrom(this.attachedNode.absolutePosition);
 
   //     // Detatch camera controls
-  //     // if (this.detachCameraControls && this._scene.activeCamera && this._scene.activeCamera.inputs && !this._scene.activeCamera.leftCamera) {
-  //     //     if (this._scene.activeCamera.inputs.attachedToElement) {
-  //     //         this._scene.activeCamera.detachControl();
+  //     // if (this.detachCameraControls && this._scene.sceneRender.activeCamera && this._scene.sceneRender.activeCamera.inputs && !this._scene.sceneRender.activeCamera.leftCamera) {
+  //     //     if (this._scene.sceneRender.activeCamera.inputs.attachedToElement) {
+  //     //         this._scene.sceneRender.activeCamera.detachControl();
   //     //         this._attachedToElement = true;
   //     //     } else {
   //     //         this._attachedToElement = false;

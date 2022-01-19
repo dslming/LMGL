@@ -1,6 +1,6 @@
 import { Texture } from "./texture";
 import { Constants } from "../../Engine/constants";
-import "../../Engines/Extensions/engine.rawTexture";
+import "../../Engine/Extensions/engine.rawTexture";
 import { Nullable } from "../../types";
 import { Engine } from "../../Engine/engine";
 

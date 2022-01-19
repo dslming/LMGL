@@ -5,8 +5,8 @@ import { Nullable } from "../../types";
 import { Scene } from "../../Scene/scene";
 import { Texture } from "./texture";
 
-import "../../Engines/Extensions/engine.videoTexture";
-import "../../Engines/Extensions/engine.dynamicTexture";
+import "../../Engine/Extensions/engine.videoTexture";
+import "../../Engine/Extensions/engine.dynamicTexture";
 
 /**
  * Settings for finer control over video usage

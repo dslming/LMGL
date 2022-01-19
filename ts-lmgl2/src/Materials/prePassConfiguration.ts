@@ -2,7 +2,7 @@ import { Matrix } from "../Maths/math.vector";
 import { Mesh } from "../Meshes/mesh";
 import { Scene } from "../Scene/scene";
 import { Effect } from "./effect"
-// import { Constants } from "../Engines/constants";
+// import { Constants } from "../Engine/constants";
 
 /**
  * Configuration needed for prepass-capable materials

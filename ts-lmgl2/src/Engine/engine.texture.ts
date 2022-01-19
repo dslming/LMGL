@@ -14,6 +14,7 @@ import { EngineStore } from "./engineStore";
 import { ISceneLike } from "./iEngine";
 import { Engine } from "./engine";
 import { EngineFile } from "./engine.file";
+import { PostProcess } from "../PostProcesses/postProcess";
 
 export class EngineTexture {
     public _gl: WebGLRenderingContext;
@@ -1378,5 +1379,159 @@ export class EngineTexture {
             gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, comparisonFunction);
             gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
         }
+    }
+
+    createDynamicTexture  (width: number, height: number, generateMipMaps: boolean, samplingMode: number): InternalTexture {
+        var texture = new InternalTexture(this.engine, InternalTextureSource.Dynamic);
+        texture.baseWidth = width;
+        texture.baseHeight = height;
+
+        if (generateMipMaps) {
+            width = this.needPOTTextures ? EngineTexture.GetExponentOfTwo(width, this.engine._caps.maxTextureSize) : width;
+            height = this.needPOTTextures ? EngineTexture.GetExponentOfTwo(height, this.engine._caps.maxTextureSize) : height;
+        }
+
+        //  this.resetTextureCache();
+        texture.width = width;
+        texture.height = height;
+        texture.isReady = false;
+        texture.generateMipMaps = generateMipMaps;
+        texture.samplingMode = samplingMode;
+
+        this.updateTextureSamplingMode(samplingMode, texture);
+
+        this._internalTexturesCache.push(texture);
+
+        return texture;
+    };
+
+updateDynamicTexture  (texture: Nullable<InternalTexture>,
+        source: ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | OffscreenCanvas,
+        invertY?: boolean,
+        premulAlpha: boolean = false,
+        format?: number,
+        forceBindTexture: boolean = false): void {
+        if (!texture) {
+            return;
+        }
+
+        const gl = this._gl;
+        const target = gl.TEXTURE_2D;
+
+        const wasPreviouslyBound = this._bindTextureDirectly(target, texture, true, forceBindTexture);
+
+        this._unpackFlipY(invertY === undefined ? texture.invertY : invertY);
+
+        if (premulAlpha) {
+            gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+        }
+
+        const textureType = this._getWebGLTextureType(texture.type);
+        const glformat = this._getInternalFormat(format ? format : texture.format);
+        const internalFormat = this._getRGBABufferInternalSizedFormat(texture.type, glformat);
+
+        gl.texImage2D(target, 0, internalFormat, glformat, textureType, source);
+
+        if (texture.generateMipMaps) {
+            gl.generateMipmap(target);
+        }
+
+        if (!wasPreviouslyBound) {
+            this._bindTextureDirectly(target, null);
+        }
+
+        if (premulAlpha) {
+            gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
+        }
+
+        texture.isReady = true;
+    };
+
+    /**
+     * Sets a texture to the webGL context from a postprocess
+     * @param channel defines the channel to use
+     * @param postProcess defines the source postprocess
+     */
+    public setTextureFromPostProcess(channel: number, postProcess: Nullable<PostProcess>): void {
+        this._bindTexture(channel, postProcess ? postProcess._textures.data[postProcess._currentRenderTextureInd] : null);
+    }
+
+    /**
+    * Binds the output of the passed in post process to the texture channel specified
+    * @param channel The channel the texture should be bound to
+    * @param postProcess The post process which's output should be bound
+    */
+    public setTextureFromPostProcessOutput(channel: number, postProcess: Nullable<PostProcess>): void {
+        this._bindTexture(channel, postProcess ? postProcess._outputTexture : null);
+    }
+
+    /**
+    * Updates the sample count of a render target texture
+    * @see https://doc.babylonjs.com/features/webgl2#multisample-render-targets
+    * @param texture defines the texture to update
+    * @param samples defines the sample count to set
+    * @returns the effective sample count (could be 0 if multisample render targets are not supported)
+    */
+    public updateRenderTargetTextureSampleCount(texture: Nullable<InternalTexture>, samples: number): number {
+        if (this.webGLVersion < 2 || !texture) {
+            return 1;
+        }
+
+        if (texture.samples === samples) {
+            return samples;
+        }
+
+        var gl = this._gl;
+
+        samples = Math.min(samples, this.engine.getCaps().maxMSAASamples);
+
+        // Dispose previous render buffers
+        if (texture._depthStencilBuffer) {
+            gl.deleteRenderbuffer(texture._depthStencilBuffer);
+            texture._depthStencilBuffer = null;
+        }
+
+        if (texture._MSAAFramebuffer) {
+            gl.deleteFramebuffer(texture._MSAAFramebuffer);
+            texture._MSAAFramebuffer = null;
+        }
+
+        if (texture._MSAARenderBuffer) {
+            gl.deleteRenderbuffer(texture._MSAARenderBuffer);
+            texture._MSAARenderBuffer = null;
+        }
+
+        if (samples > 1 && gl.renderbufferStorageMultisample) {
+            let framebuffer = gl.createFramebuffer();
+
+            if (!framebuffer) {
+                throw new Error("Unable to create multi sampled framebuffer");
+            }
+
+            texture._MSAAFramebuffer = framebuffer;
+            this.engine.engineFramebuffer._bindUnboundFramebuffer(texture._MSAAFramebuffer);
+
+            var colorRenderbuffer = gl.createRenderbuffer();
+
+            if (!colorRenderbuffer) {
+                throw new Error("Unable to create multi sampled framebuffer");
+            }
+
+            gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, this._getRGBAMultiSampleBufferFormat(texture.type), texture.width, texture.height);
+
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
+
+            texture._MSAARenderBuffer = colorRenderbuffer;
+        } else {
+            this.engine.engineFramebuffer._bindUnboundFramebuffer(texture._framebuffer);
+        }
+
+        texture.samples = samples;
+        texture._depthStencilBuffer = this.engine.engineFramebuffer._setupFramebufferDepthAttachments(texture._generateStencilBuffer, texture._generateDepthBuffer, texture.width, texture.height, samples);
+
+        this.engine.engineFramebuffer._bindUnboundFramebuffer(null);
+
+        return samples;
     }
 }

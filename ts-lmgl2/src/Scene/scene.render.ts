@@ -293,4 +293,14 @@ export class SceneRender {
   public getRenderId(): number {
     return this._renderId;
   }
+
+  /** Call this function if you want to manually increment the render Id*/
+  public incrementRenderId(): void {
+    this._renderId++;
+  }
+
+  private _intermediateRendering = false;
+  public _isInIntermediateRendering(): boolean {
+    return this._intermediateRendering;
+  }
 }

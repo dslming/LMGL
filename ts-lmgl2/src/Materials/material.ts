@@ -19,6 +19,7 @@ import { Constants } from "../Engine/constants";
 import { Logger } from "../Misc/logger";
 import { IInspectable } from "../Misc/iInspectable";
 import { Plane } from "../Maths/math.plane";
+import { PrePassRenderer } from "../Rendering/prePassRenderer";
 // import { ShadowDepthWrapper } from './shadowDepthWrapper';
 
 // declare type PrePassRenderer = import("../Rendering/prePassRenderer").PrePassRenderer;
@@ -1341,10 +1342,10 @@ export class Material {
    * @param prePassRenderer defines the prepass renderer to setup.
    * @returns true if the pre pass is needed.
    */
-  // public setPrePassRenderer(prePassRenderer: PrePassRenderer): boolean {
-  //     // Do Nothing by default
-  //     return false;
-  // }
+  public setPrePassRenderer(prePassRenderer: PrePassRenderer): boolean {
+      // Do Nothing by default
+      return false;
+  }
 
   /**
    * Disposes the material

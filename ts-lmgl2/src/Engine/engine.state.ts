@@ -6,13 +6,22 @@ import { DepthCullingState } from "./States/depthCullingState";
 
 export class EngineState {
   engine: Engine;
+  _cachedStencilBuffer: boolean;
+  _cachedStencilFunction: number;
+  _cachedStencilMask: number;
+  _cachedStencilOperationPass: number;
+  _cachedStencilOperationFail: number;
+  _cachedStencilOperationDepthFail: number;
+  _cachedStencilReference: number;
+  _isStencilEnable = false;
+
   /**
    * Gets the depth culling state manager
    */
   public get depthCullingState(): DepthCullingState {
     return this._depthCullingState;
   }
-
+  isStencilEnable = false;
   protected _depthCullingState = new DepthCullingState();
   public cullBackFaces = true;
   private _gl: WebGLRenderingContext;
@@ -24,6 +33,7 @@ export class EngineState {
     this._gl = _gl;
     this.engine = engine;
   }
+
 
   /**
    * Set the z offset to apply to current rendering
@@ -280,5 +290,47 @@ export class EngineState {
    */
   public getColorWrite(): boolean {
     return this._colorWrite;
+  }
+
+  /**
+   * Enable or disable depth writing
+   * @param enable defines the state to set
+   */
+  public setDepthWrite(enable: boolean): void {
+    this._depthCullingState.depthMask = enable;
+  }
+
+  /**
+  * Enable or disable depth buffering
+  * @param enable defines the state to set
+  */
+  public setDepthBuffer(enable: boolean): void {
+    this._depthCullingState.depthTest = enable;
+  }
+
+  /**
+  * Caches the the state of the stencil buffer
+  */
+  public cacheStencilState() {
+    this._cachedStencilBuffer = this.getStencilBuffer();
+    this._cachedStencilFunction = this.getStencilFunction();
+    this._cachedStencilMask = this.getStencilMask();
+    this._cachedStencilOperationPass = this.getStencilOperationPass();
+    this._cachedStencilOperationFail = this.getStencilOperationFail();
+    this._cachedStencilOperationDepthFail = this.getStencilOperationDepthFail();
+    this._cachedStencilReference = this.getStencilFunctionReference();
+  }
+
+  /**
+  * Restores the state of the stencil buffer
+  */
+  public restoreStencilState() {
+    this.setStencilFunction(this._cachedStencilFunction);
+    this.setStencilMask(this._cachedStencilMask);
+    this.setStencilBuffer(this._cachedStencilBuffer);
+    this.setStencilOperationPass(this._cachedStencilOperationPass);
+    this.setStencilOperationFail(this._cachedStencilOperationFail);
+    this.setStencilOperationDepthFail(this._cachedStencilOperationDepthFail);
+    this.setStencilFunctionReference(this._cachedStencilReference);
   }
 }

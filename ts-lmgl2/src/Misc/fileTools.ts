@@ -10,7 +10,7 @@ import { BaseError } from './baseError';
 import { StringTools } from './stringTools';
 import { Engine } from '../Engine/engine';
 import { EngineFile } from '../Engine/engine.file';
-// import { ShaderProcessor } from '../Engines/Processors/shaderProcessor';
+// import { ShaderProcessor } from '../Engine/Processors/shaderProcessor';
 
 /** @ignore */
 export class LoadFileError extends BaseError {

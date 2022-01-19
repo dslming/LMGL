@@ -39,8 +39,8 @@ export class AssetContainer extends AbstractScene {
     super();
     this.scene = scene;
     // this["sounds"] = [];
-    // this["effectLayers"] = [];
-    // this["layers"] = [];
+    this["effectLayers"] = [];
+    this["layers"] = [];
     // this["lensFlareSystems"] = [];
     // this["proceduralTextures"] = [];
     // this["reflectionProbes"] = [];

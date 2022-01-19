@@ -771,11 +771,11 @@ export class Ray {
 //   var engine = this.scene.getEngine();
 
 //   if (!camera) {
-//     if (!this.scene.activeCamera) {
+//     if (!this.scene.sceneRender.activeCamera) {
 //       return this.scene;
 //     }
 
-//     camera = this.scene.activeCamera;
+//     camera = this.scene.sceneRender.activeCamera;
 //   }
 
 //   var cameraViewport = camera.viewport;
@@ -827,11 +827,11 @@ export class Ray {
 //   var engine = this.scene.getEngine();
 
 //   if (!camera) {
-//     if (!this.scene.activeCamera) {
+//     if (!this.scene.sceneRender.activeCamera) {
 //       throw new Error("Active camera not set");
 //     }
 
-//     camera = this.scene.activeCamera;
+//     camera = this.scene.sceneRender.activeCamera;
 //   }
 
 //   var cameraViewport = camera.viewport;

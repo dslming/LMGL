@@ -935,10 +935,10 @@ export class MaterialHelper {
     //     effect.setVector3(variableName, scene._forcedViewPosition);
     //     return;
     // }
-    // var globalPosition = scene.activeCamera!.globalPosition;
+    // var globalPosition = scene.sceneRender.activeCamera!.globalPosition;
     // if (!globalPosition) {
     //     // Use WebVRFreecamera's device position as global position is not it's actual position in babylon space
-    //     globalPosition = (scene.activeCamera! as WebVRFreeCamera).devicePosition;
+    //     globalPosition = (scene.sceneRender.activeCamera! as WebVRFreeCamera).devicePosition;
     // }
     // effect.setVector3(variableName, globalPosition);
   }
@@ -960,7 +960,7 @@ export class MaterialHelper {
    */
   public static BindLogDepth(defines: any, effect: Effect, scene: Scene): void {
     // if (defines["LOGARITHMICDEPTH"]) {
-    //     effect.setFloat("logarithmicDepthConstant", 2.0 / (Math.log((<Camera>scene.activeCamera).maxZ + 1.0) / Math.LN2));
+    //     effect.setFloat("logarithmicDepthConstant", 2.0 / (Math.log((<Camera>scene.sceneRender.activeCamera).maxZ + 1.0) / Math.LN2));
     // }
   }
 }

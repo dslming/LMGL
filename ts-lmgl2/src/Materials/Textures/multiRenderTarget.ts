@@ -5,7 +5,7 @@ import { Texture } from "./texture";
 import { RenderTargetTexture } from "./renderTargetTexture";
 import { Constants } from "../../Engine/constants";
 
-import "../../Engines/Extensions/engine.multiRender";
+import "../../Engine/Extensions/engine.multiRender";
 
 /**
  * Creation options of the multi render target texture.

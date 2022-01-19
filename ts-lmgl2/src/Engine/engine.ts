@@ -26,6 +26,9 @@ import { EngineAlpha } from "./engine.alpha";
 import { Material } from "../Materials/material";
 import { EngineStore } from "./engineStore";
 import { WebGL2ShaderProcessor } from "./webGL2ShaderProcessors";
+import { EngineObservable } from "./engine.observable";
+import { PostProcess } from "../PostProcesses/postProcess";
+import { EnginePost } from "./enginePost";
 
 export class Engine {
   public _contextWasLost = false;
@@ -51,6 +54,7 @@ export class Engine {
   protected _currentEffect: Nullable<Effect>;
   public scenes = new Array<Scene>();
   protected _highPrecisionShadersAllowed = true;
+  enginePost: EnginePost;
   public get _shouldUseHighPrecisionShader(): boolean {
     return !!(
       this._caps.highPrecisionShaderSupported &&
@@ -75,7 +79,7 @@ export class Engine {
   public engineState: EngineState;
   public engineDraw: EngineDraw;
   public engineAlpha: EngineAlpha;
-
+  public engineObservable: EngineObservable = new EngineObservable();
   protected _renderingCanvas: Nullable<HTMLCanvasElement>;
 
   /**
@@ -142,6 +146,7 @@ export class Engine {
       throw new Error("WebGL not supported");
     }
     this.resize();
+    // this._isStencilEnable = options.stencil ? true : false;
     this._initGLContext();
 
     this.engineVertex = new EngineVertex(this._gl, this._caps);
@@ -154,6 +159,7 @@ export class Engine {
     this.engineViewPort = new EngineViewPort(this);
     this.engineFramebuffer = new EngineFramebuffer(this._gl, this);
     this.engineRender = new EngineRender(this);
+    this.enginePost = new EnginePost();
     this._shaderProcessor = new WebGL2ShaderProcessor();
   }
 
@@ -260,8 +266,14 @@ export class Engine {
       depthTextureExtension: false,
     };
 
+
     // Infos
     this._glVersion = this._gl.getParameter(this._gl.VERSION);
+    var rendererInfo: any = this._gl.getExtension("WEBGL_debug_renderer_info");
+    if (rendererInfo != null) {
+      this._glRenderer = this._gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL);
+      this._glVendor = this._gl.getParameter(rendererInfo.UNMASKED_VENDOR_WEBGL);
+    }
   }
 
   protected _deleteBuffer(buffer: DataBuffer): void {
@@ -790,4 +802,69 @@ export class Engine {
       }
     }
   }
+
+  /**
+  * Gets the current hardware scaling level.
+  * By default the hardware scaling level is computed from the window device ratio.
+  * if level = 1 then the engine will render at the exact resolution of the canvas. If level = 0.5 then the engine will render at twice the size of the canvas.
+  * @returns a number indicating the current hardware scaling level
+  */
+  public getHardwareScalingLevel(): number {
+    return 1.0;
+  }
+
+  /**
+   * Gets a boolean indicating if all created effects are ready
+   * @returns true if all effects are ready
+   */
+  public areAllEffectsReady(): boolean {
+    for (var key in this._compiledEffects) {
+      let effect = <Effect>this._compiledEffects[key];
+
+      if (!effect.isReady()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private _glRenderer: string;
+  private _glVendor: string;
+  /**
+   * Gets an object containing information about the current webGL context
+   * @returns an object containing the vender, the renderer and the version of the current webGL context
+   */
+  public getGlInfo() {
+    return {
+      vendor: this._glVendor,
+      renderer: this._glRenderer,
+      version: this._glVersion
+    };
+  }
+
+  /**
+  * Reads pixels from the current frame buffer. Please note that this function can be slow
+  * @param x defines the x coordinate of the rectangle where pixels must be read
+  * @param y defines the y coordinate of the rectangle where pixels must be read
+  * @param width defines the width of the rectangle where pixels must be read
+  * @param height defines the height of the rectangle where pixels must be read
+  * @param hasAlpha defines whether the output should have alpha or not (defaults to true)
+  * @returns a Uint8Array containing RGBA colors
+  */
+  public readPixels(x: number, y: number, width: number, height: number, hasAlpha = true): Uint8Array {
+    const numChannels = hasAlpha ? 4 : 3;
+    const format = hasAlpha ? this._gl.RGBA : this._gl.RGB;
+    const data = new Uint8Array(height * width * numChannels);
+    this._gl.readPixels(x, y, width, height, format, this._gl.UNSIGNED_BYTE, data);
+    return data;
+  }
+
+
+
+  /**
+     * Method called to create the default rescale post process on each engine.
+     */
+  public static _RescalePostProcessFactory: Nullable<(engine: Engine) => PostProcess> = null;
+
 }

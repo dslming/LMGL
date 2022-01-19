@@ -109,4 +109,18 @@ export class EngineRender {
   protected _queueNewFrame(bindedRenderFunction: any, requester?: any): number {
     return EngineRender.QueueNewFrame(bindedRenderFunction, requester);
   }
+
+
+  private _deltaTime = 0;
+  /**
+  * Gets the time spent between current and previous frame
+  * @returns a number representing the delta time in ms
+  */
+  public getDeltaTime(): number {
+    return this._deltaTime;
+  }
+
+  public getFps() {
+    return 0;
+  }
 }

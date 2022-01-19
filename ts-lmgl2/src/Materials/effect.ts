@@ -6,13 +6,14 @@ import { Logger } from "../Misc/logger";
 import { IDisposable } from "../Scene/index";
 import { IPipelineContext } from "../Engine/IPipelineContext";
 import { DataBuffer } from "../Engine/dataBuffer";
-// import { ShaderProcessor } from '../Engines/Processors/shaderProcessor';
+// import { ShaderProcessor } from '../Engine/Processors/shaderProcessor';
 import { IMatrixLike, IVector2Like, IVector3Like, IVector4Like, IColor3Like, IColor4Like } from "../Maths/math.like";
 import { Engine } from "../Engine/engine";
 import { IEffectFallbacks } from "./iEffectFallbacks";
 import { ShaderProcessor } from "../Engine/Processors/shaderProcessor";
+import { PostProcess } from "../PostProcesses/postProcess";
 
-// declare type Engine = import("../Engines/engine").Engine;
+// declare type Engine = import("../Engine/engine").Engine;
 declare type InternalTexture = import("./Textures/internalTexture").InternalTexture;
 declare type ThinTexture = import("./Textures/thinTexture").ThinTexture;
 declare type RenderTargetTexture = import("./Textures/renderTargetTexture").RenderTargetTexture;
@@ -1444,5 +1445,24 @@ export class Effect implements IDisposable {
    */
   public static ResetCache() {
     Effect._baseCache = {};
+  }
+
+  /**
+    * Sets a texture to be the input of the specified post process. (To use the output, pass in the next post process in the pipeline)
+    * @param channel Name of the sampler variable.
+    * @param postProcess Post process to get the input texture from.
+    */
+  public setTextureFromPostProcess(channel: string, postProcess: Nullable<PostProcess>): void {
+    this._engine.engineTexture.setTextureFromPostProcess(this._samplers[channel], postProcess);
+  }
+
+  /**
+  * (Warning! setTextureFromPostProcessOutput may be desired instead)
+  * Sets the input texture of the passed in post process to be input of this effect. (To use the output of the passed in post process use setTextureFromPostProcessOutput)
+  * @param channel Name of the sampler variable.
+  * @param postProcess Post process to get the output texture from.
+  */
+  public setTextureFromPostProcessOutput(channel: string, postProcess: Nullable<PostProcess>): void {
+    this._engine.engineTexture.setTextureFromPostProcessOutput(this._samplers[channel], postProcess);
   }
 }

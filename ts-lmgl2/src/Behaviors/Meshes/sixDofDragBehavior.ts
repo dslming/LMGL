@@ -85,7 +85,7 @@ export class SixDofDragBehavior implements Behavior<Mesh> {
     // if (this._scene.cameraToUseForPointers) {
     //     return this._scene.cameraToUseForPointers;
     // } else {
-    //     return this._scene.activeCamera;
+    //     return this._scene.sceneRender.activeCamera;
     // }
     return this._scene.sceneRender.activeCamera;
   }

@@ -19,6 +19,8 @@ import { PerfCounter } from "../Misc/perfCounter";
 import { _DevTools } from "../Misc/devTools";
 import { SceneComponent } from "./scene.component";
 import { SceneFog } from "./scene.fog";
+import { ScenePost } from "./scene.post";
+import { Mesh } from "../Meshes/mesh";
 
 export class Scene extends AbstractScene {
   public _engine: Engine;
@@ -33,6 +35,8 @@ export class Scene extends AbstractScene {
   public sceneCatch: SceneCatch;
   public sceneMatrix: SceneMatrix;
   public sceneFog = new SceneFog(this);
+  public scenePost = new ScenePost();
+    layers: any;
 
   constructor(engine: Engine) {
     super();
@@ -81,4 +85,89 @@ export class Scene extends AbstractScene {
   getClassName(): String {
     return "Scene";
   }
+
+  /**
+    * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
+    * Delay loaded resources are not taking in account
+    * @return true if all required resources are ready
+    */
+  public isReady(): boolean {
+    // if (this._isDisposed) {
+    //   return false;
+    // }
+
+    let index: number;
+    let engine = this.getEngine();
+
+    // Effects
+    if (!engine.areAllEffectsReady()) {
+      return false;
+    }
+
+    // Pending data
+    // if (this._pendingData.length > 0) {
+    //   return false;
+    // }
+
+    // Meshes
+    for (index = 0; index < this.meshes.length; index++) {
+      var mesh = this.meshes[index];
+
+      if (!mesh.isEnabled()) {
+        continue;
+      }
+
+      if (!mesh.subMeshes || mesh.subMeshes.length === 0) {
+        continue;
+      }
+
+      if (!mesh.isReady(true)) {
+        return false;
+      }
+
+      let hardwareInstancedRendering = mesh.hasThinInstances || mesh.getClassName() === "InstancedMesh" || mesh.getClassName() === "InstancedLinesMesh" || engine.getCaps().instancedArrays && (<Mesh>mesh).meshInstanced.instances.length > 0;
+      // Is Ready For Mesh
+      // for (let step of this._isReadyForMeshStage) {
+      //   if (!step.action(mesh, hardwareInstancedRendering)) {
+      //     return false;
+      //   }
+      // }
+    }
+
+    // Geometries
+    for (index = 0; index < this.geometries.length; index++) {
+      var geometry = this.geometries[index];
+
+      if (geometry.delayLoadState === Constants.DELAYLOADSTATE_LOADING) {
+        return false;
+      }
+    }
+
+    // Post-processes
+    if (this.sceneRender.activeCameras && this.sceneRender.activeCameras.length > 0) {
+      for (var camera of this.sceneRender.activeCameras) {
+        if (!camera.isReady(true)) {
+          return false;
+        }
+      }
+    } else if (this.sceneRender.activeCamera) {
+      if (!this.sceneRender.activeCamera.isReady(true)) {
+        return false;
+      }
+    }
+
+    // Particles
+    // for (var particleSystem of this.particleSystems) {
+    //   if (!particleSystem.isReady()) {
+    //     return false;
+    //   }
+    // }
+
+    return true;
+  }
+
+  /**
+   * Flag indicating that the frame buffer binding is handled by another component
+   */
+  public prePass: boolean = false;
 }

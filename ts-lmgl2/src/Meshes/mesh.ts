@@ -17,6 +17,7 @@ import { Path3D } from "../Maths/math.path";
 import { Plane } from "../Maths/math.plane";
 import { MeshGeometry } from "./mesh.geometry";
 import { MeshInstanced, _InstancesBatch } from "./mesh.instanced";
+import { MeshObservable } from "./mesh.observable";
 
 /**
  * @hidden
@@ -62,7 +63,7 @@ export class _CreationDataStorage {
  */
 export class Mesh extends AbstractMesh {
   public _internalMeshDataInfo = new _InternalMeshDataInfo();
-
+  public meshObservable: MeshObservable = new MeshObservable(this._internalMeshDataInfo, this);
   // Consts
   /**
    * Mesh side orientation : usually the external or front surface

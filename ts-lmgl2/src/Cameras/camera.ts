@@ -16,6 +16,8 @@ import { _DevTools } from '../Misc/devTools';
 import { Viewport } from '../Maths/math.viewport';
 import { Frustum } from '../Maths/math.frustum';
 import { Plane } from '../Maths/math.plane';
+import { PostProcess } from "../PostProcesses/postProcess";
+import { Logger } from "../Misc/logger";
 
 // declare type PostProcess = import("../PostProcesses/postProcess").PostProcess;
 declare type RenderTargetTexture = import("../Materials/Textures/renderTargetTexture").RenderTargetTexture;
@@ -290,7 +292,7 @@ export class Camera extends Node {
     /** @hidden */
     public _rigCameras = new Array<Camera>();
     /** @hidden */
-    // public _rigPostProcess: Nullable<PostProcess>;
+    public _rigPostProcess: Nullable<PostProcess>;
 
     protected _webvrViewMatrix = Matrix.Identity();
     /** @hidden */
@@ -580,9 +582,9 @@ export class Camera extends Node {
     /**
      * Gets the post process used by the rig cameras
      */
-    // public get rigPostProcess(): Nullable<PostProcess> {
-    //     return this._rigPostProcess;
-    // }
+    public get rigPostProcess(): Nullable<PostProcess> {
+        return this._rigPostProcess;
+    }
 
     /**
      * Internal, gets the first post proces.
@@ -859,23 +861,23 @@ export class Camera extends Node {
         }
 
         // Postprocesses
-        // if (this._rigPostProcess) {
-        //     this._rigPostProcess.dispose(this);
-        //     this._rigPostProcess = null;
-        //     this._postProcesses = [];
-        // }
-        // else if (this.cameraRigMode !== Camera.RIG_MODE_NONE) {
-        //     this._rigPostProcess = null;
-        //     this._postProcesses = [];
-        // } else {
-        //     var i = this._postProcesses.length;
-        //     while (--i >= 0) {
-        //         var postProcess = this._postProcesses[i];
-        //         if (postProcess) {
-        //             postProcess.dispose(this);
-        //         }
-        //     }
-        // }
+        if (this._rigPostProcess) {
+            this._rigPostProcess.dispose(this);
+            this._rigPostProcess = null;
+            this._postProcesses = [];
+        }
+        else if (this.cameraRigMode !== Camera.RIG_MODE_NONE) {
+            this._rigPostProcess = null;
+            this._postProcesses = [];
+        } else {
+            var i = this._postProcesses.length;
+            while (--i >= 0) {
+                var postProcess = this._postProcesses[i];
+                if (postProcess) {
+                    postProcess.dispose(this);
+                }
+            }
+        }
 
         // Render targets
         var i = this.customRenderTargets.length;
@@ -1266,5 +1268,96 @@ export class Camera extends Node {
         // }
 
         return camera;
+    }
+
+    public _postProcesses = new Array<Nullable<PostProcess>>();
+    /**
+  * Internal, gets the first post proces.
+  * @returns the first post process to be run on this camera.
+  */
+    public _getFirstPostProcess(): Nullable<PostProcess> {
+        for (var ppIndex = 0; ppIndex < this._postProcesses.length; ppIndex++) {
+            if (this._postProcesses[ppIndex] !== null) {
+                return this._postProcesses[ppIndex];
+            }
+        }
+        return null;
+    }
+
+    private _cascadePostProcessesToRigCams(): void {
+        // invalidate framebuffer
+        var firstPostProcess = this._getFirstPostProcess();
+        if (firstPostProcess) {
+            firstPostProcess.markTextureDirty();
+        }
+
+        // glue the rigPostProcess to the end of the user postprocesses & assign to each sub-camera
+        for (var i = 0, len = this._rigCameras.length; i < len; i++) {
+            var cam = this._rigCameras[i];
+            var rigPostProcess = cam._rigPostProcess;
+
+            // for VR rig, there does not have to be a post process
+            if (rigPostProcess) {
+                var isPass = rigPostProcess.getEffectName() === "pass";
+                if (isPass) {
+                    // any rig which has a PassPostProcess for rig[0], cannot be isIntermediate when there are also user postProcesses
+                    cam.isIntermediate = this._postProcesses.length === 0;
+                }
+                cam._postProcesses = this._postProcesses.slice(0).concat(rigPostProcess);
+                rigPostProcess.markTextureDirty();
+
+            } else {
+                cam._postProcesses = this._postProcesses.slice(0);
+            }
+        }
+    }
+
+    /**
+     * Attach a post process to the camera.
+     * @see https://doc.babylonjs.com/how_to/how_to_use_postprocesses#attach-postprocess
+     * @param postProcess The post process to attach to the camera
+     * @param insertAt The position of the post process in case several of them are in use in the scene
+     * @returns the position the post process has been inserted at
+     */
+    public attachPostProcess(postProcess: PostProcess, insertAt: Nullable<number> = null): number {
+        if (!postProcess.isReusable() && this._postProcesses.indexOf(postProcess) > -1) {
+            Logger.Error("You're trying to reuse a post process not defined as reusable.");
+            return 0;
+        }
+
+        if (insertAt == null || insertAt < 0) {
+            this._postProcesses.push(postProcess);
+        } else if (this._postProcesses[insertAt] === null) {
+            this._postProcesses[insertAt] = postProcess;
+        } else {
+            this._postProcesses.splice(insertAt, 0, postProcess);
+        }
+        this._cascadePostProcessesToRigCams(); // also ensures framebuffer invalidated
+
+        // Update prePass
+        if (this._scene.prePassRenderer) {
+            this._scene.prePassRenderer.markAsDirty();
+        }
+
+        return this._postProcesses.indexOf(postProcess);
+    }
+
+    /**
+     * Detach a post process to the camera.
+     * @see https://doc.babylonjs.com/how_to/how_to_use_postprocesses#attach-postprocess
+     * @param postProcess The post process to detach from the camera
+     */
+    public detachPostProcess(postProcess: PostProcess): void {
+        var idx = this._postProcesses.indexOf(postProcess);
+        if (idx !== -1) {
+            this._postProcesses[idx] = null;
+        }
+
+        // Update prePass
+        if (this._scene.prePassRenderer) {
+            this._scene.prePassRenderer.markAsDirty();
+        }
+
+        // this._cascadePostProcessesToRigCams(); // also ensures framebuffer invalidated
     }
 }

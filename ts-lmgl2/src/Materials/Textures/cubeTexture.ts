@@ -9,7 +9,7 @@ import { Constants } from "../../Engine/constants";
 import { _TypeStore } from "../../Misc/typeStore";
 import { Engine } from "../../Engine/engine";
 
-import "../../Engines/Extensions/engine.cubeTexture";
+import "../../Engine/Extensions/engine.cubeTexture";
 import { StringTools } from "../../Misc/stringTools";
 import { Observable } from "../../Misc/observable";
 
