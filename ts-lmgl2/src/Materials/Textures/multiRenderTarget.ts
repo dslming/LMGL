@@ -5,7 +5,7 @@ import { Texture } from "./texture";
 import { RenderTargetTexture } from "./renderTargetTexture";
 import { Constants } from "../../Engine/constants";
 
-import "../../Engine/Extensions/engine.multiRender";
+import "../../Engine/engine.multiRender";
 
 /**
  * Creation options of the multi render target texture.
@@ -65,10 +65,7 @@ export class MultiRenderTarget extends RenderTargetTexture {
    * Get if draw buffers are currently supported by the used hardware and browser.
    */
   public get isSupported(): boolean {
-    return (
-      this._getEngine()!._webGLVersion > 1 ||
-      this._getEngine()!.getCaps().drawBuffersExtension
-    );
+    return this._getEngine()!._webGLVersion > 1 || this._getEngine()!.getCaps().drawBuffersExtension;
   }
 
   /**
@@ -128,23 +125,10 @@ export class MultiRenderTarget extends RenderTargetTexture {
    * @param scene Define the scene the texture belongs to
    * @param options Define the options used to create the multi render target
    */
-  constructor(
-    name: string,
-    size: any,
-    count: number,
-    scene: Scene,
-    options?: IMultiRenderTargetOptions
-  ) {
-    var generateMipMaps =
-      options && options.generateMipMaps ? options.generateMipMaps : false;
-    var generateDepthTexture =
-      options && options.generateDepthTexture
-        ? options.generateDepthTexture
-        : false;
-    var doNotChangeAspectRatio =
-      !options || options.doNotChangeAspectRatio === undefined
-        ? true
-        : options.doNotChangeAspectRatio;
+  constructor(name: string, size: any, count: number, scene: Scene, options?: IMultiRenderTargetOptions) {
+    var generateMipMaps = options && options.generateMipMaps ? options.generateMipMaps : false;
+    var generateDepthTexture = options && options.generateDepthTexture ? options.generateDepthTexture : false;
+    var doNotChangeAspectRatio = !options || options.doNotChangeAspectRatio === undefined ? true : options.doNotChangeAspectRatio;
 
     super(name, size, scene, generateMipMaps, doNotChangeAspectRatio);
 
@@ -157,14 +141,8 @@ export class MultiRenderTarget extends RenderTargetTexture {
     var samplingModes: number[] = [];
     this._initTypes(count, types, samplingModes, options);
 
-    var generateDepthBuffer =
-      !options || options.generateDepthBuffer === undefined
-        ? true
-        : options.generateDepthBuffer;
-    var generateStencilBuffer =
-      !options || options.generateStencilBuffer === undefined
-        ? false
-        : options.generateStencilBuffer;
+    var generateDepthBuffer = !options || options.generateDepthBuffer === undefined ? true : options.generateDepthBuffer;
+    var generateStencilBuffer = !options || options.generateStencilBuffer === undefined ? false : options.generateStencilBuffer;
 
     this._size = size;
     this._multiRenderTargetOptions = {
@@ -183,28 +161,15 @@ export class MultiRenderTarget extends RenderTargetTexture {
     this._createTextures();
   }
 
-  private _initTypes(
-    count: number,
-    types: number[],
-    samplingModes: number[],
-    options?: IMultiRenderTargetOptions
-  ) {
+  private _initTypes(count: number, types: number[], samplingModes: number[], options?: IMultiRenderTargetOptions) {
     for (var i = 0; i < count; i++) {
       if (options && options.types && options.types[i] !== undefined) {
         types.push(options.types[i]);
       } else {
-        types.push(
-          options && options.defaultType
-            ? options.defaultType
-            : Constants.TEXTURETYPE_UNSIGNED_INT
-        );
+        types.push(options && options.defaultType ? options.defaultType : Constants.TEXTURETYPE_UNSIGNED_INT);
       }
 
-      if (
-        options &&
-        options.samplingModes &&
-        options.samplingModes[i] !== undefined
-      ) {
+      if (options && options.samplingModes && options.samplingModes[i] !== undefined) {
         samplingModes.push(options.samplingModes[i]);
       } else {
         samplingModes.push(Texture.BILINEAR_SAMPLINGMODE);

@@ -16,8 +16,8 @@ import { Texture } from "./texture";
 import { RenderingManager } from "../../Rendering/renderingManager";
 import { Constants } from "../../Engine/constants";
 
-import "../../Engine/Extensions/engine.renderTarget";
-import "../../Engine/Extensions/engine.renderTargetCube";
+import "../../Engine/engine.renderTarget";
+// import "../../Engine/engine.renderTargetCube";
 import { Engine } from "../../Engine/engine";
 import { EngineTexture } from "../../Engine/engine.texture";
 

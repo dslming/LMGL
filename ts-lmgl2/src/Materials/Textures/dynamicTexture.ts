@@ -4,7 +4,7 @@ import { Scene } from "../../Scene/scene";
 import { ISize } from "../../Maths/math.size";
 import { Texture } from "../../Materials/Textures/texture";
 import { Constants } from "../../Engine/constants";
-import "../../Engines/Extensions/engine.dynamicTexture";
+// import "../../Engines//engine.dynamicTexture";
 import { CanvasGenerator } from '../../Misc/canvasGenerator';
 
 /**

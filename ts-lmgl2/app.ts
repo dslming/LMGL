@@ -50,6 +50,11 @@ class App {
     // sphere.material = myShaderMaterial;
     sphere.material = grass0;
     this.scene = scene;
+
+    var kernel = 32.0;
+    var postProcess0 = new BABYLON.BlurPostProcess("Horizontal blur", new BABYLON.Vector2(1.0, 0), kernel, 1.0, camera);
+    var postProcess1 = new BABYLON.BlurPostProcess("Vertical blur", new BABYLON.Vector2(0, 1.0), kernel, 1.0, camera);
+
     // this.sphere = sphere;
     // this.camera = camera;
     // this.light = light;

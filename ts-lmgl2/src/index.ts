@@ -18,6 +18,8 @@ export * from "./Rendering/index";
 // export * from "./States/index";
 export * from "./Misc/index";
 export * from "./types";
+export * from "./PostProcesses/index";
+
 // export * from "./creator"
 const a = {
   lmgl: "lmgl2",
