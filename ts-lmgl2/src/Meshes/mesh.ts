@@ -814,45 +814,6 @@ export class Mesh extends AbstractMesh {
   }
 
   /**
-   *   Renormalize the mesh and patch it up if there are no weights
-   *   Similar to normalization by adding the weights compute the reciprocal and multiply all elements, this wil ensure that everything adds to 1.
-   *   However in the case of zero weights then we set just a single influence to 1.
-   *   We check in the function for extra's present and if so we use the normalizeSkinWeightsWithExtras rather than the FourWeights version.
-   */
-  public cleanMatrixWeights(): void {
-    if (this.meshGeometry.isVerticesDataPresent(VertexBuffer.MatricesWeightsKind)) {
-      if (this.meshGeometry.isVerticesDataPresent(VertexBuffer.MatricesWeightsExtraKind)) {
-        // this.normalizeSkinWeightsAndExtra();
-      } else {
-        this.normalizeSkinFourWeights();
-      }
-    }
-  }
-
-  // faster 4 weight version.
-  private normalizeSkinFourWeights(): void {
-    let matricesWeights = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.MatricesWeightsKind);
-    let numWeights = matricesWeights.length;
-
-    for (var a = 0; a < numWeights; a += 4) {
-      // accumulate weights
-      var t = matricesWeights[a] + matricesWeights[a + 1] + matricesWeights[a + 2] + matricesWeights[a + 3];
-      // check for invalid weight and just set it to 1.
-      if (t === 0) {
-        matricesWeights[a] = 1;
-      } else {
-        // renormalize so everything adds to 1 use reciprical
-        let recip = 1 / t;
-        matricesWeights[a] *= recip;
-        matricesWeights[a + 1] *= recip;
-        matricesWeights[a + 2] *= recip;
-        matricesWeights[a + 3] *= recip;
-      }
-    }
-    this.meshGeometry.setVerticesData(VertexBuffer.MatricesWeightsKind, matricesWeights);
-  }
-
-  /**
    * Returns `true` if the mesh is within the frustum defined by the passed array of planes.
    * A mesh is in the frustum if its bounding box intersects the frustum
    * @param frustumPlanes defines the frustum to test
@@ -889,79 +850,6 @@ export class Mesh extends AbstractMesh {
 
     // Multi
 
-    return this;
-  }
-
-  /**
-   * Modifies the mesh geometry according to the passed transformation matrix.
-   * This method returns nothing but it really modifies the mesh even if it's originally not set as updatable.
-   * The mesh normals are modified using the same transformation.
-   * Note that, under the hood, this method sets a new VertexBuffer each call.
-   * @param transform defines the transform matrix to use
-   * @see https://doc.babylonjs.com/resources/baking_transformations
-   * @returns the current mesh
-   */
-  public bakeTransformIntoVertices(transform: Matrix): Mesh {
-    // Position
-    if (!this.meshGeometry.isVerticesDataPresent(VertexBuffer.PositionKind)) {
-      return this;
-    }
-
-    var submeshes = this.subMeshes.splice(0);
-
-    this.meshGeometry._resetPointsArrayCache();
-
-    var data = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
-
-    var temp = new Array<number>();
-    var index: number;
-    for (index = 0; index < data.length; index += 3) {
-      Vector3.TransformCoordinates(Vector3.FromArray(data, index), transform).toArray(temp, index);
-    }
-
-    this.meshGeometry.setVerticesData(
-      VertexBuffer.PositionKind,
-      temp,
-      (<VertexBuffer>this.meshGeometry.getVertexBuffer(VertexBuffer.PositionKind)).isUpdatable()
-    );
-
-    // Normals
-    if (this.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind)) {
-      data = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
-      temp = [];
-      for (index = 0; index < data.length; index += 3) {
-        Vector3.TransformNormal(Vector3.FromArray(data, index), transform).normalize().toArray(temp, index);
-      }
-      this.meshGeometry.setVerticesData(
-        VertexBuffer.NormalKind,
-        temp,
-        (<VertexBuffer>this.meshGeometry.getVertexBuffer(VertexBuffer.NormalKind)).isUpdatable()
-      );
-    }
-
-    // flip faces?
-    if (transform.m[0] * transform.m[5] * transform.m[10] < 0) {
-      this.flipFaces();
-    }
-
-    // Restore submeshes
-    this.releaseSubMeshes();
-    this.subMeshes = submeshes;
-    return this;
-  }
-
-  /**
-   * Modifies the mesh geometry according to its own current World Matrix.
-   * The mesh World Matrix is then reset.
-   * This method returns nothing but really modifies the mesh even if it's originally not set as updatable.
-   * Note that, under the hood, this method sets a new VertexBuffer each call.
-   * @see https://doc.babylonjs.com/resources/baking_transformations
-   * @param bakeIndependenlyOfChildren indicates whether to preserve all child nodes' World Matrix during baking
-   * @returns the current mesh
-   */
-  public bakeCurrentTransformIntoVertices(bakeIndependenlyOfChildren: boolean = true): Mesh {
-    this.bakeTransformIntoVertices(this.computeWorldMatrix(true));
-    this.resetLocalMatrix(bakeIndependenlyOfChildren);
     return this;
   }
 
