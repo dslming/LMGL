@@ -2,6 +2,8 @@ import { Nullable } from "../types";
 import { InstancedMesh } from "./instancedMesh";
 import { Mesh, _InternalMeshDataInfo } from "./mesh";
 import { Buffer } from "./buffer";
+import { _DevTools } from "../Misc/devTools";
+import { Matrix, Vector3 } from "../Maths/math";
 
 export class _InstancesBatch {
   public mustReturn = false;
@@ -28,7 +30,26 @@ class _InstanceDataStorage {
   public previousRenderId: number;
 }
 
+/**
+ * @hidden
+ **/
+class _ThinInstanceDataStorage {
+  public instancesCount: number = 0;
+  public matrixBuffer: Nullable<Buffer> = null;
+  public matrixBufferSize = 32 * 16; // let's start with a maximum of 32 thin instances
+  public matrixData: Nullable<Float32Array>;
+  public boundingVectors: Array<Vector3> = [];
+  public worldMatrices: Nullable<Matrix[]> = null;
+}
+
 export class MeshInstanced {
+  /** @hidden */
+  public _thinInstanceDataStorage = new _ThinInstanceDataStorage();
+
+  public get hasThinInstances(): boolean {
+    return (this._thinInstanceDataStorage.instancesCount ?? 0) > 0;
+  }
+
   /**
    * Gets the list of instances created from this mesh
    * it is not supposed to be modified manually.
@@ -140,5 +161,51 @@ export class MeshInstanced {
       batchCache.visibleInstances[subMeshId] !== undefined;
     // this._instanceDataStorage.previousBatch = batchCache;
     return batchCache;
+  }
+
+  // Instances
+  /** @hidden */
+  public static _instancedMeshFactory(name: string, mesh: Mesh): InstancedMesh {
+    throw _DevTools.WarnImport("InstancedMesh");
+  }
+
+  /**
+   * Creates a new InstancedMesh object from the mesh model.
+   * @see https://doc.babylonjs.com/how_to/how_to_use_instances
+   * @param name defines the name of the new instance
+   * @returns a new InstancedMesh
+   */
+  public createInstance(name: string): InstancedMesh {
+    let geometry = this.mesh.meshGeometry.geometry;
+
+    if (geometry && geometry.meshes.length > 1) {
+      let others = geometry.meshes.slice(0);
+      for (var other of others) {
+        if (other === this.mesh) {
+          continue;
+        }
+        other.meshGeometry.makeGeometryUnique();
+      }
+    }
+
+    return MeshInstanced._instancedMeshFactory(name, this.mesh);
+  }
+
+  /** @hidden */
+  public _disposeInstanceSpecificData() {
+    // Do nothing
+  }
+
+  /** @hidden */
+  public _disposeThinInstanceSpecificData() {
+    // Do nothing
+  }
+
+  /** @hidden */
+  public _preActivateForIntermediateRendering(renderId: number): Mesh {
+    if (this._instanceDataStorage.visibleInstances) {
+      this._instanceDataStorage.visibleInstances.intermediateDefaultRenderId = renderId;
+    }
+    return this.mesh;
   }
 }

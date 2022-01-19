@@ -5,35 +5,24 @@ import { Tags } from "../Misc/tags";
 import { Nullable, FloatArray, IndicesArray } from "../types";
 import { Scene } from "../Scene/scene";
 import { Quaternion, Matrix, Vector3, Vector2, Vector4 } from "../Maths/math.vector";
-import { Color3, Color4 } from "../Maths/math.color";
-import { Engine } from "../Engine/engine";
 import { Node } from "../node";
 import { VertexBuffer } from "./vertexBuffer";
 import { VertexData, IGetSetVerticesData } from "./mesh.vertexData";
 import { Buffer } from "./buffer";
-import { Geometry } from "./geometry";
 import { AbstractMesh } from "./abstractMesh";
 import { SubMesh } from "./subMesh";
-import { BoundingInfo } from "../Culling/boundingInfo";
 import { Effect } from "../Materials/effect";
 import { Material } from "../Materials/material";
-// import { SceneLoaderFlags } from "../Loading/sceneLoaderFlags";
 import { Constants } from "../Engine/constants";
-// import { SerializationHelper } from "../Misc/decorators";
 import { Logger } from "../Misc/logger";
 import { _TypeStore } from "../Misc/typeStore";
 import { _DevTools } from "../Misc/devTools";
-// import { SceneComponentConstants } from "../Scene/sceneComponent";
 import { Path3D } from "../Maths/math.path";
 import { Plane } from "../Maths/math.plane";
-// import { TransformNode } from './transformNode';
 import { CanvasGenerator } from "../Misc/canvasGenerator";
 import { MeshGeometry } from "./mesh.geometry";
 import { MeshInstanced, _InstancesBatch } from "./mesh.instanced";
-// import { LinesMesh } from "./linesMesh";
 declare type InstancedMesh = import("./instancedMesh").InstancedMesh;
-// declare type GroundMesh = import("./groundMesh").GroundMesh;
-declare var earcut: any;
 
 /**
  * @hidden
@@ -75,22 +64,10 @@ export class _CreationDataStorage {
 }
 
 /**
- * @hidden
- **/
-class _ThinInstanceDataStorage {
-  public instancesCount: number = 0;
-  public matrixBuffer: Nullable<Buffer> = null;
-  public matrixBufferSize = 32 * 16; // let's start with a maximum of 32 thin instances
-  public matrixData: Nullable<Float32Array>;
-  public boundingVectors: Array<Vector3> = [];
-  public worldMatrices: Nullable<Matrix[]> = null;
-}
-
-/**
  * Class used to represent renderable models
  */
 export class Mesh extends AbstractMesh {
-  private _internalMeshDataInfo = new _InternalMeshDataInfo();
+  public _internalMeshDataInfo = new _InternalMeshDataInfo();
 
   // Consts
   /**
@@ -174,8 +151,9 @@ export class Mesh extends AbstractMesh {
    * Mesh tile positioning : part tiles on bottom
    */
   public static readonly BOTTOM = 4;
+
   public meshGeometry: MeshGeometry;
-  meshInstanced: MeshInstanced;
+  public meshInstanced: MeshInstanced;
 
   /**
    * Gets the default side orientation.
@@ -186,12 +164,6 @@ export class Mesh extends AbstractMesh {
   public static _GetDefaultSideOrientation(orientation?: number): number {
     return orientation || Mesh.FRONTSIDE; // works as Mesh.FRONTSIDE is 0
   }
-
-  public get hasThinInstances(): boolean {
-    return (this._thinInstanceDataStorage.instancesCount ?? 0) > 0;
-  }
-
-  // Members
 
   /**
    * Gets the delay loading state of the mesh (when delay loading is turned on)
@@ -207,23 +179,14 @@ export class Mesh extends AbstractMesh {
   /** @hidden */
   public _binaryInfo: any;
 
-  /**
-   * User defined function used to change how LOD level selection is done
-   * @see https://doc.babylonjs.com/how_to/how_to_use_lod
-   */
-  public onLODLevelSelection: (distance: number, mesh: Mesh, selectedLevel: Nullable<Mesh>) => void;
-
   // Private
   /** @hidden */
   public _creationDataStorage: Nullable<_CreationDataStorage> = null;
 
   /** @hidden */
-  /** @hidden */
-  /** @hidden */
   public _delayLoadingFunction: (any: any, mesh: Mesh) => void;
 
-  /** @hidden */
-  public _thinInstanceDataStorage = new _ThinInstanceDataStorage();
+
 
   private _effectiveMaterial: Nullable<Material> = null;
 
@@ -486,45 +449,7 @@ export class Mesh extends AbstractMesh {
       }
     }
 
-    // Shadows
-    // for (var light of this.lightSources) {
-    //     let generator = light.getShadowGenerator();
-
-    //     if (generator && (!generator.getShadowMap()?.renderList || generator.getShadowMap()?.renderList && generator.getShadowMap()?.renderList?.indexOf(this) !== -1)) {
-    //         for (var subMesh of this.subMeshes) {
-    //             if (!generator.isReady(subMesh, hardwareInstancedRendering, subMesh.getMaterial()?.needAlphaBlendingForMesh(this) ?? false)) {
-    //                 return false;
-    //             }
-    //         }
-    //     }
-    // }
-
     return true;
-  }
-
-  /**
-   * Gets a boolean indicating if the normals aren't to be recomputed on next mesh `positions` array update. This property is pertinent only for updatable parametric shapes.
-   */
-  public get areNormalsFrozen(): boolean {
-    return this._internalMeshDataInfo._areNormalsFrozen;
-  }
-
-  /**
-   * This function affects parametric shapes on vertex position update only : ribbons, tubes, etc. It has no effect at all on other shapes. It prevents the mesh normals from being recomputed on next `positions` array update.
-   * @returns the current mesh
-   */
-  public freezeNormals(): Mesh {
-    this._internalMeshDataInfo._areNormalsFrozen = true;
-    return this;
-  }
-
-  /**
-   * This function affects parametric shapes on vertex position update only : ribbons, tubes, etc. It has no effect at all on other shapes. It reactivates the mesh normals computation if it was previously frozen
-   * @returns the current mesh
-   */
-  public unfreezeNormals(): Mesh {
-    this._internalMeshDataInfo._areNormalsFrozen = false;
-    return this;
   }
 
   // Methods
@@ -538,14 +463,6 @@ export class Mesh extends AbstractMesh {
 
     internalDataInfo._preActivateId = sceneRenderId;
     this.meshInstanced._instanceDataStorage.visibleInstances = null;
-    return this;
-  }
-
-  /** @hidden */
-  public _preActivateForIntermediateRendering(renderId: number): Mesh {
-    if (this.meshInstanced._instanceDataStorage.visibleInstances) {
-      this.meshInstanced._instanceDataStorage.visibleInstances.intermediateDefaultRenderId = renderId;
-    }
     return this;
   }
 
@@ -932,445 +849,13 @@ export class Mesh extends AbstractMesh {
     internalDataInfo._source = null;
 
     // Instances
-    this._disposeInstanceSpecificData();
+    this.meshInstanced._disposeInstanceSpecificData();
 
     // Thin instances
-    this._disposeThinInstanceSpecificData();
+    this.meshInstanced._disposeThinInstanceSpecificData();
 
     super.dispose(doNotRecurse, disposeMaterialAndTextures);
   }
-
-  /** @hidden */
-  public _disposeInstanceSpecificData() {
-    // Do nothing
-  }
-
-  /** @hidden */
-  public _disposeThinInstanceSpecificData() {
-    // Do nothing
-  }
-
-  /**
-   * Modifies the mesh geometry according to a displacement map.
-   * A displacement map is a colored image. Each pixel color value (actually a gradient computed from red, green, blue values) will give the displacement to apply to each mesh vertex.
-   * The mesh must be set as updatable. Its internal geometry is directly modified, no new buffer are allocated.
-   * @param url is a string, the URL from the image file is to be downloaded.
-   * @param minHeight is the lower limit of the displacement.
-   * @param maxHeight is the upper limit of the displacement.
-   * @param onSuccess is an optional Javascript function to be called just after the mesh is modified. It is passed the modified mesh and must return nothing.
-   * @param uvOffset is an optional vector2 used to offset UV.
-   * @param uvScale is an optional vector2 used to scale UV.
-   * @param forceUpdate defines whether or not to force an update of the generated buffers. This is useful to apply on a deserialized model for instance.
-   * @returns the Mesh.
-   */
-  public applyDisplacementMap(
-    url: string,
-    minHeight: number,
-    maxHeight: number,
-    onSuccess?: (mesh: Mesh) => void,
-    uvOffset?: Vector2,
-    uvScale?: Vector2,
-    forceUpdate = false
-  ): Mesh {
-    // var scene = this.getScene();
-
-    var onload = (img: HTMLImageElement | ImageBitmap) => {
-      // Getting height map data
-      var heightMapWidth = img.width;
-      var heightMapHeight = img.height;
-      var canvas = CanvasGenerator.CreateCanvas(heightMapWidth, heightMapHeight);
-      var context = <CanvasRenderingContext2D>canvas.getContext("2d");
-
-      context.drawImage(img, 0, 0);
-
-      // Create VertexData from map data
-      //Cast is due to wrong definition in lib.d.ts from ts 1.3 - https://github.com/Microsoft/TypeScript/issues/949
-      var buffer = <Uint8Array>(<any>context.getImageData(0, 0, heightMapWidth, heightMapHeight).data);
-
-      this.applyDisplacementMapFromBuffer(buffer, heightMapWidth, heightMapHeight, minHeight, maxHeight, uvOffset, uvScale, forceUpdate);
-      //execute success callback, if set
-      if (onSuccess) {
-        onSuccess(this);
-      }
-    };
-
-    Tools.LoadImage(url, onload, () => {});
-    return this;
-  }
-
-  /**
-   * Modifies the mesh geometry according to a displacementMap buffer.
-   * A displacement map is a colored image. Each pixel color value (actually a gradient computed from red, green, blue values) will give the displacement to apply to each mesh vertex.
-   * The mesh must be set as updatable. Its internal geometry is directly modified, no new buffer are allocated.
-   * @param buffer is a `Uint8Array` buffer containing series of `Uint8` lower than 255, the red, green, blue and alpha values of each successive pixel.
-   * @param heightMapWidth is the width of the buffer image.
-   * @param heightMapHeight is the height of the buffer image.
-   * @param minHeight is the lower limit of the displacement.
-   * @param maxHeight is the upper limit of the displacement.
-   * @param onSuccess is an optional Javascript function to be called just after the mesh is modified. It is passed the modified mesh and must return nothing.
-   * @param uvOffset is an optional vector2 used to offset UV.
-   * @param uvScale is an optional vector2 used to scale UV.
-   * @param forceUpdate defines whether or not to force an update of the generated buffers. This is useful to apply on a deserialized model for instance.
-   * @returns the Mesh.
-   */
-  public applyDisplacementMapFromBuffer(
-    buffer: Uint8Array,
-    heightMapWidth: number,
-    heightMapHeight: number,
-    minHeight: number,
-    maxHeight: number,
-    uvOffset?: Vector2,
-    uvScale?: Vector2,
-    forceUpdate = false
-  ): Mesh {
-    if (
-      !this.meshGeometry.isVerticesDataPresent(VertexBuffer.PositionKind) ||
-      !this.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind) ||
-      !this.meshGeometry.isVerticesDataPresent(VertexBuffer.UVKind)
-    ) {
-      Logger.Warn("Cannot call applyDisplacementMap: Given mesh is not complete. Position, Normal or UV are missing");
-      return this;
-    }
-
-    var positions = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.PositionKind, true, true);
-    var normals = <FloatArray>this.meshGeometry.getVerticesData(VertexBuffer.NormalKind);
-    var uvs = <number[]>this.meshGeometry.getVerticesData(VertexBuffer.UVKind);
-    var position = Vector3.Zero();
-    var normal = Vector3.Zero();
-    var uv = Vector2.Zero();
-
-    uvOffset = uvOffset || Vector2.Zero();
-    uvScale = uvScale || new Vector2(1, 1);
-
-    for (var index = 0; index < positions.length; index += 3) {
-      Vector3.FromArrayToRef(positions, index, position);
-      Vector3.FromArrayToRef(normals, index, normal);
-      Vector2.FromArrayToRef(uvs, (index / 3) * 2, uv);
-
-      // Compute height
-      var u = (Math.abs(uv.x * uvScale.x + (uvOffset.x % 1)) * (heightMapWidth - 1)) % heightMapWidth | 0;
-      var v = (Math.abs(uv.y * uvScale.y + (uvOffset.y % 1)) * (heightMapHeight - 1)) % heightMapHeight | 0;
-
-      var pos = (u + v * heightMapWidth) * 4;
-      var r = buffer[pos] / 255.0;
-      var g = buffer[pos + 1] / 255.0;
-      var b = buffer[pos + 2] / 255.0;
-
-      var gradient = r * 0.3 + g * 0.59 + b * 0.11;
-
-      normal.normalize();
-      normal.scaleInPlace(minHeight + (maxHeight - minHeight) * gradient);
-      position = position.add(normal);
-
-      position.toArray(positions, index);
-    }
-
-    VertexData.ComputeNormals(positions, this.meshGeometry.getIndices(), normals);
-
-    if (forceUpdate) {
-      this.meshGeometry.setVerticesData(VertexBuffer.PositionKind, positions);
-      this.meshGeometry.setVerticesData(VertexBuffer.NormalKind, normals);
-    } else {
-      this.meshGeometry.updateVerticesData(VertexBuffer.PositionKind, positions);
-      this.meshGeometry.updateVerticesData(VertexBuffer.NormalKind, normals);
-    }
-    return this;
-  }
-
-  /**
-   * Modify the mesh to get a flat shading rendering.
-   * This means each mesh facet will then have its own normals. Usually new vertices are added in the mesh geometry to get this result.
-   * Warning : the mesh is really modified even if not set originally as updatable and, under the hood, a new VertexBuffer is allocated.
-   * @returns current mesh
-   */
-  public convertToFlatShadedMesh(): Mesh {
-    var kinds = this.meshGeometry.getVerticesDataKinds();
-    var vbs: { [key: string]: VertexBuffer } = {};
-    var data: { [key: string]: FloatArray } = {};
-    var newdata: { [key: string]: Array<number> } = {};
-    var updatableNormals = false;
-    var kindIndex: number;
-    var kind: string;
-    for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-      kind = kinds[kindIndex];
-      var vertexBuffer = <VertexBuffer>this.meshGeometry.getVertexBuffer(kind);
-
-      if (kind === VertexBuffer.NormalKind) {
-        updatableNormals = vertexBuffer.isUpdatable();
-        kinds.splice(kindIndex, 1);
-        kindIndex--;
-        continue;
-      }
-
-      vbs[kind] = vertexBuffer;
-      data[kind] = <FloatArray>vbs[kind].getData();
-      newdata[kind] = [];
-    }
-
-    // Save previous submeshes
-    var previousSubmeshes = this.subMeshes.slice(0);
-
-    var indices = <IndicesArray>this.meshGeometry.getIndices();
-    var totalIndices = this.meshGeometry.getTotalIndices();
-
-    // Generating unique vertices per face
-    var index: number;
-    for (index = 0; index < totalIndices; index++) {
-      var vertexIndex = indices[index];
-
-      for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-        kind = kinds[kindIndex];
-        var stride = vbs[kind].getStrideSize();
-
-        for (var offset = 0; offset < stride; offset++) {
-          newdata[kind].push(data[kind][vertexIndex * stride + offset]);
-        }
-      }
-    }
-
-    // Updating faces & normal
-    var normals = [];
-    var positions = newdata[VertexBuffer.PositionKind];
-    for (index = 0; index < totalIndices; index += 3) {
-      indices[index] = index;
-      indices[index + 1] = index + 1;
-      indices[index + 2] = index + 2;
-
-      var p1 = Vector3.FromArray(positions, index * 3);
-      var p2 = Vector3.FromArray(positions, (index + 1) * 3);
-      var p3 = Vector3.FromArray(positions, (index + 2) * 3);
-
-      var p1p2 = p1.subtract(p2);
-      var p3p2 = p3.subtract(p2);
-
-      var normal = Vector3.Normalize(Vector3.Cross(p1p2, p3p2));
-
-      // Store same normals for every vertex
-      for (var localIndex = 0; localIndex < 3; localIndex++) {
-        normals.push(normal.x);
-        normals.push(normal.y);
-        normals.push(normal.z);
-      }
-    }
-
-    this.meshGeometry.setIndices(indices);
-    this.meshGeometry.setVerticesData(VertexBuffer.NormalKind, normals, updatableNormals);
-
-    // Updating vertex buffers
-    for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-      kind = kinds[kindIndex];
-      this.meshGeometry.setVerticesData(kind, newdata[kind], vbs[kind].isUpdatable());
-    }
-
-    // Updating submeshes
-    this.releaseSubMeshes();
-    for (var submeshIndex = 0; submeshIndex < previousSubmeshes.length; submeshIndex++) {
-      var previousOne = previousSubmeshes[submeshIndex];
-      SubMesh.AddToMesh(
-        previousOne.materialIndex,
-        previousOne.indexStart,
-        previousOne.indexCount,
-        previousOne.indexStart,
-        previousOne.indexCount,
-        this
-      );
-    }
-
-    // this.synchronizeInstances();
-    return this;
-  }
-
-  /**
-   * This method removes all the mesh indices and add new vertices (duplication) in order to unfold facets into buffers.
-   * In other words, more vertices, no more indices and a single bigger VBO.
-   * The mesh is really modified even if not set originally as updatable. Under the hood, a new VertexBuffer is allocated.
-   * @returns current mesh
-   */
-  public convertToUnIndexedMesh(): Mesh {
-    var kinds = this.meshGeometry.getVerticesDataKinds();
-    var vbs: { [key: string]: VertexBuffer } = {};
-    var data: { [key: string]: FloatArray } = {};
-    var newdata: { [key: string]: Array<number> } = {};
-    var kindIndex: number;
-    var kind: string;
-    for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-      kind = kinds[kindIndex];
-      var vertexBuffer = <VertexBuffer>this.meshGeometry.getVertexBuffer(kind);
-      vbs[kind] = vertexBuffer;
-      data[kind] = <FloatArray>vbs[kind].getData();
-      newdata[kind] = [];
-    }
-
-    // Save previous submeshes
-    var previousSubmeshes = this.subMeshes.slice(0);
-
-    var indices = <IndicesArray>this.meshGeometry.getIndices();
-    var totalIndices = this.meshGeometry.getTotalIndices();
-
-    // Generating unique vertices per face
-    var index: number;
-    for (index = 0; index < totalIndices; index++) {
-      var vertexIndex = indices[index];
-
-      for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-        kind = kinds[kindIndex];
-        var stride = vbs[kind].getStrideSize();
-
-        for (var offset = 0; offset < stride; offset++) {
-          newdata[kind].push(data[kind][vertexIndex * stride + offset]);
-        }
-      }
-    }
-
-    // Updating indices
-    for (index = 0; index < totalIndices; index += 3) {
-      indices[index] = index;
-      indices[index + 1] = index + 1;
-      indices[index + 2] = index + 2;
-    }
-
-    this.meshGeometry.setIndices(indices);
-
-    // Updating vertex buffers
-    for (kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-      kind = kinds[kindIndex];
-      this.meshGeometry.setVerticesData(kind, newdata[kind], vbs[kind].isUpdatable());
-    }
-
-    // Updating submeshes
-    this.releaseSubMeshes();
-    for (var submeshIndex = 0; submeshIndex < previousSubmeshes.length; submeshIndex++) {
-      var previousOne = previousSubmeshes[submeshIndex];
-      SubMesh.AddToMesh(
-        previousOne.materialIndex,
-        previousOne.indexStart,
-        previousOne.indexCount,
-        previousOne.indexStart,
-        previousOne.indexCount,
-        this
-      );
-    }
-
-    this._unIndexed = true;
-
-    // this.synchronizeInstances();
-    return this;
-  }
-
-  /**
-   * Inverses facet orientations.
-   * Warning : the mesh is really modified even if not set originally as updatable. A new VertexBuffer is created under the hood each call.
-   * @param flipNormals will also inverts the normals
-   * @returns current mesh
-   */
-  public flipFaces(flipNormals: boolean = false): Mesh {
-    var vertex_data = VertexData.ExtractFromMesh(this);
-    var i: number;
-    if (flipNormals && this.meshGeometry.isVerticesDataPresent(VertexBuffer.NormalKind) && vertex_data.normals) {
-      for (i = 0; i < vertex_data.normals.length; i++) {
-        vertex_data.normals[i] *= -1;
-      }
-    }
-
-    if (vertex_data.indices) {
-      var temp;
-      for (i = 0; i < vertex_data.indices.length; i += 3) {
-        // reassign indices
-        temp = vertex_data.indices[i + 1];
-        vertex_data.indices[i + 1] = vertex_data.indices[i + 2];
-        vertex_data.indices[i + 2] = temp;
-      }
-    }
-
-    vertex_data.applyToMesh(this, this.meshGeometry.isVertexBufferUpdatable(VertexBuffer.PositionKind));
-    return this;
-  }
-
-  // Instances
-  /** @hidden */
-  public static _instancedMeshFactory(name: string, mesh: Mesh): InstancedMesh {
-    throw _DevTools.WarnImport("InstancedMesh");
-  }
-
-  /**
-   * Creates a new InstancedMesh object from the mesh model.
-   * @see https://doc.babylonjs.com/how_to/how_to_use_instances
-   * @param name defines the name of the new instance
-   * @returns a new InstancedMesh
-   */
-  public createInstance(name: string): InstancedMesh {
-    let geometry = this.meshGeometry.geometry;
-
-    if (geometry && geometry.meshes.length > 1) {
-      let others = geometry.meshes.slice(0);
-      for (var other of others) {
-        if (other === this) {
-          continue;
-        }
-        other.meshGeometry.makeGeometryUnique();
-      }
-    }
-
-    return Mesh._instancedMeshFactory(name, this);
-  }
-
-  /**
-   * Optimization of the mesh's indices, in case a mesh has duplicated vertices.
-   * The function will only reorder the indices and will not remove unused vertices to avoid problems with submeshes.
-   * This should be used together with the simplification to avoid disappearing triangles.
-   * @param successCallback an optional success callback to be called after the optimization finished.
-   * @returns the current mesh
-   */
-  public optimizeIndices(successCallback?: (mesh?: Mesh) => void): Mesh {
-    var indices = <IndicesArray>this.meshGeometry.getIndices();
-    var positions = this.meshGeometry.getVerticesData(VertexBuffer.PositionKind);
-
-    if (!positions || !indices) {
-      return this;
-    }
-
-    var vectorPositions = new Array<Vector3>();
-    for (var pos = 0; pos < positions.length; pos = pos + 3) {
-      vectorPositions.push(Vector3.FromArray(positions, pos));
-    }
-    var dupes = new Array<number>();
-
-    AsyncLoop.SyncAsyncForLoop(
-      vectorPositions.length,
-      40,
-      (iteration) => {
-        var realPos = vectorPositions.length - 1 - iteration;
-        var testedPosition = vectorPositions[realPos];
-        for (var j = 0; j < realPos; ++j) {
-          var againstPosition = vectorPositions[j];
-          if (testedPosition.equals(againstPosition)) {
-            dupes[realPos] = j;
-            break;
-          }
-        }
-      },
-      () => {
-        for (var i = 0; i < indices.length; ++i) {
-          indices[i] = dupes[indices[i]] || indices[i];
-        }
-
-        //indices are now reordered
-        var originalSubMeshes = this.subMeshes.slice(0);
-        this.meshGeometry.setIndices(indices);
-        this.subMeshes = originalSubMeshes;
-        if (successCallback) {
-          successCallback(this);
-        }
-      }
-    );
-    return this;
-  }
-
-  // Statics
-  /** @hidden */
-  public static _GroundMeshParser = (parsedMesh: any, scene: Scene): Mesh => {
-    throw _DevTools.WarnImport("GroundMesh");
-  };
 
   /** @hidden */
   public _processRendering(

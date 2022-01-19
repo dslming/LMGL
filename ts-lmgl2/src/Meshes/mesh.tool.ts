@@ -1,6 +1,7 @@
 import { BoundingInfo } from "../Culling/boundingInfo";
 import { Constants } from "../Engine/constants";
 import { Color3, Matrix, Quaternion, Vector3 } from "../Maths/math";
+import { _DevTools } from "../Misc/devTools";
 import { Logger } from "../Misc/logger";
 import { Tags } from "../Misc/tags";
 import { Scene } from "../Scene/scene";
@@ -169,6 +170,11 @@ export class MeshTool {
     return meshSubclass;
   }
 
+  /** @hidden */
+  public static _GroundMeshParser = (parsedMesh: any, scene: Scene): Mesh => {
+    throw _DevTools.WarnImport("GroundMesh");
+  };
+
   /**
  * Returns a new Mesh object parsed from the source provided.
  * @param parsedMesh is the source
@@ -180,7 +186,7 @@ export class MeshTool {
     var mesh: Mesh;
 
     if (parsedMesh.type && parsedMesh.type === "GroundMesh") {
-      mesh = Mesh._GroundMeshParser(parsedMesh, scene);
+      mesh = MeshTool._GroundMeshParser(parsedMesh, scene);
     } else {
       mesh = new Mesh(parsedMesh.name, scene);
     }
@@ -360,7 +366,7 @@ export class MeshTool {
     if (parsedMesh.instances) {
       for (var index = 0; index < parsedMesh.instances.length; index++) {
         var parsedInstance = parsedMesh.instances[index];
-        var instance = mesh.createInstance(parsedInstance.name);
+        var instance = mesh.meshInstanced.createInstance(parsedInstance.name);
 
         if (parsedInstance.id) {
           instance.id = parsedInstance.id;

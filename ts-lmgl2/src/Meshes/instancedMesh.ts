@@ -13,10 +13,11 @@ import { TransformNode } from "./transformNode";
 import { Light } from "../Lights/light";
 import { VertexBuffer } from "./vertexBuffer";
 import { BoundingInfo } from "../Culling/boundingInfo";
+import { MeshInstanced } from "./mesh.instanced";
 import { Mesh } from "./mesh";
 // import { Tools } from '../Misc/tools';
 
-Mesh._instancedMeshFactory = (name: string, mesh: Mesh): InstancedMesh => {
+MeshInstanced._instancedMeshFactory = (name: string, mesh: Mesh): InstancedMesh => {
   let instance = new InstancedMesh(name, mesh);
 
   if (mesh.instancedBuffers) {
@@ -170,7 +171,7 @@ export class InstancedMesh extends AbstractMesh {
    * @returns a new InstancedMesh
    */
   public createInstance(name: string): InstancedMesh {
-    return this._sourceMesh.createInstance(name);
+    return this._sourceMesh.meshInstanced.createInstance(name);
   }
 
   /**
@@ -397,7 +398,7 @@ export class InstancedMesh extends AbstractMesh {
 
   /** @hidden */
   public _preActivateForIntermediateRendering(renderId: number): Mesh {
-    return <Mesh>this.sourceMesh._preActivateForIntermediateRendering(renderId);
+    return <Mesh>this.sourceMesh.meshInstanced._preActivateForIntermediateRendering(renderId);
   }
 
   /** @hidden */
@@ -437,7 +438,7 @@ export class InstancedMesh extends AbstractMesh {
    * Returns the clone.
    */
   public clone(name: string, newParent: Nullable<Node> = null, doNotCloneChildren?: boolean): InstancedMesh {
-    var result = this._sourceMesh.createInstance(name);
+    var result = this._sourceMesh.meshInstanced.createInstance(name);
 
     // Deep copy
     DeepCopier.DeepCopy(
