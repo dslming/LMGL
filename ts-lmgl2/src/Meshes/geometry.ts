@@ -155,8 +155,66 @@ export class Geometry implements IGetSetVerticesData {
       mesh.computeWorldMatrix(true);
     }
   }
-  getVerticesData(kind: string, copyWhenShared?: boolean, forceCopy?: boolean): Nullable<FloatArray> {
-    throw new Error("Method not implemented.");
+  /**
+   * Gets a specific vertex data attached to this geometry. Float data is constructed if the vertex buffer data cannot be returned directly.
+   * @param kind defines the data kind (Position, normal, etc...)
+   * @param copyWhenShared defines if the returned array must be cloned upon returning it if the current geometry is shared between multiple meshes
+   * @param forceCopy defines a boolean indicating that the returned array must be cloned upon returning it
+   * @returns a float array containing vertex data
+   */
+  public getVerticesData(kind: string, copyWhenShared?: boolean, forceCopy?: boolean): Nullable<FloatArray> {
+    const vertexBuffer = this.getVertexBuffer(kind);
+    if (!vertexBuffer) {
+      return null;
+    }
+
+    let data = vertexBuffer.getData();
+    if (!data) {
+      return null;
+    }
+
+    const tightlyPackedByteStride = vertexBuffer.getSize() * VertexBuffer.GetTypeByteLength(vertexBuffer.type);
+    const count = this._totalVertices * vertexBuffer.getSize();
+
+    if (vertexBuffer.type !== VertexBuffer.FLOAT || vertexBuffer.byteStride !== tightlyPackedByteStride) {
+      const copy: number[] = [];
+      vertexBuffer.forEach(count, (value) => copy.push(value));
+      return copy;
+    }
+
+    if (!(data instanceof Array || data instanceof Float32Array) || vertexBuffer.byteOffset !== 0 || data.length !== count) {
+      if (data instanceof Array) {
+        const offset = vertexBuffer.byteOffset / 4;
+        return Tools.Slice(data, offset, offset + count);
+      } else if (data instanceof ArrayBuffer) {
+        return new Float32Array(data, vertexBuffer.byteOffset, count);
+      } else {
+        let offset = data.byteOffset + vertexBuffer.byteOffset;
+        if (forceCopy || (copyWhenShared && this._meshes.length !== 1)) {
+          let result = new Float32Array(count);
+          let source = new Float32Array(data.buffer, offset, count);
+
+          result.set(source);
+
+          return result;
+        }
+
+        // Portect against bad data
+        let remainder = offset % 4;
+
+        if (remainder) {
+          offset = Math.max(0, offset - remainder);
+        }
+
+        return new Float32Array(data.buffer, offset, count);
+      }
+    }
+
+    if (forceCopy || (copyWhenShared && this._meshes.length !== 1)) {
+      return Tools.Slice(data);
+    }
+
+    return data;
   }
 
   /**

@@ -735,4 +735,20 @@ export class MeshGeometry implements IGetSetVerticesData {
     this._geometry._bind(effect, indexToBind);
     return this.mesh;
   }
+
+  /**
+   * This method recomputes and sets a new BoundingInfo to the mesh unless it is locked.
+   * This means the mesh underlying bounding box and sphere are recomputed.
+   * @param applySkeleton defines whether to apply the skeleton before computing the bounding info
+   * @returns the current mesh
+   */
+  public refreshBoundingInfo(applySkeleton: boolean = false): Mesh {
+    if (this.mesh._boundingInfo && this.mesh._boundingInfo.isLocked) {
+      return this.mesh;
+    }
+
+    const bias = this.geometry ? this.geometry.boundingBias : null;
+    this.mesh._refreshBoundingInfo(this.mesh._getPositionData(applySkeleton), bias);
+    return this.mesh;
+  }
 }

@@ -29,6 +29,7 @@ import { Plane } from "../Maths/math.plane";
 // import { TransformNode } from './transformNode';
 import { CanvasGenerator } from "../Misc/canvasGenerator";
 import { MeshGeometry } from "./mesh.geometry";
+import { MeshInstanced, _InstancesBatch } from "./mesh.instanced";
 // import { LinesMesh } from "./linesMesh";
 declare type InstancedMesh = import("./instancedMesh").InstancedMesh;
 // declare type GroundMesh = import("./groundMesh").GroundMesh;
@@ -56,13 +57,6 @@ export class _InternalMeshDataInfo {
   public _preActivateId: number = -1;
 }
 
-export class _InstancesBatch {
-  public mustReturn = false;
-  public visibleInstances = new Array<Nullable<Array<InstancedMesh>>>();
-  public renderSelf = new Array<boolean>();
-  public hardwareInstancedRendering = new Array<boolean>();
-}
-
 /**
  * @hidden
  **/
@@ -79,34 +73,6 @@ export class _CreationDataStorage {
   public cap: number;
   public tessellation: number;
 }
-
-/**
- * @hidden
- **/
-class _InstanceDataStorage {
-  public visibleInstances: any = {};
-  public batchCache = new _InstancesBatch();
-  public instancesBufferSize = 32 * 16 * 4; // let's start with a maximum of 32 instances
-  public instancesBuffer: Nullable<Buffer>;
-  public instancesData: Float32Array;
-  public overridenInstanceCount: number;
-  public isFrozen: boolean;
-  public previousBatch: Nullable<_InstancesBatch>;
-  public hardwareInstancedRendering: boolean;
-  public sideOrientation: number;
-  public manualUpdate: boolean;
-  public previousRenderId: number;
-}
-
-/**
- * @hidden
- **/
-// export class _InstancesBatch {
-//     public mustReturn = false;
-//     public visibleInstances = new Array<Nullable<Array<InstancedMesh>>>();
-//     public renderSelf = new Array<boolean>();
-//     public hardwareInstancedRendering = new Array<boolean>();
-// }
 
 /**
  * @hidden
@@ -209,6 +175,7 @@ export class Mesh extends AbstractMesh {
    */
   public static readonly BOTTOM = 4;
   public meshGeometry: MeshGeometry;
+  meshInstanced: MeshInstanced;
 
   /**
    * Gets the default side orientation.
@@ -219,30 +186,6 @@ export class Mesh extends AbstractMesh {
   public static _GetDefaultSideOrientation(orientation?: number): number {
     return orientation || Mesh.FRONTSIDE; // works as Mesh.FRONTSIDE is 0
   }
-
-  // public get computeBonesUsingShaders(): boolean {
-  //     return this._internalAbstractMeshDataInfo._computeBonesUsingShaders;
-  // }
-  // public set computeBonesUsingShaders(value: boolean) {
-  //     if (this._internalAbstractMeshDataInfo._computeBonesUsingShaders === value) {
-  //         return;
-  //     }
-
-  //     if (value && this._internalMeshDataInfo._sourcePositions) {
-  //         // switch from software to GPU computation: we need to reset the vertex and normal buffers that have been updated by the software process
-  //         this.setVerticesData(VertexBuffer.PositionKind, this._internalMeshDataInfo._sourcePositions.slice(), true);
-  //         if (this._internalMeshDataInfo._sourceNormals) {
-  //             this.setVerticesData(VertexBuffer.NormalKind, this._internalMeshDataInfo._sourceNormals.slice(), true);
-  //         }
-  //     }
-
-  //     this._internalAbstractMeshDataInfo._computeBonesUsingShaders = value;
-  //     this._markSubMeshesAsAttributesDirty();
-  // }
-
-  // public get hasInstances(): boolean {
-  //     return this.instances.length > 0;
-  // }
 
   public get hasThinInstances(): boolean {
     return (this._thinInstanceDataStorage.instancesCount ?? 0) > 0;
@@ -255,14 +198,6 @@ export class Mesh extends AbstractMesh {
    * @see https://doc.babylonjs.com/how_to/using_the_incremental_loading_system
    */
   public delayLoadState = Constants.DELAYLOADSTATE_NONE;
-
-  /**
-   * Gets the list of instances created from this mesh
-   * it is not supposed to be modified manually.
-   * Note also that the order of the InstancedMesh wihin the array is not significant and might change.
-   * @see https://doc.babylonjs.com/how_to/how_to_use_instances
-   */
-  // public instances = new Array<InstancedMesh>();
 
   /**
    * Gets the file containing delay loading data for this mesh
@@ -286,9 +221,6 @@ export class Mesh extends AbstractMesh {
   /** @hidden */
   /** @hidden */
   public _delayLoadingFunction: (any: any, mesh: Mesh) => void;
-
-  /** @hidden */
-  public _instanceDataStorage = new _InstanceDataStorage();
 
   /** @hidden */
   public _thinInstanceDataStorage = new _ThinInstanceDataStorage();
@@ -335,20 +267,6 @@ export class Mesh extends AbstractMesh {
       this._unIndexed = value;
       this._markSubMeshesAsAttributesDirty();
     }
-  }
-
-  /** Gets the array buffer used to store the instanced buffer used for instances' world matrices */
-  public get worldMatrixInstancedBuffer() {
-    return this._instanceDataStorage.instancesData;
-  }
-
-  /** Gets or sets a boolean indicating that the update of the instance buffer of the world matrices is manual */
-  public get manualUpdateOfWorldMatrixInstancedBuffer() {
-    return this._instanceDataStorage.manualUpdate;
-  }
-
-  public set manualUpdateOfWorldMatrixInstancedBuffer(value: boolean) {
-    this._instanceDataStorage.manualUpdate = value;
   }
 
   /**
@@ -471,7 +389,7 @@ export class Mesh extends AbstractMesh {
         }
       }
 
-      this.refreshBoundingInfo();
+      this.meshGeometry.refreshBoundingInfo();
       this.computeWorldMatrix(true);
     }
 
@@ -479,35 +397,8 @@ export class Mesh extends AbstractMesh {
     if (parent !== null) {
       this.parent = parent;
     }
-
-    this._instanceDataStorage.hardwareInstancedRendering = this.getEngine().getCaps().instancedArrays;
+    this.meshInstanced = new MeshInstanced(this);
   }
-
-  // Methods
-  // public instantiateHierarchy(newParent: Nullable<TransformNode> = null, options?: { doNotInstantiate: boolean}, onNewNodeCreated?: (source: TransformNode, clone: TransformNode) => void): Nullable<TransformNode> {
-  //     let instance = (this.getTotalVertices() > 0 && (!options || !options.doNotInstantiate)) ? this.createInstance("instance of " + (this.name || this.id)) :  this.clone("Clone of " +  (this.name || this.id), newParent || this.parent, true);
-
-  //     if (instance) {
-  //         instance.parent = newParent || this.parent;
-  //         instance.position = this.position.clone();
-  //         instance.scaling = this.scaling.clone();
-  //         if (this.rotationQuaternion)  {
-  //             instance.rotationQuaternion = this.rotationQuaternion.clone();
-  //         } else {
-  //             instance.rotation = this.rotation.clone();
-  //         }
-
-  //         if (onNewNodeCreated) {
-  //             onNewNodeCreated(this, instance);
-  //         }
-  //     }
-
-  //     for (var child of this.getChildTransformNodes(true)) {
-  //         child.instantiateHierarchy(instance, options, onNewNodeCreated);
-  //     }
-
-  //     return instance;
-  // }
 
   /**
    * Gets the class name
@@ -522,7 +413,7 @@ export class Mesh extends AbstractMesh {
     return true;
   }
 
-  /** @hidden */
+  // /** @hidden */
   // public _unBindEffect() {
   //   super._unBindEffect();
 
@@ -636,13 +527,6 @@ export class Mesh extends AbstractMesh {
     return this;
   }
 
-  /**
-   * Sets a value overriding the instance count. Only applicable when custom instanced InterleavedVertexBuffer are used rather than InstancedMeshs
-   */
-  public set overridenInstanceCount(count: number) {
-    this._instanceDataStorage.overridenInstanceCount = count;
-  }
-
   // Methods
   /** @hidden */
   public _preActivate(): Mesh {
@@ -653,36 +537,15 @@ export class Mesh extends AbstractMesh {
     }
 
     internalDataInfo._preActivateId = sceneRenderId;
-    this._instanceDataStorage.visibleInstances = null;
+    this.meshInstanced._instanceDataStorage.visibleInstances = null;
     return this;
   }
 
   /** @hidden */
   public _preActivateForIntermediateRendering(renderId: number): Mesh {
-    if (this._instanceDataStorage.visibleInstances) {
-      this._instanceDataStorage.visibleInstances.intermediateDefaultRenderId = renderId;
+    if (this.meshInstanced._instanceDataStorage.visibleInstances) {
+      this.meshInstanced._instanceDataStorage.visibleInstances.intermediateDefaultRenderId = renderId;
     }
-    return this;
-  }
-
-  /** @hidden */
-  public _registerInstanceForRenderId(instance: InstancedMesh, renderId: number): Mesh {
-    if (!this._instanceDataStorage.visibleInstances) {
-      this._instanceDataStorage.visibleInstances = {
-        defaultRenderId: renderId,
-        selfDefaultRenderId: this._renderId,
-      };
-    }
-
-    if (!this._instanceDataStorage.visibleInstances[renderId]) {
-      if (this._instanceDataStorage.previousRenderId !== undefined && this._instanceDataStorage.isFrozen) {
-        this._instanceDataStorage.visibleInstances[this._instanceDataStorage.previousRenderId] = null;
-      }
-      this._instanceDataStorage.previousRenderId = renderId;
-      this._instanceDataStorage.visibleInstances[renderId] = new Array<InstancedMesh>();
-    }
-
-    this._instanceDataStorage.visibleInstances[renderId].push(instance);
     return this;
   }
 
@@ -692,22 +555,6 @@ export class Mesh extends AbstractMesh {
     if (!this.hasThinInstances) {
       return;
     }
-  }
-
-  /**
-   * This method recomputes and sets a new BoundingInfo to the mesh unless it is locked.
-   * This means the mesh underlying bounding box and sphere are recomputed.
-   * @param applySkeleton defines whether to apply the skeleton before computing the bounding info
-   * @returns the current mesh
-   */
-  public refreshBoundingInfo(applySkeleton: boolean = false): Mesh {
-    if (this._boundingInfo && this._boundingInfo.isLocked) {
-      return this;
-    }
-
-    const bias = this.meshGeometry.geometry ? this.meshGeometry.geometry.boundingBias : null;
-    this._refreshBoundingInfo(this._getPositionData(applySkeleton), bias);
-    return this;
   }
 
   /** @hidden */
@@ -784,45 +631,11 @@ export class Mesh extends AbstractMesh {
   }
 
   /** @hidden */
-  public _getInstancesRenderList(subMeshId: number, isReplacementMode: boolean = false): _InstancesBatch {
-    if (this._instanceDataStorage.isFrozen && this._instanceDataStorage.previousBatch) {
-      return this._instanceDataStorage.previousBatch;
-    }
-    var scene = this.getScene();
-    const isInIntermediateRendering = false; //scene._isInIntermediateRendering();
-    const onlyForInstances = isInIntermediateRendering
-      ? this._internalAbstractMeshDataInfo._onlyForInstancesIntermediate
-      : this._internalAbstractMeshDataInfo._onlyForInstances;
-    let batchCache = this._instanceDataStorage.batchCache;
-    batchCache.mustReturn = false;
-    batchCache.renderSelf[subMeshId] = isReplacementMode || (!onlyForInstances && this.isEnabled() && this.isVisible);
-    batchCache.visibleInstances[subMeshId] = null;
-
-    if (this._instanceDataStorage.visibleInstances && !isReplacementMode) {
-      let visibleInstances = this._instanceDataStorage.visibleInstances;
-      var currentRenderId = scene.sceneRender.getRenderId();
-      var defaultRenderId = isInIntermediateRendering ? visibleInstances.intermediateDefaultRenderId : visibleInstances.defaultRenderId;
-      batchCache.visibleInstances[subMeshId] = visibleInstances[currentRenderId];
-
-      if (!batchCache.visibleInstances[subMeshId] && defaultRenderId) {
-        batchCache.visibleInstances[subMeshId] = visibleInstances[defaultRenderId];
-      }
-    }
-    batchCache.hardwareInstancedRendering[subMeshId] =
-      !isReplacementMode &&
-      this._instanceDataStorage.hardwareInstancedRendering &&
-      batchCache.visibleInstances[subMeshId] !== null &&
-      batchCache.visibleInstances[subMeshId] !== undefined;
-    // this._instanceDataStorage.previousBatch = batchCache;
-    return batchCache;
-  }
-
-  /** @hidden */
   public _rebuild(): void {
-    if (this._instanceDataStorage.instancesBuffer) {
+    if (this.meshInstanced._instanceDataStorage.instancesBuffer) {
       // Dispose instance buffer to be recreated in _renderWithInstances when rendered
-      this._instanceDataStorage.instancesBuffer.dispose();
-      this._instanceDataStorage.instancesBuffer = null;
+      this.meshInstanced._instanceDataStorage.instancesBuffer.dispose();
+      this.meshInstanced._instanceDataStorage.instancesBuffer = null;
     }
     super._rebuild();
   }
@@ -835,17 +648,17 @@ export class Mesh extends AbstractMesh {
 
     // Prepare batches
     for (var index = 0; index < this.subMeshes.length; index++) {
-      this._getInstancesRenderList(index);
+      this.meshInstanced._getInstancesRenderList(index);
     }
 
     this._effectiveMaterial = null;
-    this._instanceDataStorage.isFrozen = true;
+    this.meshInstanced._instanceDataStorage.isFrozen = true;
   }
 
   /** @hidden */
   public _unFreeze() {
-    this._instanceDataStorage.isFrozen = false;
-    this._instanceDataStorage.previousBatch = null;
+    this.meshInstanced._instanceDataStorage.isFrozen = false;
+    this.meshInstanced._instanceDataStorage.previousBatch = null;
   }
 
   /**
@@ -869,11 +682,11 @@ export class Mesh extends AbstractMesh {
     }
 
     // Managing instances
-    var batch = this._getInstancesRenderList(subMesh._id, !!effectiveMeshReplacement);
+    var batch = this.meshInstanced._getInstancesRenderList(subMesh._id, !!effectiveMeshReplacement);
 
-    // if (batch.mustReturn) {
-    //   return this;
-    // }
+    if (batch.mustReturn) {
+      return this;
+    }
 
     // Checking geometry state
     if (
@@ -893,7 +706,7 @@ export class Mesh extends AbstractMesh {
     //   batch.hardwareInstancedRendering[subMesh._id] ||
     //   subMesh.getRenderingMesh().hasThinInstances;
     var hardwareInstancedRendering = false;
-    let instanceDataStorage = this._instanceDataStorage;
+    let instanceDataStorage = this.meshInstanced._instanceDataStorage;
 
     let material = subMesh.getMaterial();
 
@@ -1701,7 +1514,7 @@ export class Mesh extends AbstractMesh {
         }
         instanceCount++;
 
-        this._draw(subMesh, fillMode, this._instanceDataStorage.overridenInstanceCount);
+        this._draw(subMesh, fillMode, this.meshInstanced._instanceDataStorage.overridenInstanceCount);
       }
 
       let visibleInstancesForSubMesh = batch.visibleInstances[subMesh._id];
@@ -1729,28 +1542,6 @@ export class Mesh extends AbstractMesh {
     }
     return this;
   }
-
-  /** @hidden */
-  // public addInstance(instance: InstancedMesh) {
-  //   instance._indexInSourceMeshInstanceArray = this.instances.length;
-  //   this.instances.push(instance);
-  // }
-
-  // /** @hidden */
-  // public removeInstance(instance: InstancedMesh) {
-  //   // Remove from mesh
-  //   const index = instance._indexInSourceMeshInstanceArray;
-  //   if (index != -1) {
-  //     if (index !== this.instances.length - 1) {
-  //       const last = this.instances[this.instances.length - 1];
-  //       this.instances[index] = last;
-  //       last._indexInSourceMeshInstanceArray = index;
-  //     }
-
-  //     instance._indexInSourceMeshInstanceArray = -1;
-  //     this.instances.pop();
-  //   }
-  // }
 }
 
 _TypeStore.RegisteredTypes["BABYLON.Mesh"] = Mesh;
