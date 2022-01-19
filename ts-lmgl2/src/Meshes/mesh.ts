@@ -1,28 +1,22 @@
-import { Observer, Observable } from "../Misc/observable";
-import { Tools, AsyncLoop } from "../Misc/tools";
+import { Observable } from "../Misc/observable";
 import { DeepCopier } from "../Misc/deepCopier";
 import { Tags } from "../Misc/tags";
-import { Nullable, FloatArray, IndicesArray } from "../types";
+import { Nullable } from "../types";
 import { Scene } from "../Scene/scene";
-import { Quaternion, Matrix, Vector3, Vector2, Vector4 } from "../Maths/math.vector";
+import { Matrix, Vector3 } from "../Maths/math.vector";
 import { Node } from "../node";
-import { VertexBuffer } from "./vertexBuffer";
-import { VertexData, IGetSetVerticesData } from "./mesh.vertexData";
-import { Buffer } from "./buffer";
+import { VertexData } from "./mesh.vertexData";
 import { AbstractMesh } from "./abstractMesh";
 import { SubMesh } from "./subMesh";
 import { Effect } from "../Materials/effect";
 import { Material } from "../Materials/material";
 import { Constants } from "../Engine/constants";
-import { Logger } from "../Misc/logger";
 import { _TypeStore } from "../Misc/typeStore";
 import { _DevTools } from "../Misc/devTools";
 import { Path3D } from "../Maths/math.path";
 import { Plane } from "../Maths/math.plane";
-import { CanvasGenerator } from "../Misc/canvasGenerator";
 import { MeshGeometry } from "./mesh.geometry";
 import { MeshInstanced, _InstancesBatch } from "./mesh.instanced";
-declare type InstancedMesh = import("./instancedMesh").InstancedMesh;
 
 /**
  * @hidden

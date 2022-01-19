@@ -2,24 +2,17 @@ import { Nullable, IndicesArray, DeepImmutable, FloatArray } from "../types";
 import { Matrix, Vector3 } from "../Maths/math.vector";
 import { Engine } from "../Engine/engine";
 import { VertexBuffer } from "./vertexBuffer";
-// import { IntersectionInfo } from "../Collisions/intersectionInfo";
 import { ICullable, BoundingInfo } from "../Culling/boundingInfo";
 import { Effect } from "../Materials/effect";
-import { Constants } from "../Engine/constants";
 import { DataBuffer } from "../Engine/dataBuffer";
 import { extractMinAndMaxIndexed } from "../Maths/math.functions";
 import { Plane } from "../Maths/math.plane";
 
-// declare type Collider = import("../Collisions/collider").Collider;
 declare type Material = import("../Materials/material").Material;
 declare type MaterialDefines =
   import("../Materials/materialDefines").MaterialDefines;
-// declare type MultiMaterial = import("../Materials/multiMaterial").MultiMaterial;
 declare type AbstractMesh = import("./abstractMesh").AbstractMesh;
 declare type Mesh = import("./mesh").Mesh;
-declare type Ray = import("../Culling/ray").Ray;
-// declare type TrianglePickingPredicate =
-//   import("../Culling/ray").TrianglePickingPredicate;
 
 /**
  * Defines a subdivision inside a mesh
@@ -270,12 +263,6 @@ export class SubMesh implements ICullable {
     return rootMaterial;
   }
 
-  // private _IsMultiMaterial(material: Material): material is MultiMaterial {
-  //     return (material as MultiMaterial).getSubMaterial !== undefined;
-  // }
-
-  // Methods
-
   /**
    * Sets a new updated BoundingInfo object to the submesh
    * @param data defines an optional position array to use to determine the bounding info
@@ -330,13 +317,6 @@ export class SubMesh implements ICullable {
     }
     return this;
   }
-
-  /** @hidden */
-  // public _checkCollision(collider: Collider): boolean {
-  //   let boundingInfo = this.getBoundingInfo();
-
-  //   return boundingInfo._checkCollision(collider);
-  // }
 
   /**
    * Updates the submesh BoundingInfo
@@ -432,283 +412,6 @@ export class SubMesh implements ICullable {
     return this._linesIndexBuffer;
   }
 
-  /**
-   * Checks if the submesh intersects with a ray
-   * @param ray defines the ray to test
-   * @returns true is the passed ray intersects the submesh bounding box
-   */
-  // public canIntersects(ray: Ray): boolean {
-  //   let boundingInfo = this.getBoundingInfo();
-
-  //   if (!boundingInfo) {
-  //     return false;
-  //   }
-  //   return ray.intersectsBox(boundingInfo.boundingBox);
-  // }
-
-  /**
-   * Intersects current submesh with a ray
-   * @param ray defines the ray to test
-   * @param positions defines mesh's positions array
-   * @param indices defines mesh's indices array
-   * @param fastCheck defines if the first intersection will be used (and not the closest)
-   * @param trianglePredicate defines an optional predicate used to select faces when a mesh intersection is detected
-   * @returns intersection info or null if no intersection
-   */
-  // public intersects(
-  //   ray: Ray,
-  //   positions: Vector3[],
-  //   indices: IndicesArray,
-  //   fastCheck?: boolean,
-  //   trianglePredicate?: TrianglePickingPredicate
-  // ): Nullable<IntersectionInfo> {
-  //   const material = this.getMaterial();
-  //   if (!material) {
-  //     return null;
-  //   }
-  //   let step = 3;
-  //   let checkStopper = false;
-
-  //   switch (material.fillMode) {
-  //     case Constants.MATERIAL_PointListDrawMode:
-  //     case Constants.MATERIAL_LineListDrawMode:
-  //     case Constants.MATERIAL_LineLoopDrawMode:
-  //     case Constants.MATERIAL_LineStripDrawMode:
-  //     case Constants.MATERIAL_TriangleFanDrawMode:
-  //       return null;
-  //     case Constants.MATERIAL_TriangleStripDrawMode:
-  //       step = 1;
-  //       checkStopper = true;
-  //       break;
-  //     default:
-  //       break;
-  //   }
-
-  //   // LineMesh first as it's also a Mesh...
-  //   if (
-  //     this._mesh.getClassName() === "InstancedLinesMesh" ||
-  //     this._mesh.getClassName() === "LinesMesh"
-  //   ) {
-  //     // Check if mesh is unindexed
-  //     if (!indices.length) {
-  //       return this._intersectUnIndexedLines(
-  //         ray,
-  //         positions,
-  //         indices,
-  //         (this._mesh as any).intersectionThreshold,
-  //         fastCheck
-  //       );
-  //     }
-  //     return this._intersectLines(
-  //       ray,
-  //       positions,
-  //       indices,
-  //       (this._mesh as any).intersectionThreshold,
-  //       fastCheck
-  //     );
-  //   } else {
-  //     // Check if mesh is unindexed
-  //     if (!indices.length && this._mesh._unIndexed) {
-  //       return this._intersectUnIndexedTriangles(
-  //         ray,
-  //         positions,
-  //         indices,
-  //         fastCheck,
-  //         trianglePredicate
-  //       );
-  //     }
-
-  //     return this._intersectTriangles(
-  //       ray,
-  //       positions,
-  //       indices,
-  //       step,
-  //       checkStopper,
-  //       fastCheck,
-  //       trianglePredicate
-  //     );
-  //   }
-  // }
-
-  // /** @hidden */
-  // private _intersectLines(
-  //   ray: Ray,
-  //   positions: Vector3[],
-  //   indices: IndicesArray,
-  //   intersectionThreshold: number,
-  //   fastCheck?: boolean
-  // ): Nullable<IntersectionInfo> {
-  //   var intersectInfo: Nullable<IntersectionInfo> = null;
-
-  //   // Line test
-  //   for (
-  //     var index = this.indexStart;
-  //     index < this.indexStart + this.indexCount;
-  //     index += 2
-  //   ) {
-  //     var p0 = positions[indices[index]];
-  //     var p1 = positions[indices[index + 1]];
-
-  //     var length = ray.intersectionSegment(p0, p1, intersectionThreshold);
-  //     if (length < 0) {
-  //       continue;
-  //     }
-
-  //     if (fastCheck || !intersectInfo || length < intersectInfo.distance) {
-  //       intersectInfo = new IntersectionInfo(null, null, length);
-  //       intersectInfo.faceId = index / 2;
-  //       if (fastCheck) {
-  //         break;
-  //       }
-  //     }
-  //   }
-  //   return intersectInfo;
-  // }
-
-  /** @hidden */
-  // private _intersectUnIndexedLines(
-  //   ray: Ray,
-  //   positions: Vector3[],
-  //   indices: IndicesArray,
-  //   intersectionThreshold: number,
-  //   fastCheck?: boolean
-  // ): Nullable<IntersectionInfo> {
-  //   var intersectInfo: Nullable<IntersectionInfo> = null;
-
-  //   // Line test
-  //   for (
-  //     var index = this.verticesStart;
-  //     index < this.verticesStart + this.verticesCount;
-  //     index += 2
-  //   ) {
-  //     var p0 = positions[index];
-  //     var p1 = positions[index + 1];
-
-  //     var length = ray.intersectionSegment(p0, p1, intersectionThreshold);
-  //     if (length < 0) {
-  //       continue;
-  //     }
-
-  //     if (fastCheck || !intersectInfo || length < intersectInfo.distance) {
-  //       intersectInfo = new IntersectionInfo(null, null, length);
-  //       intersectInfo.faceId = index / 2;
-  //       if (fastCheck) {
-  //         break;
-  //       }
-  //     }
-  //   }
-
-  //   return intersectInfo;
-  // }
-
-  // /** @hidden */
-  // private _intersectTriangles(
-  //   ray: Ray,
-  //   positions: Vector3[],
-  //   indices: IndicesArray,
-  //   step: number,
-  //   checkStopper: boolean,
-  //   fastCheck?: boolean,
-  //   trianglePredicate?: TrianglePickingPredicate
-  // ): Nullable<IntersectionInfo> {
-  //   var intersectInfo: Nullable<IntersectionInfo> = null;
-
-  //   // Triangles test
-  //   let faceID = -1;
-  //   for (
-  //     var index = this.indexStart;
-  //     index < this.indexStart + this.indexCount;
-  //     index += step
-  //   ) {
-  //     faceID++;
-  //     const indexA = indices[index];
-  //     const indexB = indices[index + 1];
-  //     const indexC = indices[index + 2];
-
-  //     if (checkStopper && indexC === 0xffffffff) {
-  //       index += 2;
-  //       continue;
-  //     }
-
-  //     var p0 = positions[indexA];
-  //     var p1 = positions[indexB];
-  //     var p2 = positions[indexC];
-
-  //     if (trianglePredicate && !trianglePredicate(p0, p1, p2, ray)) {
-  //       continue;
-  //     }
-
-  //     var currentIntersectInfo = ray.intersectsTriangle(p0, p1, p2);
-
-  //     if (currentIntersectInfo) {
-  //       if (currentIntersectInfo.distance < 0) {
-  //         continue;
-  //       }
-
-  //       if (
-  //         fastCheck ||
-  //         !intersectInfo ||
-  //         currentIntersectInfo.distance < intersectInfo.distance
-  //       ) {
-  //         intersectInfo = currentIntersectInfo;
-  //         intersectInfo.faceId = faceID;
-
-  //         if (fastCheck) {
-  //           break;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return intersectInfo;
-  // }
-
-  // /** @hidden */
-  // private _intersectUnIndexedTriangles(
-  //   ray: Ray,
-  //   positions: Vector3[],
-  //   indices: IndicesArray,
-  //   fastCheck?: boolean,
-  //   trianglePredicate?: TrianglePickingPredicate
-  // ): Nullable<IntersectionInfo> {
-  //   var intersectInfo: Nullable<IntersectionInfo> = null;
-  //   // Triangles test
-  //   for (
-  //     var index = this.verticesStart;
-  //     index < this.verticesStart + this.verticesCount;
-  //     index += 3
-  //   ) {
-  //     var p0 = positions[index];
-  //     var p1 = positions[index + 1];
-  //     var p2 = positions[index + 2];
-
-  //     if (trianglePredicate && !trianglePredicate(p0, p1, p2, ray)) {
-  //       continue;
-  //     }
-
-  //     var currentIntersectInfo = ray.intersectsTriangle(p0, p1, p2);
-
-  //     if (currentIntersectInfo) {
-  //       if (currentIntersectInfo.distance < 0) {
-  //         continue;
-  //       }
-
-  //       if (
-  //         fastCheck ||
-  //         !intersectInfo ||
-  //         currentIntersectInfo.distance < intersectInfo.distance
-  //       ) {
-  //         intersectInfo = currentIntersectInfo;
-  //         intersectInfo.faceId = index / 3;
-
-  //         if (fastCheck) {
-  //           break;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return intersectInfo;
-  // }
-
   /** @hidden */
   public _rebuild(): void {
     if (this._linesIndexBuffer) {
@@ -752,7 +455,6 @@ export class SubMesh implements ICullable {
   }
 
   // Dispose
-
   /**
    * Release associated resources
    */

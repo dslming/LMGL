@@ -779,41 +779,6 @@ export class TransformNode extends Node {
     return true;
   }
 
-  /**
-   * Attach the current TransformNode to another TransformNode associated with a bone
-   * @param bone Bone affecting the TransformNode
-   * @param affectedTransformNode TransformNode associated with the bone
-   * @returns this object
-   */
-  // public attachToBone(bone: Bone, affectedTransformNode: TransformNode): TransformNode {
-  //     this._transformToBoneReferal = affectedTransformNode;
-  //     this.parent = bone;
-
-  //     bone.getSkeleton().prepare();
-
-  //     if (bone.getWorldMatrix().determinant() < 0) {
-  //         this.scalingDeterminant *= -1;
-  //     }
-  //     return this;
-  // }
-
-  /**
-   * Detach the transform node if its associated with a bone
-   * @returns this object
-   */
-  public detachFromBone(): TransformNode {
-    if (!this.parent) {
-      return this;
-    }
-
-    if (this.parent.getWorldMatrix().determinant() < 0) {
-      this.scalingDeterminant *= -1;
-    }
-    this._transformToBoneReferal = null;
-    this.parent = null;
-    return this;
-  }
-
   private static _rotationAxisCache = new Quaternion();
   /**
    * Rotates the mesh around the axis vector for the passed angle (amount) expressed in radians, in the given space.

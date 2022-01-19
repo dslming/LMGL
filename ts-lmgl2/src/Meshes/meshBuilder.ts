@@ -1,34 +1,11 @@
-// import { RibbonBuilder } from "./Builders/ribbonBuilder";
-// import { DiscBuilder } from "./Builders/discBuilder";
 import { BoxBuilder } from "./Builders/boxBuilder";
-// import { TiledBoxBuilder } from "./Builders/tiledBoxBuilder";
 import { SphereBuilder } from "./Builders/sphereBuilder";
 import { CylinderBuilder } from "./Builders/cylinderBuilder";
-// import { TorusBuilder } from "./Builders/torusBuilder";
-// import { TorusKnotBuilder } from "./Builders/torusKnotBuilder";
-// import { LinesBuilder } from "./Builders/linesBuilder";
-// import { PolygonBuilder } from "./Builders/polygonBuilder";
-// import { ShapeBuilder } from "./Builders/shapeBuilder";
-// import { LatheBuilder } from "./Builders/latheBuilder";
-// import { PlaneBuilder } from "./Builders/planeBuilder";
-// import { TiledPlaneBuilder } from "./Builders/tiledPlaneBuilder";
-// import { GroundBuilder } from "./Builders/groundBuilder";
-// import { TubeBuilder } from "./Builders/tubeBuilder";
-// import { PolyhedronBuilder } from "./Builders/polyhedronBuilder";
-// import { IcoSphereBuilder } from "./Builders/icoSphereBuilder";
-// import { DecalBuilder } from "./Builders/decalBuilder";
-// import { CapsuleBuilder, ICreateCapsuleOptions } from "./Builders/capsuleBuilder";
 import { Vector4 } from "../Maths/math.vector";
 import { Nullable } from "../types";
 import { Scene } from "../Scene/scene";
 import { Mesh } from "./mesh";
-// import { LinesMesh } from "./linesMesh";
-// import { GroundMesh } from "./groundMesh";
-// import { AbstractMesh } from "./abstractMesh";
 import { Color4 } from '../Maths/math.color';
-// import { Plane } from '../Maths/math.plane';
-
-declare var earcut: any;
 
 /**
  * Class containing static functions to help procedurally build meshes
