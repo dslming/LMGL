@@ -56,10 +56,7 @@ export class Engine {
   protected _highPrecisionShadersAllowed = true;
   enginePost: EnginePost;
   public get _shouldUseHighPrecisionShader(): boolean {
-    return !!(
-      this._caps.highPrecisionShaderSupported &&
-      this._highPrecisionShadersAllowed
-    );
+    return !!(this._caps.highPrecisionShaderSupported && this._highPrecisionShadersAllowed);
   }
 
   public _shaderProcessor: WebGL2ShaderProcessor;
@@ -266,7 +263,6 @@ export class Engine {
       depthTextureExtension: false,
     };
 
-
     // Infos
     this._glVersion = this._gl.getParameter(this._gl.VERSION);
     var rendererInfo: any = this._gl.getExtension("WEBGL_debug_renderer_info");
@@ -433,8 +429,8 @@ export class Engine {
   }
 
   protected static _ConcatenateShader(source: string, defines: Nullable<string>, shaderVersion: string = ""): string {
-    // return shaderVersion + (defines ? defines + "\n" : "") + source;
-    return shaderVersion + source;
+    return shaderVersion + (defines ? defines + "\n" : "") + source;
+    // return shaderVersion + source;
     // return  source;
   }
 
@@ -804,11 +800,11 @@ export class Engine {
   }
 
   /**
-  * Gets the current hardware scaling level.
-  * By default the hardware scaling level is computed from the window device ratio.
-  * if level = 1 then the engine will render at the exact resolution of the canvas. If level = 0.5 then the engine will render at twice the size of the canvas.
-  * @returns a number indicating the current hardware scaling level
-  */
+   * Gets the current hardware scaling level.
+   * By default the hardware scaling level is computed from the window device ratio.
+   * if level = 1 then the engine will render at the exact resolution of the canvas. If level = 0.5 then the engine will render at twice the size of the canvas.
+   * @returns a number indicating the current hardware scaling level
+   */
   public getHardwareScalingLevel(): number {
     return 1.0;
   }
@@ -839,19 +835,19 @@ export class Engine {
     return {
       vendor: this._glVendor,
       renderer: this._glRenderer,
-      version: this._glVersion
+      version: this._glVersion,
     };
   }
 
   /**
-  * Reads pixels from the current frame buffer. Please note that this function can be slow
-  * @param x defines the x coordinate of the rectangle where pixels must be read
-  * @param y defines the y coordinate of the rectangle where pixels must be read
-  * @param width defines the width of the rectangle where pixels must be read
-  * @param height defines the height of the rectangle where pixels must be read
-  * @param hasAlpha defines whether the output should have alpha or not (defaults to true)
-  * @returns a Uint8Array containing RGBA colors
-  */
+   * Reads pixels from the current frame buffer. Please note that this function can be slow
+   * @param x defines the x coordinate of the rectangle where pixels must be read
+   * @param y defines the y coordinate of the rectangle where pixels must be read
+   * @param width defines the width of the rectangle where pixels must be read
+   * @param height defines the height of the rectangle where pixels must be read
+   * @param hasAlpha defines whether the output should have alpha or not (defaults to true)
+   * @returns a Uint8Array containing RGBA colors
+   */
   public readPixels(x: number, y: number, width: number, height: number, hasAlpha = true): Uint8Array {
     const numChannels = hasAlpha ? 4 : 3;
     const format = hasAlpha ? this._gl.RGBA : this._gl.RGB;
@@ -860,11 +856,8 @@ export class Engine {
     return data;
   }
 
-
-
   /**
-     * Method called to create the default rescale post process on each engine.
-     */
+   * Method called to create the default rescale post process on each engine.
+   */
   public static _RescalePostProcessFactory: Nullable<(engine: Engine) => PostProcess> = null;
-
 }

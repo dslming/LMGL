@@ -35,8 +35,8 @@ export class Scene extends AbstractScene {
   public sceneCatch: SceneCatch;
   public sceneMatrix: SceneMatrix;
   public sceneFog = new SceneFog(this);
-  public scenePost = new ScenePost();
-    layers: any;
+  public scenePost = new ScenePost(this);
+  layers: any;
 
   constructor(engine: Engine) {
     super();
@@ -87,10 +87,10 @@ export class Scene extends AbstractScene {
   }
 
   /**
-    * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
-    * Delay loaded resources are not taking in account
-    * @return true if all required resources are ready
-    */
+   * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
+   * Delay loaded resources are not taking in account
+   * @return true if all required resources are ready
+   */
   public isReady(): boolean {
     // if (this._isDisposed) {
     //   return false;
@@ -125,7 +125,11 @@ export class Scene extends AbstractScene {
         return false;
       }
 
-      let hardwareInstancedRendering = mesh.hasThinInstances || mesh.getClassName() === "InstancedMesh" || mesh.getClassName() === "InstancedLinesMesh" || engine.getCaps().instancedArrays && (<Mesh>mesh).meshInstanced.instances.length > 0;
+      let hardwareInstancedRendering =
+        mesh.hasThinInstances ||
+        mesh.getClassName() === "InstancedMesh" ||
+        mesh.getClassName() === "InstancedLinesMesh" ||
+        (engine.getCaps().instancedArrays && (<Mesh>mesh).meshInstanced.instances.length > 0);
       // Is Ready For Mesh
       // for (let step of this._isReadyForMeshStage) {
       //   if (!step.action(mesh, hardwareInstancedRendering)) {

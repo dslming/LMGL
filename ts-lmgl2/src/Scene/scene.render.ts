@@ -2,11 +2,13 @@ import { Camera } from "../Cameras/camera";
 import { Constants } from "../Engine/constants";
 import { ImageProcessingConfiguration } from "../Materials/imageProcessingConfiguration";
 import { Material } from "../Materials/material";
+import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
 import { Color3, Color4 } from "../Maths/math";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
 import { PerfCounter } from "../Misc/perfCounter";
-import { SmartArray } from "../Misc/smartArray";
+import { SmartArray, SmartArrayNoDuplicate } from "../Misc/smartArray";
+import { Tools } from "../Misc/tools";
 import { IRenderingManagerAutoClearSetup, RenderingManager } from "../Rendering/renderingManager";
 import { Nullable } from "../types";
 import { Scene } from "./scene";
@@ -24,6 +26,7 @@ export class SceneRender {
   public autoClear = true;
   public clearColor: Color4 = new Color4(0.2, 0.2, 0.3, 1.0);
   public _renderingManager: RenderingManager;
+  private _renderTargets = new SmartArrayNoDuplicate<RenderTargetTexture>(256);
 
   /**
    * Flag indicating that the frame buffer binding is handled by another component
@@ -46,6 +49,21 @@ export class SceneRender {
    * Defines the color used to simulate the ambient color (Default is (0, 0, 0))
    */
   public ambientColor = new Color3(0, 0, 0);
+
+  // Customs render targets
+  /**
+   * Gets or sets a boolean indicating if render targets are enabled on this scene
+   */
+  public renderTargetsEnabled = true;
+  /**
+   * Gets or sets a boolean indicating if next render targets must be dumped as image for debugging purposes
+   * We recommend not using it and instead rely on Spector.js: http://spector.babylonjs.com
+   */
+  public dumpNextRenderTargets = false;
+  /**
+   * The list of user defined render targets added to the scene
+   */
+  public customRenderTargets = new Array<RenderTargetTexture>();
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -135,6 +153,71 @@ export class SceneRender {
     this._evaluateActiveMeshes();
 
     // Render targets
+    this.scene.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this.scene);
+
+    if (camera.customRenderTargets && camera.customRenderTargets.length > 0) {
+      this._renderTargets.concatWithNoDuplicate(camera.customRenderTargets);
+    }
+
+    if (rigParent && rigParent.customRenderTargets && rigParent.customRenderTargets.length > 0) {
+      this._renderTargets.concatWithNoDuplicate(rigParent.customRenderTargets);
+    }
+
+    // Collects render targets from external components.
+    // for (let step of this._gatherActiveCameraRenderTargetsStage) {
+    //   step.action(this._renderTargets);
+    // }
+
+    let needRebind = false;
+    if (this.renderTargetsEnabled) {
+      this._intermediateRendering = true;
+
+      if (this._renderTargets.length > 0) {
+        Tools.StartPerformanceCounter("Render targets", this._renderTargets.length > 0);
+        for (var renderIndex = 0; renderIndex < this._renderTargets.length; renderIndex++) {
+          let renderTarget = this._renderTargets.data[renderIndex];
+          if (renderTarget._shouldRender()) {
+            this._renderId++;
+            var hasSpecialRenderTargetCamera = renderTarget.activeCamera && renderTarget.activeCamera !== this.activeCamera;
+            renderTarget.render(<boolean>hasSpecialRenderTargetCamera, this.dumpNextRenderTargets);
+            needRebind = true;
+          }
+        }
+        Tools.EndPerformanceCounter("Render targets", this._renderTargets.length > 0);
+
+        this._renderId++;
+      }
+
+      // for (let step of this._cameraDrawRenderTargetStage) {
+      //   needRebind = step.action(this.activeCamera) || needRebind;
+      // }
+
+      this._intermediateRendering = false;
+
+      // Need to bind if sub-camera has an outputRenderTarget eg. for webXR
+      if (this.activeCamera && this.activeCamera.outputRenderTarget) {
+        needRebind = true;
+      }
+    }
+
+    // Restore framebuffer after rendering to targets
+    if (needRebind && !this.prePass) {
+      this._bindFrameBuffer();
+    }
+
+    this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this.scene);
+
+    // Prepare Frame
+    if (this.scene.scenePost.postProcessManager && !this.prePass) {
+      this.scene.scenePost.postProcessManager._prepareFrame();
+    }
+
+    // Before Camera Draw
+    // for (let step of this._beforeCameraDrawStage) {
+    //   step.action(this.activeCamera);
+    // }
+
+    // Render targets
     // this.scene.sceneEventTrigger.onBeforeRenderTargetsRenderObservable.notifyObservers(this.scene);
     // this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this.scene);
 
@@ -142,6 +225,16 @@ export class SceneRender {
     this.scene.sceneEventTrigger.onBeforeDrawPhaseObservable.notifyObservers(this.scene);
     this._renderingManager.render(null, null, true, true);
     this.scene.sceneEventTrigger.onAfterDrawPhaseObservable.notifyObservers(this.scene);
+
+    // Finalize frame
+    if (this.scene.scenePost.postProcessManager) {
+      // if the camera has an output render target, render the post process to the render target
+      const texture = camera.outputRenderTarget ? camera.outputRenderTarget.getInternalTexture()! : undefined;
+      this.scene.scenePost.postProcessManager._finalizeFrame(camera.isIntermediate, texture);
+    }
+
+    // Reset some special arrays
+    this._renderTargets.reset();
 
     // Reset some special arrays
     this.scene.sceneEventTrigger.onAfterCameraRenderObservable.notifyObservers(this.activeCamera);

@@ -181,8 +181,6 @@ export class Mesh extends AbstractMesh {
   /** @hidden */
   public _delayLoadingFunction: (any: any, mesh: Mesh) => void;
 
-
-
   private _effectiveMaterial: Nullable<Material> = null;
 
   /** @hidden */
@@ -702,9 +700,9 @@ export class Mesh extends AbstractMesh {
     }
 
     // if (!this._effectiveMaterial.backFaceCulling && this._effectiveMaterial.separateCullingPass) {
-    //     engine.setState(true, this._effectiveMaterial.zOffset, false, !reverse);
-    //     this._processRendering(this, subMesh, effect, fillMode, batch, hardwareInstancedRendering, this._onBeforeDraw, this._effectiveMaterial);
-    //     engine.setState(true, this._effectiveMaterial.zOffset, false, reverse);
+    //   engine.setState(true, this._effectiveMaterial.zOffset, false, !reverse);
+    //   this._processRendering(this, subMesh, effect, fillMode, batch, hardwareInstancedRendering, this._onBeforeDraw, this._effectiveMaterial);
+    //   engine.setState(true, this._effectiveMaterial.zOffset, false, reverse);
     // }
 
     // Draw
