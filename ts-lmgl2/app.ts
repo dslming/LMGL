@@ -51,9 +51,15 @@ class App {
     sphere.material = grass0;
     this.scene = scene;
 
-    var kernel = 32.0;
-    var postProcess0 = new BABYLON.BlurPostProcess("Horizontal blur", new BABYLON.Vector2(1.0, 0), kernel, 1.0, camera);
-    var postProcess1 = new BABYLON.BlurPostProcess("Vertical blur", new BABYLON.Vector2(0, 1.0), kernel, 1.0, camera);
+    // var kernel = 32.0;
+    // var postProcess0 = new BABYLON.BlurPostProcess("Horizontal blur", new BABYLON.Vector2(1.0, 0), kernel, 1.0, camera);
+    // var postProcess1 = new BABYLON.BlurPostProcess("Vertical blur", new BABYLON.Vector2(0, 1.0), kernel, 1.0, camera);
+    var postProcess = new BABYLON.BlackAndWhitePostProcess("bandw", 1.0, camera);
+    // var postProcess = new BABYLON.ConvolutionPostProcess("Sepia", BABYLON.ConvolutionPostProcess.EmbossKernel, 1.0, camera);
+    // var postProcess = new BABYLON.FxaaPostProcess("fxaa", 1.0, camera);
+    // var postProcess = new BABYLON.HighlightsPostProcess("highlights", 1.0, camera);
+    // var postProcess = new BABYLON.TonemapPostProcess("tonemap", BABYLON.TonemappingOperator.Hable, 1.0, camera);
+    // var postProcess = new BABYLON.ImageProcessingPostProcess("processing", 1.0, camera);
 
     // this.sphere = sphere;
     // this.camera = camera;
