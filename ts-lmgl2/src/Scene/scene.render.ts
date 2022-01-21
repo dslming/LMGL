@@ -6,6 +6,7 @@ import { RenderTargetTexture } from "../Materials/Textures/renderTargetTexture";
 import { Color3, Color4 } from "../Maths/math";
 import { AbstractMesh } from "../Meshes/abstractMesh";
 import { SubMesh } from "../Meshes/subMesh";
+import { Logger } from "../Misc/logger";
 import { PerfCounter } from "../Misc/perfCounter";
 import { SmartArray, SmartArrayNoDuplicate } from "../Misc/smartArray";
 import { Tools } from "../Misc/tools";
@@ -36,8 +37,23 @@ export class SceneRender {
 
   public _activeCamera: Nullable<Camera>;
   public _activeMeshes = new SmartArray<AbstractMesh>(256);
-  public activeCamera: Nullable<Camera>;
+  // public activeCamera: Nullable<Camera>;
   public activeCameras: Nullable<Array<Camera>>;
+
+  // public _activeCamera: Nullable<Camera>;
+  /** Gets or sets the current active camera */
+  public get activeCamera(): Nullable<Camera> {
+    return this._activeCamera;
+  }
+
+  public set activeCamera(value: Nullable<Camera>) {
+    if (value === this._activeCamera) {
+      return;
+    }
+
+    this._activeCamera = value;
+    // this.onActiveCameraChanged.notifyObservers(this);
+  }
 
   /**
    * Gets or sets a boolean indicating that all submeshes of active meshes must be rendered
@@ -139,13 +155,13 @@ export class SceneRender {
       throw new Error("Active camera not set");
     }
 
-    this._renderId++;
 
     // Viewport
     engine.engineViewPort.setViewport(this.activeCamera.viewport);
 
     // Camera
     this.scene.sceneCatch.resetCachedMaterial();
+    this._renderId++;
     this.scene.sceneMatrix.updateTransformMatrix();
     this.scene.sceneEventTrigger.onBeforeCameraRenderObservable.notifyObservers(this.activeCamera);
 
@@ -257,8 +273,20 @@ export class SceneRender {
   }
 
   private _bindFrameBuffer(): void {
-    if (!this.scene._engine.engineFramebuffer._currentFrameBufferIsDefaultFrameBuffer()) {
-      this.scene._engine.engineFramebuffer.restoreDefaultFramebuffer();
+    if (this.activeCamera && this.activeCamera.outputRenderTarget) {
+      var useMultiview = this.scene.getEngine().getCaps().multiview && this.activeCamera.outputRenderTarget && this.activeCamera.outputRenderTarget.getViewCount() > 1;
+      if (useMultiview) {
+        this.activeCamera.outputRenderTarget._bindFrameBuffer();
+      } else {
+        var internalTexture = this.activeCamera.outputRenderTarget.getInternalTexture();
+        if (internalTexture) {
+          this.scene.getEngine().engineFramebuffer.bindFramebuffer(internalTexture);
+        } else {
+          Logger.Error("Camera contains invalid customDefaultRenderTarget");
+        }
+      }
+    } else {
+      this.scene.getEngine().engineFramebuffer.restoreDefaultFramebuffer(); // Restore back buffer if needed
     }
   }
 
@@ -361,8 +389,13 @@ export class SceneRender {
 
     this._updateCamera(updateCameras);
 
+    var currentActiveCamera = this.activeCamera;
     // Restore back buffer
-    this._bindFrameBuffer();
+    this.activeCamera = currentActiveCamera;
+    if (this._activeCamera && this._activeCamera.cameraRigMode !== Camera.RIG_MODE_CUSTOM && !this.prePass) {
+      this._bindFrameBuffer();
+    }
+    this.scene.sceneEventTrigger.onAfterRenderTargetsRenderObservable.notifyObservers(this.scene);
 
     // Clear
     if ((this.autoClearDepthAndStencil || this.autoClear) && !this.prePass) {
