@@ -342,6 +342,4 @@ class Matrix3 {
 
 }
 
-Matrix3.prototype.isMatrix3 = true;
-
 export { Matrix3 };

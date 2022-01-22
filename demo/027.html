@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <webgl-component></webgl-component>
+  <script src="./webgl_component.js"></script>
+
+  <script type="module">import * as LMGL from '../src/LMGL2.js'
+
+import { GUI } from './libs/lil-gui.module.min.js';
+
+let stage
+
+window.onload = () => {
+  document.title = "normal help"
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  stage = new LMGL.Stage()
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 5)
+
+  const dataModel = LMGL.geometryLib.sphere(1);
+  const geoInfo = {
+    attribute: {
+      aPosition: {
+        value: dataModel.position,
+        itemSize: 3
+      },
+      aNormal: {
+        value: dataModel.normal,
+        itemSize: 3
+      },
+    },
+    indices: dataModel.indices
+  };
+
+  const vsPlane = `#version 300 es
+    precision mediump float;
+    in vec3 aPosition;
+    in vec2 aUv;
+    in vec3 aNormal;
+    out vec3 vNormal;
+    out vec2 vUv;
+    out vec3 vViewPosition;
+    uniform mat4 projectionMatrix;
+    uniform mat4 modelViewMatrix;
+    uniform mat4 world;
+
+    void main() {
+      vUv = aUv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+
+      vec3 transformed = vec3( aPosition );
+      vec4 mvPosition = modelViewMatrix * vec4( transformed, 1.0 );
+      vViewPosition = - mvPosition.xyz;
+
+      mat3 normalWorld = mat3(world);
+      vNormal = normalize(normalWorld * aNormal);
+    }
+  `
+
+  const fsPlane = `#version 300 es
+    precision mediump float;
+    in vec2 vUv;
+    in vec3 vNormal;
+    in vec3 vViewPosition;
+    out vec4 FragColor;
+    uniform float isFlat;
+
+    void main() {
+      vec3 normal = normalize(vNormal);
+
+      vec3 lightDir = vec3(0.,1.,1.);
+      vec3 L = normalize(lightDir);
+      vec3 N = normalize(normal);
+      float kd = max( dot(L, N), 0.0 );
+      FragColor = vec4(vec3(kd), 1.);
+    }
+    `
+  const matInfo = {
+    vertexShader: vsPlane,
+    fragmentShader: fsPlane,
+    uniforms: {
+      isFlat: {
+        type: "f",
+        value: 1,
+      }
+    }
+  }
+  const mat = new LMGL.Material(matInfo);
+  let mesh = new LMGL.Mesh(geoInfo, mat);
+
+  const help = new LMGL.VertexNormalsHelper(0.1, 0xff0000, mesh)
+  stage.add(mesh)
+  stage.add(help.mesh)
+  //
+
+  stage.run()
+
+  const effectController = {
+    showNormalHelp: true
+  };
+  const gui = new GUI();
+   gui.add( effectController, 'showNormalHelp').onChange( (v)=>{
+      help.mesh.visible = v;
+   } );
+    gui.open();
+}
+</script>
+</body>
+</html>

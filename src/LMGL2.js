@@ -32,6 +32,9 @@ export { shaderLib }
 import * as modules from "./modules/index.js"
 export { modules }
 
+// help
+export * from "./help/VertexNormalsHelper.js"
+
 // loader
 export * from "./loader/ImageLoader.js"
 export * from "./loader/RGBELoader.js"

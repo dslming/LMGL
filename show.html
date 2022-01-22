@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>LMGL examples</title>
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="./show.css">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="./show.css" />
     <link rel="shortcut icon" href="./favicon.ico" />
   </head>
   <body>
@@ -22,119 +22,112 @@
     <iframe id="viewer" name="viewer" onmousewheel=""></iframe>
 
     <script>
-       const categoryNames = [
-          'basic',
-          'middle',
-        ];
+      const categoryNames = ["basic", "middle"];
 
-        // basic
-        const demoMap = {
-          // 几何体
-          "三角形": "002",
-          "平面": "003",
-          "立方体": "005",
-          "shading": "026",
-          "拾取": "015",
+      // basic
+      const demoMap = {
+        // 几何体
+        三角形: "002",
+        平面: "003",
+        立方体: "005",
+        shading: "026",
+        "normal help": "027",
+        拾取: "015",
 
-          // 纹理 https://math.hws.edu/graphicsbook/c6/s4.html
-          "纹理": "011",
-          "天空盒": "010",
-          "渲染到纹理": "009",
-          "环境反射": "012",
-          "动态阴影": "014",
-          // "色调映射": "016",
+        // 纹理 https://math.hws.edu/graphicsbook/c6/s4.html
+        纹理: "011",
+        天空盒: "010",
+        渲染到纹理: "009",
+        环境反射: "012",
+        动态阴影: "014",
+        // "色调映射": "016",
 
-          // 灯光---------------
-          "方向光+lambert": "017",
-          "方向光+phong": "023",
-          "半球光+phong": "018",
-          "点光源+phong": "021",
-          "多点光源+phong": "022",
+        // 灯光---------------
+        "方向光+lambert": "017",
+        "方向光+phong": "023",
+        "半球光+phong": "018",
+        "点光源+phong": "021",
+        "多点光源+phong": "022",
 
-          // 光照模型
-          // lambert
-          // 卡通
+        // 光照模型
+        // lambert
+        // 卡通
 
-          "多渲染目标": "019",
-          "多采样目标": "020",
+        多渲染目标: "019",
+        多采样目标: "020",
 
+        // 片元操作
+        // "深度测试": "007",
+      };
 
-          // 片元操作
-          // "深度测试": "007",
-        }
+      // middle
+      const demoMapMiddle = {
+        brdf: "024",
+        "brdf+ibl": "025",
+      };
 
-        // middle
-        const demoMapMiddle = {
-          "brdf": "024",
-          "brdf+ibl": "025",
-        }
+      const exampleNames = {
+        basic: [],
+        middle: [],
+      };
+      exampleNames.basic = Object.keys(demoMap);
+      exampleNames.middle = Object.keys(demoMapMiddle);
 
-        const exampleNames = {
-          basic: [],
-          middle: [],
-        };
-        exampleNames.basic = Object.keys(demoMap);
-        exampleNames.middle = Object.keys(demoMapMiddle);
+      const content = document.getElementById("content");
+      const viewer = document.getElementById("viewer");
+      const panel = document.getElementById("panel");
+      const panelScrim = document.getElementById("panelScrim");
+      const expandButton = document.getElementById("expandButton");
 
-        const content = document.getElementById('content');
-        const viewer = document.getElementById('viewer');
-        const panel = document.getElementById('panel');
-        const panelScrim = document.getElementById('panelScrim');
-        const expandButton = document.getElementById('expandButton');
+      function createViewByName(demoMap, viewer, name) {
+        viewer.src = "./demo/" + demoMap[name] + ".html";
+      }
 
+      const openExample = (exampleName, demoMap) => {
+        createViewByName(demoMap, viewer, exampleName);
 
-        function createViewByName(demoMap, viewer, name) {
-          viewer.src = "./demo/"+demoMap[name]+".html";
-        }
+        window.location.hash = exampleName;
+        viewer.focus();
+        panel.classList.remove("open");
+      };
 
-        const openExample = (exampleName,demoMap) => {
-          createViewByName(demoMap, viewer, exampleName)
-
-          window.location.hash = exampleName;
-          viewer.focus();
-          panel.classList.remove('open');
-        };
-
-        function create(demoMap,name) {
-          const categoryName = exampleNames[name];
-          const span = document.createElement('span');
-          span.innerText = name;
-          content.appendChild(span);
-          const ul = document.createElement('ul');
-          content.appendChild(ul);
-          categoryName.forEach((name,index) => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.innerText = `${demoMap[name]} ${name}`;
-            a.href = "";
-            a.target = 'viewer';
-            a.addEventListener('click', event => {
-              if (event.button !== 0 || event.ctrlKey || event.altKey ||
-                event.shiftKey || event.metaKey) {
-                return;
-              }
-              event.preventDefault();
-              openExample(name, demoMap);
-            });
-            li.appendChild(a);
-            ul.appendChild(li);
+      function create(demoMap, name) {
+        const categoryName = exampleNames[name];
+        const span = document.createElement("span");
+        span.innerText = name;
+        content.appendChild(span);
+        const ul = document.createElement("ul");
+        content.appendChild(ul);
+        categoryName.forEach((name, index) => {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.innerText = `${demoMap[name]} ${name}`;
+          a.href = "";
+          a.target = "viewer";
+          a.addEventListener("click", (event) => {
+            if (event.button !== 0 || event.ctrlKey || event.altKey || event.shiftKey || event.metaKey) {
+              return;
+            }
+            event.preventDefault();
+            openExample(name, demoMap);
           });
-        }
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+      }
 
-        create(demoMap, "basic");
-        create(demoMapMiddle, "middle");
-        const onClickForOpen = event => {
-          event.preventDefault();
-          panel.classList.toggle('open');
-        };
+      create(demoMap, "basic");
+      create(demoMapMiddle, "middle");
+      const onClickForOpen = (event) => {
+        event.preventDefault();
+        panel.classList.toggle("open");
+      };
 
-        expandButton.addEventListener('click', onClickForOpen);
-        panelScrim.addEventListener('click', onClickForOpen);
+      expandButton.addEventListener("click", onClickForOpen);
+      panelScrim.addEventListener("click", onClickForOpen);
 
-        // 最后一个例子
-        createViewByName(demoMapMiddle, viewer, exampleNames.middle[exampleNames.middle.length-1])
-
-
+      // 最后一个例子
+      createViewByName(demoMapMiddle, viewer, exampleNames.middle[exampleNames.middle.length - 1]);
     </script>
   </body>
 </html>

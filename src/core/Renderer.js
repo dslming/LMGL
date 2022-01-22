@@ -71,6 +71,8 @@ export default class Renderer {
   }
 
   renderMesh(mesh, camera) {
+    if (mesh.visible == false) return;
+
     const gl = dao.getData("gl")
     const { geometry, material } = mesh || {};
     if (!geometry || !material) {
@@ -104,6 +106,9 @@ export default class Renderer {
     } else if (geoType == GEOMETRY_TYPE.LINES) {
       gl.lineWidth(1);
       gl.drawArrays(gl.LINES, 0, count);
+    } else if (geoType == GEOMETRY_TYPE.LINE_STRIP) {
+      gl.lineWidth(1);
+      gl.drawArrays(gl.LINE_STRIP, 0, count);
     }
 
     // 多采样帧缓冲区

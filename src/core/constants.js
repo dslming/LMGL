@@ -2,10 +2,16 @@ const VERSION = "0.0.1";
 
 const GEOMETRY_TYPE = {
   "POINTS": "POINTS",
+  // 绘制一系列独立的三角形
   "TRIANGLES": "TRIANGLES",
+  // 以扇形方式绘制一系列连接的三角形，共享第一个顶点
   "TRIANGLE_FAN": "TRIANGLE_FAN",
+  // 绘制一系列相连的线段。它还连接第一个和最后一个顶点以形成一个循环
   "LINE_LOOP": "LINE_LOOP",
+  // 绘制一系列不相连的线段
   "LINES": "LINES",
+  // 绘制一系列相连的线段
+  "LINE_STRIP": "LINE_STRIP",
 }
 
 const SIDE = {

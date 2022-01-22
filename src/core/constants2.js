@@ -21,7 +21,4 @@ Constants = Object.assign(
   texture_repeating,
   texture_type
 );
-
-console.error(Constants);
-
 export {Constants}
