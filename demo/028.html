@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <webgl-component></webgl-component>
+  <script src="./webgl_component.js"></script>
+
+  <script type="module">import * as LMGL from '../src/LMGL2.js'
+import { GUI } from './libs/lil-gui.module.min.js';
+
+class PostProcess {
+  constructor() {
+  const vs = `#version 300 es
+    precision mediump float;
+    in vec3 aPosition;
+    in vec2 aUv;
+    out vec2 vUv;
+    uniform mat4 projectionMatrix;
+    uniform mat4 modelViewMatrix;
+
+    void main() {
+      vUv = aUv;
+      gl_Position = vec4(aPosition.xy,0., 1.0);
+    }
+  `
+
+  const fs = `#version 300 es
+    precision mediump float;
+    uniform sampler2D textureSampler;
+    in vec2 vUv;
+    out vec4 FragColor;
+
+    void main() {
+      // babylong.js blackAndWhite post
+      vec3 color = texture(textureSampler, vUv).rgb;
+      float luminance = dot(color, vec3(0.3, 0.59, 0.11));
+       vec3 blackAndWhite = vec3(luminance, luminance, luminance);
+      FragColor = vec4(color-((color-blackAndWhite)), 1.0);
+    }
+    `
+
+    const model = LMGL.geometryLib.plane(1);
+    const geo = {
+      indices: model.indices,
+      attribute: {
+        aPosition: {
+          value: model.position,
+          itemSize: 3
+        },
+        aUv: {
+          value: model.uv,
+          itemSize: 2,
+        }
+      }
+    };
+    const mat = new LMGL.Material({
+      vertexShader: vs,
+      fragmentShader: fs,
+      uniforms:{
+        textureSampler: {type: "t", value: null},
+      }
+    });
+    mat.needUpdate = true;
+    this.mesh = new LMGL.Mesh(geo, mat);
+  }
+}
+
+let stage
+
+function addSphereMesh() {
+  const model = LMGL.geometryLib.sphere(1.5);
+  const geo = {
+    indices: model.indices,
+    attribute: {
+      aPosition: {
+        value: model.position,
+        itemSize: 3
+      },
+      aNormal:{
+        value: model.normal,
+        itemSize: 3
+      }
+    }
+  };
+
+  const lightInfo = {
+    hemisphereLights: {
+      type: "array",
+       value: [
+        {
+          type: "struct",
+          value: {
+            directionWorld: {
+              type: "v3",
+              value: {x: -1,y:1,z:0},
+            },
+            skyColor: {
+              type: "v3",
+              value: {x: 1,y:0,z:0},
+            },
+            groundColor: {
+              type: "v3",
+              value: {x: 0,y:1,z:0},
+            },
+            specularColor: {
+              type: "v4",
+              value: {x: 1,y:1,z:1,w: 64},
+            }
+          }
+        }
+      ]
+    }
+  };
+
+  const shader = LMGL.shaderLib.phong(lightInfo);
+  const mat = new LMGL.Material(shader);
+  let mesh = new LMGL.Mesh(geo, mat);
+  stage.add(mesh)
+}
+
+window.onload = () => {
+  document.title = "后期处理-黑白"
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  stage = new LMGL.Stage()
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 10)
+
+  addSphereMesh();
+
+  // 自定义渲染
+  stage.setRenderState(false)
+  const webgl = LMGL.webgl;
+  const gl = stage.getGl();
+
+  const sizeWidth = window.innerWidth;
+  const sizeHeight = window.innerHeight;
+
+  const pass = new PostProcess();
+  const renderTarget = new LMGL.RenderTarget(sizeWidth, sizeHeight,{
+    depth: true,
+  });
+
+  const effectController = {
+    enableBlackPost: true
+  };
+  const gui = new GUI();
+  gui.add( effectController, 'enableBlackPost').onChange();
+  gui.open();
+
+  stage.addUpdate("loop",()=>{
+    if(effectController.enableBlackPost === true) {
+      stage.renderer.setRenderTarget(renderTarget)
+      stage.renderer.render()
+
+      stage.renderer.setRenderTarget(null);
+      stage.renderer.clear();
+      pass.mesh.material.uniforms["textureSampler"].value = renderTarget.getTexture();
+      stage.renderer.renderMesh(pass.mesh);
+    } else {
+      stage.renderer.setRenderTarget(null);
+      stage.renderer.clear();
+      stage.renderer.render()
+    }
+  })
+  stage.run()
+}
+</script>
+</body>
+</html>
