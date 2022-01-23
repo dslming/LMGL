@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <webgl-component></webgl-component>
+  <script src="./webgl_component.js"></script>
+
+  <script type="module">import * as LMGL from '../src/LMGL2.js'
+import { GUI } from './libs/lil-gui.module.min.js';
+
+class PostProcess {
+  constructor() {
+  const vs = `#version 300 es
+    precision mediump float;
+    uniform vec2 delta;
+
+    #define KERNEL_OFFSET0 -15.36704337
+  #define KERNEL_WEIGHT0 0.00226838
+  #define KERNEL_OFFSET1 15.36704337
+  #define KERNEL_WEIGHT1 0.00226838
+  #define KERNEL_OFFSET2 -13.38352585
+  #define KERNEL_WEIGHT2 0.00623279
+  #define KERNEL_OFFSET3 13.38352585
+  #define KERNEL_WEIGHT3 0.00623279
+  #define KERNEL_OFFSET4 -11.40028041
+  #define KERNEL_WEIGHT4 0.01489653
+  #define KERNEL_OFFSET5 11.40028041
+  #define KERNEL_WEIGHT5 0.01489653
+  #define KERNEL_OFFSET6 -9.41727148
+  #define KERNEL_WEIGHT6 0.03096924
+  #define KERNEL_OFFSET7 9.41727148
+  #define KERNEL_WEIGHT7 0.03096924
+  #define KERNEL_OFFSET8 -7.4344613
+  #define KERNEL_WEIGHT8 0.05600478
+  #define KERNEL_OFFSET9 7.4344613
+  #define KERNEL_WEIGHT9 0.05600478
+  #define KERNEL_OFFSET10 -5.45181021
+  #define KERNEL_WEIGHT10 0.08809971
+  #define KERNEL_OFFSET11 5.45181021
+  #define KERNEL_WEIGHT11 0.08809971
+  #define KERNEL_OFFSET12 -3.46927703
+  #define KERNEL_WEIGHT12 0.12055435
+  #define KERNEL_OFFSET13 3.46927703
+  #define KERNEL_WEIGHT13 0.12055435
+  #define KERNEL_DEP_OFFSET0 -1.48681946
+  #define KERNEL_DEP_WEIGHT0 0.14350044
+  #define KERNEL_DEP_OFFSET1 1.48681946
+  #define KERNEL_DEP_WEIGHT1 0.14350044
+  #define KERNEL_DEP_OFFSET2 0.
+  #define KERNEL_DEP_WEIGHT2 0.07494756
+
+    in vec3 aPosition;
+    in vec2 aUv;
+    out vec2 vUv;
+    out vec2 sampleCenter;
+out vec2 sampleCoord0;
+out vec2 sampleCoord1;
+out vec2 sampleCoord2;
+out vec2 sampleCoord3;
+out vec2 sampleCoord4;
+out vec2 sampleCoord5;
+out vec2 sampleCoord6;
+out vec2 sampleCoord7;
+out vec2 sampleCoord8;
+out vec2 sampleCoord9;
+out vec2 sampleCoord10;
+out vec2 sampleCoord11;
+out vec2 sampleCoord12;
+out vec2 sampleCoord13;
+const vec2 madd = vec2(0.5, 0.5);
+    void main() {
+       sampleCenter = (aPosition.xy*madd+madd);
+    sampleCoord0 = sampleCenter+delta*KERNEL_OFFSET0;
+    sampleCoord1 = sampleCenter+delta*KERNEL_OFFSET1;
+    sampleCoord2 = sampleCenter+delta*KERNEL_OFFSET2;
+    sampleCoord3 = sampleCenter+delta*KERNEL_OFFSET3;
+    sampleCoord4 = sampleCenter+delta*KERNEL_OFFSET4;
+    sampleCoord5 = sampleCenter+delta*KERNEL_OFFSET5;
+    sampleCoord6 = sampleCenter+delta*KERNEL_OFFSET6;
+    sampleCoord7 = sampleCenter+delta*KERNEL_OFFSET7;
+    sampleCoord8 = sampleCenter+delta*KERNEL_OFFSET8;
+    sampleCoord9 = sampleCenter+delta*KERNEL_OFFSET9;
+    sampleCoord10 = sampleCenter+delta*KERNEL_OFFSET10;
+    sampleCoord11 = sampleCenter+delta*KERNEL_OFFSET11;
+    sampleCoord12 = sampleCenter+delta*KERNEL_OFFSET12;
+    sampleCoord13 = sampleCenter+delta*KERNEL_OFFSET13;
+
+      gl_Position = vec4(aPosition.xy,0., 1.0);
+    }
+  `
+
+  const fs = `#version 300 es
+    precision mediump float;
+    uniform sampler2D textureSampler;
+    in vec2 vUv;
+    out vec4 glFragColor;
+    uniform vec2 delta;
+    #define KERNEL_OFFSET0 -15.36704337
+#define KERNEL_WEIGHT0 0.00226838
+#define KERNEL_OFFSET1 15.36704337
+#define KERNEL_WEIGHT1 0.00226838
+#define KERNEL_OFFSET2 -13.38352585
+#define KERNEL_WEIGHT2 0.00623279
+#define KERNEL_OFFSET3 13.38352585
+#define KERNEL_WEIGHT3 0.00623279
+#define KERNEL_OFFSET4 -11.40028041
+#define KERNEL_WEIGHT4 0.01489653
+#define KERNEL_OFFSET5 11.40028041
+#define KERNEL_WEIGHT5 0.01489653
+#define KERNEL_OFFSET6 -9.41727148
+#define KERNEL_WEIGHT6 0.03096924
+#define KERNEL_OFFSET7 9.41727148
+#define KERNEL_WEIGHT7 0.03096924
+#define KERNEL_OFFSET8 -7.4344613
+#define KERNEL_WEIGHT8 0.05600478
+#define KERNEL_OFFSET9 7.4344613
+#define KERNEL_WEIGHT9 0.05600478
+#define KERNEL_OFFSET10 -5.45181021
+#define KERNEL_WEIGHT10 0.08809971
+#define KERNEL_OFFSET11 5.45181021
+#define KERNEL_WEIGHT11 0.08809971
+#define KERNEL_OFFSET12 -3.46927703
+#define KERNEL_WEIGHT12 0.12055435
+#define KERNEL_OFFSET13 3.46927703
+#define KERNEL_WEIGHT13 0.12055435
+#define KERNEL_DEP_OFFSET0 -1.48681946
+#define KERNEL_DEP_WEIGHT0 0.14350044
+#define KERNEL_DEP_OFFSET1 1.48681946
+#define KERNEL_DEP_WEIGHT1 0.14350044
+#define KERNEL_DEP_OFFSET2 0.
+#define KERNEL_DEP_WEIGHT2 0.07494756
+
+in vec2 sampleCenter;
+in vec2 sampleCoord0;
+in vec2 sampleCoord1;
+in vec2 sampleCoord2;
+in vec2 sampleCoord3;
+in vec2 sampleCoord4;
+in vec2 sampleCoord5;
+in vec2 sampleCoord6;
+in vec2 sampleCoord7;
+in vec2 sampleCoord8;
+in vec2 sampleCoord9;
+in vec2 sampleCoord10;
+in vec2 sampleCoord11;
+in vec2 sampleCoord12;
+in vec2 sampleCoord13;
+
+    void main() {
+      // babylong.js blackAndWhite post
+      // vec3 color = texture(textureSampler, vUv).rgb;
+      // float luminance = dot(color, vec3(0.3, 0.59, 0.11));
+      //  vec3 blackAndWhite = vec3(luminance, luminance, luminance);
+      // FragColor = vec4(color-((color-blackAndWhite)), 1.0);
+
+        float computedWeight = 0.0;
+    vec4 blend = vec4(0.);
+    computedWeight = KERNEL_WEIGHT0;
+    blend += texture(textureSampler, sampleCoord0)*computedWeight;
+    computedWeight = KERNEL_WEIGHT1;
+    blend += texture(textureSampler, sampleCoord1)*computedWeight;
+    computedWeight = KERNEL_WEIGHT2;
+    blend += texture(textureSampler, sampleCoord2)*computedWeight;
+    computedWeight = KERNEL_WEIGHT3;
+    blend += texture(textureSampler, sampleCoord3)*computedWeight;
+    computedWeight = KERNEL_WEIGHT4;
+    blend += texture(textureSampler, sampleCoord4)*computedWeight;
+    computedWeight = KERNEL_WEIGHT5;
+    blend += texture(textureSampler, sampleCoord5)*computedWeight;
+    computedWeight = KERNEL_WEIGHT6;
+    blend += texture(textureSampler, sampleCoord6)*computedWeight;
+    computedWeight = KERNEL_WEIGHT7;
+    blend += texture(textureSampler, sampleCoord7)*computedWeight;
+    computedWeight = KERNEL_WEIGHT8;
+    blend += texture(textureSampler, sampleCoord8)*computedWeight;
+    computedWeight = KERNEL_WEIGHT9;
+    blend += texture(textureSampler, sampleCoord9)*computedWeight;
+    computedWeight = KERNEL_WEIGHT10;
+    blend += texture(textureSampler, sampleCoord10)*computedWeight;
+    computedWeight = KERNEL_WEIGHT11;
+    blend += texture(textureSampler, sampleCoord11)*computedWeight;
+    computedWeight = KERNEL_WEIGHT12;
+    blend += texture(textureSampler, sampleCoord12)*computedWeight;
+    computedWeight = KERNEL_WEIGHT13;
+    blend += texture(textureSampler, sampleCoord13)*computedWeight;
+    computedWeight = KERNEL_DEP_WEIGHT0;
+    blend += texture(textureSampler, sampleCenter+delta*KERNEL_DEP_OFFSET0)*computedWeight;
+    computedWeight = KERNEL_DEP_WEIGHT1;
+    blend += texture(textureSampler, sampleCenter+delta*KERNEL_DEP_OFFSET1)*computedWeight;
+    computedWeight = KERNEL_DEP_WEIGHT2;
+    blend += texture(textureSampler, sampleCenter+delta*KERNEL_DEP_OFFSET2)*computedWeight;
+    glFragColor = blend;
+    }
+    `
+
+    const model = LMGL.geometryLib.plane(1);
+    const geo = {
+      indices: model.indices,
+      attribute: {
+        aPosition: {
+          value: model.position,
+          itemSize: 3
+        },
+        aUv: {
+          value: model.uv,
+          itemSize: 2,
+        }
+      }
+    };
+    const mat = new LMGL.Material({
+      vertexShader: vs,
+      fragmentShader: fs,
+      uniforms:{
+        textureSampler: {type: "t", value: null},
+        delta: {type: "v2", value: {x:0.0037, y:0}},
+      }
+    });
+    mat.needUpdate = true;
+    this.mesh = new LMGL.Mesh(geo, mat);
+  }
+}
+
+let stage
+
+function addSphereMesh() {
+  const model = LMGL.geometryLib.sphere(1.5);
+  const geo = {
+    indices: model.indices,
+    attribute: {
+      aPosition: {
+        value: model.position,
+        itemSize: 3
+      },
+      aNormal:{
+        value: model.normal,
+        itemSize: 3
+      }
+    }
+  };
+
+  const lightInfo = {
+    hemisphereLights: {
+      type: "array",
+       value: [
+        {
+          type: "struct",
+          value: {
+            directionWorld: {
+              type: "v3",
+              value: {x: -1,y:1,z:0},
+            },
+            skyColor: {
+              type: "v3",
+              value: {x: 1,y:0,z:0},
+            },
+            groundColor: {
+              type: "v3",
+              value: {x: 0,y:1,z:0},
+            },
+            specularColor: {
+              type: "v4",
+              value: {x: 1,y:1,z:1,w: 64},
+            }
+          }
+        }
+      ]
+    }
+  };
+
+  const shader = LMGL.shaderLib.phong(lightInfo);
+  const mat = new LMGL.Material(shader);
+  let mesh = new LMGL.Mesh(geo, mat);
+  stage.add(mesh)
+}
+
+window.onload = () => {
+  document.title = "后期处理-模糊"
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  stage = new LMGL.Stage()
+  stage.init(document.querySelector("#c"), width, height)
+  stage.camera.position.set(0, 0, 10)
+
+  addSphereMesh();
+
+  // 自定义渲染
+  stage.setRenderState(false)
+  const webgl = LMGL.webgl;
+  const gl = stage.getGl();
+
+  const sizeWidth = window.innerWidth;
+  const sizeHeight = window.innerHeight;
+
+  const pass = new PostProcess();
+  const renderTarget = new LMGL.RenderTarget(sizeWidth, sizeHeight,{
+    depth: true,
+  });
+
+  const effectController = {
+    enableBlackPost: true
+  };
+  const gui = new GUI();
+  gui.add( effectController, 'enableBlackPost').onChange();
+  gui.open();
+
+  stage.addUpdate("loop",()=>{
+    if(effectController.enableBlackPost === true) {
+      stage.renderer.setRenderTarget(renderTarget)
+      stage.renderer.render()
+
+      stage.renderer.setRenderTarget(null);
+      stage.renderer.clear();
+      pass.mesh.material.uniforms["textureSampler"].value = renderTarget.getTexture();
+      stage.renderer.renderMesh(pass.mesh);
+    } else {
+      stage.renderer.setRenderTarget(null);
+      stage.renderer.clear();
+      stage.renderer.render()
+    }
+  })
+  stage.run()
+}
+</script>
+</body>
+</html>
