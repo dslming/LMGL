@@ -10,7 +10,7 @@
 import { GUI } from './libs/lil-gui.module.min.js';
 
 class PostProcess {
-  constructor() {
+  constructor(name, dir) {
   const vs = `#version 300 es
     precision mediump float;
     uniform vec2 delta;
@@ -208,16 +208,27 @@ in vec2 sampleCoord13;
         }
       }
     };
+
+    const direction = new LMGL.Vector2(dir.x,dir.y)
+    const sizeWidth = window.innerWidth;
+    const sizeHeight = window.innerHeight;
+    const d = new LMGL.Vector2((1 / sizeWidth) * direction.x, (1 / sizeHeight) * direction.y)
+
     const mat = new LMGL.Material({
       vertexShader: vs,
       fragmentShader: fs,
       uniforms:{
         textureSampler: {type: "t", value: null},
-        delta: {type: "v2", value: {x:0.0037, y:0}},
+        delta: {type: "v2", value: d},
       }
     });
     mat.needUpdate = true;
     this.mesh = new LMGL.Mesh(geo, mat);
+
+
+    this.renderTarget = new LMGL.RenderTarget(sizeWidth, sizeHeight,{
+        depth: true,
+      });
   }
 }
 
@@ -290,30 +301,32 @@ window.onload = () => {
   const webgl = LMGL.webgl;
   const gl = stage.getGl();
 
-  const sizeWidth = window.innerWidth;
-  const sizeHeight = window.innerHeight;
+  const horizontal = new PostProcess("Horizontal blur",{x:1,y:0});
+  const vertical = new PostProcess("Vertical blur",{x:0,y:1});
 
-  const pass = new PostProcess();
-  const renderTarget = new LMGL.RenderTarget(sizeWidth, sizeHeight,{
-    depth: true,
-  });
 
   const effectController = {
-    enableBlackPost: true
+    enableBlur: true
   };
   const gui = new GUI();
-  gui.add( effectController, 'enableBlackPost').onChange();
+  gui.add( effectController, 'enableBlur').onChange();
   gui.open();
 
   stage.addUpdate("loop",()=>{
-    if(effectController.enableBlackPost === true) {
-      stage.renderer.setRenderTarget(renderTarget)
+    if(effectController.enableBlur === true) {
+      stage.renderer.setRenderTarget(horizontal.renderTarget)
+      stage.renderer.clear();
       stage.renderer.render()
+
+      stage.renderer.setRenderTarget(vertical.renderTarget);
+      stage.renderer.clear();
+      horizontal.mesh.material.uniforms["textureSampler"].value = horizontal.renderTarget.getTexture();
+      stage.renderer.renderMesh(horizontal.mesh);
 
       stage.renderer.setRenderTarget(null);
       stage.renderer.clear();
-      pass.mesh.material.uniforms["textureSampler"].value = renderTarget.getTexture();
-      stage.renderer.renderMesh(pass.mesh);
+      vertical.mesh.material.uniforms["textureSampler"].value = vertical.renderTarget.getTexture();
+      stage.renderer.renderMesh(vertical.mesh);
     } else {
       stage.renderer.setRenderTarget(null);
       stage.renderer.clear();
