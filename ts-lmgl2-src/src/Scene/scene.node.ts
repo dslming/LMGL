@@ -1,27 +1,81 @@
 import { Scene } from "./scene";
 import { Camera } from "../Cameras/camera";
 import { Nullable } from "../types";
+import { Material } from "../Materials/material";
 
 export class SceneNode {
   public scene: Scene;
   public cameras = new Array<Camera>();
+  public materials = new Array<Material>();
 
   constructor(scene: Scene) {
     this.scene = scene;
   }
 
+  /*----------------------------------- material ------------------------------------*/
+  public readonly useMaterialMeshMap: boolean = true;
   /**
    * Will flag all materials as dirty to trigger new shader compilation
    * @param flag defines the flag used to specify which material part must be marked as dirty
    * @param predicate If not null, it will be used to specifiy if a material has to be marked as dirty
    */
   public markAllMaterialsAsDirty(flag: number, predicate?: (mat: Material) => boolean): void {
-    for (var material of this.scene.materials) {
+    for (var material of this.materials) {
       if (predicate && !predicate(material)) {
         continue;
       }
-      material.markAsDirty(flag);
+      // material.markAsDirty(flag);
     }
+  }
+  /**
+   * get a material using its id
+   * @param id defines the material's ID
+   * @return the material or null if none found.
+   */
+  public getMaterialByID(id: string): Nullable<Material> {
+    for (var index = 0; index < this.materials.length; index++) {
+      if (this.materials[index].id === id) {
+        return this.materials[index];
+      }
+    }
+
+    return null;
+  }
+  /**
+   * Adds the given material to this scene.scene
+   * @param newMaterial The material to add
+   */
+  public addMaterial(newMaterial: Material): void {
+    if (this._blockEntityCollection) {
+      return;
+    }
+
+    newMaterial._indexInSceneMaterialArray = this.materials.length;
+    this.materials.push(newMaterial);
+    // this.scene.sceneEventTrigger.onNewMaterialAddedObservable.notifyObservers(newMaterial);
+  }
+
+  /**
+   * Removes the given material from this scene.
+   * @param toRemove The material to remove
+   * @returns The index of the removed material
+   */
+  public removeMaterial(toRemove: Material): number {
+    var index = toRemove._indexInSceneMaterialArray;
+    if (index !== -1 && index < this.materials.length) {
+      if (index !== this.materials.length - 1) {
+        const lastMaterial = this.materials[this.materials.length - 1];
+        this.materials[index] = lastMaterial;
+        lastMaterial._indexInSceneMaterialArray = index;
+      }
+
+      toRemove._indexInSceneMaterialArray = -1;
+      this.materials.pop();
+    }
+
+    // this.scene.sceneEventTrigger.onMaterialRemovedObservable.notifyObservers(toRemove);
+
+    return index;
   }
 
   /*----------------------------------- camera ------------------------------------*/

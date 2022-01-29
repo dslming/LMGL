@@ -625,7 +625,7 @@ export class Effect {
         );
       }
 
-      engine._executeWhenRenderingStateIsCompiled(this._pipelineContext, () => {
+      engine.enginePipeline._executeWhenRenderingStateIsCompiled(this._pipelineContext, () => {
         if (engine.engineUniform.supportsUniformBuffers) {
           for (var name in this._uniformBuffersNames) {
             this.bindUniformBlock(name, this._uniformBuffersNames[name]);
@@ -637,7 +637,7 @@ export class Effect {
           this._uniforms[this._uniformsNames[index]] = uniform;
         });
 
-        this._attributes = engine.getAttributes(this._pipelineContext!, attributesNames);
+        this._attributes = engine.engineVertex.getAttributes(this._pipelineContext!, attributesNames);
         if (attributesNames) {
           for (let i = 0; i < attributesNames.length; i++) {
             const name = attributesNames[i];
@@ -659,7 +659,7 @@ export class Effect {
           this._samplers[name] = index;
         });
 
-        engine.bindSamplers(this);
+        engine.enginePipeline.bindSamplers(this);
 
         this._compilationError = "";
         this._isReady = true;
@@ -675,7 +675,7 @@ export class Effect {
         }
 
         if (previousPipelineContext) {
-          this.getEngine()._deletePipelineContext(previousPipelineContext);
+          this.getEngine().enginePipeline._deletePipelineContext(previousPipelineContext);
         }
       });
 
@@ -938,441 +938,441 @@ export class Effect {
     return changed;
   }
 
-  // /**
-  //  * Binds a buffer to a uniform.
-  //  * @param buffer Buffer to bind.
-  //  * @param name Name of the uniform variable to bind to.
-  //  */
-  // public bindUniformBuffer(buffer: WebGLDataBuffer, name: string): void {
-  //   let bufferName = this._uniformBuffersNames[name];
-  //   if (bufferName === undefined || Effect._baseCache[bufferName] === buffer) {
-  //     return;
-  //   }
-  //   Effect._baseCache[bufferName] = buffer;
-  //   this._engine.engineUniform.bindUniformBufferBase(buffer, bufferName);
-  // }
+  /**
+   * Binds a buffer to a uniform.
+   * @param buffer Buffer to bind.
+   * @param name Name of the uniform variable to bind to.
+   */
+  public bindUniformBuffer(buffer: WebGLDataBuffer, name: string): void {
+    let bufferName = this._uniformBuffersNames[name];
+    if (bufferName === undefined || Effect._baseCache[bufferName] === buffer) {
+      return;
+    }
+    Effect._baseCache[bufferName] = buffer;
+    this._engine.engineUniform.bindUniformBufferBase(buffer, bufferName);
+  }
 
-  // /**
-  //  * Binds block to a uniform.
-  //  * @param blockName Name of the block to bind.
-  //  * @param index Index to bind.
-  //  */
-  // public bindUniformBlock(blockName: string, index: number): void {
-  //   this._engine.engineUniform.bindUniformBlock(this._pipelineContext!, blockName, index);
-  // }
+  /**
+   * Binds block to a uniform.
+   * @param blockName Name of the block to bind.
+   * @param index Index to bind.
+   */
+  public bindUniformBlock(blockName: string, index: number): void {
+    this._engine.engineUniform.bindUniformBlock(this._pipelineContext!, blockName, index);
+  }
 
-  // /**
-  //  * Sets an interger value on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param value Value to be set.
-  //  * @returns this effect.
-  //  */
-  // public setInt(uniformName: string, value: number): Effect {
-  //   var cache = this._valueCache[uniformName];
-  //   if (cache !== undefined && cache === value) {
-  //     return this;
-  //   }
+  /**
+   * Sets an interger value on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param value Value to be set.
+   * @returns this effect.
+   */
+  public setInt(uniformName: string, value: number): Effect {
+    var cache = this._valueCache[uniformName];
+    if (cache !== undefined && cache === value) {
+      return this;
+    }
 
-  //   if (this._engine.engineUniform.setInt(this._uniforms[uniformName], value)) {
-  //     this._valueCache[uniformName] = value;
-  //   }
+    if (this._engine.engineUniform.setInt(this._uniforms[uniformName], value)) {
+      this._valueCache[uniformName] = value;
+    }
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an int array on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setIntArray(uniformName: string, array: Int32Array): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setIntArray(this._uniforms[uniformName], array);
+  /**
+   * Sets an int array on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setIntArray(uniformName: string, array: Int32Array): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setIntArray(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an int array 2 on a uniform variable. (Array is specified as single array eg. [1,2,3,4] will result in [[1,2],[3,4]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setIntArray2(uniformName: string, array: Int32Array): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setIntArray2(this._uniforms[uniformName], array);
+  /**
+   * Sets an int array 2 on a uniform variable. (Array is specified as single array eg. [1,2,3,4] will result in [[1,2],[3,4]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setIntArray2(uniformName: string, array: Int32Array): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setIntArray2(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an int array 3 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6] will result in [[1,2,3],[4,5,6]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setIntArray3(uniformName: string, array: Int32Array): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setIntArray3(this._uniforms[uniformName], array);
+  /**
+   * Sets an int array 3 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6] will result in [[1,2,3],[4,5,6]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setIntArray3(uniformName: string, array: Int32Array): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setIntArray3(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an int array 4 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6,7,8] will result in [[1,2,3,4],[5,6,7,8]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setIntArray4(uniformName: string, array: Int32Array): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setIntArray4(this._uniforms[uniformName], array);
+  /**
+   * Sets an int array 4 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6,7,8] will result in [[1,2,3,4],[5,6,7,8]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setIntArray4(uniformName: string, array: Int32Array): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setIntArray4(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an float array on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setFloatArray(uniformName: string, array: Float32Array): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setArray(this._uniforms[uniformName], array);
+  /**
+   * Sets an float array on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setFloatArray(uniformName: string, array: Float32Array): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setArray(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an float array 2 on a uniform variable. (Array is specified as single array eg. [1,2,3,4] will result in [[1,2],[3,4]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setFloatArray2(uniformName: string, array: Float32Array): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setArray2(this._uniforms[uniformName], array);
+  /**
+   * Sets an float array 2 on a uniform variable. (Array is specified as single array eg. [1,2,3,4] will result in [[1,2],[3,4]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setFloatArray2(uniformName: string, array: Float32Array): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setArray2(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an float array 3 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6] will result in [[1,2,3],[4,5,6]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setFloatArray3(uniformName: string, array: Float32Array): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setArray3(this._uniforms[uniformName], array);
+  /**
+   * Sets an float array 3 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6] will result in [[1,2,3],[4,5,6]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setFloatArray3(uniformName: string, array: Float32Array): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setArray3(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an float array 4 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6,7,8] will result in [[1,2,3,4],[5,6,7,8]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setFloatArray4(uniformName: string, array: Float32Array): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setArray4(this._uniforms[uniformName], array);
+  /**
+   * Sets an float array 4 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6,7,8] will result in [[1,2,3,4],[5,6,7,8]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setFloatArray4(uniformName: string, array: Float32Array): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setArray4(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an array on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setArray(uniformName: string, array: number[]): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setArray(this._uniforms[uniformName], array);
+  /**
+   * Sets an array on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setArray(uniformName: string, array: number[]): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setArray(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an array 2 on a uniform variable. (Array is specified as single array eg. [1,2,3,4] will result in [[1,2],[3,4]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setArray2(uniformName: string, array: number[]): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setArray2(this._uniforms[uniformName], array);
+  /**
+   * Sets an array 2 on a uniform variable. (Array is specified as single array eg. [1,2,3,4] will result in [[1,2],[3,4]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setArray2(uniformName: string, array: number[]): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setArray2(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an array 3 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6] will result in [[1,2,3],[4,5,6]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setArray3(uniformName: string, array: number[]): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setArray3(this._uniforms[uniformName], array);
+  /**
+   * Sets an array 3 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6] will result in [[1,2,3],[4,5,6]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setArray3(uniformName: string, array: number[]): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setArray3(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets an array 4 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6,7,8] will result in [[1,2,3,4],[5,6,7,8]] in the shader)
-  //  * @param uniformName Name of the variable.
-  //  * @param array array to be set.
-  //  * @returns this effect.
-  //  */
-  // public setArray4(uniformName: string, array: number[]): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setArray4(this._uniforms[uniformName], array);
+  /**
+   * Sets an array 4 on a uniform variable. (Array is specified as single array eg. [1,2,3,4,5,6,7,8] will result in [[1,2,3,4],[5,6,7,8]] in the shader)
+   * @param uniformName Name of the variable.
+   * @param array array to be set.
+   * @returns this effect.
+   */
+  public setArray4(uniformName: string, array: number[]): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setArray4(this._uniforms[uniformName], array);
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets matrices on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param matrices matrices to be set.
-  //  * @returns this effect.
-  //  */
-  // public setMatrices(uniformName: string, matrices: Float32Array | Array<number>): Effect {
-  //   if (!matrices) {
-  //     return this;
-  //   }
+  /**
+   * Sets matrices on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param matrices matrices to be set.
+   * @returns this effect.
+   */
+  public setMatrices(uniformName: string, matrices: Float32Array | Array<number>): Effect {
+    if (!matrices) {
+      return this;
+    }
 
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setMatrices(this._uniforms[uniformName], matrices as Float32Array); // the cast is ok because it is gl.uniformMatrix4fv() which is called at the end, and this function accepts Float32Array and Array<number>
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setMatrices(this._uniforms[uniformName], matrices as Float32Array); // the cast is ok because it is gl.uniformMatrix4fv() which is called at the end, and this function accepts Float32Array and Array<number>
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets matrix on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param matrix matrix to be set.
-  //  * @returns this effect.
-  //  */
-  // public setMatrix(uniformName: string, matrix: IMatrixLike): Effect {
-  //   if (this._cacheMatrix(uniformName, matrix)) {
-  //     if (!this._engine.engineUniform.setMatrices(this._uniforms[uniformName], matrix.toArray() as Float32Array)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets matrix on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param matrix matrix to be set.
+   * @returns this effect.
+   */
+  public setMatrix(uniformName: string, matrix: IMatrixLike): Effect {
+    if (this._cacheMatrix(uniformName, matrix)) {
+      if (!this._engine.engineUniform.setMatrices(this._uniforms[uniformName], matrix.toArray() as Float32Array)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a 3x3 matrix on a uniform variable. (Speicified as [1,2,3,4,5,6,7,8,9] will result in [1,2,3][4,5,6][7,8,9] matrix)
-  //  * @param uniformName Name of the variable.
-  //  * @param matrix matrix to be set.
-  //  * @returns this effect.
-  //  */
-  // public setMatrix3x3(uniformName: string, matrix: Float32Array | Array<number>): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setMatrix3x3(this._uniforms[uniformName], matrix as Float32Array); // the cast is ok because it is gl.uniformMatrix3fv() which is called at the end, and this function accepts Float32Array and Array<number>
+  /**
+   * Sets a 3x3 matrix on a uniform variable. (Speicified as [1,2,3,4,5,6,7,8,9] will result in [1,2,3][4,5,6][7,8,9] matrix)
+   * @param uniformName Name of the variable.
+   * @param matrix matrix to be set.
+   * @returns this effect.
+   */
+  public setMatrix3x3(uniformName: string, matrix: Float32Array | Array<number>): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setMatrix3x3(this._uniforms[uniformName], matrix as Float32Array); // the cast is ok because it is gl.uniformMatrix3fv() which is called at the end, and this function accepts Float32Array and Array<number>
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets a 2x2 matrix on a uniform variable. (Speicified as [1,2,3,4] will result in [1,2][3,4] matrix)
-  //  * @param uniformName Name of the variable.
-  //  * @param matrix matrix to be set.
-  //  * @returns this effect.
-  //  */
-  // public setMatrix2x2(uniformName: string, matrix: Float32Array | Array<number>): Effect {
-  //   this._valueCache[uniformName] = null;
-  //   this._engine.engineUniform.setMatrix2x2(this._uniforms[uniformName], matrix as Float32Array); // the cast is ok because it is gl.uniformMatrix2fv() which is called at the end, and this function accepts Float32Array and Array<number>
+  /**
+   * Sets a 2x2 matrix on a uniform variable. (Speicified as [1,2,3,4] will result in [1,2][3,4] matrix)
+   * @param uniformName Name of the variable.
+   * @param matrix matrix to be set.
+   * @returns this effect.
+   */
+  public setMatrix2x2(uniformName: string, matrix: Float32Array | Array<number>): Effect {
+    this._valueCache[uniformName] = null;
+    this._engine.engineUniform.setMatrix2x2(this._uniforms[uniformName], matrix as Float32Array); // the cast is ok because it is gl.uniformMatrix2fv() which is called at the end, and this function accepts Float32Array and Array<number>
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets a float on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param value value to be set.
-  //  * @returns this effect.
-  //  */
-  // public setFloat(uniformName: string, value: number): Effect {
-  //   var cache = this._valueCache[uniformName];
-  //   if (cache !== undefined && cache === value) {
-  //     return this;
-  //   }
+  /**
+   * Sets a float on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param value value to be set.
+   * @returns this effect.
+   */
+  public setFloat(uniformName: string, value: number): Effect {
+    var cache = this._valueCache[uniformName];
+    if (cache !== undefined && cache === value) {
+      return this;
+    }
 
-  //   if (this._engine.engineUniform.setFloat(this._uniforms[uniformName], value)) {
-  //     this._valueCache[uniformName] = value;
-  //   }
+    if (this._engine.engineUniform.setFloat(this._uniforms[uniformName], value)) {
+      this._valueCache[uniformName] = value;
+    }
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets a boolean on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param bool value to be set.
-  //  * @returns this effect.
-  //  */
-  // public setBool(uniformName: string, bool: boolean): Effect {
-  //   var cache = this._valueCache[uniformName];
-  //   if (cache !== undefined && cache === bool) {
-  //     return this;
-  //   }
+  /**
+   * Sets a boolean on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param bool value to be set.
+   * @returns this effect.
+   */
+  public setBool(uniformName: string, bool: boolean): Effect {
+    var cache = this._valueCache[uniformName];
+    if (cache !== undefined && cache === bool) {
+      return this;
+    }
 
-  //   if (this._engine.engineUniform.setInt(this._uniforms[uniformName], bool ? 1 : 0)) {
-  //     this._valueCache[uniformName] = bool;
-  //   }
+    if (this._engine.engineUniform.setInt(this._uniforms[uniformName], bool ? 1 : 0)) {
+      this._valueCache[uniformName] = bool;
+    }
 
-  //   return this;
-  // }
+    return this;
+  }
 
-  // /**
-  //  * Sets a Vector2 on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param vector2 vector2 to be set.
-  //  * @returns this effect.
-  //  */
-  // public setVector2(uniformName: string, vector2: IVector2Like): Effect {
-  //   if (this._cacheFloat2(uniformName, vector2.x, vector2.y)) {
-  //     if (!this._engine.engineUniform.setFloat2(this._uniforms[uniformName], vector2.x, vector2.y)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a Vector2 on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param vector2 vector2 to be set.
+   * @returns this effect.
+   */
+  public setVector2(uniformName: string, vector2: IVector2Like): Effect {
+    if (this._cacheFloat2(uniformName, vector2.x, vector2.y)) {
+      if (!this._engine.engineUniform.setFloat2(this._uniforms[uniformName], vector2.x, vector2.y)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a float2 on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param x First float in float2.
-  //  * @param y Second float in float2.
-  //  * @returns this effect.
-  //  */
-  // public setFloat2(uniformName: string, x: number, y: number): Effect {
-  //   if (this._cacheFloat2(uniformName, x, y)) {
-  //     if (!this._engine.engineUniform.setFloat2(this._uniforms[uniformName], x, y)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a float2 on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param x First float in float2.
+   * @param y Second float in float2.
+   * @returns this effect.
+   */
+  public setFloat2(uniformName: string, x: number, y: number): Effect {
+    if (this._cacheFloat2(uniformName, x, y)) {
+      if (!this._engine.engineUniform.setFloat2(this._uniforms[uniformName], x, y)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a Vector3 on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param vector3 Value to be set.
-  //  * @returns this effect.
-  //  */
-  // public setVector3(uniformName: string, vector3: IVector3Like): Effect {
-  //   if (this._cacheFloat3(uniformName, vector3.x, vector3.y, vector3.z)) {
-  //     if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], vector3.x, vector3.y, vector3.z)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a Vector3 on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param vector3 Value to be set.
+   * @returns this effect.
+   */
+  public setVector3(uniformName: string, vector3: IVector3Like): Effect {
+    if (this._cacheFloat3(uniformName, vector3.x, vector3.y, vector3.z)) {
+      if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], vector3.x, vector3.y, vector3.z)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a float3 on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param x First float in float3.
-  //  * @param y Second float in float3.
-  //  * @param z Third float in float3.
-  //  * @returns this effect.
-  //  */
-  // public setFloat3(uniformName: string, x: number, y: number, z: number): Effect {
-  //   if (this._cacheFloat3(uniformName, x, y, z)) {
-  //     if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], x, y, z)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a float3 on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param x First float in float3.
+   * @param y Second float in float3.
+   * @param z Third float in float3.
+   * @returns this effect.
+   */
+  public setFloat3(uniformName: string, x: number, y: number, z: number): Effect {
+    if (this._cacheFloat3(uniformName, x, y, z)) {
+      if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], x, y, z)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a Vector4 on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param vector4 Value to be set.
-  //  * @returns this effect.
-  //  */
-  // public setVector4(uniformName: string, vector4: IVector4Like): Effect {
-  //   if (this._cacheFloat4(uniformName, vector4.x, vector4.y, vector4.z, vector4.w)) {
-  //     if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], vector4.x, vector4.y, vector4.z, vector4.w)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a Vector4 on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param vector4 Value to be set.
+   * @returns this effect.
+   */
+  public setVector4(uniformName: string, vector4: IVector4Like): Effect {
+    if (this._cacheFloat4(uniformName, vector4.x, vector4.y, vector4.z, vector4.w)) {
+      if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], vector4.x, vector4.y, vector4.z, vector4.w)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a float4 on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param x First float in float4.
-  //  * @param y Second float in float4.
-  //  * @param z Third float in float4.
-  //  * @param w Fourth float in float4.
-  //  * @returns this effect.
-  //  */
-  // public setFloat4(uniformName: string, x: number, y: number, z: number, w: number): Effect {
-  //   if (this._cacheFloat4(uniformName, x, y, z, w)) {
-  //     if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], x, y, z, w)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a float4 on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param x First float in float4.
+   * @param y Second float in float4.
+   * @param z Third float in float4.
+   * @param w Fourth float in float4.
+   * @returns this effect.
+   */
+  public setFloat4(uniformName: string, x: number, y: number, z: number, w: number): Effect {
+    if (this._cacheFloat4(uniformName, x, y, z, w)) {
+      if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], x, y, z, w)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a Color3 on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param color3 Value to be set.
-  //  * @returns this effect.
-  //  */
-  // public setColor3(uniformName: string, color3: IColor3Like): Effect {
-  //   if (this._cacheFloat3(uniformName, color3.r, color3.g, color3.b)) {
-  //     if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], color3.r, color3.g, color3.b)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a Color3 on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param color3 Value to be set.
+   * @returns this effect.
+   */
+  public setColor3(uniformName: string, color3: IColor3Like): Effect {
+    if (this._cacheFloat3(uniformName, color3.r, color3.g, color3.b)) {
+      if (!this._engine.engineUniform.setFloat3(this._uniforms[uniformName], color3.r, color3.g, color3.b)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a Color4 on a uniform variable.
-  //  * @param uniformName Name of the variable.
-  //  * @param color3 Value to be set.
-  //  * @param alpha Alpha value to be set.
-  //  * @returns this effect.
-  //  */
-  // public setColor4(uniformName: string, color3: IColor3Like, alpha: number): Effect {
-  //   if (this._cacheFloat4(uniformName, color3.r, color3.g, color3.b, alpha)) {
-  //     if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], color3.r, color3.g, color3.b, alpha)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a Color4 on a uniform variable.
+   * @param uniformName Name of the variable.
+   * @param color3 Value to be set.
+   * @param alpha Alpha value to be set.
+   * @returns this effect.
+   */
+  public setColor4(uniformName: string, color3: IColor3Like, alpha: number): Effect {
+    if (this._cacheFloat4(uniformName, color3.r, color3.g, color3.b, alpha)) {
+      if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], color3.r, color3.g, color3.b, alpha)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
-  // /**
-  //  * Sets a Color4 on a uniform variable
-  //  * @param uniformName defines the name of the variable
-  //  * @param color4 defines the value to be set
-  //  * @returns this effect.
-  //  */
-  // public setDirectColor4(uniformName: string, color4: IColor4Like): Effect {
-  //   if (this._cacheFloat4(uniformName, color4.r, color4.g, color4.b, color4.a)) {
-  //     if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], color4.r, color4.g, color4.b, color4.a)) {
-  //       this._valueCache[uniformName] = null;
-  //     }
-  //   }
-  //   return this;
-  // }
+  /**
+   * Sets a Color4 on a uniform variable
+   * @param uniformName defines the name of the variable
+   * @param color4 defines the value to be set
+   * @returns this effect.
+   */
+  public setDirectColor4(uniformName: string, color4: IColor4Like): Effect {
+    if (this._cacheFloat4(uniformName, color4.r, color4.g, color4.b, color4.a)) {
+      if (!this._engine.engineUniform.setFloat4(this._uniforms[uniformName], color4.r, color4.g, color4.b, color4.a)) {
+        this._valueCache[uniformName] = null;
+      }
+    }
+    return this;
+  }
 
   /** Release all associated resources */
   public dispose() {

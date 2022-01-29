@@ -5,6 +5,8 @@ import { Effect } from "../Materials/effect";
 import { IViewportLike } from "../Maths/math.like";
 import { DataArray, IndicesArray, Nullable } from "../types";
 import { EngineCapabilities } from "./engine.capabilities";
+import { IPipelineContext } from "./IPipelineContext";
+import { WebGLPipelineContext } from "./webGLPipelineContext";
 
 export class EngineVertex {
   // Cache
@@ -414,5 +416,26 @@ export class EngineVertex {
     }
     this._currentInstanceBuffers.length = 0;
     this._currentInstanceLocations.length = 0;
+  }
+
+  /**
+ * Gets the lsit of active attributes for a given webGL program
+ * @param pipelineContext defines the pipeline context to use
+ * @param attributesNames defines the list of attribute names to get
+ * @returns an array of indices indicating the offset of each attribute
+ */
+  public getAttributes(pipelineContext: IPipelineContext, attributesNames: string[]): number[] {
+    var results = [];
+    let webGLPipelineContext = pipelineContext as WebGLPipelineContext;
+
+    for (var index = 0; index < attributesNames.length; index++) {
+      try {
+        results.push(this._gl.getAttribLocation(webGLPipelineContext.program!, attributesNames[index]));
+      } catch (e) {
+        results.push(-1);
+      }
+    }
+
+    return results;
   }
 }

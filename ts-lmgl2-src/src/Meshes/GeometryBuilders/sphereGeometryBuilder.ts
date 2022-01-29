@@ -1,7 +1,7 @@
 import { Vector3 } from '../../Maths/math.vector';
-import { iBuilder } from './iBuilder';
+import { iGeometryBuilder } from './iGeometryBuilder';
 
-export function getSphereBuilder(radius = 1, widthSegments = 64, heightSegments = 64, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI): iBuilder {
+export function getSphereGeometryBuilder(radius = 1, widthSegments = 64, heightSegments = 64, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI): iGeometryBuilder {
   widthSegments = Math.max(3, Math.floor(widthSegments));
   heightSegments = Math.max(2, Math.floor(heightSegments));
 
@@ -66,5 +66,6 @@ export function getSphereBuilder(radius = 1, widthSegments = 64, heightSegments 
     normal: normals,
     vertexTextureCoords: [],
     indices: indices,
+    uv: []
   }
 }

@@ -1,5 +1,6 @@
 import { WebGLEngine } from '../Engines/webglEngine'
 import { UniqueIdGenerator } from '../Misc/uniqueIdGenerator';
+import { SceneMatrix } from './scene.matrix';
 import { SceneNode } from './scene.node';
 import { SceneRender } from './scene.render'
 
@@ -8,11 +9,14 @@ export class Scene {
   public sceneRender: SceneRender;
   public sceneNode: SceneNode;
   public useRightHandedSystem:boolean = false;
+  public sceneMatrix: SceneMatrix;
 
   constructor(engine: WebGLEngine) {
     this._engine = engine;
     this.sceneNode = new SceneNode(this);
     this.sceneRender = new SceneRender(this);
+    this.sceneMatrix = new SceneMatrix(this, engine);
+    this.sceneMatrix._createUbo();
   }
 
   /**

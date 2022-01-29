@@ -9,17 +9,17 @@ import { Matrix } from "../Maths/math.vector";
 // import { EngineStore } from "../Engine/engineStore";
 // import { SubMesh } from "../Meshes/subMesh";
 import { Geometry } from "../Meshes/geometry";
-import { AbstractMesh } from "../Meshes/abstractMesh";
-import { UniformBuffer } from "./uniformBuffer";
+// import { Mesh } from "../Meshes/abstractMesh";
+import { UniformBuffer } from "../Buffer/uniformBuffer";
 import { Effect } from "./effect";
-import { BaseTexture } from "./Textures/baseTexture";
-import { RenderTargetTexture } from "./Textures/renderTargetTexture";
-import { MaterialDefines } from "./materialDefines";
-import { Constants } from "../Engine/constants";
+// import { BaseTexture } from "./Textures/baseTexture";
+// import { RenderTargetTexture } from "./Textures/renderTargetTexture";
+// import { MaterialDefines } from "./materialDefines";
+import { Constants } from "../Engines/constants";
 import { Logger } from "../Misc/logger";
-import { IInspectable } from "../Misc/iInspectable";
+// import { IInspectable } from "../Misc/iInspectable";
 import { Plane } from "../Maths/math.plane";
-import { PrePassRenderer } from "../Rendering/prePassRenderer";
+// import { PrePassRenderer } from "../Rendering/prePassRenderer";
 // import { ShadowDepthWrapper } from './shadowDepthWrapper';
 
 // declare type PrePassRenderer = import("../Rendering/prePassRenderer").PrePassRenderer;
@@ -176,15 +176,15 @@ export class Material {
   /**
    * Custom callback helping to override the default shader used in the material.
    */
-  public customShaderNameResolve: (
-    shaderName: string,
-    uniforms: string[],
-    uniformBuffers: string[],
-    samplers: string[],
-    defines: MaterialDefines | string[],
-    attributes?: string[],
-    options?: ICustomShaderNameResolveOptions
-  ) => string;
+  // public customShaderNameResolve: (
+  //   shaderName: string,
+  //   uniforms: string[],
+  //   uniformBuffers: string[],
+  //   samplers: string[],
+  //   defines: MaterialDefines | string[],
+  //   attributes?: string[],
+  //   options?: ICustomShaderNameResolveOptions
+  // ) => string;
 
   /**
    * Custom shadow depth material to use for shadow rendering instead of the in-built one
@@ -201,19 +201,16 @@ export class Material {
   /**
    * The ID of the material
    */
-  @serialize()
   public id: string;
 
   /**
    * Gets or sets the unique id of the material
    */
-  @serialize()
   public uniqueId: number;
 
   /**
    * The name of the material
    */
-  @serialize()
   public name: string;
 
   /**
@@ -229,19 +226,16 @@ export class Material {
   /**
    * Specifies if the ready state should be checked on each call
    */
-  @serialize()
   public checkReadyOnEveryCall = false;
 
   /**
    * Specifies if the ready state should be checked once
    */
-  @serialize()
   public checkReadyOnlyOnce = false;
 
   /**
    * The state of the material
    */
-  @serialize()
   public state = "";
 
   /**
@@ -256,7 +250,6 @@ export class Material {
   /**
    * The alpha value of the material
    */
-  @serialize("alpha")
   protected _alpha = 1.0;
 
   /**
@@ -267,7 +260,7 @@ export class Material {
       return;
     }
     this._alpha = value;
-    this.markAsDirty(Material.MiscDirtyFlag);
+    // this.markAsDirty(Material.MiscDirtyFlag);
   }
 
   /**
@@ -280,7 +273,6 @@ export class Material {
   /**
    * Specifies if back face culling is enabled
    */
-  @serialize("backFaceCulling")
   protected _backFaceCulling = true;
 
   /**
@@ -291,7 +283,7 @@ export class Material {
       return;
     }
     this._backFaceCulling = value;
-    this.markAsDirty(Material.TextureDirtyFlag);
+    // this.markAsDirty(Material.TextureDirtyFlag);
   }
 
   /**
@@ -304,7 +296,6 @@ export class Material {
   /**
    * Stores the value for side orientation
    */
-  @serialize()
   public sideOrientation: number;
 
   /**
@@ -320,7 +311,7 @@ export class Material {
   /**
    * Callback triggered to get the render target textures
    */
-  public getRenderTargetTextures: Nullable<() => SmartArray<RenderTargetTexture>> = null;
+  // public getRenderTargetTextures: Nullable<() => SmartArray<RenderTargetTexture>> = null;
 
   /**
    * Gets a boolean indicating that current material needs to register RTT
@@ -354,7 +345,7 @@ export class Material {
    */
   private _onDisposeObserver: Nullable<Observer<Material>> = null;
   private _onUnBindObservable: Nullable<Observable<Material>> = null;
-  protected _onEffectCreatedObservable: Nullable<Observable<{ effect: Effect; subMesh: Nullable<SubMesh> }>>;
+  // protected _onEffectCreatedObservable: Nullable<Observable<{ effect: Effect; subMesh: Nullable<SubMesh> }>>;
 
   /**
    * Called during a dispose event
@@ -366,14 +357,14 @@ export class Material {
     this._onDisposeObserver = this.onDisposeObservable.add(callback);
   }
 
-  private _onBindObservable: Nullable<Observable<AbstractMesh>>;
+  private _onBindObservable: Nullable<Observable<Mesh>>;
 
   /**
    * An event triggered when the material is bound
    */
-  public get onBindObservable(): Observable<AbstractMesh> {
+  public get onBindObservable(): Observable<Mesh> {
     if (!this._onBindObservable) {
-      this._onBindObservable = new Observable<AbstractMesh>();
+      this._onBindObservable = new Observable<Mesh>();
     }
 
     return this._onBindObservable;
@@ -382,12 +373,12 @@ export class Material {
   /**
    * An observer which watches for bind events
    */
-  private _onBindObserver: Nullable<Observer<AbstractMesh>> = null;
+  private _onBindObserver: Nullable<Observer<Mesh>> = null;
 
   /**
    * Called during a bind event
    */
-  public set onBind(callback: (Mesh: AbstractMesh) => void) {
+  public set onBind(callback: (Mesh: Mesh) => void) {
     if (this._onBindObserver) {
       this.onBindObservable.remove(this._onBindObserver);
     }
@@ -421,7 +412,6 @@ export class Material {
   /**
    * Stores the value of the alpha mode
    */
-  @serialize("alphaMode")
   private _alphaMode: number = Constants.ALPHA_COMBINE;
 
   /**
@@ -447,7 +437,7 @@ export class Material {
       return;
     }
     this._alphaMode = value;
-    this.markAsDirty(Material.TextureDirtyFlag);
+    // this.markAsDirty(Material.TextureDirtyFlag);
   }
 
   /**
@@ -460,7 +450,6 @@ export class Material {
   /**
    * Stores the state of the need depth pre-pass value
    */
-  @serialize()
   private _needDepthPrePass = false;
 
   /**
@@ -486,37 +475,31 @@ export class Material {
   /**
    * Specifies if depth writing should be disabled
    */
-  @serialize()
   public disableDepthWrite = false;
 
   /**
    * Specifies if color writing should be disabled
    */
-  @serialize()
   public disableColorWrite = false;
 
   /**
    * Specifies if depth writing should be forced
    */
-  @serialize()
   public forceDepthWrite = false;
 
   /**
    * Specifies the depth function that should be used. 0 means the default engine function
    */
-  @serialize()
   public depthFunction = 0;
 
   /**
    * Specifies if there should be a separate pass for culling
    */
-  @serialize()
   public separateCullingPass = false;
 
   /**
    * Stores the state specifing if fog should be enabled
    */
-  @serialize("fogEnabled")
   private _fogEnabled = true;
 
   /**
@@ -527,7 +510,7 @@ export class Material {
       return;
     }
     this._fogEnabled = value;
-    this.markAsDirty(Material.MiscDirtyFlag);
+    // this.markAsDirty(Material.MiscDirtyFlag);
   }
 
   /**
@@ -540,26 +523,24 @@ export class Material {
   /**
    * Stores the size of points
    */
-  @serialize()
   public pointSize = 1.0;
 
   /**
    * Stores the z offset value
    */
-  @serialize()
   public zOffset = 0;
 
-  public get wireframe(): boolean {
-    switch (this._fillMode) {
-      case Material.WireFrameFillMode:
-      case Material.LineListDrawMode:
-      case Material.LineLoopDrawMode:
-      case Material.LineStripDrawMode:
-        return true;
-    }
+  // public get wireframe(): boolean {
+  //   switch (this._fillMode) {
+  //     case Material.WireFrameFillMode:
+  //     case Material.LineListDrawMode:
+  //     case Material.LineLoopDrawMode:
+  //     case Material.LineStripDrawMode:
+  //       return true;
+  //   }
 
-    return this._scene.sceneRender.forceWireframe;
-  }
+  //   return this._scene.sceneRender.forceWireframe;
+  // }
 
   /**
    * Sets the state of wireframe mode
@@ -571,7 +552,6 @@ export class Material {
   /**
    * Gets the value specifying if point clouds are enabled
    */
-  // @serialize()
   // public get pointsCloud(): boolean {
   //     switch (this._fillMode) {
   //         case Material.PointFillMode:
@@ -592,7 +572,6 @@ export class Material {
   /**
    * Gets the material fill mode
    */
-  @serialize()
   public get fillMode(): number {
     return this._fillMode;
   }
@@ -606,7 +585,7 @@ export class Material {
     }
 
     this._fillMode = value;
-    this.markAsDirty(Material.MiscDirtyFlag);
+    // this.markAsDirty(Material.MiscDirtyFlag);
   }
 
   /**
@@ -654,7 +633,7 @@ export class Material {
   public _indexInSceneMaterialArray = -1;
 
   /** @hidden */
-  public meshMap: Nullable<{ [id: string]: AbstractMesh | undefined }> = null;
+  public meshMap: Nullable<{ [id: string]: Mesh | undefined }> = null;
 
   /**
    * Creates a material instance
@@ -741,7 +720,7 @@ export class Material {
    * @param useInstances specifies if instances should be used
    * @returns a boolean indicating if the material is ready to be used
    */
-  public isReady(mesh?: AbstractMesh, useInstances?: boolean): boolean {
+  public isReady(mesh?: Mesh, useInstances?: boolean): boolean {
     return true;
   }
 
@@ -752,7 +731,7 @@ export class Material {
    * @param useInstances specifies that instances should be used
    * @returns a boolean indicating that the submesh is ready or not
    */
-  public isReadyForSubMesh(mesh: AbstractMesh, subMesh: SubMesh, useInstances?: boolean): boolean {
+  public isReadyForSubMesh(mesh: Mesh, subMesh: Mesh, useInstances?: boolean): boolean {
     return false;
   }
 
@@ -785,7 +764,6 @@ export class Material {
   /**
    * Gets the current transparency mode.
    */
-  @serialize()
   public get transparencyMode(): Nullable<number> {
     return this._transparencyMode;
   }
@@ -810,7 +788,7 @@ export class Material {
 
     this._forceAlphaTest = value === Material.MATERIAL_ALPHATESTANDBLEND;
 
-    this._markAllSubMeshesAsTexturesAndMiscDirty();
+    // this._markAllSubMeshesAsTexturesAndMiscDirty();
   }
 
   /**
@@ -837,7 +815,7 @@ export class Material {
    * @param mesh defines the mesh to check
    * @returns a boolean specifying if alpha blending is needed for the mesh
    */
-  public needAlphaBlendingForMesh(mesh: AbstractMesh): boolean {
+  public needAlphaBlendingForMesh(mesh: Mesh): boolean {
     if (this._disableAlphaBlending && mesh.visibility >= 1.0) {
       return false;
     }
@@ -861,7 +839,7 @@ export class Material {
    * Specifies if material alpha testing should be turned on for the mesh
    * @param mesh defines the mesh to check
    */
-  protected _shouldTurnAlphaTestOn(mesh: AbstractMesh): boolean {
+  protected _shouldTurnAlphaTestOn(mesh: Mesh): boolean {
     return !this.needAlphaBlendingForMesh(mesh) && this.needAlphaTesting();
   }
 
@@ -869,15 +847,15 @@ export class Material {
    * Gets the texture used for the alpha test
    * @returns the texture to use for alpha testing
    */
-  public getAlphaTestTexture(): Nullable<BaseTexture> {
-    return null;
-  }
+  // public getAlphaTestTexture(): Nullable<BaseTexture> {
+  //   return null;
+  // }
 
   /**
    * Marks the material to indicate that it needs to be re-calculated
    */
   public markDirty(): void {
-    const meshes = this.getScene().meshes;
+    // const meshes = this.getScene().meshes;
     // for (var mesh of meshes) {
     //     if (!mesh.subMeshes) {
     //         continue;
@@ -903,7 +881,7 @@ export class Material {
     var orientation = overrideOrientation == null ? this.sideOrientation : overrideOrientation;
     var reverse = orientation === Material.ClockWiseSideOrientation;
 
-    engine.enableEffect(effect ? effect : this._effect);
+    engine.enginePipeline.enableEffect(effect ? effect : this._effect);
     engine.engineState.setState(this.backFaceCulling, this.zOffset, false, reverse);
 
     return reverse;
@@ -922,7 +900,7 @@ export class Material {
    * @param mesh defines the mesh containing the submesh
    * @param subMesh defines the submesh to bind the material to
    */
-  public bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: SubMesh): void {}
+  public bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: Mesh): void {}
 
   /**
    * Binds the world matrix to the material
@@ -1023,18 +1001,18 @@ export class Material {
    * Gets the active textures from the material
    * @returns an array of textures
    */
-  public getActiveTextures(): BaseTexture[] {
-    return [];
-  }
+  // public getActiveTextures(): BaseTexture[] {
+  //   return [];
+  // }
 
   /**
    * Specifies if the material uses a texture
    * @param texture defines the texture to check against the material
    * @returns a boolean specifying if the material uses the texture
    */
-  public hasTexture(texture: BaseTexture): boolean {
-    return false;
-  }
+  // public hasTexture(texture: BaseTexture): boolean {
+  //   return false;
+  // }
 
   /**
    * Makes a duplicate of the material, and gives it a new name
@@ -1049,21 +1027,21 @@ export class Material {
    * Gets the meshes bound to the material
    * @returns an array of meshes bound to the material
    */
-  public getBindedMeshes(): AbstractMesh[] {
-    if (this.meshMap) {
-      var result = new Array<AbstractMesh>();
-      for (let meshId in this.meshMap) {
-        const mesh = this.meshMap[meshId];
-        if (mesh) {
-          result.push(mesh);
-        }
-      }
-      return result;
-    } else {
-      const meshes = this._scene.meshes;
-      return meshes.filter((mesh) => mesh.material === this);
-    }
-  }
+  // public getBindedMeshes(): Mesh[] {
+  //   if (this.meshMap) {
+  //     var result = new Array<Mesh>();
+  //     for (let meshId in this.meshMap) {
+  //       const mesh = this.meshMap[meshId];
+  //       if (mesh) {
+  //         result.push(mesh);
+  //       }
+  //     }
+  //     return result;
+  //   } else {
+  //     const meshes = this._scene.meshes;
+  //     return meshes.filter((mesh) => mesh.material === this);
+  //   }
+  // }
 
   /**
    * Force shader compilation
@@ -1072,7 +1050,7 @@ export class Material {
    * @param options defines the options to configure the compilation
    * @param onError defines a function to execute if the material fails compiling
    */
-  // public forceCompilation(mesh: AbstractMesh, onCompiled?: (material: Material) => void, options?: Partial<IMaterialCompilationOptions>, onError?: (reason: string) => void): void {
+  // public forceCompilation(mesh: Mesh, onCompiled?: (material: Material) => void, options?: Partial<IMaterialCompilationOptions>, onError?: (reason: string) => void): void {
   //     let localOptions = {
   //         clipPlane: false,
   //         useInstances: false,
@@ -1147,7 +1125,7 @@ export class Material {
    * @param options defines additional options for compiling the shaders
    * @returns a promise that resolves when the compilation completes
    */
-  // public forceCompilationAsync(mesh: AbstractMesh, options?: Partial<IMaterialCompilationOptions>): Promise<void> {
+  // public forceCompilationAsync(mesh: Mesh, options?: Partial<IMaterialCompilationOptions>): Promise<void> {
   //     return new Promise((resolve, reject) => {
   //         this.forceCompilation(mesh, () => {
   //             resolve();
@@ -1157,101 +1135,101 @@ export class Material {
   //     });
   // }
 
-  private static readonly _AllDirtyCallBack = (defines: MaterialDefines) => defines.markAllAsDirty();
-  private static readonly _ImageProcessingDirtyCallBack = (defines: MaterialDefines) => defines.markAsImageProcessingDirty();
-  private static readonly _TextureDirtyCallBack = (defines: MaterialDefines) => defines.markAsTexturesDirty();
-  private static readonly _FresnelDirtyCallBack = (defines: MaterialDefines) => defines.markAsFresnelDirty();
-  private static readonly _MiscDirtyCallBack = (defines: MaterialDefines) => defines.markAsMiscDirty();
-  private static readonly _PrePassDirtyCallBack = (defines: MaterialDefines) => defines.markAsPrePassDirty();
-  private static readonly _LightsDirtyCallBack = (defines: MaterialDefines) => defines.markAsLightDirty();
-  private static readonly _AttributeDirtyCallBack = (defines: MaterialDefines) => defines.markAsAttributesDirty();
+  // private static readonly _AllDirtyCallBack = (defines: MaterialDefines) => defines.markAllAsDirty();
+  // private static readonly _ImageProcessingDirtyCallBack = (defines: MaterialDefines) => defines.markAsImageProcessingDirty();
+  // private static readonly _TextureDirtyCallBack = (defines: MaterialDefines) => defines.markAsTexturesDirty();
+  // private static readonly _FresnelDirtyCallBack = (defines: MaterialDefines) => defines.markAsFresnelDirty();
+  // private static readonly _MiscDirtyCallBack = (defines: MaterialDefines) => defines.markAsMiscDirty();
+  // private static readonly _PrePassDirtyCallBack = (defines: MaterialDefines) => defines.markAsPrePassDirty();
+  // private static readonly _LightsDirtyCallBack = (defines: MaterialDefines) => defines.markAsLightDirty();
+  // private static readonly _AttributeDirtyCallBack = (defines: MaterialDefines) => defines.markAsAttributesDirty();
 
-  private static _FresnelAndMiscDirtyCallBack = (defines: MaterialDefines) => {
-    Material._FresnelDirtyCallBack(defines);
-    Material._MiscDirtyCallBack(defines);
-  };
+  // private static _FresnelAndMiscDirtyCallBack = (defines: MaterialDefines) => {
+  //   Material._FresnelDirtyCallBack(defines);
+  //   Material._MiscDirtyCallBack(defines);
+  // };
 
-  private static _TextureAndMiscDirtyCallBack = (defines: MaterialDefines) => {
-    Material._TextureDirtyCallBack(defines);
-    Material._MiscDirtyCallBack(defines);
-  };
+  // private static _TextureAndMiscDirtyCallBack = (defines: MaterialDefines) => {
+  //   Material._TextureDirtyCallBack(defines);
+  //   Material._MiscDirtyCallBack(defines);
+  // };
 
-  private static readonly _DirtyCallbackArray: Array<(defines: MaterialDefines) => void> = [];
-  private static readonly _RunDirtyCallBacks = (defines: MaterialDefines) => {
-    for (const cb of Material._DirtyCallbackArray) {
-      cb(defines);
-    }
-  };
+  // private static readonly _DirtyCallbackArray: Array<(defines: MaterialDefines) => void> = [];
+  // private static readonly _RunDirtyCallBacks = (defines: MaterialDefines) => {
+  //   for (const cb of Material._DirtyCallbackArray) {
+  //     cb(defines);
+  //   }
+  // };
 
   /**
    * Marks a define in the material to indicate that it needs to be re-computed
    * @param flag defines a flag used to determine which parts of the material have to be marked as dirty
    */
-  public markAsDirty(flag: number): void {
-    if (this.getScene().sceneNode.blockMaterialDirtyMechanism) {
-      return;
-    }
+  // public markAsDirty(flag: number): void {
+  //   if (this.getScene().sceneNode.blockMaterialDirtyMechanism) {
+  //     return;
+  //   }
 
-    Material._DirtyCallbackArray.length = 0;
+  //   Material._DirtyCallbackArray.length = 0;
 
-    if (flag & Material.TextureDirtyFlag) {
-      Material._DirtyCallbackArray.push(Material._TextureDirtyCallBack);
-    }
+  //   if (flag & Material.TextureDirtyFlag) {
+  //     Material._DirtyCallbackArray.push(Material._TextureDirtyCallBack);
+  //   }
 
-    if (flag & Material.LightDirtyFlag) {
-      Material._DirtyCallbackArray.push(Material._LightsDirtyCallBack);
-    }
+  //   if (flag & Material.LightDirtyFlag) {
+  //     Material._DirtyCallbackArray.push(Material._LightsDirtyCallBack);
+  //   }
 
-    if (flag & Material.FresnelDirtyFlag) {
-      Material._DirtyCallbackArray.push(Material._FresnelDirtyCallBack);
-    }
+  //   if (flag & Material.FresnelDirtyFlag) {
+  //     Material._DirtyCallbackArray.push(Material._FresnelDirtyCallBack);
+  //   }
 
-    if (flag & Material.AttributesDirtyFlag) {
-      Material._DirtyCallbackArray.push(Material._AttributeDirtyCallBack);
-    }
+  //   if (flag & Material.AttributesDirtyFlag) {
+  //     Material._DirtyCallbackArray.push(Material._AttributeDirtyCallBack);
+  //   }
 
-    if (flag & Material.MiscDirtyFlag) {
-      Material._DirtyCallbackArray.push(Material._MiscDirtyCallBack);
-    }
+  //   if (flag & Material.MiscDirtyFlag) {
+  //     Material._DirtyCallbackArray.push(Material._MiscDirtyCallBack);
+  //   }
 
-    if (flag & Material.PrePassDirtyFlag) {
-      Material._DirtyCallbackArray.push(Material._PrePassDirtyCallBack);
-    }
+  //   if (flag & Material.PrePassDirtyFlag) {
+  //     Material._DirtyCallbackArray.push(Material._PrePassDirtyCallBack);
+  //   }
 
-    if (Material._DirtyCallbackArray.length) {
-      this._markAllSubMeshesAsDirty(Material._RunDirtyCallBacks);
-    }
+  //   if (Material._DirtyCallbackArray.length) {
+  //     this._markAllSubMeshesAsDirty(Material._RunDirtyCallBacks);
+  //   }
 
-    // this.getScene().sceneCatch.resetCachedMaterial();
-  }
+  //   // this.getScene().sceneCatch.resetCachedMaterial();
+  // }
 
   /**
    * Marks all submeshes of a material to indicate that their material defines need to be re-calculated
    * @param func defines a function which checks material defines against the submeshes
    */
-  protected _markAllSubMeshesAsDirty(func: (defines: MaterialDefines) => void) {
-    if (this.getScene().sceneNode.blockMaterialDirtyMechanism) {
-      return;
-    }
+  // protected _markAllSubMeshesAsDirty(func: (defines: MaterialDefines) => void) {
+  //   if (this.getScene().sceneNode.blockMaterialDirtyMechanism) {
+  //     return;
+  //   }
 
-    const meshes = this.getScene().meshes;
-    for (var mesh of meshes) {
-      if (!mesh.subMeshes) {
-        continue;
-      }
-      for (var subMesh of mesh.subMeshes) {
-        if (subMesh.getMaterial() !== this) {
-          continue;
-        }
+  //   const meshes = this.getScene().meshes;
+  //   for (var mesh of meshes) {
+  //     if (!mesh.subMeshes) {
+  //       continue;
+  //     }
+  //     for (var subMesh of mesh.subMeshes) {
+  //       if (subMesh.getMaterial() !== this) {
+  //         continue;
+  //       }
 
-        if (!subMesh._materialDefines) {
-          continue;
-        }
+  //       if (!subMesh._materialDefines) {
+  //         continue;
+  //       }
 
-        func(subMesh._materialDefines);
-      }
-    }
-  }
+  //       func(subMesh._materialDefines);
+  //     }
+  //   }
+  // }
 
   /**
    * Indicates that the scene should check if the rendering now needs a prepass
@@ -1270,82 +1248,82 @@ export class Material {
   /**
    * Indicates that we need to re-calculated for all submeshes
    */
-  protected _markAllSubMeshesAsAllDirty() {
-    this._markAllSubMeshesAsDirty(Material._AllDirtyCallBack);
-  }
+  // protected _markAllSubMeshesAsAllDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._AllDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that image processing needs to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsImageProcessingDirty() {
-    this._markAllSubMeshesAsDirty(Material._ImageProcessingDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that image processing needs to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsImageProcessingDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._ImageProcessingDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that textures need to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsTexturesDirty() {
-    this._markAllSubMeshesAsDirty(Material._TextureDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that textures need to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsTexturesDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._TextureDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that fresnel needs to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsFresnelDirty() {
-    this._markAllSubMeshesAsDirty(Material._FresnelDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that fresnel needs to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsFresnelDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._FresnelDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that fresnel and misc need to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsFresnelAndMiscDirty() {
-    this._markAllSubMeshesAsDirty(Material._FresnelAndMiscDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that fresnel and misc need to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsFresnelAndMiscDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._FresnelAndMiscDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that lights need to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsLightsDirty() {
-    this._markAllSubMeshesAsDirty(Material._LightsDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that lights need to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsLightsDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._LightsDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that attributes need to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsAttributesDirty() {
-    this._markAllSubMeshesAsDirty(Material._AttributeDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that attributes need to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsAttributesDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._AttributeDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that misc needs to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsMiscDirty() {
-    this._markAllSubMeshesAsDirty(Material._MiscDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that misc needs to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsMiscDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._MiscDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that prepass needs to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsPrePassDirty() {
-    this._markAllSubMeshesAsDirty(Material._MiscDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that prepass needs to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsPrePassDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._MiscDirtyCallBack);
+  // }
 
-  /**
-   * Indicates that textures and misc need to be re-calculated for all submeshes
-   */
-  protected _markAllSubMeshesAsTexturesAndMiscDirty() {
-    this._markAllSubMeshesAsDirty(Material._TextureAndMiscDirtyCallBack);
-  }
+  // /**
+  //  * Indicates that textures and misc need to be re-calculated for all submeshes
+  //  */
+  // protected _markAllSubMeshesAsTexturesAndMiscDirty() {
+  //   this._markAllSubMeshesAsDirty(Material._TextureAndMiscDirtyCallBack);
+  // }
 
-  /**
-   * Sets the required values to the prepass renderer.
-   * @param prePassRenderer defines the prepass renderer to setup.
-   * @returns true if the pre pass is needed.
-   */
-  public setPrePassRenderer(prePassRenderer: PrePassRenderer): boolean {
-    // Do Nothing by default
-    return false;
-  }
+  // /**
+  //  * Sets the required values to the prepass renderer.
+  //  * @param prePassRenderer defines the prepass renderer to setup.
+  //  * @returns true if the pre pass is needed.
+  //  */
+  // public setPrePassRenderer(prePassRenderer: PrePassRenderer): boolean {
+  //   // Do Nothing by default
+  //   return false;
+  // }
 
   /**
    * Disposes the material
@@ -1412,20 +1390,20 @@ export class Material {
   }
 
   /** @hidden */
-  private releaseVertexArrayObject(mesh: AbstractMesh, forceDisposeEffect?: boolean) {
-    if ((<Mesh>mesh).meshGeometry.geometry) {
-      var geometry = <Geometry>(<Mesh>mesh).meshGeometry.geometry;
-      if (this._storeEffectOnSubMeshes) {
-        for (var subMesh of mesh.subMeshes) {
-          geometry._releaseVertexArrayObject(subMesh._materialEffect);
-          if (forceDisposeEffect && subMesh._materialEffect) {
-            subMesh._materialEffect.dispose();
-          }
-        }
-      } else {
-        geometry._releaseVertexArrayObject(this._effect);
-      }
-    }
+  private releaseVertexArrayObject(mesh: Mesh, forceDisposeEffect?: boolean) {
+    // if ((<Mesh>mesh).meshGeometry.geometry) {
+    //   var geometry = <Geometry>(<Mesh>mesh).meshGeometry.geometry;
+    //   if (this._storeEffectOnSubMeshes) {
+    //     for (var subMesh of mesh.subMeshes) {
+    //       geometry._releaseVertexArrayObject(subMesh._materialEffect);
+    //       if (forceDisposeEffect && subMesh._materialEffect) {
+    //         subMesh._materialEffect.dispose();
+    //       }
+    //     }
+    //   } else {
+    //     geometry._releaseVertexArrayObject(this._effect);
+    //   }
+    // }
   }
 
   /**
@@ -1433,7 +1411,7 @@ export class Material {
    * @returns the serialized material object
    */
   public serialize(): any {
-    return SerializationHelper.Serialize(this);
+    // return SerializationHelper.Serialize(this);
   }
 
   /**

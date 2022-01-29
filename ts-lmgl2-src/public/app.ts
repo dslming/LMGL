@@ -17,7 +17,9 @@ class App {
     const camera = new lmgl.TargetCamera("Camera", new lmgl.Vector3(0, 0, 10), scene);
     camera.target = new lmgl.Vector3(0, 0, 0);
 
-    const sphereGeometry = lmgl.getSphereBuilder();
+    const sphereGeometry = lmgl.getSphereGeometryBuilder();
+    const sphereMesh = new lmgl.Mesh("sphere", scene, sphereGeometry)
+    // var sphere0 = BABYLON.MeshBuilder.CreateSphere("sphere0", {}, scene);
     //  console.error(sphereGeometry);
     // this.createScene(this.engine, this.canvas);
     // this.engine.engineRender.runRenderLoop(() => {
@@ -74,6 +76,7 @@ class App {
   //   // this.light = light;
   // }
 }
+
 window.onload = () => {
   console.error(lmgl);
   const app = new App();

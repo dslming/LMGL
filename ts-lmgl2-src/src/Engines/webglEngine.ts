@@ -5,6 +5,9 @@ import { EngineVertex } from "./engine.vertex";
 import { IViewportLike } from "../Maths/math.like";
 import { EnginePipeline } from "./engine.pipeline";
 import { Scene } from "../Scene/scene";
+import { EngineUniform } from "./engine.uniform";
+import { EngineState } from "./engine.state";
+import { EngineAlpha } from "./engine.alpha";
 
 export interface EngineOptions extends WebGLContextAttributes {
   /**
@@ -29,11 +32,14 @@ export interface EngineOptions extends WebGLContextAttributes {
 }
 
 export class WebGLEngine {
+  public engineUniform: EngineUniform;
   public _gl: WebGLRenderingContext;
   protected _renderingCanvas: Nullable<HTMLCanvasElement>;
   public scenes = new Array<Scene>();
   public engineVertex: EngineVertex;
   public enginePipeline: EnginePipeline;
+  engineState: EngineState;
+  engineAlpha: EngineAlpha;
   constructor(canvas: HTMLCanvasElement, options?: EngineOptions) {
     this._renderingCanvas = canvas;
     try {
@@ -50,7 +56,10 @@ export class WebGLEngine {
     this._initGLContext();
 
     this.engineVertex = new EngineVertex(this._gl, this._caps);
-    this.enginePipeline = new EnginePipeline(this._gl, this._caps);
+    this.enginePipeline = new EnginePipeline(this._gl, this._caps, this);
+    this.engineUniform = new EngineUniform(this._gl);
+    this.engineState = new EngineState(this._gl, this);
+    this.engineAlpha = new EngineAlpha(this._gl, this);
   }
 
   private _glRenderer: string;

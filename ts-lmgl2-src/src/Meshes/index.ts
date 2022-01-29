@@ -1,1 +1,2 @@
-export * from "./Builders/sphereBuilder"
+export * from "./GeometryBuilders/sphereGeometryBuilder"
+export * from "./mesh"

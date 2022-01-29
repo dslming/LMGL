@@ -17,7 +17,7 @@ export class Node {
   public _isDisposed = false;
   public onReady: Nullable<(node: Node) => void> = null;
   public _currentRenderId = -1;
-  public _scene: Scene;
+  public _scene: Scene ;
   public _worldMatrix = Matrix.Identity();
   public _worldMatrixDeterminant = 0;
   public _worldMatrixDeterminantIsDirty = true;
@@ -52,7 +52,7 @@ export class Node {
    * @param name the name and id to be given to this node
    * @param scene the scene this node will be added to
    */
-  constructor(name: string, scene: Scene) {
+  constructor(name: string, scene: Scene ) {
     this.name = name;
     this.id = name;
     this._scene = scene;
