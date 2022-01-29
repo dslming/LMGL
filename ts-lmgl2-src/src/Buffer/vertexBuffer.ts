@@ -250,4 +250,14 @@ export class VertexBuffer {
         throw new Error("Invalid kind '" + kind + "'");
     }
   }
+
+  /**
+  * Returns the kind of the VertexBuffer (string)
+  * @returns a string
+  */
+  public getKind(): string {
+    return this._kind;
+  }
+
+  dispose() { }
 }

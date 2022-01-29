@@ -4,7 +4,7 @@ import { Scene } from "../Scene/scene";
 import { Nullable } from "../types";
 import { Geometry } from "./geometry";
 import { iGeometryBuilder } from "./GeometryBuilders/iGeometryBuilder";
-import { MeshGeometry } from "./mesh.geometry";
+// import { MeshGeometry } from "./mesh.geometry";
 import { TransformNode } from "./transformNode";
 import { VertexData } from "./vertexData";
 
@@ -53,7 +53,8 @@ export class Mesh extends TransformNode{
   public material: Nullable<Material>;
   public _internalAbstractMeshDataInfo = new _InternalAbstractMeshDataInfo();
   public _internalMeshDataInfo = new _InternalMeshDataInfo();
-  meshGeometry: MeshGeometry;
+  // meshGeometry: MeshGeometry;
+  private _geometry: Geometry;
 
   /**
  * Gets or sets mesh visibility between 0 and 1 (default is 1)
@@ -104,16 +105,17 @@ export class Mesh extends TransformNode{
   //   this._markSubMeshesAsDirty((defines) => defines.markAsMiscDirty());
   // }
 
-  constructor(name: string, scene: Scene, geometry: iGeometryBuilder) {
+  constructor(name: string, scene: Scene, geometryData: iGeometryBuilder) {
     super(name, scene);
 
     var vertexData = new VertexData();
-    vertexData.indices = geometry.indices;
-    vertexData.positions = geometry.position;
-    vertexData.normals = geometry.normal;
-    vertexData.uvs = geometry.uv;
+    vertexData.indices = geometryData.indices;
+    vertexData.positions = geometryData.position;
+    vertexData.normals = geometryData.normal;
+    vertexData.uvs = geometryData.uv;
 
-    this.meshGeometry = new MeshGeometry(this);
-    vertexData.applyToMesh(this, false);
+    // this.meshGeometry = new MeshGeometry(this);
+    this._geometry = new Geometry(Geometry.RandomId(), scene, vertexData, false, this);
+    // vertexData._applyTo(this.meshGeometry, false);
   }
 }

@@ -222,10 +222,10 @@ export class VertexData {
    * @param updatable when used and having the value true allows new data to update the vertexData
    * @returns the VertexData
    */
-  public applyToMesh(mesh: Mesh, updatable?: boolean): VertexData {
-    this._applyTo(mesh.meshGeometry, updatable);
-    return this;
-  }
+  // public applyToMesh(mesh: Mesh, updatable?: boolean): VertexData {
+  //   this._applyTo(mesh.meshGeometry, updatable);
+  //   return this;
+  // }
 
   /**
    * Associates the vertexData to the passed Geometry.
@@ -234,10 +234,10 @@ export class VertexData {
    * @param updatable when used and having the value true allows new data to update the vertexData
    * @returns VertexData
    */
-  // public applyToGeometry(geometry: Geometry, updatable?: boolean): VertexData {
-  //   this._applyTo(geometry, updatable);
-  //   return this;
-  // }
+  public applyToGeometry(geometry: Geometry, updatable?: boolean): VertexData {
+    this._applyTo(geometry, updatable);
+    return this;
+  }
 
   /**
    * Updates the associated mesh
@@ -263,7 +263,7 @@ export class VertexData {
   //   return this;
   // }
 
-  private _applyTo(meshOrGeometry: IGetSetVerticesData, updatable: boolean = false): VertexData {
+  public _applyTo(meshOrGeometry: IGetSetVerticesData, updatable: boolean = false): VertexData {
     if (this.positions) {
       meshOrGeometry.setVerticesData(VertexBuffer.PositionKind, this.positions, updatable);
     }

@@ -27,11 +27,11 @@ export class Geometry implements IGetSetVerticesData{
   private _engine: WebGLEngine;
   private _updatable: boolean;
 
-  constructor(id: string, scene: Scene, vertexData?: VertexData, updatable: boolean = false, mesh: Nullable<Mesh> = null) {
+  constructor(id: string, scene: Scene, vertexData: VertexData, updatable: boolean = false, mesh: Nullable<Mesh> = null) {
     this.id = id;
     this.uniqueId = scene.getUniqueId();
     this._engine = scene.getEngine();
-    this._meshes = [];
+    // this._meshes = [];
     this._scene = scene;
     //Init vertex buffer cache
     this._vertexBuffers = {};
@@ -40,7 +40,8 @@ export class Geometry implements IGetSetVerticesData{
 
     // vertexData
     if (vertexData) {
-      this.setAllVerticesData(vertexData, updatable);
+      // this.setAllVerticesData(vertexData, updatable);
+      vertexData.applyToGeometry(this, updatable);
     } else {
       this._totalVertices = 0;
       this._indices = [];
@@ -61,10 +62,10 @@ export class Geometry implements IGetSetVerticesData{
  * @param vertexData defines the geometry data
  * @param updatable defines if the geometry must be flagged as updatable (false as default)
  */
-  public setAllVerticesData(vertexData: VertexData, updatable?: boolean): void {
-    vertexData.applyToGeometry(this, updatable);
-    // this.notifyUpdate();
-  }
+  // public setAllVerticesData(vertexData: VertexData, updatable?: boolean): void {
+  //   vertexData.applyToGeometry(this, updatable);
+  //   // this.notifyUpdate();
+  // }
 
   isVerticesDataPresent(kind: string): boolean {
     throw new Error("Method not implemented.");
@@ -76,7 +77,12 @@ export class Geometry implements IGetSetVerticesData{
     throw new Error("Method not implemented.");
   }
   setVerticesData(kind: string, data: FloatArray, updatable: boolean): void {
-    throw new Error("Method not implemented.");
+    if (updatable && Array.isArray(data)) {
+      // to avoid converting to Float32Array at each draw call in engine.updateDynamicVertexBuffer, we make the conversion a single time here
+      data = new Float32Array(data);
+    }
+    var buffer = new VertexBuffer(this._engine, data, kind, updatable);
+    this.setVerticesBuffer(buffer);
   }
   updateVerticesData(kind: string, data: FloatArray, updateExtends?: boolean, makeItUnique?: boolean): void {
     throw new Error("Method not implemented.");
@@ -142,5 +148,50 @@ export class Geometry implements IGetSetVerticesData{
  */
   public static RandomId(): string {
     return Tools.RandomId();
+  }
+
+  /**
+   * Affect a vertex buffer to the geometry. the vertexBuffer.getKind() function is used to determine where to store the data
+   * @param buffer defines the vertex buffer to use
+   * @param totalVertices defines the total number of vertices for position kind (could be null)
+   */
+  public setVerticesBuffer(buffer: VertexBuffer, totalVertices: Nullable<number> = null): void {
+    var kind = buffer.getKind();
+    if (this._vertexBuffers[kind]) {
+      this._vertexBuffers[kind].dispose();
+    }
+
+    this._vertexBuffers[kind] = buffer;
+
+    if (kind === VertexBuffer.PositionKind) {
+      var data = <FloatArray>buffer.getData();
+      if (totalVertices != null) {
+        this._totalVertices = totalVertices;
+      } else {
+        if (data != null) {
+          this._totalVertices = data.length / (buffer.byteStride / 4);
+        }
+      }
+
+      this._updateExtend(data);
+      this._resetPointsArrayCache();
+
+      var meshes = this._meshes;
+      var numOfMeshes = meshes.length;
+
+      for (var index = 0; index < numOfMeshes; index++) {
+        var mesh = meshes[index];
+        // mesh._boundingInfo = new BoundingInfo(this._extend.minimum, this._extend.maximum);
+        // mesh._createGlobalSubMesh(false);
+        // mesh.computeWorldMatrix(true);
+      }
+    }
+
+    this.notifyUpdate(kind);
+
+    if (this._vertexArrayObjects) {
+      this._disposeVertexArrayObjects();
+      this._vertexArrayObjects = {}; // Will trigger a rebuild of the VAO if supported
+    }
   }
 }
