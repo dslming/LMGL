@@ -10,11 +10,15 @@ class App {
 
   constructor() {
     this.canvas = document.getElementById("renderCanvas");
-    this.engine = new lmgl.WebGLEngine(this.canvas);
+    const engine = new lmgl.WebGLEngine(this.canvas);
+
+    const scene = new lmgl.Scene(engine);
+
+    const camera = new lmgl.TargetCamera("Camera", new lmgl.Vector3(0, 0, 10), scene);
+    camera.target = new lmgl.Vector3(0, 0, 0);
 
     const sphereGeometry = lmgl.getSphereBuilder();
-    console.error(sphereGeometry);
-
+    //  console.error(sphereGeometry);
     // this.createScene(this.engine, this.canvas);
     // this.engine.engineRender.runRenderLoop(() => {
     //   this.scene.sceneRender.render();

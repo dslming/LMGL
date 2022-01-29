@@ -1,10 +1,9 @@
 import { Scene } from "./scene";
 import { Color3, Color4 } from "../Maths/math";
-import { Camera } from '../Camera/camera'
+import { Camera } from "../Cameras/camera";
 import { Nullable } from "../types";
 
 export class SceneRender {
-
   private scene: Scene;
   private _renderId = 0;
   public autoClearDepthAndStencil = true;
@@ -17,14 +16,12 @@ export class SceneRender {
     this.scene = scene;
   }
 
-  private _renderForCamera(camera: Camera) {
-
-  }
+  private _renderForCamera(camera: Camera) {}
 
   /**
-  * Gets an unique Id for the current render phase
-  * @returns a number
-  */
+   * Gets an unique Id for the current render phase
+   * @returns a number
+   */
   public getRenderId(): number {
     return this._renderId;
   }

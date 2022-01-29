@@ -7,7 +7,7 @@
     <canvas id="renderCanvas"></canvas>
   </div>
 
-  <script src="../../ts/dist/lmgl2.max.js"></script>
+  <script src="../../ts-babylon/dist/lmgl2.max.js"></script>
   <script type="module">
     import {run} from '../app.js'
     import { fnMap } from '../global.js';
@@ -15,8 +15,9 @@
 
     const createScene = function () {
       var scene = new BABYLON.Scene(engine);
-      var camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 4, 5, BABYLON.Vector3.Zero(), scene);
-      camera.attachControl(canvas, true);
+      var camera = new BABYLON.TargetCamera("Camera",new BABYLON.Vector3(0, 0, 10), scene);
+      camera.target = new BABYLON.Vector3(0, 0, 0)
+      // camera.attachControl(canvas, true);
 
       //Light direction is up and left
       var light = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(-1, 1, 0), scene);

@@ -3,6 +3,8 @@ import { Nullable } from "../types";
 import { EngineCapabilities } from "./engine.capabilities";
 import { EngineVertex } from "./engine.vertex";
 import { IViewportLike } from "../Maths/math.like";
+import { EnginePipeline } from "./engine.pipeline";
+import { Scene } from "../Scene/scene";
 
 export interface EngineOptions extends WebGLContextAttributes {
   /**
@@ -29,8 +31,9 @@ export interface EngineOptions extends WebGLContextAttributes {
 export class WebGLEngine {
   public _gl: WebGLRenderingContext;
   protected _renderingCanvas: Nullable<HTMLCanvasElement>;
-
+  public scenes = new Array<Scene>();
   public engineVertex: EngineVertex;
+  public enginePipeline: EnginePipeline;
   constructor(canvas: HTMLCanvasElement, options?: EngineOptions) {
     this._renderingCanvas = canvas;
     try {
@@ -46,7 +49,8 @@ export class WebGLEngine {
     this.resize();
     this._initGLContext();
 
-    this.engineVertex = new EngineVertex(this);
+    this.engineVertex = new EngineVertex(this._gl, this._caps);
+    this.enginePipeline = new EnginePipeline(this._gl, this._caps);
   }
 
   private _glRenderer: string;
@@ -124,8 +128,8 @@ export class WebGLEngine {
   }
 
   /**
- * Resize the view according to the canvas' size
- */
+   * Resize the view according to the canvas' size
+   */
   public resize(): void {
     let width: number;
     let height: number;
@@ -171,10 +175,10 @@ export class WebGLEngine {
   }
 
   /**
- * Gets the current render width
- * @param useScreen defines if screen size must be used (or the current render target if any)
- * @returns a number defining the current render width
- */
+   * Gets the current render width
+   * @param useScreen defines if screen size must be used (or the current render target if any)
+   * @returns a number defining the current render width
+   */
   public getRenderWidth(): number {
     return this._gl.drawingBufferWidth;
   }
@@ -196,6 +200,6 @@ export class WebGLEngine {
    */
   public getAspectRatio(viewport: IViewportLike): number {
     var viewport = viewport;
-    return (this.getRenderWidth() * viewport.width) / (this.getRenderHeight() * viewport.height)
+    return (this.getRenderWidth() * viewport.width) / (this.getRenderHeight() * viewport.height);
   }
 }

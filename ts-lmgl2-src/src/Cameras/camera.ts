@@ -1,9 +1,9 @@
-import { Matrix, Vector3, Viewport } from '../Maths/math';
-import { Observable } from '../Misc/observable';
-import { Node } from '../node'
-import { Scene } from '../Scene/scene';
+import { Matrix, Vector3, Viewport } from "../Maths/math";
+import { Observable } from "../Misc/observable";
+import { Node } from "../node";
+import { Scene } from "../Scene/scene";
 
-export class Camera extends Node{
+export class Camera extends Node {
   /**
    * This is the default projection mode used by the cameras.
    * It helps recreating a feeling of perspective and better appreciate depth.
@@ -17,9 +17,9 @@ export class Camera extends Node{
   public static readonly ORTHOGRAPHIC_CAMERA = 1;
 
   /**
- * This is the default FOV mode for perspective cameras.
- * This setting aligns the upper and lower bounds of the viewport to the upper and lower bounds of the camera frustum.
- */
+   * This is the default FOV mode for perspective cameras.
+   * This setting aligns the upper and lower bounds of the viewport to the upper and lower bounds of the camera frustum.
+   */
   public static readonly FOVMODE_VERTICAL_FIXED = 0;
   /**
    * This setting aligns the left and right bounds of the viewport to the left and right bounds of the camera frustum.
@@ -45,17 +45,17 @@ export class Camera extends Node{
 
   protected _globalPosition = Vector3.Zero();
   /**
-    * Gets the current world space position of the camera.
-    */
+   * Gets the current world space position of the camera.
+   */
   public get globalPosition(): Vector3 {
     return this._globalPosition;
   }
 
   protected _upVector = Vector3.Up();
   /**
-    * The vector the camera should consider as up.
-    * (default is Vector3(0, 1, 0) aka Vector3.Up())
-    */
+   * The vector the camera should consider as up.
+   * (default is Vector3(0, 1, 0) aka Vector3.Up())
+   */
   public set upVector(vec: Vector3) {
     this._upVector = vec;
   }
@@ -85,9 +85,9 @@ export class Camera extends Node{
   public maxZ = 10000.0;
 
   /**
-    * Define the default inertia of the camera.
-    * This helps giving a smooth feeling to the camera movement.
-    */
+   * Define the default inertia of the camera.
+   * This helps giving a smooth feeling to the camera movement.
+   */
   public inertia = 0.9;
 
   /**
@@ -102,20 +102,20 @@ export class Camera extends Node{
   public viewport = new Viewport(0, 0, 1.0, 1.0);
 
   /**
-    * fovMode sets the camera frustum bounds to the viewport bounds. (default is FOVMODE_VERTICAL_FIXED)
-    */
+   * fovMode sets the camera frustum bounds to the viewport bounds. (default is FOVMODE_VERTICAL_FIXED)
+   */
   public fovMode: number = Camera.FOVMODE_VERTICAL_FIXED;
 
   /**
-  * Rig mode of the camera.
-  * This is useful to create the camera with two "eyes" instead of one to create VR or stereoscopic scenes.
-  * This is normally controlled byt the camera themselves as internal use.
-  */
+   * Rig mode of the camera.
+   * This is useful to create the camera with two "eyes" instead of one to create VR or stereoscopic scenes.
+   * This is normally controlled byt the camera themselves as internal use.
+   */
   public cameraRigMode = Camera.RIG_MODE_NONE;
 
   /**
-    * Defines the distance between both "eyes" in case of a RIG
-    */
+   * Defines the distance between both "eyes" in case of a RIG
+   */
   public interaxialDistance: number;
 
   /**
@@ -171,10 +171,10 @@ export class Camera extends Node{
 
   public _projectionMatrix = new Matrix();
   /**
-     * Gets the current projection matrix of the camera.
-     * @param force forces the camera to recompute the matrix without looking at the cached state
-     * @returns the projection matrix
-     */
+   * Gets the current projection matrix of the camera.
+   * @param force forces the camera to recompute the matrix without looking at the cached state
+   * @returns the projection matrix
+   */
   public getProjectionMatrix(force?: boolean): Matrix {
     // Cache
     this._cache.mode = this.mode;
@@ -203,12 +203,14 @@ export class Camera extends Node{
         getProjectionMatrix = reverseDepth ? Matrix.PerspectiveFovReverseLHToRef : Matrix.PerspectiveFovLHToRef;
       }
 
-      getProjectionMatrix(this.fov,
+      getProjectionMatrix(
+        this.fov,
         engine.getAspectRatio(this.viewport),
         this.minZ,
         this.maxZ,
         this._projectionMatrix,
-        this.fovMode === Camera.FOVMODE_VERTICAL_FIXED);
+        this.fovMode === Camera.FOVMODE_VERTICAL_FIXED
+      );
     } else {
       // todo 正交相机
     }
@@ -219,8 +221,7 @@ export class Camera extends Node{
   }
 
   public _isSynchronizedViewMatrix(): boolean {
-    return this._cache.position.equals(this.position)
-      && this._cache.upVector.equals(this.upVector);
+    return this._cache.position.equals(this.position) && this._cache.upVector.equals(this.upVector);
   }
 
   _updateCache() {
@@ -233,10 +234,10 @@ export class Camera extends Node{
   }
 
   /**
-     * Gets the current view matrix of the camera.
-     * @param force forces the camera to recompute the matrix without looking at the cached state
-     * @returns the view matrix
-     */
+   * Gets the current view matrix of the camera.
+   * @param force forces the camera to recompute the matrix without looking at the cached state
+   * @returns the view matrix
+   */
   public getViewMatrix(force?: boolean): Matrix {
     if (!force && this._isSynchronizedViewMatrix()) {
       return this._computedViewMatrix;
@@ -251,5 +252,50 @@ export class Camera extends Node{
     this.onViewMatrixChangedObservable.notifyObservers(this);
     this._computedViewMatrix.invertToRef(this._worldMatrix);
     return this._computedViewMatrix;
+  }
+
+  private _storedFov: number;
+  private _stateStored: boolean;
+  /**
+   * Store current camera state (fov, position, etc..)
+   * @returns the camera
+   */
+  public storeState(): Camera {
+    this._stateStored = true;
+    this._storedFov = this.fov;
+
+    return this;
+  }
+
+  /**
+   * May need to be overridden by children
+   * @hidden
+   */
+  public _updateRigCameras() {
+    // for (var i = 0; i < this._rigCameras.length; i++) {
+    //   this._rigCameras[i].minZ = this.minZ;
+    //   this._rigCameras[i].maxZ = this.maxZ;
+    //   this._rigCameras[i].fov = this.fov;
+    //   this._rigCameras[i].upVector.copyFrom(this.upVector);
+    // }
+    // // only update viewport when ANAGLYPH
+    // if (this.cameraRigMode === Camera.RIG_MODE_STEREOSCOPIC_ANAGLYPH) {
+    //   this._rigCameras[0].viewport = this._rigCameras[1].viewport = this.viewport;
+    // }
+  }
+
+  /**
+   * Update the camera state according to the different inputs gathered during the frame.
+   */
+  public update(): void {
+    this._checkInputs();
+    if (this.cameraRigMode !== Camera.RIG_MODE_NONE) {
+      this._updateRigCameras();
+    }
+  }
+
+  /** @hidden */
+  public _checkInputs(): void {
+    this.onAfterCheckInputsObservable.notifyObservers(this);
   }
 }

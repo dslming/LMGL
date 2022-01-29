@@ -1,6 +1,6 @@
 var createScene = function() {
   var scene = new BABYLON.Scene(engine);
-  var camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 4, 5, BABYLON.Vector3.Zero(), scene);
+  var camera = new BABYLON.TargetCamera("Camera", -Math.PI / 2, Math.PI / 4, 5, BABYLON.Vector3.Zero(), scene);
   camera.attachControl(canvas, true);
 
   //Light direction is up and left

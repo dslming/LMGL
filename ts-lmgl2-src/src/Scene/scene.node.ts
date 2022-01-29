@@ -1,5 +1,5 @@
 import { Scene } from "./scene";
-import { Camera } from "../Camera/camera";
+import { Camera } from "../Cameras/camera";
 import { Nullable } from "../types";
 
 export class SceneNode {
@@ -8,6 +8,20 @@ export class SceneNode {
 
   constructor(scene: Scene) {
     this.scene = scene;
+  }
+
+  /**
+   * Will flag all materials as dirty to trigger new shader compilation
+   * @param flag defines the flag used to specify which material part must be marked as dirty
+   * @param predicate If not null, it will be used to specifiy if a material has to be marked as dirty
+   */
+  public markAllMaterialsAsDirty(flag: number, predicate?: (mat: Material) => boolean): void {
+    for (var material of this.scene.materials) {
+      if (predicate && !predicate(material)) {
+        continue;
+      }
+      material.markAsDirty(flag);
+    }
   }
 
   /*----------------------------------- camera ------------------------------------*/
