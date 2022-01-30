@@ -1,5 +1,6 @@
 import { WebGLEngine } from ".";
-import { Effect } from "../Materials/effect";
+import { Effect, IEffectCreationOptions } from "../Materials/effect";
+import { IEffectFallbacks } from "../Materials/iEffectFallbacks";
 import { Nullable } from "../types";
 import { EngineCapabilities } from "./engine.capabilities";
 import { IPipelineContext } from "./IPipelineContext";
@@ -33,7 +34,7 @@ export class EnginePipeline {
   public webGLVersion = 2;
   public engine: WebGLEngine;
 
-  constructor(_gl: WebGLRenderingContext, _caps: EngineCapabilities, engine:WebGLEngine) {
+  constructor(_gl: WebGLRenderingContext, _caps: EngineCapabilities, engine: WebGLEngine) {
     this._gl = _gl;
     this._caps = _caps;
     this.engine = engine;
@@ -275,9 +276,9 @@ export class EnginePipeline {
   }
 
   /**
-  * Binds an effect to the webGL context
-  * @param effect defines the effect to bind
-  */
+   * Binds an effect to the webGL context
+   * @param effect defines the effect to bind
+   */
   public bindSamplers(effect: Effect): void {
     let webGLPipelineContext = effect.getPipelineContext() as WebGLPipelineContext;
     this._setProgram(webGLPipelineContext.program!);
@@ -294,9 +295,9 @@ export class EnginePipeline {
 
   protected _currentEffect: Nullable<Effect>;
   /**
- * Activates an effect, mkaing it the current one (ie. the one used for rendering)
- * @param effect defines the effect to activate
- */
+   * Activates an effect, mkaing it the current one (ie. the one used for rendering)
+   * @param effect defines the effect to activate
+   */
   public enableEffect(effect: Nullable<Effect>): void {
     if (!effect || effect === this._currentEffect) {
       return;
@@ -333,5 +334,60 @@ export class EnginePipeline {
     } else {
       webGLPipelineContext.onCompiled = action;
     }
+  }
+
+  /** -------------------------------- effect -------------------------------------- */
+  /**
+   * Create a new effect (used to store vertex/fragment shaders)
+   * @param baseName defines the base name of the effect (The name of file without .fragment.fx or .vertex.fx)
+   * @param attributesNamesOrOptions defines either a list of attribute names or an IEffectCreationOptions object
+   * @param uniformsNamesOrEngine defines either a list of uniform names or the engine to use
+   * @param samplers defines an array of string used to represent textures
+   * @param defines defines the string containing the defines to use to compile the shaders
+   * @param fallbacks defines the list of potential fallbacks to use if shader conmpilation fails
+   * @param onCompiled defines a function to call when the effect creation is successful
+   * @param onError defines a function to call when the effect creation has failed
+   * @param indexParameters defines an object containing the index values to use to compile shaders (like the maximum number of simultaneous lights)
+   * @returns the new Effect
+   */
+  public createEffect(
+    baseName: any,
+    attributesNamesOrOptions: string[] | IEffectCreationOptions,
+    uniformsNamesOrEngine: string[] | WebGLEngine,
+    samplers?: string[],
+    defines?: string,
+    fallbacks?: IEffectFallbacks,
+    onCompiled?: Nullable<(effect: Effect) => void>,
+    onError?: Nullable<(effect: Effect, errors: string) => void>,
+    indexParameters?: any
+  ): Effect {
+    var vertex = baseName.vertexElement || baseName.vertex || baseName.vertexToken || baseName.vertexSource || baseName;
+    var fragment = baseName.fragmentElement || baseName.fragment || baseName.fragmentToken || baseName.fragmentSource || baseName;
+
+    var name = vertex + "+" + fragment + "@" + (defines ? defines : (<IEffectCreationOptions>attributesNamesOrOptions).defines);
+    if (this._compiledEffects[name]) {
+      var compiledEffect = <Effect>this._compiledEffects[name];
+      if (onCompiled && compiledEffect.isReady()) {
+        onCompiled(compiledEffect);
+      }
+
+      return compiledEffect;
+    }
+    var effect = new Effect(
+      baseName,
+      attributesNamesOrOptions,
+      uniformsNamesOrEngine,
+      samplers,
+      this.engine,
+      defines,
+      fallbacks,
+      onCompiled,
+      onError,
+      indexParameters
+    );
+    effect._key = name;
+    this._compiledEffects[name] = effect;
+
+    return effect;
   }
 }

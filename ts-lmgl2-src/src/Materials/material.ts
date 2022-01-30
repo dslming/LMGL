@@ -731,7 +731,7 @@ export class Material {
    * @param useInstances specifies that instances should be used
    * @returns a boolean indicating that the submesh is ready or not
    */
-  public isReadyForSubMesh(mesh: Mesh, subMesh: Mesh, useInstances?: boolean): boolean {
+  public isReadyForSubMesh(mesh: Mesh, useInstances?: boolean): boolean {
     return false;
   }
 
@@ -864,11 +864,9 @@ export class Material {
     //         if (subMesh.getMaterial() !== this) {
     //             continue;
     //         }
-
     //         if (!subMesh.effect) {
     //             continue;
     //         }
-
     //         subMesh.effect._wasPreviouslyReady = false;
     //     }
     // }
@@ -900,7 +898,7 @@ export class Material {
    * @param mesh defines the mesh containing the submesh
    * @param subMesh defines the submesh to bind the material to
    */
-  public bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: Mesh): void {}
+  public bindForSubMesh(world: Matrix, mesh: Mesh): void {}
 
   /**
    * Binds the world matrix to the material

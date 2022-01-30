@@ -8,6 +8,11 @@ import { Scene } from "../Scene/scene";
 import { EngineUniform } from "./engine.uniform";
 import { EngineState } from "./engine.state";
 import { EngineAlpha } from "./engine.alpha";
+import { WebGLDataBuffer } from "../Buffer/webGLDataBuffer";
+import { EngineRender } from "./engine.render";
+import { EngineFramebuffer } from "./engine.framebuffer";
+import { EngineViewPort } from "./engine.viewPort";
+import { EngineDraw } from "./engine.draw";
 
 export interface EngineOptions extends WebGLContextAttributes {
   /**
@@ -32,6 +37,7 @@ export interface EngineOptions extends WebGLContextAttributes {
 }
 
 export class WebGLEngine {
+  public _contextWasLost = false;
   public engineUniform: EngineUniform;
   public _gl: WebGLRenderingContext;
   protected _renderingCanvas: Nullable<HTMLCanvasElement>;
@@ -40,6 +46,10 @@ export class WebGLEngine {
   public enginePipeline: EnginePipeline;
   engineState: EngineState;
   engineAlpha: EngineAlpha;
+  public engineRender: EngineRender;
+  engineFramebuffer: EngineFramebuffer;
+  engineViewPort: EngineViewPort;
+  engineDraw: EngineDraw;
   constructor(canvas: HTMLCanvasElement, options?: EngineOptions) {
     this._renderingCanvas = canvas;
     try {
@@ -60,6 +70,10 @@ export class WebGLEngine {
     this.engineUniform = new EngineUniform(this._gl);
     this.engineState = new EngineState(this._gl, this);
     this.engineAlpha = new EngineAlpha(this._gl, this);
+    this.engineRender = new EngineRender(this);
+    this.engineFramebuffer = new EngineFramebuffer(this._gl, this);
+    this.engineViewPort = new EngineViewPort(this);
+    this.engineDraw = new EngineDraw(this._gl, this);
   }
 
   private _glRenderer: string;
@@ -118,7 +132,7 @@ export class WebGLEngine {
       textureFloatLinearFiltering: false,
       textureFloatRender: false,
       textureHalfFloatLinearFiltering: false,
-      vertexArrayObject: false,
+      vertexArrayObject: true,
       instancedArrays: false,
       textureLOD: this._webGLVersion > 1 || this._gl.getExtension("EXT_shader_texture_lod") ? true : false,
       blendMinMax: false,
@@ -184,24 +198,6 @@ export class WebGLEngine {
   }
 
   /**
-   * Gets the current render width
-   * @param useScreen defines if screen size must be used (or the current render target if any)
-   * @returns a number defining the current render width
-   */
-  public getRenderWidth(): number {
-    return this._gl.drawingBufferWidth;
-  }
-
-  /**
-   * Gets the current render height
-   * @param useScreen defines if screen size must be used (or the current render target if any)
-   * @returns a number defining the current render height
-   */
-  public getRenderHeight(useScreen = false): number {
-    return this._gl.drawingBufferHeight;
-  }
-
-  /**
    * Gets current aspect ratio
    * @param viewportOwner defines the camera to use to get the aspect ratio
    * @param useScreen defines if screen size must be used (or the current render target if any)
@@ -209,6 +205,46 @@ export class WebGLEngine {
    */
   public getAspectRatio(viewport: IViewportLike): number {
     var viewport = viewport;
-    return (this.getRenderWidth() * viewport.width) / (this.getRenderHeight() * viewport.height);
+    return (this.engineFramebuffer.getRenderWidth() * viewport.width) / (this.engineFramebuffer.getRenderHeight() * viewport.height);
+  }
+
+  protected _deleteBuffer(buffer: WebGLDataBuffer): void {
+    this._gl.deleteBuffer(buffer.underlyingResource);
+  }
+
+  /** @hidden */
+  public _releaseBuffer(buffer: WebGLDataBuffer): boolean {
+    buffer.references--;
+
+    if (buffer.references === 0) {
+      this._deleteBuffer(buffer);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Force the entire cache to be cleared
+   * You should not have to use this function unless your engine needs to share the webGL context with another engine
+   * @param bruteForce defines a boolean to force clearing ALL caches (including stencil, detoh and alpha states)
+   */
+  public wipeCaches(bruteForce?: boolean): void {
+    if (!bruteForce) {
+      return;
+    }
+    // this._currentEffect = null;
+    this.engineViewPort._viewportCached.x = 0;
+    this.engineViewPort._viewportCached.y = 0;
+    this.engineViewPort._viewportCached.z = 0;
+    this.engineViewPort._viewportCached.w = 0;
+
+    // Done before in case we clean the attributes
+    this.engineVertex._unbindVertexArrayObject();
+
+    this.engineVertex._resetVertexBufferBinding();
+    this.engineVertex._cachedIndexBuffer = null;
+    this.engineVertex._cachedEffectForVertexBuffers = null;
+    this.engineVertex.bindIndexBuffer(null);
   }
 }

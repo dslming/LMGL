@@ -2,14 +2,81 @@ import { Scene } from "./scene";
 import { Camera } from "../Cameras/camera";
 import { Nullable } from "../types";
 import { Material } from "../Materials/material";
+import { Mesh } from "../Meshes/mesh";
 
 export class SceneNode {
   public scene: Scene;
   public cameras = new Array<Camera>();
+  public meshes = new Array<Mesh>();
   public materials = new Array<Material>();
 
   constructor(scene: Scene) {
     this.scene = scene;
+  }
+
+  /*----------------------------------- mesh ------------------------------------*/
+  /**
+   * Remove a mesh for the list of scene's meshes
+   * @param toRemove defines the mesh to remove
+   * @param recursive if all child meshes should also be removed from the scene
+   * @returns the index where the mesh was in the mesh list
+   */
+  public removeMesh(toRemove: Mesh, recursive = false): number {
+    var index = this.meshes.indexOf(toRemove);
+    if (index !== -1) {
+      // Remove from the scene if mesh found
+      this.meshes[index] = this.meshes[this.meshes.length - 1];
+      this.meshes.pop();
+
+      // if (!toRemove.parent) {
+      //   toRemove._removeFromSceneRootNodes();
+      // }
+    }
+
+    // this.scene.sceneEventTrigger.onMeshRemovedObservable.notifyObservers(toRemove);
+    // if (recursive) {
+    //   toRemove.getChildMeshes().forEach((m) => {
+    //     this.removeMesh(m);
+    //   });
+    // }
+    return index;
+  }
+
+  // private _defaultSubMeshCandidates: ISmartArrayLike<SubMesh> = {
+  //   data: [],
+  //   length: 0,
+  // };
+
+  /**
+   * Lambda returning the list of potentially active meshes.
+   */
+  // public getActiveMeshCandidates: () => ISmartArrayLike<AbstractMesh>;
+
+  /**
+   * Add a mesh to the list of scene's meshes
+   * @param newMesh defines the mesh to add
+   * @param recursive if all child meshes should also be added to the scene
+   */
+  public addMesh(newMesh: Mesh, recursive = false) {
+    if (this._blockEntityCollection) {
+      return;
+    }
+
+    this.meshes.push(newMesh);
+
+    // newMesh._resyncLightSources();
+
+    // if (!newMesh.parent) {
+    //   newMesh._addToSceneRootNodes();
+    // }
+
+    // this.scene.sceneEventTrigger.onNewMeshAddedObservable.notifyObservers(newMesh);
+
+    // if (recursive) {
+    //   newMesh.getChildMeshes().forEach((m) => {
+    //     this.addMesh(m);
+    //   });
+    // }
   }
 
   /*----------------------------------- material ------------------------------------*/

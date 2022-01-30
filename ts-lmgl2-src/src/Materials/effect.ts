@@ -296,6 +296,11 @@ export class Effect {
     //   platformName: this._engine._webGLVersion >= 2 ? "WEBGL2" : "WEBGL1",
     // };
 
+    this._rawVertexSourceCode = Effect.ShadersStore[vertexSource + "Vertex" + "Shader"];
+    this._rawFragmentSourceCode = Effect.ShadersStore[vertexSource + "Fragment" + "Shader"];
+    this._vertexSourceCode = this._rawVertexSourceCode;
+    this._fragmentSourceCode = this._rawFragmentSourceCode;
+    this._prepareEffect();
     // this._loadShader(vertexSource, "Vertex", "", (vertexCode) => {
     //   this._rawVertexSourceCode = vertexCode;
     //   this._loadShader(fragmentSource, "Fragment", "Pixel", (fragmentCode) => {

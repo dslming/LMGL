@@ -5,19 +5,19 @@ import { WebGLEngine } from "./webglEngine";
 
 export class EngineFramebuffer {
   /** framebuffer */
-  // public _currentRenderTarget: any;
+  public _currentRenderTarget: any;
   // private _framebufferDimensionsObject: Nullable<{ framebufferWidth: number; framebufferHeight: number }>;
-  // public _currentFramebuffer: Nullable<WebGLFramebuffer> = null;
+  public _currentFramebuffer: Nullable<WebGLFramebuffer> = null;
   // public _dummyFramebuffer: Nullable<WebGLFramebuffer> = null;
 
-  // public _gl: WebGLRenderingContext;
-  // public _webGLVersion = 2;
-  // engine: WebGLEngine;
+  public _gl: WebGLRenderingContext;
+  public _webGLVersion = 2;
+  engine: WebGLEngine;
 
-  // constructor(_gl: WebGLRenderingContext, engine: WebGLEngine) {
-  //   this._gl = _gl;
-  //   this.engine = engine;
-  // }
+  constructor(_gl: WebGLRenderingContext, engine: WebGLEngine) {
+    this._gl = _gl;
+    this.engine = engine;
+  }
 
   // private _getDepthStencilBuffer = (
   //   width: number,
@@ -236,13 +236,12 @@ export class EngineFramebuffer {
   //   this.engine.wipeCaches();
   // }
 
-  // /** @hidden */
-  // public _bindUnboundFramebuffer(framebuffer: Nullable<WebGLFramebuffer>) {
-  //   if (this._currentFramebuffer !== framebuffer) {
-  //     this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, framebuffer);
-  //     this._currentFramebuffer = framebuffer;
-  //   }
-  // }
+  public _bindUnboundFramebuffer(framebuffer: Nullable<WebGLFramebuffer>) {
+    if (this._currentFramebuffer !== framebuffer) {
+      this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, framebuffer);
+      this._currentFramebuffer = framebuffer;
+    }
+  }
 
   // /**
   //  * Unbind the current render target texture from the webGL context
@@ -304,20 +303,38 @@ export class EngineFramebuffer {
   // /**
   //  * Unbind the current render target and bind the default framebuffer
   //  */
-  // public restoreDefaultFramebuffer(): void {
-  //   if (this._currentRenderTarget) {
-  //     this.unBindFramebuffer(this._currentRenderTarget);
-  //   } else {
-  //     this._bindUnboundFramebuffer(null);
-  //   }
-  //   if (this.engine.engineViewPort._cachedViewport) {
-  //     this.engine.engineViewPort.setViewport(this.engine.engineViewPort._cachedViewport);
-  //   }
+  public restoreDefaultFramebuffer(): void {
+    if (this._currentRenderTarget) {
+      // this.unBindFramebuffer(this._currentRenderTarget);
+    } else {
+      this._bindUnboundFramebuffer(null);
+    }
+    if (this.engine.engineViewPort._cachedViewport) {
+      this.engine.engineViewPort.setViewport(this.engine.engineViewPort._cachedViewport);
+    }
 
-  //   this.engine.wipeCaches();
-  // }
+    this.engine.wipeCaches();
+  }
 
   // public _currentFrameBufferIsDefaultFrameBuffer() {
   //   return this._currentFramebuffer === null;
   // }
+
+  /**
+   * Gets the current render width
+   * @param useScreen defines if screen size must be used (or the current render target if any)
+   * @returns a number defining the current render width
+   */
+  public getRenderWidth(): number {
+    return this._gl.drawingBufferWidth;
+  }
+
+  /**
+   * Gets the current render height
+   * @param useScreen defines if screen size must be used (or the current render target if any)
+   * @returns a number defining the current render height
+   */
+  public getRenderHeight(useScreen = false): number {
+    return this._gl.drawingBufferHeight;
+  }
 }

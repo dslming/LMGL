@@ -17,7 +17,7 @@ export class Node {
   public _isDisposed = false;
   public onReady: Nullable<(node: Node) => void> = null;
   public _currentRenderId = -1;
-  public _scene: Scene ;
+  public _scene: Scene;
   public _worldMatrix = Matrix.Identity();
   public _worldMatrixDeterminant = 0;
   public _worldMatrixDeterminantIsDirty = true;
@@ -52,11 +52,12 @@ export class Node {
    * @param name the name and id to be given to this node
    * @param scene the scene this node will be added to
    */
-  constructor(name: string, scene: Scene ) {
+  constructor(name: string, scene: Scene) {
     this.name = name;
     this.id = name;
     this._scene = scene;
     this.uniqueId = this._scene.getUniqueId();
+    this._initCache();
   }
 
   /**
@@ -107,14 +108,14 @@ export class Node {
     this.onDisposeObservable.clear();
   }
 
-  getScene():Scene {
+  getScene(): Scene {
     return this._scene;
   }
 
   /**
-  * Gets the engine of the node
-  * @returns a Engine
-  */
+   * Gets the engine of the node
+   * @returns a Engine
+   */
   public getEngine(): WebGLEngine {
     return this._scene.getEngine();
   }

@@ -1,9 +1,9 @@
 import { Nullable, FloatArray, IndicesArray } from "../types";
 import { Matrix, Vector3, Vector2, Vector4 } from "../Maths/math.vector";
 import { VertexBuffer } from "../Buffer/vertexBuffer";
-import { _DevTools } from '../Misc/devTools';
-import { Color4, Color3 } from '../Maths/math.color';
-import { Logger } from '../Misc/logger';
+import { _DevTools } from "../Misc/devTools";
+import { Color4, Color3 } from "../Maths/math.color";
+import { Logger } from "../Misc/logger";
 import { Mesh } from "./mesh";
 import { Geometry } from "./geometry";
 
@@ -234,10 +234,10 @@ export class VertexData {
    * @param updatable when used and having the value true allows new data to update the vertexData
    * @returns VertexData
    */
-  public applyToGeometry(geometry: Geometry, updatable?: boolean): VertexData {
-    this._applyTo(geometry, updatable);
-    return this;
-  }
+  // public applyToGeometry(geometry: Geometry, updatable?: boolean): VertexData {
+  //   this._applyTo(geometry, updatable);
+  //   return this;
+  // }
 
   /**
    * Updates the associated mesh
@@ -263,67 +263,67 @@ export class VertexData {
   //   return this;
   // }
 
-  public _applyTo(meshOrGeometry: IGetSetVerticesData, updatable: boolean = false): VertexData {
+  public applyToGeometry(geometry: IGetSetVerticesData, updatable: boolean = false): VertexData {
     if (this.positions) {
-      meshOrGeometry.setVerticesData(VertexBuffer.PositionKind, this.positions, updatable);
+      geometry.setVerticesData(VertexBuffer.PositionKind, this.positions, updatable);
     }
 
     if (this.normals) {
-      meshOrGeometry.setVerticesData(VertexBuffer.NormalKind, this.normals, updatable);
+      geometry.setVerticesData(VertexBuffer.NormalKind, this.normals, updatable);
     }
 
     if (this.tangents) {
-      meshOrGeometry.setVerticesData(VertexBuffer.TangentKind, this.tangents, updatable);
+      geometry.setVerticesData(VertexBuffer.TangentKind, this.tangents, updatable);
     }
 
     if (this.uvs) {
-      meshOrGeometry.setVerticesData(VertexBuffer.UVKind, this.uvs, updatable);
+      geometry.setVerticesData(VertexBuffer.UVKind, this.uvs, updatable);
     }
 
     if (this.uvs2) {
-      meshOrGeometry.setVerticesData(VertexBuffer.UV2Kind, this.uvs2, updatable);
+      geometry.setVerticesData(VertexBuffer.UV2Kind, this.uvs2, updatable);
     }
 
     if (this.uvs3) {
-      meshOrGeometry.setVerticesData(VertexBuffer.UV3Kind, this.uvs3, updatable);
+      geometry.setVerticesData(VertexBuffer.UV3Kind, this.uvs3, updatable);
     }
 
     if (this.uvs4) {
-      meshOrGeometry.setVerticesData(VertexBuffer.UV4Kind, this.uvs4, updatable);
+      geometry.setVerticesData(VertexBuffer.UV4Kind, this.uvs4, updatable);
     }
 
     if (this.uvs5) {
-      meshOrGeometry.setVerticesData(VertexBuffer.UV5Kind, this.uvs5, updatable);
+      geometry.setVerticesData(VertexBuffer.UV5Kind, this.uvs5, updatable);
     }
 
     if (this.uvs6) {
-      meshOrGeometry.setVerticesData(VertexBuffer.UV6Kind, this.uvs6, updatable);
+      geometry.setVerticesData(VertexBuffer.UV6Kind, this.uvs6, updatable);
     }
 
     if (this.colors) {
-      meshOrGeometry.setVerticesData(VertexBuffer.ColorKind, this.colors, updatable);
+      geometry.setVerticesData(VertexBuffer.ColorKind, this.colors, updatable);
     }
 
     if (this.matricesIndices) {
-      meshOrGeometry.setVerticesData(VertexBuffer.MatricesIndicesKind, this.matricesIndices, updatable);
+      geometry.setVerticesData(VertexBuffer.MatricesIndicesKind, this.matricesIndices, updatable);
     }
 
     if (this.matricesWeights) {
-      meshOrGeometry.setVerticesData(VertexBuffer.MatricesWeightsKind, this.matricesWeights, updatable);
+      geometry.setVerticesData(VertexBuffer.MatricesWeightsKind, this.matricesWeights, updatable);
     }
 
     if (this.matricesIndicesExtra) {
-      meshOrGeometry.setVerticesData(VertexBuffer.MatricesIndicesExtraKind, this.matricesIndicesExtra, updatable);
+      geometry.setVerticesData(VertexBuffer.MatricesIndicesExtraKind, this.matricesIndicesExtra, updatable);
     }
 
     if (this.matricesWeightsExtra) {
-      meshOrGeometry.setVerticesData(VertexBuffer.MatricesWeightsExtraKind, this.matricesWeightsExtra, updatable);
+      geometry.setVerticesData(VertexBuffer.MatricesWeightsExtraKind, this.matricesWeightsExtra, updatable);
     }
 
     if (this.indices) {
-      meshOrGeometry.setIndices(this.indices, null, updatable);
+      geometry.setIndices(this.indices, null, updatable);
     } else {
-      meshOrGeometry.setIndices([], null);
+      geometry.setIndices([], null);
     }
 
     return this;
@@ -463,7 +463,8 @@ export class VertexData {
     this._validate();
     other._validate();
 
-    if (!this.normals !== !other.normals ||
+    if (
+      !this.normals !== !other.normals ||
       !this.tangents !== !other.tangents ||
       !this.uvs !== !other.uvs ||
       !this.uvs2 !== !other.uvs2 ||
@@ -475,7 +476,8 @@ export class VertexData {
       !this.matricesIndices !== !other.matricesIndices ||
       !this.matricesWeights !== !other.matricesWeights ||
       !this.matricesIndicesExtra !== !other.matricesIndicesExtra ||
-      !this.matricesWeightsExtra !== !other.matricesWeightsExtra) {
+      !this.matricesWeightsExtra !== !other.matricesWeightsExtra
+    ) {
       throw new Error("Cannot merge vertex data that do not have the same set of attributes");
     }
 
@@ -564,7 +566,7 @@ export class VertexData {
 
     const getElementCount = (kind: string, values: FloatArray) => {
       const stride = VertexBuffer.DeduceStride(kind);
-      if ((values.length % stride) !== 0) {
+      if (values.length % stride !== 0) {
         throw new Error("The " + kind + "s array count must be a multiple of " + stride);
       }
 
@@ -580,19 +582,45 @@ export class VertexData {
       }
     };
 
-    if (this.normals) { validateElementCount(VertexBuffer.NormalKind, this.normals); }
-    if (this.tangents) { validateElementCount(VertexBuffer.TangentKind, this.tangents); }
-    if (this.uvs) { validateElementCount(VertexBuffer.UVKind, this.uvs); }
-    if (this.uvs2) { validateElementCount(VertexBuffer.UV2Kind, this.uvs2); }
-    if (this.uvs3) { validateElementCount(VertexBuffer.UV3Kind, this.uvs3); }
-    if (this.uvs4) { validateElementCount(VertexBuffer.UV4Kind, this.uvs4); }
-    if (this.uvs5) { validateElementCount(VertexBuffer.UV5Kind, this.uvs5); }
-    if (this.uvs6) { validateElementCount(VertexBuffer.UV6Kind, this.uvs6); }
-    if (this.colors) { validateElementCount(VertexBuffer.ColorKind, this.colors); }
-    if (this.matricesIndices) { validateElementCount(VertexBuffer.MatricesIndicesKind, this.matricesIndices); }
-    if (this.matricesWeights) { validateElementCount(VertexBuffer.MatricesWeightsKind, this.matricesWeights); }
-    if (this.matricesIndicesExtra) { validateElementCount(VertexBuffer.MatricesIndicesExtraKind, this.matricesIndicesExtra); }
-    if (this.matricesWeightsExtra) { validateElementCount(VertexBuffer.MatricesWeightsExtraKind, this.matricesWeightsExtra); }
+    if (this.normals) {
+      validateElementCount(VertexBuffer.NormalKind, this.normals);
+    }
+    if (this.tangents) {
+      validateElementCount(VertexBuffer.TangentKind, this.tangents);
+    }
+    if (this.uvs) {
+      validateElementCount(VertexBuffer.UVKind, this.uvs);
+    }
+    if (this.uvs2) {
+      validateElementCount(VertexBuffer.UV2Kind, this.uvs2);
+    }
+    if (this.uvs3) {
+      validateElementCount(VertexBuffer.UV3Kind, this.uvs3);
+    }
+    if (this.uvs4) {
+      validateElementCount(VertexBuffer.UV4Kind, this.uvs4);
+    }
+    if (this.uvs5) {
+      validateElementCount(VertexBuffer.UV5Kind, this.uvs5);
+    }
+    if (this.uvs6) {
+      validateElementCount(VertexBuffer.UV6Kind, this.uvs6);
+    }
+    if (this.colors) {
+      validateElementCount(VertexBuffer.ColorKind, this.colors);
+    }
+    if (this.matricesIndices) {
+      validateElementCount(VertexBuffer.MatricesIndicesKind, this.matricesIndices);
+    }
+    if (this.matricesWeights) {
+      validateElementCount(VertexBuffer.MatricesWeightsKind, this.matricesWeights);
+    }
+    if (this.matricesIndicesExtra) {
+      validateElementCount(VertexBuffer.MatricesIndicesExtraKind, this.matricesIndicesExtra);
+    }
+    if (this.matricesWeightsExtra) {
+      validateElementCount(VertexBuffer.MatricesWeightsExtraKind, this.matricesWeightsExtra);
+    }
   }
 
   /**
@@ -673,45 +701,57 @@ export class VertexData {
    * @param indices an array of indices in groups of three for each triangular facet, [...., i, j, k, ......]
    * @param normals an array of vertex normals, [...., x, y, z, ......]
    * @param options an object used to set the following optional parameters for the TorusKnot, optional
-    * * facetNormals : optional array of facet normals (vector3)
-    * * facetPositions : optional array of facet positions (vector3)
-    * * facetPartitioning : optional partitioning array. facetPositions is required for facetPartitioning computation
-    * * ratio : optional partitioning ratio / bounding box, required for facetPartitioning computation
-    * * bInfo : optional bounding info, required for facetPartitioning computation
-    * * bbSize : optional bounding box size data, required for facetPartitioning computation
-    * * subDiv : optional partitioning data about subdivsions on  each axis (int), required for facetPartitioning computation
-    * * useRightHandedSystem: optional boolean to for right handed system computation
-    * * depthSort : optional boolean to enable the facet depth sort computation
-    * * distanceTo : optional Vector3 to compute the facet depth from this location
-    * * depthSortedFacets : optional array of depthSortedFacets to store the facet distances from the reference location
+   * * facetNormals : optional array of facet normals (vector3)
+   * * facetPositions : optional array of facet positions (vector3)
+   * * facetPartitioning : optional partitioning array. facetPositions is required for facetPartitioning computation
+   * * ratio : optional partitioning ratio / bounding box, required for facetPartitioning computation
+   * * bInfo : optional bounding info, required for facetPartitioning computation
+   * * bbSize : optional bounding box size data, required for facetPartitioning computation
+   * * subDiv : optional partitioning data about subdivsions on  each axis (int), required for facetPartitioning computation
+   * * useRightHandedSystem: optional boolean to for right handed system computation
+   * * depthSort : optional boolean to enable the facet depth sort computation
+   * * distanceTo : optional Vector3 to compute the facet depth from this location
+   * * depthSortedFacets : optional array of depthSortedFacets to store the facet distances from the reference location
    */
-  public static ComputeNormals(positions: any, indices: any, normals: any,
+  public static ComputeNormals(
+    positions: any,
+    indices: any,
+    normals: any,
     options?: {
-      facetNormals?: any, facetPositions?: any, facetPartitioning?: any, ratio?: number, bInfo?: any, bbSize?: Vector3, subDiv?: any,
-      useRightHandedSystem?: boolean, depthSort?: boolean, distanceTo?: Vector3, depthSortedFacets?: any
-    }): void {
-
+      facetNormals?: any;
+      facetPositions?: any;
+      facetPartitioning?: any;
+      ratio?: number;
+      bInfo?: any;
+      bbSize?: Vector3;
+      subDiv?: any;
+      useRightHandedSystem?: boolean;
+      depthSort?: boolean;
+      distanceTo?: Vector3;
+      depthSortedFacets?: any;
+    }
+  ): void {
     // temporary scalar variables
-    var index = 0;                      // facet index
-    var p1p2x = 0.0;                    // p1p2 vector x coordinate
-    var p1p2y = 0.0;                    // p1p2 vector y coordinate
-    var p1p2z = 0.0;                    // p1p2 vector z coordinate
-    var p3p2x = 0.0;                    // p3p2 vector x coordinate
-    var p3p2y = 0.0;                    // p3p2 vector y coordinate
-    var p3p2z = 0.0;                    // p3p2 vector z coordinate
-    var faceNormalx = 0.0;              // facet normal x coordinate
-    var faceNormaly = 0.0;              // facet normal y coordinate
-    var faceNormalz = 0.0;              // facet normal z coordinate
-    var length = 0.0;                   // facet normal length before normalization
-    var v1x = 0;                        // vector1 x index in the positions array
-    var v1y = 0;                        // vector1 y index in the positions array
-    var v1z = 0;                        // vector1 z index in the positions array
-    var v2x = 0;                        // vector2 x index in the positions array
-    var v2y = 0;                        // vector2 y index in the positions array
-    var v2z = 0;                        // vector2 z index in the positions array
-    var v3x = 0;                        // vector3 x index in the positions array
-    var v3y = 0;                        // vector3 y index in the positions array
-    var v3z = 0;                        // vector3 z index in the positions array
+    var index = 0; // facet index
+    var p1p2x = 0.0; // p1p2 vector x coordinate
+    var p1p2y = 0.0; // p1p2 vector y coordinate
+    var p1p2z = 0.0; // p1p2 vector z coordinate
+    var p3p2x = 0.0; // p3p2 vector x coordinate
+    var p3p2y = 0.0; // p3p2 vector y coordinate
+    var p3p2z = 0.0; // p3p2 vector z coordinate
+    var faceNormalx = 0.0; // facet normal x coordinate
+    var faceNormaly = 0.0; // facet normal y coordinate
+    var faceNormalz = 0.0; // facet normal z coordinate
+    var length = 0.0; // facet normal length before normalization
+    var v1x = 0; // vector1 x index in the positions array
+    var v1y = 0; // vector1 y index in the positions array
+    var v1z = 0; // vector1 z index in the positions array
+    var v2x = 0; // vector2 x index in the positions array
+    var v2y = 0; // vector2 y index in the positions array
+    var v2z = 0; // vector2 z index in the positions array
+    var v3x = 0; // vector3 x index in the positions array
+    var v3y = 0; // vector3 y index in the positions array
+    var v3z = 0; // vector3 z index in the positions array
     var computeFacetNormals = false;
     var computeFacetPositions = false;
     var computeFacetPartitioning = false;
@@ -720,13 +760,13 @@ export class VertexData {
     let ratio = 0;
     var distanceTo: Nullable<Vector3> = null;
     if (options) {
-      computeFacetNormals = (options.facetNormals) ? true : false;
-      computeFacetPositions = (options.facetPositions) ? true : false;
-      computeFacetPartitioning = (options.facetPartitioning) ? true : false;
-      faceNormalSign = (options.useRightHandedSystem === true) ? -1 : 1;
+      computeFacetNormals = options.facetNormals ? true : false;
+      computeFacetPositions = options.facetPositions ? true : false;
+      computeFacetPartitioning = options.facetPartitioning ? true : false;
+      faceNormalSign = options.useRightHandedSystem === true ? -1 : 1;
       ratio = options.ratio || 0;
-      computeDepthSort = (options.depthSort) ? true : false;
-      distanceTo = <Vector3>(options.distanceTo);
+      computeDepthSort = options.depthSort ? true : false;
+      distanceTo = <Vector3>options.distanceTo;
       if (computeDepthSort) {
         if (distanceTo === undefined) {
           distanceTo = Vector3.Zero();
@@ -741,28 +781,28 @@ export class VertexData {
     let zSubRatio = 0;
     let subSq = 0;
     if (computeFacetPartitioning && options && options.bbSize) {
-      var ox = 0;                 // X partitioning index for facet position
-      var oy = 0;                 // Y partinioning index for facet position
-      var oz = 0;                 // Z partinioning index for facet position
-      var b1x = 0;                // X partitioning index for facet v1 vertex
-      var b1y = 0;                // Y partitioning index for facet v1 vertex
-      var b1z = 0;                // z partitioning index for facet v1 vertex
-      var b2x = 0;                // X partitioning index for facet v2 vertex
-      var b2y = 0;                // Y partitioning index for facet v2 vertex
-      var b2z = 0;                // Z partitioning index for facet v2 vertex
-      var b3x = 0;                // X partitioning index for facet v3 vertex
-      var b3y = 0;                // Y partitioning index for facet v3 vertex
-      var b3z = 0;                // Z partitioning index for facet v3 vertex
-      var block_idx_o = 0;        // facet barycenter block index
-      var block_idx_v1 = 0;       // v1 vertex block index
-      var block_idx_v2 = 0;       // v2 vertex block index
-      var block_idx_v3 = 0;       // v3 vertex block index
+      var ox = 0; // X partitioning index for facet position
+      var oy = 0; // Y partinioning index for facet position
+      var oz = 0; // Z partinioning index for facet position
+      var b1x = 0; // X partitioning index for facet v1 vertex
+      var b1y = 0; // Y partitioning index for facet v1 vertex
+      var b1z = 0; // z partitioning index for facet v1 vertex
+      var b2x = 0; // X partitioning index for facet v2 vertex
+      var b2y = 0; // Y partitioning index for facet v2 vertex
+      var b2z = 0; // Z partitioning index for facet v2 vertex
+      var b3x = 0; // X partitioning index for facet v3 vertex
+      var b3y = 0; // Y partitioning index for facet v3 vertex
+      var b3z = 0; // Z partitioning index for facet v3 vertex
+      var block_idx_o = 0; // facet barycenter block index
+      var block_idx_v1 = 0; // v1 vertex block index
+      var block_idx_v2 = 0; // v2 vertex block index
+      var block_idx_v3 = 0; // v3 vertex block index
 
-      var bbSizeMax = (options.bbSize.x > options.bbSize.y) ? options.bbSize.x : options.bbSize.y;
-      bbSizeMax = (bbSizeMax > options.bbSize.z) ? bbSizeMax : options.bbSize.z;
-      xSubRatio = options.subDiv.X * ratio / options.bbSize.x;
-      ySubRatio = options.subDiv.Y * ratio / options.bbSize.y;
-      zSubRatio = options.subDiv.Z * ratio / options.bbSize.z;
+      var bbSizeMax = options.bbSize.x > options.bbSize.y ? options.bbSize.x : options.bbSize.y;
+      bbSizeMax = bbSizeMax > options.bbSize.z ? bbSizeMax : options.bbSize.z;
+      xSubRatio = (options.subDiv.X * ratio) / options.bbSize.x;
+      ySubRatio = (options.subDiv.Y * ratio) / options.bbSize.y;
+      zSubRatio = (options.subDiv.Z * ratio) / options.bbSize.z;
       subSq = options.subDiv.max * options.subDiv.max;
       options.facetPartitioning.length = 0;
     }
@@ -775,7 +815,6 @@ export class VertexData {
     // Loop : 1 indice triplet = 1 facet
     var nbFaces = (indices.length / 3) | 0;
     for (index = 0; index < nbFaces; index++) {
-
       // get the indexes of the coordinates of each vertex of the facet
       v1x = indices[index * 3] * 3;
       v1y = v1x + 1;
@@ -787,7 +826,7 @@ export class VertexData {
       v3y = v3x + 1;
       v3z = v3x + 2;
 
-      p1p2x = positions[v1x] - positions[v2x];          // compute two vectors per facet : p1p2 and p3p2
+      p1p2x = positions[v1x] - positions[v2x]; // compute two vectors per facet : p1p2 and p3p2
       p1p2y = positions[v1y] - positions[v2y];
       p1p2z = positions[v1z] - positions[v2z];
 
@@ -801,7 +840,7 @@ export class VertexData {
       faceNormalz = faceNormalSign * (p1p2x * p3p2y - p1p2y * p3p2x);
       // normalize this normal and store it in the array facetData
       length = Math.sqrt(faceNormalx * faceNormalx + faceNormaly * faceNormaly + faceNormalz * faceNormalz);
-      length = (length === 0) ? 1.0 : length;
+      length = length === 0 ? 1.0 : length;
       faceNormalx /= length;
       faceNormaly /= length;
       faceNormalz /= length;
@@ -865,7 +904,7 @@ export class VertexData {
       }
 
       // compute the normals anyway
-      normals[v1x] += faceNormalx;                         // accumulate all the normals per face
+      normals[v1x] += faceNormalx; // accumulate all the normals per face
       normals[v1y] += faceNormaly;
       normals[v1z] += faceNormalz;
       normals[v2x] += faceNormalx;
@@ -882,7 +921,7 @@ export class VertexData {
       faceNormalz = normals[index * 3 + 2];
 
       length = Math.sqrt(faceNormalx * faceNormalx + faceNormaly * faceNormaly + faceNormalz * faceNormalz);
-      length = (length === 0) ? 1.0 : length;
+      length = length === 0 ? 1.0 : length;
       faceNormalx /= length;
       faceNormaly /= length;
       faceNormalz /= length;
@@ -894,7 +933,15 @@ export class VertexData {
   }
 
   /** @hidden */
-  public static _ComputeSides(sideOrientation: number, positions: FloatArray, indices: FloatArray, normals: FloatArray, uvs: FloatArray, frontUVs?: Vector4, backUVs?: Vector4) {
+  public static _ComputeSides(
+    sideOrientation: number,
+    positions: FloatArray,
+    indices: FloatArray,
+    normals: FloatArray,
+    uvs: FloatArray,
+    frontUVs?: Vector4,
+    backUVs?: Vector4
+  ) {
     var li: number = indices.length;
     var ln: number = normals.length;
     var i: number;
@@ -902,7 +949,6 @@ export class VertexData {
     sideOrientation = sideOrientation || VertexData.DEFAULTSIDE;
 
     switch (sideOrientation) {
-
       case VertexData.FRONTSIDE:
         // nothing changed
         break;
