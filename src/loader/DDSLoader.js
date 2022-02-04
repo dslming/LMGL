@@ -13,8 +13,10 @@ export const RGB_S3TC_DXT1_Format = 33776;
 
 class DDSLoader extends CompressedTextureLoader {
 
-	constructor() {
+	constructor(w, h) {
 		super();
+		this.width = w;
+		this.height = h;
 	}
 
 	parse(buffer, loadMipmaps) {
@@ -27,8 +29,8 @@ class DDSLoader extends CompressedTextureLoader {
 		const loadMipmap = true;
 		const texture = new InternalTexture(engine, InternalTextureSource.Cube);
 		texture.isCube = true;
-		texture.width = info.width;
-		texture.height = info.height;
+		texture.width = this.width || info.width;
+		texture.height = this.height || info.height;
 		// texture.url = rootUrl;
 		texture.generateMipMaps = true;
 		texture._lodGenerationScale = 0.8;

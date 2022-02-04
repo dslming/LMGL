@@ -23,8 +23,9 @@ export function setAttribBuffer(gl, program, buffer, param) {
     // 创建缓冲区
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 
+  const arrayBuffer = ArrayBuffer.isView(attriburData) ? attriburData : new Float32Array(attriburData);
   // 缓冲区指定数据
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attriburData), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, arrayBuffer, gl.STATIC_DRAW);
 
   const type = gl.FLOAT;
   const normalize = false;
@@ -53,7 +54,8 @@ export function disableVertexAttribArray(gl, attribure) {
 
 export function setIndicesBuffer(gl, indicesBuffer, indices) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+  const arrayBuffer = ArrayBuffer.isView(indicesBuffer) ? indicesBuffer : new Uint16Array(indices);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, arrayBuffer, gl.STATIC_DRAW);
 }
 
 export function createBuffer(gl) {
