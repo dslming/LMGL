@@ -133,9 +133,9 @@ export default class Renderer {
 
   handleResize(width, height) {
     const { canvas} = this
-    const ratio = window.devicePixelRatio
-    canvas.width = width * ratio
-    canvas.height = height * ratio;
+    const ratio = 1//window.devicePixelRatio
+    canvas.width = width;
+    canvas.height = height;
 
     const camera = dao.getData("camera")
     camera && (camera.aspect = width / height);
