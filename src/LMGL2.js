@@ -39,6 +39,8 @@ export * from "./help/VertexNormalsHelper.js"
 export * from "./loader/ImageLoader.js"
 export * from "./loader/RGBELoader.js"
 export * from "./loader/DDSLoader.js"
+export * from "./loader/glbLoader.js"
+export * from "./loader/OBJLoader.js"
 
 // math
 import * as MathUtils from './math/MathUtils.js'

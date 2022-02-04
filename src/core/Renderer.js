@@ -57,7 +57,7 @@ export default class Renderer {
     _tempMat3.setFromMatrix4(camera.matrixWorldInverse).invert();
     WebGLInterface.setUniform(gl, program, 'inverseViewTransform', _tempMat3.elements, "m3");
 
-    WebGLInterface.setUniform(gl, program, 'modelMatrix', camera.matrix.elements, "m4");
+    WebGLInterface.setUniform(gl, program, 'modelMatrix', mesh.matrix.elements, "m4");
   }
 
   // 根据材质设置webgl状态
@@ -91,13 +91,19 @@ export default class Renderer {
 
     const geoType = geometry.type;
     let count = geometry.indices.length;
-    count = count == 0 ? geometry.count : count;
+    let noIndex = false;
+    if (count === 0) {
+      noIndex = true;
+    }
+    count = noIndex ? geometry.count : count;
     this._readMaterial(material);
 
     if (geoType == GEOMETRY_TYPE.POINTS) {
       gl.drawArrays(gl.POINTS, 0, 1);
-    } else if (geoType == GEOMETRY_TYPE.TRIANGLES) {
+    } else if (geoType == GEOMETRY_TYPE.TRIANGLES && noIndex === false) {
       gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
+    }  else if (geoType == GEOMETRY_TYPE.TRIANGLES) {
+      gl.drawArrays(gl.TRIANGLES, 0, count);
     } else if (geoType == GEOMETRY_TYPE.TRIANGLE_FAN) {
       gl.drawArrays(gl.TRIANGLE_FAN, 0, count);
     } else if (geoType == GEOMETRY_TYPE.LINE_LOOP) {

@@ -172,7 +172,7 @@ export class Material {
         WebGLInterface.setUniform(gl, program, name, value, type, textureId)
       }
 
-      if (type == "t" || type === "tcube") {
+      if (type == "t" || type == "tcube") {
         textureId += 1;
       }
     }
