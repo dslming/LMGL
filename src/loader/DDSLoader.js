@@ -23,7 +23,8 @@ class DDSLoader extends CompressedTextureLoader {
 		const gl = dao.getData("gl");
 		const engine = dao.getData("engine");
 
-		const data = new Uint8Array(buffer)
+		window.data = buffer;
+		const data = new Uint8Array(buffer);
 		var info = DDSTools.GetDDSInfo(data);
 		info.sphericalPolynomial = new SphericalPolynomial();
 		const loadMipmap = true;

@@ -6,21 +6,23 @@
   <webgl-component></webgl-component>
   <script src="./webgl_component.js"></script>
 
+  <style>
+      body {
+              background-color: #eceff3;
+      }
+  </style>
   <script type="module">
     import * as LMGL from '../src/LMGL2.js'
     import { GUI } from './libs/lil-gui.module.min.js';
-
+    window.LMGL = LMGL;
     const gui = new GUI();
 
 class MyMesh {
-  constructor(geometry){
-    this.init(geometry);
+  constructor(geometry,defines,matInfo){
+    this.init(geometry,defines,matInfo);
   }
 
-  async init(geometry) {
-    // const model = LMGL.geometryLib.sphere(1);
-    console.error(geometry);
-
+  async init(geometry,defines,matInfo) {
     const geo = {
       type: LMGL.GEOMETRY_TYPE.TRIANGLES,
       count: geometry.vertices.length/3,
@@ -41,23 +43,46 @@ class MyMesh {
       }
     };
 
-     const loader = new LMGL.DDSLoader(4,4)
-     const t4 = await loader.load("./images/NewCubemap.dds")
-    //  const t4 = await loader.load("./images/environment.dds")
+    const url = "./xiaomi/NewCubemap.dds";
+    const loader = new LMGL.FileLoader();
+    loader.setResponseType( 'arraybuffer' );
+    const textureBuffer = await loader.load(url);
 
-    const img = await LMGL.loadImage("./images/bian2.jpg");
-  const texture_specularMap = new LMGL.ImageTexture(img)
+    const CONSTANT = lm.engine.CONSTANT;
 
-    // const shader = LMGL.shaderLib.physical({
-    //   environmentBrdfSampler: map.getTexture(),
-    //   reflectionSampler: cubeMap,//cubeMap.getTexture(),
-    //   roughness: 0.0,
-    //   metallic: 0.2,
-    //   baseColor: new LMGL.Vector3(1.0, 0.766, 0.336)
-    // });
+     const parser = new LMGL.LegacyDdsParser();
+     const textureCubes = parser.open(url, textureBuffer,{});
+     textureCubes.forEach(t=>{
+        stage.engine.engineTexture.setTexture(t,1);
+        stage.engine.engineTexture.uploadTexture(t);
+     })
+
+    const img = await LMGL.loadImage("./xiaomi/bian2.jpg");
+    const texture_specularMap = new LMGL.ImageTexture(img);
+
+    const img2 = await LMGL.loadImage("./xiaomi/bian1145.png");
+    const texture_diffuseMap  = new LMGL.ImageTexture(img2);
+    let _parameterFlags = 0;
+    _parameterFlags |= 1;
+    _parameterFlags |= 2;
+    _parameterFlags |= 4;
+    _parameterFlags |= 8;
+    texture_diffuseMap._parameterFlags = _parameterFlags;
+    texture_diffuseMap._minFilter = CONSTANT.FILTER_LINEAR
+    texture_diffuseMap._magFilter = CONSTANT.FILTER_LINEAR_MIPMAP_LINEAR
+    texture_diffuseMap._addressU = CONSTANT.ADDRESS_REPEAT
+    texture_diffuseMap._addressV = CONSTANT.ADDRESS_REPEAT
+    texture_diffuseMap._glTarget = stage.getGl().TEXTURE_2D;
+    texture_diffuseMap._glTexture = texture_diffuseMap.getTexture()
+    stage.engine.engineTexture.activeTexture(0);
+    stage.engine.engineTexture.bindTexture(texture_diffuseMap);
+    stage.engine.engineTexture.setTextureParameters(texture_diffuseMap);
+
+
+
     const mat = new LMGL.Material({
-      vertexShader: `#version 300 es
-      precision mediump float;
+        defines:defines,
+      vertexShader: `
     uniform vec3 uLightPos;
     out vec2 vUv0;
     out vec3 worldNormal, eyeVec, lightVec, vertPos, lightPos;
@@ -91,8 +116,7 @@ class MyMesh {
         worldNormal = normalWorld * normal.xyz;
         vNormalW = normalize(worldNormal);
     }`,
-      fragmentShader: `#version 300 es
-      precision mediump float;
+      fragmentShader: `
           out vec4 FragColor;
         vec4 dReflection;
         vec3 dAlbedo;
@@ -111,6 +135,16 @@ class MyMesh {
         float ccSpecularity;
         float ccGlossiness;
         float dAo;
+
+        vec3 gammaCorrectInput(vec3 color) {
+           return pow(color, vec3(2.2));
+        }
+        float gammaCorrectInput(float color) {
+            return pow(color, 2.2);
+        }
+        vec4 gammaCorrectInput(vec4 color) {
+            return vec4(pow(color.rgb, vec3(2.2)), color.a);
+        }
 
         #define AREA_LUTS_PRECISION highp
         #define texture2D texture
@@ -146,6 +180,10 @@ class MyMesh {
           dAlpha *= material_opacity;
         }
 
+         #ifdef MAPCOLOR
+            uniform vec3 material_diffuse;
+        #endif
+
         void getViewDir() {
           dViewDirW = normalize(view_position - vPositionW);
         }
@@ -158,19 +196,57 @@ class MyMesh {
           dReflDirW = normalize(-reflect(dViewDirW, dNormalW));
         }
 
-        uniform vec3 material_diffuse;
-        void getAlbedo() {
-          dAlbedo = vec3(1.0);
-          dAlbedo *= material_diffuse.rgb;
+
+        vec3 addAlbedoDetail(vec3 albedo) {
+            return albedo;
+
+
         }
 
+        #ifdef MAPTEXTURE
+            uniform sampler2D texture_diffuseMap;
+        #endif
+
+        void getAlbedo() {
+          dAlbedo = vec3(1.0);
+            #ifdef MAPCOLOR
+                dAlbedo *= material_diffuse.rgb;
+            #endif
+
+            #ifdef MAPTEXTURE
+                dAlbedo *= gammaCorrectInput(addAlbedoDetail(texture2D(texture_diffuseMap, vUv0).rgb));
+            #endif
+        }
+
+        void processMetalness(float metalness) {
+            const float dielectricF0 = 0.04;
+            dSpecularity = mix(vec3(dielectricF0), dAlbedo, metalness);
+            dAlbedo *= 1.0 - metalness;
+        }
+
+
+        #ifdef SPECULAR
         uniform vec3 material_specular;
         void getSpecularity() {
           dSpecularity = vec3(1.0);
-          dSpecularity *= material_specular;
 
-          dSpecularity *= texture2D(texture_specularMap, vUv0).rgb;
+          #ifdef MAPCOLOR
+            dSpecularity *= material_specular;
+            dSpecularity *= texture2D(texture_specularMap, vUv0).rgb;
+          #endif
         }
+        #endif
+
+        #ifdef METALNESS
+          void getSpecularity() {
+            float metalness = 1.0;
+            #ifdef MAPFLOAT
+                metalness *= material_metalness;
+            #endif
+
+            processMetalness(metalness);
+        }
+        #endif
 
     uniform float material_shininess;
     void getGlossiness() {
@@ -198,9 +274,8 @@ class MyMesh {
         if (abs(vec.z) != M) vec.z *= scale;
         return vec;
     }
-    uniform float skyboxIntensity;
     vec3 processEnvironment(vec3 color) {
-        return color * skyboxIntensity;
+        return color;
     }
     vec3 decodeRGBM(vec4 rgbm) {
         vec3 color = (8.0 * rgbm.a) * rgbm.rgb;
@@ -229,43 +304,48 @@ class MyMesh {
     }
 
     vec3 calcReflection(vec3 tReflDirW, float tGlossiness) {
-        vec3 refl = cubeMapProject(tReflDirW);
-        vec3 seam = calcSeam(refl);
-        // vec4 c0 = textureCube(texture_prefilteredCubeMap128, applySeam(refl, seam, 1.0 / 128.0));
-        // vec4 c1 = textureCube(texture_prefilteredCubeMap64, applySeam(refl, seam, 2.0 / 128.0));
-        // vec4 c2 = textureCube(texture_prefilteredCubeMap32, applySeam(refl, seam, 4.0 / 128.0));
-        // vec4 c3 = textureCube(texture_prefilteredCubeMap16, applySeam(refl, seam, 8.0 / 128.0));
-        // vec4 c4 = textureCube(texture_prefilteredCubeMap8, applySeam(refl, seam, 16.0 / 128.0));
-        vec4 c5 = textureCube(texture_prefilteredCubeMap4, applySeam(refl, seam, 32.0 / 128.0));
-        float bias = saturate(1.0 - tGlossiness) * 5.0;
-        vec4 cubes0;
-        vec4 cubes1;
-        // if (bias < 1.0) {
-        //     cubes0 = c0;
-        //     cubes1 = c1;
-        // }
-        // else if (bias < 2.0) {
-        //     cubes0 = c1;
-        //     cubes1 = c2;
-        // }
-        // else if (bias < 3.0) {
-        //     cubes0 = c2;
-        //     cubes1 = c3;
-        // }
-        // else if (bias < 4.0) {
-        //     cubes0 = c3;
-        //     cubes1 = c4;
-        // }
-        // else {
-        //     cubes0 = c4;
-        //     cubes1 = c5;
-        // }
+    // Unfortunately, WebGL doesn't allow us using textureCubeLod. Therefore bunch of nasty workarounds is required.
+    // We fix mip0 to 128x128, so code is rather static.
+    // Mips smaller than 4x4 aren't great even for diffuse. Don't forget that we don't have bilinear filtering between different faces.
 
-                    cubes0 = c5;
-            cubes1 = c5;
-        vec4 cubeFinal = mix(cubes0, cubes1, fract(bias));
-        return processEnvironment(decodeRGBM(cubeFinal).rgb);
+    vec3 refl = cubeMapProject(tReflDirW);
+    #ifndef RIGHT_HANDED_CUBEMAP
+        refl.x *= -1.0;
+    #endif
+    vec3 seam = calcSeam(refl);
+    vec4 c0 = textureCube(texture_prefilteredCubeMap128, applySeam(refl, seam, 1.0 / 128.0));
+    vec4 c1 = textureCube(texture_prefilteredCubeMap64, applySeam(refl, seam, 2.0 / 128.0));
+    vec4 c2 = textureCube(texture_prefilteredCubeMap32, applySeam(refl, seam, 4.0 / 128.0));
+    vec4 c3 = textureCube(texture_prefilteredCubeMap16, applySeam(refl, seam, 8.0 / 128.0));
+    vec4 c4 = textureCube(texture_prefilteredCubeMap8, applySeam(refl, seam, 16.0 / 128.0));
+    vec4 c5 = textureCube(texture_prefilteredCubeMap4, applySeam(refl, seam, 32.0 / 128.0));
+    float bias = saturate(1.0 - tGlossiness) * 5.0; // multiply by max mip level
+
+    vec4 cubes0;
+    vec4 cubes1;
+    if (bias < 1.0) {
+        cubes0 = c0;
+        cubes1 = c1;
     }
+    else if (bias < 2.0) {
+        cubes0 = c1;
+        cubes1 = c2;
+    }
+    else if (bias < 3.0) {
+        cubes0 = c2;
+        cubes1 = c3;
+    }
+    else if (bias < 4.0) {
+        cubes0 = c3;
+        cubes1 = c4;
+    }
+    else {
+        cubes0 = c4;
+        cubes1 = c5;
+    }
+    vec4 cubeFinal = mix(cubes0, cubes1, fract(bias));
+    return processEnvironment(decodeRGBM(cubeFinal).rgb);
+}
 
     uniform float material_reflectivity;
     void addReflection() {
@@ -273,11 +353,20 @@ class MyMesh {
     }
     void addAmbient() {
         vec3 fixedReflDir = fixSeamsStatic(cubeMapRotate(dNormalW), 1.0 - 1.0 / 4.0);
-        dDiffuseLight += processEnvironment(decodeRGBM(textureCube(texture_prefilteredCubeMap4, fixedReflDir)).rgb);
+        #ifndef RIGHT_HANDED_CUBEMAP
+            fixedReflDir.x *= -1.0;
+        #endif
+        dDiffuseLight = decodeRGBM(textureCube(texture_prefilteredCubeMap4, fixedReflDir)).xyz;
+        // dDiffuseLight = textureCube(texture_prefilteredCubeMap4, fixedReflDir).xyz;
     }
 
     vec3 combineColor() {
-        return mix(dAlbedo * dDiffuseLight, dSpecularLight + dReflection.rgb * dReflection.a, dSpecularity);
+       return mix(dAlbedo * dDiffuseLight, dSpecularLight + dReflection.rgb * dReflection.a, dSpecularity);
+    //    return dDiffuseLight;
+    //   vec3 fixedReflDir = fixSeamsStatic(cubeMapRotate(dNormalW), 1.0 - 1.0 / 4.0);
+    // return textureCube(texture_prefilteredCubeMap4, fixedReflDir).xyz;
+    //   return decodeRGBM(textureCube(texture_prefilteredCubeMap4, fixedReflDir)).xyz;
+
     }
 
     uniform vec3 material_emissive;
@@ -289,12 +378,6 @@ class MyMesh {
 
     vec3 addFog(vec3 color) {
         return color;
-    }
-
-    void occludeSpecular() {
-        float specOcc = dAo;
-        dSpecularLight *= specOcc;
-        dReflection *= specOcc;
     }
 
         void main(){
@@ -319,15 +402,8 @@ class MyMesh {
           addAmbient();
 
           addReflection();
-          occludeSpecular();
 
           FragColor.rgb = combineColor();
-          // FragColor.rgb += getEmission();
-          // // FragColor.rgb = addFog(FragColor.rgb);
-          // FragColor.rgb = dSpecularity;
-          // vec3 fixedReflDir = fixSeamsStatic(cubeMapRotate(dNormalW), 1.0 - 1.0 / 4.0);
-          // FragColor.xyz = textureCube(texture_prefilteredCubeMap4, fixedReflDir).rgb;
-          // FragColor.rgb = vec3(dSpecularity);
           FragColor.a = 1.0;
 
         }
@@ -337,8 +413,32 @@ class MyMesh {
             type: "t",
             value: texture_specularMap.getTexture(),
           },
+          texture_diffuseMap: {
+            type: "t",
+            value: texture_diffuseMap.getTexture(),
+          },
            texture_prefilteredCubeMap4: {
-            value: t4._webGLTexture,
+            value: textureCubes[5]._glTexture,
+            type:"tcube"
+          },
+           texture_prefilteredCubeMap8: {
+            value: textureCubes[4]._glTexture,
+            type:"tcube"
+          },
+           texture_prefilteredCubeMap16: {
+            value: textureCubes[3]._glTexture,
+            type:"tcube"
+          },
+           texture_prefilteredCubeMap32: {
+            value: textureCubes[2]._glTexture,
+            type:"tcube"
+          },
+           texture_prefilteredCubeMap64: {
+            value: textureCubes[1]._glTexture,
+            type:"tcube"
+          },
+           texture_prefilteredCubeMap128: {
+            value: textureCubes[0]._glTexture,
             type:"tcube"
           },
           view_position: {
@@ -360,7 +460,7 @@ class MyMesh {
           },
           material_shininess: {
             type: "f",
-            value: 0.3138,
+            value: matInfo.material_shininess,
           },
           material_opacity: {
             type: "f",
@@ -368,7 +468,7 @@ class MyMesh {
           },
           material_reflectivity: {
             type: "f",
-            value:  1.8530,
+            value:  matInfo.material_reflectivity,
           },
           skyboxIntensity: {
             type: "f",
@@ -384,11 +484,22 @@ class MyMesh {
     });
     // const mat = new LMGL.Material(shader);
     // this.shader = shader;
+    mat.side = LMGL.SIDE.BackSide
     this.mesh = new LMGL.Mesh(geo, mat);
     window.obj = this.mesh
     obj.rotation.y = -Math.PI/2;
     // this.mesh.scalse.set(10,10,10)
-    stage.add(this.mesh)
+    stage.add(this.mesh);
+
+    mat.blending = matInfo.blending;
+
+    lm.engine.engineRender.setBlendFunctionSeparate(
+        CONSTANT.BLENDMODE_ONE_MINUS_DST_COLOR,
+        CONSTANT.BLENDMODE_ONE,
+         CONSTANT.BLENDMODE_ONE_MINUS_DST_COLOR,
+        CONSTANT.BLENDMODE_ONE,
+        )
+    lm.engine.engineRender.setBlendEquation(CONSTANT.BLENDEQUATION_ADD)
   }
 }
 
@@ -412,63 +523,27 @@ window.onload = async () => {
   stage.camera.far = 10000;
   stage.camera.position.set(0, 0, 10)
 
-
-  // console.error(a);
-  // window.a = a;
-
-  // const urls = [
-  //   "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_X.png",
-  //   "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_X.png",
-  //   "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Y.png",
-  //   "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Y.png",
-  //   "images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Z.png",
-  //   "images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Z.png"
-  // ];
-  // const images = await LMGL.loadCubeImages(urls)
-  // let cubeMap = new LMGL.ImageCubeTexture(images)
-
-  // const img = await LMGL.loadImage("./images/a.png");
-  // let map = new LMGL.ImageTexture(img);
-
   const objLoader = new LMGL.OBJLoader();
   const geometry = await objLoader.load("./obj/hougai.obj")
-  new MyMesh(geometry);
-  // stage.add(obj.mesh)
-  // window.mesh = obj.mesh;
-
-  // const matParam = obj.mesh.material.param;
-  // const params={
-  //   ior: matParam.ior,
-  //   metallic: matParam.metallic,
-  //   roughness: matParam.roughness,
-  //   baseColor: [ matParam.baseColor.x,matParam.baseColor.y,matParam.baseColor.z ]
-  // }
-
-  // gui.add( params, 'ior',0, 5).onChange(v=>{
-  //   obj.mesh.material.param.ior = v;
+  // new MyMesh(geometry,["MAPCOLOR","SPECULAR"]
+  // ,{
+  //   material_reflectivity: 1.5530,
+  //   material_shininess:0.3138
   // });
-  // gui.add( params, 'metallic',0, 1).onChange(v=>{
-  //   obj.mesh.material.param.metallic = v;
-  // });
-  // gui.add( params, 'roughness',0, 1).onChange(v=>{
-  //   obj.mesh.material.param.roughness = v;
-  // });
+  new MyMesh(geometry,["MAPTEXTURE","METALNESS"],{
+    material_reflectivity: 7,
+    material_shininess: 0.2592,
+    blending: false
+  });
 
-  // gui.addColor( params, 'baseColor',).onChange(v=>{
-  //   obj.mesh.material.param.baseColor.x = v[0]
-  //   obj.mesh.material.param.baseColor.y = v[1]
-  //   obj.mesh.material.param.baseColor.z = v[2]
-  // });
-  // gui.open();
-
-stage.addUpdate(1,()=>{
-   window.obj && (window.obj.material.uniforms["view_position"].value = stage.camera.position.clone());
-})
+    stage.addUpdate(1,()=>{
+    window.obj && (window.obj.material.uniforms["view_position"].value = stage.camera.position.clone());
+    })
     // 添加坐标轴
-  const axis = new LMGL.meshLib.Axis(100)
-  stage.add(axis.meshX)
-  stage.add(axis.meshY)
-  stage.add(axis.meshZ)
+//   const axis = new LMGL.meshLib.Axis(100)
+//   stage.add(axis.meshX)
+//   stage.add(axis.meshY)
+//   stage.add(axis.meshZ)
   stage.run()
 }
 

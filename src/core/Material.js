@@ -4,6 +4,7 @@ import { SIDE, BLENDING_TYPE, BLENDING_FACTOR } from './constants.js';
 import PhysicalDecorate from '../MaterialDecorate/PhysicalDecorate.js'
 export class Material {
   constructor(uniform, shader) {
+
     let mat = Object.assign(uniform, shader || {});
     if (!uniform.uniforms) {
       // 深拷贝对象
@@ -12,6 +13,22 @@ export class Material {
     if (mat.type === "physical") {
       new PhysicalDecorate(mat.uniforms, this, mat.param);
     }
+
+    const header = `#version 300 es
+      precision mediump float;
+    `
+     let ret = ""
+     mat.defines.forEach(d => {
+       ret += '#define ' + d;
+       ret += "\n";
+     })
+     ret += "\n";
+
+     mat.vertexShader = header + ret + mat.vertexShader;
+     mat.fragmentShader = header+ ret + mat.fragmentShader;
+
+    // console.error(mat.vertexShader);
+    // console.error(mat.fragmentShader);
 
     this.uniformBlockIndex = 0;
     this.uniformBlockCatch = new Map();

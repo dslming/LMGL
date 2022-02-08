@@ -68,6 +68,7 @@ export default class Renderer {
     WebGLInterface.setDepthTest(gl, depthTest);
     WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
     WebGLInterface.setSide(gl, side);
+    WebGLInterface.cullFace(gl, true);
   }
 
   renderMesh(mesh, camera) {
@@ -151,8 +152,11 @@ export default class Renderer {
 
   clear() {
      const gl = dao.getData("gl")
-     gl.clearColor(0.2, 0.19, 0.3, 1.0);
-     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    //  gl.clearColor(0.2, 0.19, 0.3, 1.0);
+    // gl.clearColor(0.9254901960784314, 0.9372549019607843, 0.9529411764705882, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+
   }
 
   setRenderTarget(renderTarget) {

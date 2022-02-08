@@ -14,7 +14,8 @@ export { geometryLib }
 import dao from './core/Dao.js'
 import Renderer from './core/Renderer.js'
 import { Raycaster } from './core/Raycaster.js'
-import Engine from './core/engine.js'
+// import Engine from './core/engine.js'
+
 export * from "./core/constants.js"
 export * from "./core/ImageTexture.js"
 export * from "./core/ImageCubeTexture.js"
@@ -41,7 +42,8 @@ export * from "./loader/RGBELoader.js"
 export * from "./loader/DDSLoader.js"
 export * from "./loader/glbLoader.js"
 export * from "./loader/OBJLoader.js"
-
+export * from "./loader/playcanvas/dds-loader.js"
+export * from "./loader/FileLoader.js"
 // math
 import * as MathUtils from './math/MathUtils.js'
 import { Vector3 } from './math/Vector3.js'
@@ -60,7 +62,7 @@ export { meshLib }
 // webgl
 import * as webgl from './webgl/index.js'
 export { webgl }
-
+import { Engine } from './engine/engine.js'
 export class Stage {
   constructor(cb, config) {
     if (config === undefined) {
@@ -139,6 +141,7 @@ export class Stage {
     }
     this.camera = new PerspectiveCamera(45, param[1] / param[2], 0.01, 5000);
 
+    // this.engine = new Engine(this.gl);
     this.engine = new Engine(this.gl);
 
     // this.control = new CameraControl({

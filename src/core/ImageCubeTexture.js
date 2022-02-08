@@ -7,7 +7,7 @@ export class ImageCubeTexture {
     const gl = dao.getData("gl");
     this.texture = WebGLInterface.createTexture(gl);
     WebGLInterface.bindCubeTexture(gl, this.texture)
-    WebGLInterface.setCubeTextureImage(gl, images, this.texture)
+    WebGLInterface.setCubeTextureImage(gl, images)
   }
 
   getTexture() {
