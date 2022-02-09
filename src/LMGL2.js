@@ -140,7 +140,7 @@ export class Stage {
       fail && (fail.style.display = "flex")
     }
     this.camera = new PerspectiveCamera(45, param[1] / param[2], 0.01, 5000);
-
+    this.camera.up = new Vector3(0,1,0)
     // this.engine = new Engine(this.gl);
     this.engine = new Engine(this.gl);
 

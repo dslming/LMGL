@@ -110,7 +110,7 @@ class MyMesh {
         vUv0 = uv;
         // vUv0.y =  1.- vUv0.y;
         vPositionW = vec4(modelMatrix * vec4(position, 1.)).xyz;
-
+        // vPositionW = vec3(position);
         mat3 normalWorld = mat3(modelMatrix);
         // normalMatrix
         worldNormal = normalWorld * normal.xyz;
@@ -186,6 +186,7 @@ class MyMesh {
 
         void getViewDir() {
           dViewDirW = normalize(view_position - vPositionW);
+          dViewDirW = normalize(vPositionW);
         }
 
         void getNormal() {
