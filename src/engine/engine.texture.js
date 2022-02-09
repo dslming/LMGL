@@ -732,46 +732,46 @@ export class EngineTexture {
            filter = FILTER_LINEAR;
          }
        }
-       gl.texParameterf(target, gl.TEXTURE_MIN_FILTER, this.glFilter[filter]);
+       gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, this.glFilter[filter]);
      }
      if (flags & 2) {
-       gl.texParameterf(target, gl.TEXTURE_MAG_FILTER, this.glFilter[texture._magFilter]);
+       gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, this.glFilter[texture._magFilter]);
      }
      if (flags & 4) {
        if (this.webgl2) {
-         gl.texParameterf(target, gl.TEXTURE_WRAP_S, this.glAddress[texture._addressU]);
+         gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.glAddress[texture._addressU]);
        } else {
          // WebGL1 doesn't support all addressing modes with NPOT textures
-         gl.texParameterf(target, gl.TEXTURE_WRAP_S, this.glAddress[texture.pot ? texture._addressU : ADDRESS_CLAMP_TO_EDGE]);
+         gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.glAddress[texture.pot ? texture._addressU : ADDRESS_CLAMP_TO_EDGE]);
        }
      }
      if (flags & 8) {
        if (this.webgl2) {
-         gl.texParameterf(target, gl.TEXTURE_WRAP_T, this.glAddress[texture._addressV]);
+         gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture._addressV]);
        } else {
          // WebGL1 doesn't support all addressing modes with NPOT textures
-         gl.texParameterf(target, gl.TEXTURE_WRAP_T, this.glAddress[texture.pot ? texture._addressV : ADDRESS_CLAMP_TO_EDGE]);
+         gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture.pot ? texture._addressV : ADDRESS_CLAMP_TO_EDGE]);
        }
      }
      if (flags & 16) {
        if (this.webgl2) {
-         gl.texParameterf(target, gl.TEXTURE_WRAP_R, this.glAddress[texture._addressW]);
+         gl.texParameteri(target, gl.TEXTURE_WRAP_R, this.glAddress[texture._addressW]);
        }
      }
      if (flags & 32) {
        if (this.webgl2) {
-         gl.texParameterf(target, gl.TEXTURE_COMPARE_MODE, texture._compareOnRead ? gl.COMPARE_REF_TO_TEXTURE : gl.NONE);
+         gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, texture._compareOnRead ? gl.COMPARE_REF_TO_TEXTURE : gl.NONE);
        }
      }
      if (flags & 64) {
        if (this.webgl2) {
-         gl.texParameterf(target, gl.TEXTURE_COMPARE_FUNC, this.glComparison[texture._compareFunc]);
+         gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, this.glComparison[texture._compareFunc]);
        }
      }
      if (flags & 128) {
        var ext = this.engine.extTextureFilterAnisotropic;
        if (ext) {
-         gl.texParameterf(target, ext.TEXTURE_MAX_ANISOTROPY_EXT, Math.max(1, Math.min(Math.round(texture._anisotropy), this.maxAnisotropy)));
+         gl.texParameteri(target, ext.TEXTURE_MAX_ANISOTROPY_EXT, Math.max(1, Math.min(Math.round(texture._anisotropy), this.maxAnisotropy)));
        }
      }
    }

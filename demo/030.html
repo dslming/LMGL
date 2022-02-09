@@ -62,21 +62,21 @@ class MyMesh {
 
     const img2 = await LMGL.loadImage("./xiaomi/bian1145.png");
     const texture_diffuseMap  = new LMGL.ImageTexture(img2);
-    let _parameterFlags = 0;
-    _parameterFlags |= 1;
-    _parameterFlags |= 2;
-    _parameterFlags |= 4;
-    _parameterFlags |= 8;
-    texture_diffuseMap._parameterFlags = _parameterFlags;
-    texture_diffuseMap._minFilter = CONSTANT.FILTER_LINEAR
-    texture_diffuseMap._magFilter = CONSTANT.FILTER_LINEAR_MIPMAP_LINEAR
-    texture_diffuseMap._addressU = CONSTANT.ADDRESS_REPEAT
-    texture_diffuseMap._addressV = CONSTANT.ADDRESS_REPEAT
-    texture_diffuseMap._glTarget = stage.getGl().TEXTURE_2D;
-    texture_diffuseMap._glTexture = texture_diffuseMap.getTexture()
-    stage.engine.engineTexture.activeTexture(0);
-    stage.engine.engineTexture.bindTexture(texture_diffuseMap);
-    stage.engine.engineTexture.setTextureParameters(texture_diffuseMap);
+    // let _parameterFlags = 0;
+    // _parameterFlags |= 1;
+    // _parameterFlags |= 2;
+    // _parameterFlags |= 4;
+    // _parameterFlags |= 8;
+    // texture_diffuseMap._parameterFlags = _parameterFlags;
+    // texture_diffuseMap._minFilter = CONSTANT.FILTER_LINEAR_MIPMAP_LINEAR
+    // texture_diffuseMap._magFilter = CONSTANT.FILTER_LINEAR
+    // texture_diffuseMap._addressU = CONSTANT.ADDRESS_REPEAT
+    // texture_diffuseMap._addressV = CONSTANT.ADDRESS_REPEAT
+    // texture_diffuseMap._glTarget = stage.getGl().TEXTURE_2D;
+    // texture_diffuseMap._glTexture = texture_diffuseMap.getTexture()
+    // stage.engine.engineTexture.activeTexture(0);
+    // stage.engine.engineTexture.bindTexture(texture_diffuseMap);
+    // stage.engine.engineTexture.setTextureParameters(texture_diffuseMap);
 
 
 
@@ -251,7 +251,9 @@ class MyMesh {
     uniform float material_shininess;
     void getGlossiness() {
       dGlossiness = 1.0;
-      dGlossiness *= material_shininess;
+      #ifdef MAPFLOAT
+        dGlossiness *= material_shininess;
+      #endif
       dGlossiness += 0.0000001;
     }
 
@@ -404,6 +406,7 @@ class MyMesh {
           addReflection();
 
           FragColor.rgb = combineColor();
+          FragColor.rgb = dViewDirW;
           FragColor.a = 1.0;
 
         }
@@ -500,6 +503,7 @@ class MyMesh {
         CONSTANT.BLENDMODE_ONE,
         )
     lm.engine.engineRender.setBlendEquation(CONSTANT.BLENDEQUATION_ADD)
+    this.loaded = true;
   }
 }
 
@@ -524,20 +528,30 @@ window.onload = async () => {
   stage.camera.position.set(0, 0, 10)
 
   const objLoader = new LMGL.OBJLoader();
-  const geometry = await objLoader.load("./obj/hougai.obj")
-  // new MyMesh(geometry,["MAPCOLOR","SPECULAR"]
-  // ,{
-  //   material_reflectivity: 1.5530,
-  //   material_shininess:0.3138
-  // });
-  new MyMesh(geometry,["MAPTEXTURE","METALNESS"],{
-    material_reflectivity: 7,
-    material_shininess: 0.2592,
-    blending: false
+  const geometry = await objLoader.load("./obj/hougai.obj");
+
+  let blueOne
+  let blueTwo
+
+  blueOne = new MyMesh(geometry,["MAPCOLOR","SPECULAR"]
+  ,{
+    material_reflectivity: 1.5530,
+    material_shininess:0.3138
   });
+  // blueTwo = new MyMesh(geometry,["MAPTEXTURE","METALNESS"],{
+  //   material_reflectivity: 7,
+  //   material_shininess: 0.2592,
+  //   blending: false
+  // });
 
     stage.addUpdate(1,()=>{
-    window.obj && (window.obj.material.uniforms["view_position"].value = stage.camera.position.clone());
+      if(blueOne && blueOne.loaded){
+        blueOne.mesh.material.uniforms["view_position"].value = stage.camera.position.clone()
+      }
+
+      if(blueTwo && blueTwo.loaded){
+        blueTwo.mesh.material.uniforms["view_position"].value = stage.camera.position.clone()
+      }
     })
     // 添加坐标轴
 //   const axis = new LMGL.meshLib.Axis(100)
