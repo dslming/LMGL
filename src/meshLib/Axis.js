@@ -28,8 +28,7 @@ export class Axis {
 
   getMat(color) {
     const vertexShader = `
-      precision mediump float;
-      attribute vec3 aPosition;
+      in vec3 aPosition;
 
 
       uniform mat4 projectionMatrix;
@@ -41,12 +40,11 @@ export class Axis {
     `
 
     const fragmentShader = `
-      precision mediump float;
       uniform vec4 uColor;
-
+      out vec4 FragColor;
 
       void main() {
-        gl_FragColor = uColor;
+        FragColor = uColor;
       }
       `
 

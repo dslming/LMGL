@@ -12,8 +12,7 @@
     window.LMGL = LMGL;
 
   // 平面
-  const vsPlane = `#version 300 es
-    precision mediump float;
+  const vsPlane = `
     in vec3 aPosition;
     in vec2 aUv;
     out vec2 vUv;
@@ -26,8 +25,7 @@
     }
   `
 
-  const fsPlane = `#version 300 es
-    precision mediump float;
+  const fsPlane = `
     uniform sampler2D uTexture;
     in vec2 vUv;
     out vec4 FragColor;
@@ -38,14 +36,14 @@
     `
 
   // 程序纹理
-  const vsTexture = `#version 300 es
+  const vsTexture = `
       in vec2 aCoords;
       uniform vec2 translation;
       void main() {
         gl_Position = vec4(aCoords + translation, 0, 1);
       }`
 
-  const fsTexture = `#version 300 es
+  const fsTexture = `
       precision mediump float;
       uniform vec4 color;
       out vec4 FragColor;

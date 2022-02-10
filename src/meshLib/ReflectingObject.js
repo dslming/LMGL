@@ -5,13 +5,11 @@ export class ReflectingObject {
   constructor(modelData, cubeMapTexture) {
     // 平面
     const vsPlane = `
-        precision mediump float;
-        attribute vec3 aPosition;
-        attribute vec3 aNormal;
+        in vec3 aPosition;
+        in vec3 aNormal;
 
-        // varying vec3 vReflect;
-        varying vec3 v_eyeCoords;
-        varying vec3 v_normal;
+        out vec3 v_eyeCoords;
+        out vec3 v_normal;
 
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
@@ -26,13 +24,13 @@ export class ReflectingObject {
       `
 
     const fsPlane = `
-        precision mediump float;
         uniform samplerCube skybox;
         uniform mat3 normalMatrix;
         uniform mat3 inverseViewTransform;
 
-        varying vec3 v_normal;
-        varying vec3 v_eyeCoords;
+        in vec3 v_normal;
+        in vec3 v_eyeCoords;
+        out vec4 FragColor;
 
         void main() {
           vec3 N = normalize(normalMatrix * v_normal);
@@ -40,11 +38,11 @@ export class ReflectingObject {
           vec3 R = -reflect(V,N);
           vec3 T = inverseViewTransform * R;
 
-          gl_FragColor = textureCube(skybox, T);
+          FragColor = texture(skybox, T);
 
           // 没有反射贴图,显示物体的轮廓
-          if(gl_FragColor.xyz == vec3(0.)) {
-            // gl_FragColor = vec4(0.1,0.1,0.1, 0.5);
+          if(FragColor.xyz == vec3(0.)) {
+            // FragColor = vec4(0.1,0.1,0.1, 0.5);
           }
         }
         `

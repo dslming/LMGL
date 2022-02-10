@@ -24,8 +24,7 @@ export function getMaterial(_param) {
     param.baseColor.z = _param.baseColor.z;
    }
 
-  const vertexShader = `#version 300 es
-      precision mediump float;
+  const vertexShader = `
       in vec3 aPosition;
       in vec3 aNormal;
       out vec3 vNormalW;
@@ -79,8 +78,7 @@ export function getMaterial(_param) {
       }
     `
 
-  const fragmentShader = `#version 300 es
-      precision mediump float;
+  const fragmentShader = `
       layout(std140, column_major) uniform;
       const float PI = 3.1415926535897932384626433832795;
       const float HALF_MIN = 5.96046448e-08;

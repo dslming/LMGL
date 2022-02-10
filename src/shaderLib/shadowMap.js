@@ -4,8 +4,7 @@ import useShadowMap from '../modules/shadow/shadowMap.glsl.js'
 
 
 export function getMaterial() {
-  const vertexShader = `#version 300 es
-      precision mediump float;
+  const vertexShader = `
       in vec3 aPosition;
       in vec3 aNormal;
 
@@ -23,9 +22,7 @@ export function getMaterial() {
       }
     `
 
-  const fragmentShader = `#version 300 es
-      precision mediump float;
-
+  const fragmentShader = `
       in vec4 vPositionFromLight;
       in vec3 vWorldNormal;
       uniform sampler2D uShadowMap;

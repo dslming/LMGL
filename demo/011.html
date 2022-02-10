@@ -25,8 +25,7 @@
       let imageTexture = new LMGL.ImageTexture(img)
 
       // 平面
-      const vsPlane = `#version 300 es
-        precision mediump float;
+      const vsPlane = `
         in vec3 aPosition;
         in vec2 aUv;
         out vec2 vUv;
@@ -39,8 +38,7 @@
         }
       `
 
-      const fsPlane = `#version 300 es
-        precision mediump float;
+      const fsPlane = `
         uniform sampler2D uTexture;
         in vec2 vUv;
         out vec4 FragColor;

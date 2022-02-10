@@ -11,8 +11,7 @@ import { GUI } from './libs/lil-gui.module.min.js';
 
 class PostProcess {
   constructor() {
-  const vs = `#version 300 es
-    precision mediump float;
+  const vs = `
     in vec3 aPosition;
     in vec2 aUv;
     out vec2 vUv;
@@ -23,8 +22,7 @@ class PostProcess {
     }
   `
 
-  const fs = `#version 300 es
-    precision mediump float;
+  const fs = `
     uniform sampler2D textureSampler;
     in vec2 vUv;
     out vec4 FragColor;

@@ -11,8 +11,7 @@
 
 class Triangle {
   constructor() {
-    const vertexShader = `#version 300 es
-      precision mediump float;
+    const vertexShader = `
       in vec3 aPosition;
       in vec4 aColor;
       out vec4 vColor;
@@ -26,8 +25,7 @@ class Triangle {
       }
     `
 
-    const fragmentShader = `#version 300 es
-      precision mediump float;
+    const fragmentShader = `
       in vec4 vColor;
       out vec4 FragColor;
 
@@ -77,6 +75,7 @@ class Triangle {
 
     const mat = new LMGL.Material(matInfo);
     this.mesh = new LMGL.Mesh(geo, mat);
+    this.mesh.rotation.y = -Math.PI;
   }
 }
 
@@ -96,6 +95,12 @@ window.onload = () => {
     // mesh.rotation.y += 0.01;
   })
   stage.run()
+
+      // 添加坐标轴
+  const axis = new LMGL.meshLib.Axis(100)
+  stage.add(axis.meshX)
+  stage.add(axis.meshY)
+  stage.add(axis.meshZ)
 }
 
   </script>

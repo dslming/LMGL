@@ -19,8 +19,7 @@ export function getMaterial(lightInfo) {
     pointLightCount,
   } = pauseLight(lightInfo);
 
-  const vertexShader = `#version 300 es
-      precision mediump float;
+  const vertexShader = `
       in vec3 aPosition;
       in vec3 aNormal;
 
@@ -38,8 +37,7 @@ export function getMaterial(lightInfo) {
       }
     `
 
-  const fragmentShader = `#version 300 es
-      precision mediump float;
+  const fragmentShader = `
       #define NUM_DIR_LIGHTS ${directionalLightCount}
       #define NUM_HEMI_LIGHTS ${hemisphereLightsCount}
       #define NUM_POINT_LIGHTS ${pointLightCount}

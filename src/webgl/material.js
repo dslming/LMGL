@@ -28,6 +28,7 @@ export function setDepthTest(gl, flag) {
 }
 
 export function setSide(gl, side) {
+  gl.enable(gl.CULL_FACE);
   switch (side) {
     case SIDE.FrontSide:
       gl.cullFace(gl.FRONT);

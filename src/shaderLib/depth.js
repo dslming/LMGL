@@ -3,8 +3,7 @@ import common from '../modules/common/common.glsl.js'
 
 
 export function getMaterial() {
-  const vertexShader = `#version 300 es
-      precision mediump float;
+  const vertexShader = `
       in vec3 aPosition;
 
       uniform mat4 projectionMatrix;
@@ -19,8 +18,7 @@ export function getMaterial() {
       }
     `
 
-  const fragmentShader = `#version 300 es
-      precision mediump float;
+  const fragmentShader = `
       in float vDepth;
       out vec4 FragColor;
 

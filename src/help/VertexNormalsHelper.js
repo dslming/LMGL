@@ -17,8 +17,7 @@ class VertexNormalsHelper {
 
    getMat(color) {
     const vertexShader = `
-      precision mediump float;
-      attribute vec3 aPosition;
+      in vec3 aPosition;
 
       uniform mat4 projectionMatrix;
       uniform mat4 modelViewMatrix;
@@ -29,10 +28,10 @@ class VertexNormalsHelper {
     `
 
     const fragmentShader = `
-      precision mediump float;
       uniform vec3 uColor;
+      out vec4 FragColor;
       void main() {
-        gl_FragColor = vec4(uColor, 1.);
+        FragColor = vec4(uColor, 1.);
       }
       `
 

@@ -12,8 +12,7 @@ import * as LMGL from '../src/LMGL2.js'
 
 class Cube {
   constructor() {
-    const vertexShader = `#version 300 es
-      precision mediump float;
+    const vertexShader = `
       in vec3 aPosition;
       in vec4 aColor;
       out vec4 vColor;
@@ -27,8 +26,7 @@ class Cube {
       }
     `
 
-    const fragmentShader = `#version 300 es
-      precision mediump float;
+    const fragmentShader = `
       in vec4 vColor;
       layout(location = 0) out vec4 gColor;
       layout(location = 1) out vec4 gNormal;
@@ -66,8 +64,7 @@ class Cube {
 
 class Plane {
   constructor() {
-    const vs = `#version 300 es
-      precision mediump float;
+    const vs = `
       in vec3 aPosition;
       in vec2 aUv;
       out vec2 vUv;
@@ -81,8 +78,7 @@ class Plane {
       }
     `
 
-    const fs = `#version 300 es
-      precision mediump float;
+    const fs = `
       uniform sampler2D uTexture0;
       uniform sampler2D uTexture1;
       in vec2 vUv;
