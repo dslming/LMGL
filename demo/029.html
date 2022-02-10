@@ -11,8 +11,7 @@ import { GUI } from './libs/lil-gui.module.min.js';
 
 class PostProcess {
   constructor(name, dir) {
-  const vs = `#version 300 es
-    precision mediump float;
+  const vs = `
     uniform vec2 delta;
 
     #define KERNEL_OFFSET0 -15.36704337
@@ -90,8 +89,7 @@ const vec2 madd = vec2(0.5, 0.5);
     }
   `
 
-  const fs = `#version 300 es
-    precision mediump float;
+  const fs = `
     uniform sampler2D textureSampler;
     in vec2 vUv;
     out vec4 glFragColor;

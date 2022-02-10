@@ -68,7 +68,8 @@ export default class Renderer {
     WebGLInterface.setDepthTest(gl, depthTest);
     WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
     WebGLInterface.setSide(gl, side);
-    WebGLInterface.cullFace(gl, true);
+    WebGLInterface.cullFace(gl, false);
+
   }
 
   renderMesh(mesh, camera) {

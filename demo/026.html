@@ -39,8 +39,7 @@ window.onload = () => {
     indices: dataModel.indices
   };
 
-  const vsPlane = `#version 300 es
-    precision mediump float;
+  const vsPlane = `
     in vec3 aPosition;
     in vec2 aUv;
     in vec3 aNormal;
@@ -64,8 +63,7 @@ window.onload = () => {
     }
   `
 
-  const fsPlane = `#version 300 es
-    precision mediump float;
+  const fsPlane = `
     in vec2 vUv;
     in vec3 vNormal;
     in vec3 vViewPosition;

@@ -45,10 +45,12 @@
           },
       }
     };
-    const mat = new LMGL.Material(LMGL.shaderLib.lambert(),{
+    const mat = new LMGL.Material({
       uniforms: {
         diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
-      }
+        lightDirction: {value: {x:1,y:0,z:0}, type:"v3"},
+      },
+      ...LMGL.shaderLib.lambert()
     });
     let plane = new LMGL.Mesh(geo, mat);
     stage.add(plane);

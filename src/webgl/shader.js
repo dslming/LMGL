@@ -34,7 +34,7 @@ export function getShader(gl, type, source) {
   if (success) {
     return shader;
   }
-  console.error(gl.getShaderInfoLog(shader));
+  console.error(gl.getShaderInfoLog(shader), source);
   deleteShader(gl, shader);
 }
 

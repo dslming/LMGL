@@ -3,10 +3,11 @@ import * as WebGLInterface from '../webgl/index.js'
 import { SIDE, BLENDING_TYPE, BLENDING_FACTOR } from './constants.js';
 import PhysicalDecorate from '../MaterialDecorate/PhysicalDecorate.js'
 export class Material {
-  constructor(uniform, shader) {
-
-    let mat = Object.assign(uniform, shader || {});
-    if (!uniform.uniforms) {
+  constructor(matInfo) {
+    let mat = matInfo;
+    mat.vs = JSON.parse(JSON.stringify(matInfo.vertexShader))
+    mat.fs = JSON.parse(JSON.stringify(matInfo.fragmentShader))
+    if (!matInfo.uniforms) {
       // 深拷贝对象
       //  mat = JSON.parse(JSON.stringify(mat))
     }
@@ -17,15 +18,18 @@ export class Material {
     const header = `#version 300 es
       precision mediump float;
     `
-     let ret = ""
+    let ret = ""
+    if (!mat.defines) {
+      mat.defines = []
+    }
      mat.defines.forEach(d => {
        ret += '#define ' + d;
        ret += "\n";
      })
      ret += "\n";
 
-     mat.vertexShader = header + ret + mat.vertexShader;
-     mat.fragmentShader = header+ ret + mat.fragmentShader;
+     mat.vs = header + ret + mat.vs;
+     mat.fs = header+ ret + mat.fs;
 
     // console.error(mat.vertexShader);
     // console.error(mat.fragmentShader);

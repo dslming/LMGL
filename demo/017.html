@@ -35,7 +35,8 @@ window.onload = () => {
     }
   };
 
-  const mat = new LMGL.Material(LMGL.shaderLib.lambert(),{
+  const mat = new LMGL.Material({
+    ...LMGL.shaderLib.lambert(),
     uniforms: {
       diffuseColor: {value: {x:0,y:0,z:1}, type:"v3"},
       lightDirction: {value: {x:1,y:0,z:0}, type:"v3"},

@@ -33,8 +33,9 @@
         uniforms: {
           diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
           // lightDirction: {value: lightDirction, type:"v3"},
-        }
-      },lambert)
+        },
+        ...lambert
+      })
       this.mesh = new LMGL.Mesh(geoInfo, lambertMat);
       this.mat = lambertMat
     }
@@ -63,8 +64,8 @@
         uniforms: {
           diffuseColor: {value: {x:1,y:0,z:0}, type:"v3"},
           lightDirction: {value: {x:1,y:1,z:1}, type:"v3"},
-        }
-      },lambert)
+        },
+      ...lambert})
       this.mesh = new LMGL.Mesh(geoInfo, lambertMat);
       this.mat = lambertMat
     }
@@ -93,8 +94,9 @@
         uniforms: {
           diffuseColor: {value: {x:0,y:1,z:0}, type:"v3"},
           // lightDirction: {value: lightDirction, type:"v3"},
-        }
-      },lambert)
+        },
+        ...lambert
+      })
 
       this.mesh = new LMGL.Mesh(geoInfo, lambertMat);
       this.mat = lambertMat
@@ -147,10 +149,11 @@
 
     // 深度材质
     const depth = LMGL.shaderLib.depth()
-    const depthMat = new LMGL.Material(depth,{
+    const depthMat = new LMGL.Material({
        uniforms: {
           uLightMVP: {"type":"m4",value: null},
-        }
+        },
+        ...depth
     })
     // depthMat.depthTest = false;
 
@@ -160,8 +163,9 @@
         uLightMVP: {"type":"m4",value: null},
         uShadowMap: {type: "t", value: null},
         diffuseColor: {value: {x:1,y:1,z:1}, type:"v3"},
-      }
-    },shadowMap);
+      },
+      ...shadowMap
+    });
 
     // 更新光源的相机位置和矩阵
     function updateLight(pos) {

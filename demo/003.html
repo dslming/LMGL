@@ -34,12 +34,14 @@ window.onload = () => {
       }
     }
   };
-  const mat = new LMGL.Material(LMGL.shaderLib.lambert(),{
+  const mat = new LMGL.Material({
     uniforms: {
       diffuseColor: {value: {x:0,y:0.5,z:0.5}, type:"v3"},
       lightDirction: {value: {x:0,y:0,z:1}, type:"v3"},
-    }
+    },
+    ...LMGL.shaderLib.lambert()
   });
+  mat.side = LMGL.SIDE.DoubleSide
   let mesh = new LMGL.Mesh(geo, mat);
    stage.addUpdate("loop",()=>{
     mesh.rotation.y += 0.01;

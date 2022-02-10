@@ -10,8 +10,7 @@ export class SkyBox {
   }
 
   async init() {
-    const vertexShaderSourceSB = `#version 300 es
-        precision mediump float;
+    const vertexShaderSourceSB = `
         in vec3 aPosition;
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
@@ -22,8 +21,7 @@ export class SkyBox {
           vUv = aPosition;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
         }`;
-    const fragmentShaderSourceSB = `#version 300 es
-          precision mediump float;
+    const fragmentShaderSourceSB = `
           uniform samplerCube skybox;
           in vec3 vUv;
           out vec4 FragColor;
