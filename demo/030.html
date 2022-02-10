@@ -529,21 +529,23 @@ window.onload = async () => {
   stage.camera.position.set(0, 0, 10)
 
   const objLoader = new LMGL.OBJLoader();
-  const geometry = await objLoader.load("./obj/hougai.obj");
+  const geometryBlueOne = await objLoader.load("./obj/hougai.obj");
+  const geometryBlueTwo = await objLoader.load("./obj/plan.obj");
+
 
   let blueOne
   let blueTwo
 
-  blueOne = new MyMesh(geometry,["MAPCOLOR","SPECULAR"]
-  ,{
-    material_reflectivity: 1.5530,
-    material_shininess:0.3138
-  });
-  // blueTwo = new MyMesh(geometry,["MAPTEXTURE","METALNESS"],{
-  //   material_reflectivity: 7,
-  //   material_shininess: 0.2592,
-  //   blending: false
+  // blueOne = new MyMesh(geometryBlueOne,["MAPCOLOR","SPECULAR"]
+  // ,{
+  //   material_reflectivity: 1.5530,
+  //   material_shininess:0.3138
   // });
+  blueTwo = new MyMesh(geometryBlueTwo,["MAPTEXTURE","METALNESS"],{
+    material_reflectivity: 7,
+    material_shininess: 0.2592,
+    blending: false
+  });
 
     stage.addUpdate(1,()=>{
       if(blueOne && blueOne.loaded){
@@ -555,10 +557,10 @@ window.onload = async () => {
       }
     })
     // 添加坐标轴
-//   const axis = new LMGL.meshLib.Axis(100)
-//   stage.add(axis.meshX)
-//   stage.add(axis.meshY)
-//   stage.add(axis.meshZ)
+  const axis = new LMGL.meshLib.Axis(100)
+  stage.add(axis.meshX)
+  stage.add(axis.meshY)
+  stage.add(axis.meshZ)
   stage.run()
 }
 
