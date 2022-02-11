@@ -1,5 +1,5 @@
-import * as lmgl from "../src/index";
-(window as any).lmgl = lmgl;
+import * as EasyCG from "../src/index";
+(window as any).EasyCG = EasyCG;
 class App {
   private scene: any;
   private camera: any;
@@ -11,7 +11,7 @@ class App {
 
   constructor() {
     this.canvas = document.getElementById("renderCanvas");
-    const engine = new lmgl.WebGLEngine(this.canvas);
+    this.engine = new EasyCG.Engine(this.canvas);
 
     // const scene = new lmgl.Scene(engine);
 
@@ -62,14 +62,14 @@ class App {
     // //   this.scene.sceneRender.render();
     // // });
 
-    engine.engineRender.runRenderLoop(() => {
-      scene.sceneRender.render();
-    });
+    // engine.engineRender.runRenderLoop(() => {
+    //   scene.sceneRender.render();
+    // });
   }
 }
 
 window.onload = () => {
-  console.error(lmgl);
+  console.error(EasyCG);
   const app = new App();
   (window as any).lm = app;
 };

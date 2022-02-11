@@ -1,5 +1,11 @@
+interface CallbackItem {
+  callback: Function,
+  scope: any,
+  once: boolean
+ }
+
 interface Callbacks {
-  [key: string]: [];
+  [key: string | number]: Array<CallbackItem>;
 }
 
 /**
@@ -19,19 +25,19 @@ interface Callbacks {
  * obj.fire('hello', 'world');
  */
 class EventHandler {
-  _callbacks: Callbacks;
-  _callbackActive: Callbacks;
+  private _callbacks: Callbacks;
+  private _callbackActive: Callbacks;
 
   constructor() {
     this.initEventHandler();
   }
 
-  initEventHandler() {
+  public initEventHandler() {
     this._callbacks = {};
     this._callbackActive = {};
   }
 
-  _addCallback(name: string | number, callback: any, scope: any, once = false) {
+  private _addCallback(name: string | number, callback: any, scope: any, once = false) {
     if (!name || typeof name !== "string" || !callback) return;
 
     if (!this._callbacks[name]) this._callbacks[name] = [];
@@ -59,7 +65,7 @@ class EventHandler {
    * });
    * obj.fire('test', 1, 2); // prints 3 to the console
    */
-  on(name: string | number, callback: any, scope: any) {
+  public on(name: string | number, callback: Function, scope: any): EventHandler {
     this._addCallback(name, callback, scope, false);
 
     return this;
@@ -84,7 +90,7 @@ class EventHandler {
    * obj.off('test', handler); // Removes all handler functions, called 'test'
    * obj.off('test', handler, this); // Removes all hander functions, called 'test' with scope this
    */
-  off(name: string | number, callback: any, scope: any) {
+  public off(name: string | number, callback: Function, scope: any): EventHandler {
     if (name) {
       if (this._callbackActive[name] && this._callbackActive[name] === this._callbacks[name]) this._callbackActive[name] = this._callbackActive[name].slice();
     } else {
@@ -141,7 +147,7 @@ class EventHandler {
    * obj.fire('test', 'This is the message');
    */
   /* eslint-enable valid-jsdoc */
-  fire(name: string | number, arg1: any, arg2: any, arg3: any, arg4: any, arg5: any, arg6: any, arg7: any, arg8: any) {
+  public fire(name: string | number, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any): EventHandler {
     if (!name || !this._callbacks[name]) return this;
 
     var callbacks;
@@ -157,7 +163,6 @@ class EventHandler {
     // TODO: What does callbacks do here?
     // In particular this condition check looks wrong: (i < (callbacks || this._callbackActive[name]).length)
     // Because callbacks is not an integer
-    // eslint-disable-next-line no-unmodified-loop-condition
     for (var i = 0; (callbacks || this._callbackActive[name]) && i < (callbacks || this._callbackActive[name]).length; i++) {
       var evt = (callbacks || this._callbackActive[name])[i];
       evt.callback.call(evt.scope, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
@@ -172,7 +177,7 @@ class EventHandler {
       }
     }
 
-    if (!callbacks) this._callbackActive[name] = null;
+    if (!callbacks) this._callbackActive[name] = null as any;
 
     return this;
   }
@@ -192,7 +197,7 @@ class EventHandler {
    * obj.fire('test', 1, 2); // prints 3 to the console
    * obj.fire('test', 1, 2); // not going to get handled
    */
-  once(name: string | number, callback: any, scope: any) {
+  public once(name: string | number, callback: any, scope: any): EventHandler {
     this._addCallback(name, callback, scope, true);
     return this;
   }
@@ -208,7 +213,7 @@ class EventHandler {
    * obj.hasEvent('test'); // returns true
    * obj.hasEvent('hello'); // returns false
    */
-  hasEvent(name) {
+  public hasEvent(name: string | number): boolean {
     return (this._callbacks[name] && this._callbacks[name].length !== 0) || false;
   }
 }
