@@ -8,11 +8,18 @@ class App {
   private canvas: any;
   private light: any;
   private sphereMesh: any;
+  private app: EasyCG.Application;
 
   constructor() {
     this.canvas = document.getElementById("renderCanvas");
-    this.engine = new EasyCG.Engine(this.canvas);
+    this.app = new EasyCG.Application(this.canvas);
 
+    // var scene = BABYLON.creator(BABYLON.Scene, engine);
+    this.app.runRenderLoop(() => {
+      // console.error(123);
+    });
+
+    window.addEventListener("resize", () => this.app.resizeCanvas());
     // const scene = new lmgl.Scene(engine);
 
     // const camera = new lmgl.TargetCamera("Camera", new lmgl.Vector3(0, 0, 10), scene);

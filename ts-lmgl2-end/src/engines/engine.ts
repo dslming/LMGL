@@ -1,4 +1,4 @@
-import { EventHandler } from "../misc/event-handler";
+import { EventHandler } from "../misc/event.handler";
 import { Logger } from "../misc/logger";
 import { Nullable } from "../types";
 import { EngineOptions, iCapabilities, iExtensions } from "./engine.interface";
@@ -8,7 +8,7 @@ import { EngineViewPort } from "./engine.viewPort";
 
 export class Engine extends EventHandler {
   public gl: WebGLRenderingContext;
-  private _renderingCanvas: Nullable<HTMLCanvasElement>;
+  public _renderingCanvas: Nullable<HTMLCanvasElement>;
   public _contextWasLost = false;
   public webgl2 = true;
   public supportExtensions: iExtensions;
@@ -44,7 +44,7 @@ export class Engine extends EventHandler {
   }
 
   public static get Version(): string {
-    return "EasyCG 1.0.0.a1";
+    return "1.0.0.a1";
   }
 
   private _initializeExtensions() {
@@ -134,8 +134,9 @@ export class Engine extends EventHandler {
     const gl = this.gl;
     const contextAttribs: any = gl.getContextAttributes();
 
-    let extColor = this.supportExtensions.extColorBufferFloat;
-    let extAnisotropic = this.supportExtensions.extTextureFilterAnisotropic;
+    const extColor = this.supportExtensions.extColorBufferFloat;
+    const extAnisotropic = this.supportExtensions.extTextureFilterAnisotropic;
+    const extDebug = this.supportExtensions.extDebugRendererInfo;
 
     this.capabilities = {
       maxPrecision: this._getPrecision(),
@@ -154,8 +155,8 @@ export class Engine extends EventHandler {
       maxDrawBuffers: gl.getParameter(gl.MAX_DRAW_BUFFERS),
       maxColorAttachments: gl.getParameter(gl.MAX_COLOR_ATTACHMENTS),
       maxVolumeSize: gl.getParameter(gl.MAX_3D_TEXTURE_SIZE),
-      unmaskedRenderer: extColor ? gl.getParameter(extColor.UNMASKED_RENDERER_WEBGL) : "",
-      unmaskedVendor: extColor ? gl.getParameter(extColor.UNMASKED_VENDOR_WEBGL) : "",
+      unmaskedRenderer: extDebug ? gl.getParameter(extDebug.UNMASKED_RENDERER_WEBGL) : "",
+      unmaskedVendor: extDebug ? gl.getParameter(extDebug.UNMASKED_VENDOR_WEBGL) : "",
       maxAnisotropy: extAnisotropic ? gl.getParameter(extAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1,
       maxSamples: gl.getParameter(gl.SAMPLES),
       supportsAreaLights: true,

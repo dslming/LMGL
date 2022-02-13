@@ -60,10 +60,10 @@ export class EngineDraw {
     const { gl } = this._engine;
 
     if (primitive.indexed) {
-      const indexBuffer = this.indexBuffer;
-      const format = indexBuffer.glFormat;
+      // const indexBuffer = this.indexBuffer;
+      // const format = indexBuffer.glFormat;
       const offset = 0;
-      gl.drawElements(mode, count, format, offset);
+      // gl.drawElements(mode, count, format, offset);
     }
   }
 }
