@@ -12,7 +12,13 @@ class App {
 
   constructor() {
     this.canvas = document.getElementById("renderCanvas");
-    this.app = new EasyCG.Application(this.canvas);
+    this.app = new EasyCG.Application(this.canvas, {
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: false,
+      preferWebGl2: true,
+      powerPreference: "default",
+    });
 
     // var scene = BABYLON.creator(BABYLON.Scene, engine);
     this.app.runRenderLoop(() => {
