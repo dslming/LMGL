@@ -1,7 +1,7 @@
-import { BUFFER_STATIC, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, typedArrayIndexFormatsByteSize } from "../constants.js";
-import { Usage } from "../engines/engine.interface.js";
+import {  typedArrayIndexFormatsByteSize } from "../constants.js";
 import { Engine } from "../engines/engine.js";
 import { IndexFormat } from "../engines/index.format.js";
+import { BufferUsage } from "../engines/webgl/webgl-buffer.js";
 import { WebglIndexBuffer } from "../engines/webgl/webgl-index-buffer.js";
 import { Logger } from "../misc/logger.js";
 
@@ -14,12 +14,12 @@ import { Logger } from "../misc/logger.js";
 class IndexBuffer {
   private device: Engine;
   private format: IndexFormat;
-  private numIndices: number;
-  private usage: Usage;
+  public numIndices: number;
+  private usage: BufferUsage;
   private impl: WebglIndexBuffer;
   private bytesPerIndex: number;
   private numBytes: number;
-  storage: ArrayBuffer;
+  public storage: ArrayBuffer;
 
   /**
    * Create a new IndexBuffer instance.
@@ -51,7 +51,7 @@ class IndexBuffer {
    *                                      pc.BUFFER_STATIC,
    *                                      indices);
    */
-  constructor(engine: Engine, format: IndexFormat, numIndices: number, usage: Usage = BUFFER_STATIC, initialData: ArrayBuffer) {
+  constructor(engine: Engine, format: IndexFormat, numIndices: number, usage: BufferUsage = BufferUsage.STATIC, initialData: ArrayBuffer) {
     // By default, index buffers are static (better for performance since buffer data can be cached in VRAM)
     this.device = engine;
     this.format = format;
@@ -170,7 +170,7 @@ class IndexBuffer {
    */
   _lockTypedArray(): Uint8Array | Uint16Array | Uint32Array {
     const lock = this.lock();
-    const indices = this.format === INDEXFORMAT_UINT32 ? new Uint32Array(lock) : this.format === INDEXFORMAT_UINT16 ? new Uint16Array(lock) : new Uint8Array(lock);
+    const indices = this.format === IndexFormat.UINT32 ? new Uint32Array(lock) : this.format === IndexFormat.UINT16 ? new Uint16Array(lock) : new Uint8Array(lock);
     return indices;
   }
 

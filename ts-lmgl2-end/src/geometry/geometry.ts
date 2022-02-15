@@ -1,8 +1,29 @@
-import { GeometryData } from "./geometry.data";
-import { VertexSemantic } from "../engines/vertex.format";
+import { GeometryData, GeometryVertexStream } from "./geometry.data";
+import { VertexElementType, VertexSemantic } from "../engines/vertex.format";
+import { VertexBuffer } from "./vertex.buffer";
+import { IndexBuffer } from "./index.buffer";
+import { iGeometryBuilder } from "./builder";
+import { PrimitiveType } from "../engines/engine.draw";
+import { BoundingBox } from "../shape/bounding.box";
+
 
 export class Geometry {
   private _geometryData: GeometryData;
+  private vertexBuffer: VertexBuffer;
+  private indexBuffer: Array<IndexBuffer>;
+  // AABB for object space mesh vertices
+  private _aabb: BoundingBox;
+
+  constructor(dataModel: iGeometryBuilder) {
+    this.setPositions(dataModel.positions);
+
+    if (dataModel.indices) {
+      this.setIndices(dataModel.indices);
+    }
+
+    this._aabb = new BoundingBox();
+    this.update();
+  }
 
   // when mesh API to modify vertex / index data are used, this allocates structure to store the data
   private _initGeometryData() {
@@ -16,7 +37,7 @@ export class Geometry {
       }
 
       // if index buffer exists already, store the sizes
-      if (this.indexBuffer.length > 0 && this.indexBuffer[0]) {
+      if (this.indexBuffer && this.indexBuffer.length > 0 && this.indexBuffer[0]) {
         this._geometryData.indexCount = this.indexBuffer[0].numIndices;
         this._geometryData.maxIndices = this.indexBuffer[0].numIndices;
       }
@@ -36,18 +57,27 @@ export class Geometry {
    * @param {number} [numVertices] - The number of vertices to be used from data array. If not
    * provided, the whole data array is used. This allows to use only part of the data array.
    * @param {number} [dataType] - The format of data when stored in the {@link VertexBuffer}, see
-   * TYPE_* in {@link VertexFormat}. When not specified, {@link TYPE_FLOAT32} is used.
+   * TYPE_* in {@link VertexFormat}. When not specified, {@link VertexElementType.TYPE_FLOAT32} is used.
    * @param {boolean} [dataTypeNormalize] - If true, vertex attribute data will be mapped from a
    * 0 to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data is left
    * unchanged. If this property is unspecified, false is assumed.
    */
-  setVertexStream(semantic: VertexSemantic, data, componentCount, numVertices, dataType = TYPE_FLOAT32, dataTypeNormalize = false) {
+  private _setVertexStream(
+    semantic: VertexSemantic,
+    data: number[],
+    componentCount: number,
+    numVertices?: number,
+    dataType: VertexElementType = VertexElementType.TYPE_FLOAT32,
+    dataTypeNormalize: boolean = false
+  ): void {
     this._initGeometryData();
     const vertexCount = numVertices || data.length / componentCount;
     this._geometryData._changeVertexCount(vertexCount, semantic);
     this._geometryData.vertexStreamsUpdated = true;
 
-    this._geometryData.vertexStreamDictionary[semantic] = new GeometryVertexStream(data, componentCount, dataType, dataTypeNormalize);
+    if (this._geometryData.vertexStreamDictionary) {
+      this._geometryData.vertexStreamDictionary[semantic] = new GeometryVertexStream(data, componentCount, dataType, dataTypeNormalize);
+    }
   }
 
   /**
@@ -60,7 +90,7 @@ export class Geometry {
    * be reserved, otherwise only partial data is copied.
    * @returns {number} Returns the number of vertices populated.
    */
-  getVertexStream(semantic: VertexSemantic, data) {
+  private _getVertexStream(semantic: VertexSemantic, data: VertexElementType[]): number {
     let count = 0;
     let done = false;
 
@@ -73,24 +103,90 @@ export class Geometry {
 
         if (ArrayBuffer.isView(data)) {
           // destination data is typed array
-          data.set(stream.data);
+          (data as any).set(stream.data);
         } else {
           // destination data is array
           data.length = 0;
-          data.push(stream.data);
+          (data as any).push(stream.data);
         }
       }
     }
+    return count;
+  }
 
-    if (!done) {
-      // get stream from VertexBuffer
-      if (this.vertexBuffer) {
-        // note: there is no need to .end the iterator, as we are only reading data from it
-        const iterator = new VertexIterator(this.vertexBuffer);
-        count = iterator.readData(semantic, data);
+  setPositions(positions: number[], componentCount?: number, numVertices?: number) {
+    if (componentCount === undefined) {
+      componentCount = GeometryData.DEFAULT_COMPONENTS_POSITION;
+    }
+    this._setVertexStream(VertexSemantic.SEMANTIC_POSITION, positions, componentCount, numVertices, VertexElementType.TYPE_FLOAT32, false);
+  }
+  setNormals(normals: number[], componentCount = GeometryData.DEFAULT_COMPONENTS_NORMAL, numVertices: number) {
+    this._setVertexStream(VertexSemantic.SEMANTIC_NORMAL, normals, componentCount, numVertices, VertexElementType.TYPE_FLOAT32, false);
+  }
+  setUvs(channel: number, uvs: number[], componentCount = GeometryData.DEFAULT_COMPONENTS_UV, numVertices: number) {
+    const semantic = (VertexSemantic.SEMANTIC_TEXCOORD + channel) as VertexSemantic;
+    this._setVertexStream(semantic, uvs, componentCount, numVertices, VertexElementType.TYPE_FLOAT32, false);
+  }
+  setIndices(indices: number[], numIndices?: number) {
+    this._initGeometryData();
+    this._geometryData.indexStreamUpdated = true;
+    this._geometryData.indices = indices;
+    this._geometryData.indexCount = numIndices || indices.length;
+  }
+
+  getPositions(positions: []) {
+    return this._getVertexStream(VertexSemantic.SEMANTIC_POSITION, positions);
+  }
+  getNormals(normals: []) {
+    return this._getVertexStream(VertexSemantic.SEMANTIC_NORMAL, normals);
+  }
+  getUvs(channel: number, uvs: []) {
+    const semantic = (VertexSemantic.SEMANTIC_TEXCOORD + channel) as VertexSemantic;
+    return this._getVertexStream(semantic, uvs);
+  }
+  getIndices(indices: number[] | Uint8Array | Uint16Array | Uint32Array) {
+    let count = 0;
+
+    // see if we have un-applied indices
+    if (this._geometryData && this._geometryData.indices) {
+      const streamIndices = this._geometryData.indices;
+      count = this._geometryData.indexCount;
+
+      if (ArrayBuffer.isView(indices)) {
+        // destination data is typed array
+        indices.set(streamIndices);
+      } else {
+        // destination data is array
+        indices.length = 0;
+        (indices as any).push(streamIndices);
+      }
+    } else {
+      // get data from IndexBuffer
+      if (this.indexBuffer.length > 0 && this.indexBuffer[0]) {
+        const indexBuffer = this.indexBuffer[0];
+        count = indexBuffer.readData(indices);
       }
     }
 
     return count;
+  }
+
+  update(primitiveType?: PrimitiveType, updateBoundingBox: boolean = true) {
+    if (primitiveType === undefined) {
+      primitiveType = PrimitiveType.TRIANGLES;
+    }
+
+    if (!this._geometryData) return;
+
+    // update bounding box if needed
+    if (updateBoundingBox) {
+      // find vec3 position stream
+      const stream = this._geometryData.vertexStreamDictionary[VertexSemantic.SEMANTIC_POSITION];
+      if (stream) {
+        if (stream.componentCount === 3) {
+          this._aabb.compute(stream.data, this._geometryData.vertexCount);
+        }
+      }
+    }
   }
 }

@@ -2,6 +2,11 @@
  * A 4-dimensional vector.
  */
 class Vec4 {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+
     /**
      * Creates a new Vec4 object.
      *
@@ -13,38 +18,11 @@ class Vec4 {
      * @example
      * var v = new pc.Vec4(1, 2, 3, 4);
      */
-    constructor(x = 0, y = 0, z = 0, w = 0) {
-        if (x.length === 4) {
-            /**
-             * The first component of the vector.
-             *
-             * @type {number}
-             */
-            this.x = x[0];
-            /**
-             * The second component of the vector.
-             *
-             * @type {number}
-             */
-            this.y = x[1];
-            /**
-             * The third component of the vector.
-             *
-             * @type {number}
-             */
-            this.z = x[2];
-            /**
-             * The fourth component of the vector.
-             *
-             * @type {number}
-             */
-            this.w = x[3];
-        } else {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.w = w;
-        }
+    constructor(x: number= 0, y: number = 0, z: number = 0, w: number = 0) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
     /**
@@ -61,7 +39,7 @@ class Vec4 {
      * // Outputs [30, 30, 30]
      * console.log("The result of the addition is: " + a.toString());
      */
-    add(rhs) {
+    add(rhs: Vec4): Vec4 {
         this.x += rhs.x;
         this.y += rhs.y;
         this.z += rhs.z;
@@ -86,7 +64,7 @@ class Vec4 {
      *
      * console.log("The result of the addition is: " + r.toString());
      */
-    add2(lhs, rhs) {
+    add2(lhs: Vec4, rhs: Vec4): Vec4 {
         this.x = lhs.x + rhs.x;
         this.y = lhs.y + rhs.y;
         this.z = lhs.z + rhs.z;
@@ -108,7 +86,7 @@ class Vec4 {
      * // Outputs [5, 6, 7, 8]
      * console.log("The result of the addition is: " + vec.toString());
      */
-    addScalar(scalar) {
+    addScalar(scalar: number): Vec4 {
         this.x += scalar;
         this.y += scalar;
         this.z += scalar;
@@ -126,7 +104,7 @@ class Vec4 {
      * var vclone = v.clone();
      * console.log("The result of the cloning is: " + vclone.toString());
      */
-    clone() {
+    clone(): Vec4 {
         return new Vec4(this.x, this.y, this.z, this.w);
     }
 
@@ -143,7 +121,7 @@ class Vec4 {
      *
      * console.log("The two vectors are " + (dst.equals(src) ? "equal" : "different"));
      */
-    copy(rhs) {
+    copy(rhs: Vec4): Vec4 {
         this.x = rhs.x;
         this.y = rhs.y;
         this.z = rhs.z;
@@ -166,7 +144,7 @@ class Vec4 {
      * // Outputs [2, 3, 4, 5]
      * console.log("The result of the division is: " + a.toString());
      */
-    div(rhs) {
+    div(rhs: Vec4): Vec4 {
         this.x /= rhs.x;
         this.y /= rhs.y;
         this.z /= rhs.z;
@@ -191,7 +169,7 @@ class Vec4 {
      *
      * console.log("The result of the division is: " + r.toString());
      */
-    div2(lhs, rhs) {
+    div2(lhs: Vec4, rhs: Vec4): Vec4 {
         this.x = lhs.x / rhs.x;
         this.y = lhs.y / rhs.y;
         this.z = lhs.z / rhs.z;
@@ -213,7 +191,7 @@ class Vec4 {
      * // Outputs [1, 2, 3, 4]
      * console.log("The result of the division is: " + vec.toString());
      */
-    divScalar(scalar) {
+    divScalar(scalar: number): Vec4 {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
@@ -234,7 +212,7 @@ class Vec4 {
      * var v1dotv2 = v1.dot(v2);
      * console.log("The result of the dot product is: " + v1dotv2);
      */
-    dot(rhs) {
+    dot(rhs: Vec4): number {
         return this.x * rhs.x + this.y * rhs.y + this.z * rhs.z + this.w * rhs.w;
     }
 
@@ -248,7 +226,7 @@ class Vec4 {
      * var b = new pc.Vec4(5, 6, 7, 8);
      * console.log("The two vectors are " + (a.equals(b) ? "equal" : "different"));
      */
-    equals(rhs) {
+    equals(rhs: Vec4): boolean {
         return this.x === rhs.x && this.y === rhs.y && this.z === rhs.z && this.w === rhs.w;
     }
 
@@ -262,7 +240,7 @@ class Vec4 {
      * // Outputs 5
      * console.log("The length of the vector is: " + len);
      */
-    length() {
+    length(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
     }
 
@@ -276,7 +254,7 @@ class Vec4 {
      * // Outputs 25
      * console.log("The length squared of the vector is: " + len);
      */
-    lengthSq() {
+    lengthSq(): number {
         return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
     }
 
@@ -298,7 +276,7 @@ class Vec4 {
      * r.lerp(a, b, 0.5); // r is 5, 5, 5, 5
      * r.lerp(a, b, 1);   // r is equal to b
      */
-    lerp(lhs, rhs, alpha) {
+    lerp(lhs: Vec4, rhs: Vec4, alpha: number): Vec4 {
         this.x = lhs.x + alpha * (rhs.x - lhs.x);
         this.y = lhs.y + alpha * (rhs.y - lhs.y);
         this.z = lhs.z + alpha * (rhs.z - lhs.z);
@@ -321,7 +299,7 @@ class Vec4 {
      * // Outputs 8, 15, 24, 35
      * console.log("The result of the multiplication is: " + a.toString());
      */
-    mul(rhs) {
+    mul(rhs: Vec4): Vec4 {
         this.x *= rhs.x;
         this.y *= rhs.y;
         this.z *= rhs.z;
@@ -346,7 +324,7 @@ class Vec4 {
      * // Outputs 8, 15, 24, 35
      * console.log("The result of the multiplication is: " + r.toString());
      */
-    mul2(lhs, rhs) {
+    mul2(lhs: Vec4, rhs: Vec4): Vec4 {
         this.x = lhs.x * rhs.x;
         this.y = lhs.y * rhs.y;
         this.z = lhs.z * rhs.z;
@@ -368,7 +346,7 @@ class Vec4 {
      * // Outputs [9, 18, 27, 36]
      * console.log("The result of the multiplication is: " + vec.toString());
      */
-    mulScalar(scalar) {
+    mulScalar(scalar: number): Vec4 {
         this.x *= scalar;
         this.y *= scalar;
         this.z *= scalar;
@@ -390,7 +368,7 @@ class Vec4 {
      * // Outputs 1, 0, 0, 0
      * console.log("The result of the vector normalization is: " + v.toString());
      */
-    normalize() {
+    normalize(): Vec4 {
         const lengthSq = this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
         if (lengthSq > 0) {
             const invLength = 1 / Math.sqrt(lengthSq);
@@ -408,7 +386,7 @@ class Vec4 {
      *
      * @returns {Vec4} Self for chaining.
      */
-    floor() {
+    floor(): Vec4 {
         this.x = Math.floor(this.x);
         this.y = Math.floor(this.y);
         this.z = Math.floor(this.z);
@@ -421,7 +399,7 @@ class Vec4 {
      *
      * @returns {Vec4} Self for chaining.
      */
-    ceil() {
+    ceil(): Vec4 {
         this.x = Math.ceil(this.x);
         this.y = Math.ceil(this.y);
         this.z = Math.ceil(this.z);
@@ -434,7 +412,7 @@ class Vec4 {
      *
      * @returns {Vec4} Self for chaining.
      */
-    round() {
+    round(): Vec4 {
         this.x = Math.round(this.x);
         this.y = Math.round(this.y);
         this.z = Math.round(this.z);
@@ -448,7 +426,7 @@ class Vec4 {
      * @param {Vec4} rhs - The 4-dimensional vector used as the source of elements to compare to.
      * @returns {Vec4} Self for chaining.
      */
-    min(rhs) {
+    min(rhs: Vec4): Vec4 {
         if (rhs.x < this.x) this.x = rhs.x;
         if (rhs.y < this.y) this.y = rhs.y;
         if (rhs.z < this.z) this.z = rhs.z;
@@ -462,7 +440,7 @@ class Vec4 {
      * @param {Vec4} rhs - The 4-dimensional vector used as the source of elements to compare to.
      * @returns {Vec4} Self for chaining.
      */
-    max(rhs) {
+    max(rhs: Vec4): Vec4 {
         if (rhs.x > this.x) this.x = rhs.x;
         if (rhs.y > this.y) this.y = rhs.y;
         if (rhs.z > this.z) this.z = rhs.z;
@@ -485,7 +463,7 @@ class Vec4 {
      * // Outputs 5, 10, 20, 40
      * console.log("The result of the vector set is: " + v.toString());
      */
-    set(x, y, z, w) {
+    set(x: number, y: number, z: number, w: number): Vec4 {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -508,7 +486,7 @@ class Vec4 {
      * // Outputs [-10, -10, -10, -10]
      * console.log("The result of the subtraction is: " + a.toString());
      */
-    sub(rhs) {
+    sub(rhs: Vec4): Vec4 {
         this.x -= rhs.x;
         this.y -= rhs.y;
         this.z -= rhs.z;
@@ -533,7 +511,7 @@ class Vec4 {
      * // Outputs [-10, -10, -10, -10]
      * console.log("The result of the subtraction is: " + r.toString());
      */
-    sub2(lhs, rhs) {
+    sub2(lhs: Vec4, rhs: Vec4): Vec4 {
         this.x = lhs.x - rhs.x;
         this.y = lhs.y - rhs.y;
         this.z = lhs.z - rhs.z;
@@ -555,7 +533,7 @@ class Vec4 {
      * // Outputs [1, 2, 3, 4]
      * console.log("The result of the subtraction is: " + vec.toString());
      */
-    subScalar(scalar) {
+    subScalar(scalar: number): Vec4 {
         this.x -= scalar;
         this.y -= scalar;
         this.z -= scalar;
@@ -573,7 +551,7 @@ class Vec4 {
      * // Outputs [20, 10, 5, 0]
      * console.log(v.toString());
      */
-    toString() {
+    toString(): string {
         return `[${this.x}, ${this.y}, ${this.z}, ${this.w}]`;
     }
 
@@ -583,7 +561,7 @@ class Vec4 {
      * @type {Vec4}
      * @readonly
      */
-    static ZERO = Object.freeze(new Vec4(0, 0, 0, 0));
+    static ZERO: Vec4 = Object.freeze(new Vec4(0, 0, 0, 0));
 
     /**
      * A constant vector set to [1, 1, 1, 1].
@@ -591,7 +569,7 @@ class Vec4 {
      * @type {Vec4}
      * @readonly
      */
-    static ONE = Object.freeze(new Vec4(1, 1, 1, 1));
+    static ONE: Vec4 = Object.freeze(new Vec4(1, 1, 1, 1));
 }
 
 export { Vec4 };

@@ -57,8 +57,4 @@ export interface iCapabilities {
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext
 export interface EngineOptions extends WebGLContextAttributes {}
 
-export enum Usage {
-  DYNAMIC = BUFFER_DYNAMIC,
-  STATIC = BUFFER_STATIC,
-  STREAM = BUFFER_STREAM,
-}
+

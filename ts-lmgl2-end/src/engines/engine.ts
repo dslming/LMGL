@@ -22,6 +22,7 @@ export class Engine extends EventHandler {
 
   public _vram = {
     ib: 0,
+    vb: 0,
   };
 
   constructor(canvas: HTMLCanvasElement, options?: EngineOptions) {

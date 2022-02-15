@@ -1,18 +1,18 @@
 import { Vec2 } from "../maths/math.vec2";
 import { Vec3 } from "../maths/math.vec3";
-import { DataArray, FloatArray, IndicesArray, Nullable } from "../types";
+import { Nullable } from "../types";
+
 export interface iGeometryBuilder {
-  positions: Nullable<FloatArray>;
-  normals: Nullable<FloatArray>;
-  // vertexTextureCoords: DataArray;
-  indices: Nullable<IndicesArray>;
-  uvs: Nullable<FloatArray>;
+  positions: number[];
+  normals: Nullable<number[]>;
+  indices: Nullable<number[]>;
+  uvs: Nullable<number[]>;
 }
 
 const primitiveUv1Padding = 4.0 / 64;
 const primitiveUv1PaddingScale = 1.0 - primitiveUv1Padding * 2;
 
-export function boxBuilder(opts: any): iGeometryBuilder {
+export function boxBuilder(opts?: any): iGeometryBuilder {
   // Check the supplied options and provide defaults for unspecified ones
   const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new Vec3(0.5, 0.5, 0.5);
   const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 1;
@@ -185,10 +185,10 @@ export function createPlane(opts: any): iGeometryBuilder {
   const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
 
   // Variable declarations
-  const positions = [];
-  const normals = [];
-  const uvs = [];
-  const indices = [];
+  const positions: Array<number> = [];
+  const normals: Array<number> = [];
+  const uvs: Array<number> = [];
+  const indices: Array<number> = [];
 
   // Generate plane as follows (assigned UVs denoted at corners):
   // (0,1)x---------x(1,1)

@@ -1,6 +1,25 @@
 import { BUFFER_STATIC } from "../constants";
 import { Logger } from "../misc/logger";
-import { VertexSemantic } from "../engines/vertex.format";
+import { VertexElementType, VertexSemantic } from "../engines/vertex.format";
+
+// class storing information about single vertex data stream
+export class GeometryVertexStream {
+  data: number[];
+  componentCount: number;
+  dataType: VertexElementType;
+  dataTypeNormalize: boolean;
+
+  constructor(data: number[], componentCount: number, dataType: VertexElementType, dataTypeNormalize: boolean) {
+    // array of data
+    this.data = data;
+    // number of components
+    this.componentCount = componentCount;
+    // format of elements (pc.TYPE_FLOAT32 ..)
+    this.dataType = dataType;
+    // normalize element (divide by 255)
+    this.dataTypeNormalize = dataTypeNormalize;
+  }
+}
 
 // Helper class used to store vertex / index data streams and related properties, when mesh is programmatically modified
 export class GeometryData {
@@ -19,8 +38,11 @@ export class GeometryData {
   indexCount: number;
   vertexStreamsUpdated: boolean;
   indexStreamUpdated: boolean;
-  vertexStreamDictionary: {};
-  indices: null;
+
+  vertexStreamDictionary: {
+    [key: string]: GeometryVertexStream;
+  };
+  indices: number[]|null;
 
   constructor() {
     this.initDefaults();

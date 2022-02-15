@@ -1,6 +1,5 @@
-import { Usage } from "../engine.interface.js";
-import { Engine } from "../engine.js";
-import { WebglBuffer } from "./webgl-buffer.js";
+import { Engine } from "../engine";
+import { BufferUsage, WebglBuffer } from "./webgl-buffer";
 
 /**
  * A WebGL implementation of the VertexBuffer.
@@ -24,7 +23,7 @@ class WebglVertexBuffer extends WebglBuffer {
     this.vao = null;
   }
 
-  unlock(device: Engine, usage: Usage, storage: ArrayBuffer) {
+  unlock(device: Engine, usage: BufferUsage, storage: ArrayBuffer) {
     super._unlock(device, usage, device.gl.ARRAY_BUFFER, storage);
   }
 }

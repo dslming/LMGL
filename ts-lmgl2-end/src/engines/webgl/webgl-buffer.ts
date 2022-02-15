@@ -1,7 +1,12 @@
-import { BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM } from "../../constants.js";
 import { Nullable } from "../../types.js";
-import { Usage } from "../engine.interface.js";
 import { Engine } from "../engine.js";
+
+export enum BufferUsage {
+  DYNAMIC = 0,
+  STATIC = 1,
+  STREAM = 2,
+  GPUDYNAMIC =3
+}
 
 /**
  * A WebGL implementation of the Buffer.
@@ -22,7 +27,7 @@ class WebglBuffer {
     this.bufferId = null;
   }
 
-  protected _unlock(device: Engine, usage: Usage, target: number, storage: ArrayBuffer) {
+  protected _unlock(device: Engine, usage: BufferUsage, target: number, storage: ArrayBuffer) {
     const gl = device.gl;
 
     if (!this.bufferId) {
@@ -31,16 +36,16 @@ class WebglBuffer {
 
     let glUsage: number;
     switch (usage) {
-      case BUFFER_STATIC:
+      case BufferUsage.STATIC:
         glUsage = gl.STATIC_DRAW;
         break;
-      case BUFFER_DYNAMIC:
+      case BufferUsage.DYNAMIC:
         glUsage = gl.DYNAMIC_DRAW;
         break;
-      case BUFFER_STREAM:
+      case BufferUsage.STREAM:
         glUsage = gl.STREAM_DRAW;
         break;
-      case BUFFER_GPUDYNAMIC:
+      case BufferUsage.GPUDYNAMIC:
         if (device.webgl2) {
           glUsage = gl.DYNAMIC_COPY;
         } else {

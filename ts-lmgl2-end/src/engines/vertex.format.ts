@@ -1,4 +1,8 @@
 import { typedArrayTypesByteSize } from "../constants";
+import { MathTool } from "../maths/math.tool";
+import { hashCode } from "../misc/hash";
+import { Logger } from "../misc/logger";
+import { Nullable } from "../types";
 import { Engine } from "./engine";
 
 /**
@@ -24,6 +28,7 @@ export enum VertexSemantic {
   SEMANTIC_BLENDWEIGHT = "BLENDWEIGHT",
   SEMANTIC_BLENDINDICES = "BLENDINDICES",
   SEMANTIC_COLOR = "COLOR",
+  SEMANTIC_TEXCOORD = "TEXCOORD",
   SEMANTIC_TEXCOORD0 = "TEXCOORD0",
   SEMANTIC_TEXCOORD1 = "TEXCOORD1",
   SEMANTIC_TEXCOORD2 = "TEXCOORD2",
@@ -32,77 +37,57 @@ export enum VertexSemantic {
   SEMANTIC_TEXCOORD5 = "TEXCOORD5",
   SEMANTIC_TEXCOORD6 = "TEXCOORD6",
   SEMANTIC_TEXCOORD7 = "TEXCOORD7",
+
+  SEMANTIC_ATTR0 = "ATTR0",
+  SEMANTIC_ATTR1 = "ATTR1",
+  SEMANTIC_ATTR2 = "ATTR2",
+  SEMANTIC_ATTR3 = "ATTR3",
+  SEMANTIC_ATTR4 = "ATTR4",
+  SEMANTIC_ATTR5 = "ATTR5",
+  SEMANTIC_ATTR6 = "ATTR6",
+  SEMANTIC_ATTR7 = "ATTR7",
+  SEMANTIC_ATTR8 = "ATTR8",
+  SEMANTIC_ATTR9 = "ATTR9",
+  SEMANTIC_ATTR10 = "ATTR10",
+  SEMANTIC_ATTR11 = "ATTR11",
+  SEMANTIC_ATTR12 = "ATTR12",
+  SEMANTIC_ATTR13 = "ATTR13",
+  SEMANTIC_ATTR14 = "ATTR14",
+  SEMANTIC_ATTR15 = "ATTR15",
 }
 
 export interface iVertexDescription {
-  offset: any;
-  stride: any;
+  offset?: number;
+  stride?: number;
   semantic: VertexSemantic;
+  normalize?: boolean;
+
   // Can be 1, 2, 3 or 4.
-  components: number;
-  name: string;
-  type: VertexElementType;
-  normalize: boolean;
   numComponents: number;
+  dataType: VertexElementType;
 }
 
-/**
- * A vertex format is a descriptor that defines the layout of vertex data inside a
- * {@link VertexBuffer}.
- *
- * @property {object[]} elements The vertex attribute elements.
- * @property {string} elements[].name The meaning of the vertex element. This is used to link the
- * vertex data to a shader input. Can be: VertexSemantic
- *
- * If vertex data has a meaning other that one of those listed above, use the user-defined
- * semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
- * @property {number} elements[].numComponents The number of components of the vertex attribute.
- * Can be 1, 2, 3 or 4.
- * @property {number} elements[].dataType The data type of the attribute. Can be:
- *
- * - {@link TYPE_INT8}
- * - {@link TYPE_UINT8}
- * - {@link TYPE_INT16}
- * - {@link TYPE_UINT16}
- * - {@link TYPE_INT32}
- * - {@link TYPE_UINT32}
- * - {@link TYPE_FLOAT32}
- * @property {boolean} elements[].normalize If true, vertex attribute data will be mapped from a 0
- * to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data is left
- * unchanged. If this property is unspecified, false is assumed.
- * @property {number} elements[].offset The number of initial bytes at the start of a vertex that
- * are not relevant to this attribute.
- * @property {number} elements[].stride The number of total bytes that are between the start of one
- * vertex, and the start of the next.
- * @property {number} elements[].size The size of the attribute in bytes.
- */
+interface iVertexElement extends iVertexDescription{
+  size: number
+}
+
 export class VertexFormat {
-  _elements: never[];
-  hasUv0: boolean;
-  hasUv1: boolean;
-  hasColor: boolean;
-  hasTangents: boolean;
-  verticesByteSize: number;
-  vertexCount: number;
-  interleaved: boolean;
-  size: number;
-  batchingHash: any;
-  renderingingHash: any;
+  private _elements: iVertexElement[];
+  public hasUv0: boolean;
+  public hasUv1: boolean;
+  public hasColor: boolean;
+  public hasTangents: boolean;
+  public verticesByteSize: number;
+  public vertexCount: number|undefined;
+  public interleaved: boolean;
+  public size: number;
+  public batchingHash: any;
+  public renderingingHash: any;
 
   /**
    * Create a new VertexFormat instance.
    *
    * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this vertex format.
-   * @param {object[]} description - An array of vertex attribute descriptions.
-   * @param {string} description[].semantic - The meaning of the vertex element. This is used to link
-   * the vertex data to a shader input. Can be: VertexSemantic
-   * If vertex data has a meaning other that one of those listed above, use the user-defined
-   * semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
-   * @param {number} description[].components - The number of components of the vertex attribute.
-   * Can be 1, 2, 3 or 4.
-   * @param {number} description[].type - The data type of the attribute. Can be:
-   *
-   * @param {boolean} [description[].normalize] - If true, vertex attribute data will be mapped
    * from a 0 to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data
    * is left unchanged. If this property is unspecified, false is assumed.
    * @param {number} [vertexCount] - When specified, vertex format will be set up for
@@ -124,7 +109,7 @@ export class VertexFormat {
    *     { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
    * ]);
    */
-  constructor(graphicsDevice: Engine, description: Array<iVertexDescription>, vertexCount: number) {
+  constructor(graphicsDevice: Nullable<Engine>, description: Array<iVertexDescription>, vertexCount?: number) {
     this._elements = [];
     this.hasUv0 = false;
     this.hasUv1 = false;
@@ -136,30 +121,30 @@ export class VertexFormat {
 
     // calculate total size of the vertex
     this.size = description.reduce((total, desc) => {
-      return total + Math.ceil((desc.components * typedArrayTypesByteSize[desc.type]) / 4) * 4;
+      return total + Math.ceil((desc.numComponents * typedArrayTypesByteSize[desc.dataType]) / 4) * 4;
     }, 0);
 
-    let offset = 0,
-      elementSize;
+    let offset = 0;
+    let elementSize;
     for (let i = 0, len = description.length; i < len; i++) {
       const elementDesc = description[i];
 
       // align up the offset to elementSize (when vertexCount is specified only - case of non-interleaved format)
-      elementSize = elementDesc.components * typedArrayTypesByteSize[elementDesc.type];
+      elementSize = elementDesc.numComponents * typedArrayTypesByteSize[elementDesc.dataType];
       if (vertexCount) {
-        offset = math.roundUp(offset, elementSize);
+        offset = MathTool.roundUp(offset, elementSize);
 
         // non-interleaved format with elementSize not multiple of 4 might be slower on some platforms - padding is recommended to align its size
         // example: use 4 x TYPE_UINT8 instead of 3 x TYPE_UINT8
-        Debug.assert(elementSize % 4 === 0, `Non-interleaved vertex format with element size not multiple of 4 can have performance impact on some platforms. Element size: ${elementSize}`);
+        Logger.Assert(elementSize % 4 === 0, `Non-interleaved vertex format with element size not multiple of 4 can have performance impact on some platforms. Element size: ${elementSize}`);
       }
 
-      const element = {
-        name: elementDesc.semantic,
+      const element: iVertexElement = {
         offset: vertexCount ? offset : elementDesc.hasOwnProperty("offset") ? elementDesc.offset : offset,
         stride: vertexCount ? elementSize : elementDesc.hasOwnProperty("stride") ? elementDesc.stride : this.size,
-        dataType: elementDesc.type,
-        numComponents: elementDesc.components,
+        semantic: elementDesc.semantic,
+        numComponents: elementDesc.numComponents,
+        dataType: elementDesc.dataType,
         normalize: elementDesc.normalize === undefined ? false : elementDesc.normalize,
         size: elementSize,
       };
@@ -171,13 +156,13 @@ export class VertexFormat {
         offset += Math.ceil(elementSize / 4) * 4;
       }
 
-      if (elementDesc.semantic === SEMANTIC_TEXCOORD0) {
+      if (elementDesc.semantic === VertexSemantic.SEMANTIC_TEXCOORD0) {
         this.hasUv0 = true;
-      } else if (elementDesc.semantic === SEMANTIC_TEXCOORD1) {
+      } else if (elementDesc.semantic === VertexSemantic.SEMANTIC_TEXCOORD1) {
         this.hasUv1 = true;
-      } else if (elementDesc.semantic === SEMANTIC_COLOR) {
+      } else if (elementDesc.semantic === VertexSemantic.SEMANTIC_COLOR) {
         this.hasColor = true;
-      } else if (elementDesc.semantic === SEMANTIC_TANGENT) {
+      } else if (elementDesc.semantic === VertexSemantic.SEMANTIC_TANGENT) {
         this.hasTangents = true;
       }
     }
@@ -197,7 +182,7 @@ export class VertexFormat {
    * @type {VertexFormat}
    * @private
    */
-  static _defaultInstancingFormat = null;
+  static _defaultInstancingFormat: VertexFormat;
 
   /**
    * The {@link VertexFormat} used to store matrices of type {@link Mat4} for hardware instancing.
@@ -207,10 +192,10 @@ export class VertexFormat {
   static get defaultInstancingFormat() {
     if (!VertexFormat._defaultInstancingFormat) {
       VertexFormat._defaultInstancingFormat = new VertexFormat(null, [
-        { semantic: SEMANTIC_ATTR12, components: 4, type: TYPE_FLOAT32 },
-        { semantic: SEMANTIC_ATTR13, components: 4, type: TYPE_FLOAT32 },
-        { semantic: SEMANTIC_ATTR14, components: 4, type: TYPE_FLOAT32 },
-        { semantic: SEMANTIC_ATTR15, components: 4, type: TYPE_FLOAT32 },
+        { semantic: VertexSemantic.SEMANTIC_ATTR12, numComponents: 4, dataType: VertexElementType.TYPE_FLOAT32 },
+        { semantic: VertexSemantic.SEMANTIC_ATTR13, numComponents: 4, dataType: VertexElementType.TYPE_FLOAT32 },
+        { semantic: VertexSemantic.SEMANTIC_ATTR14, numComponents: 4, dataType: VertexElementType.TYPE_FLOAT32 },
+        { semantic: VertexSemantic.SEMANTIC_ATTR15, numComponents: 4, dataType: VertexElementType.TYPE_FLOAT32 },
       ]);
     }
 
@@ -223,7 +208,7 @@ export class VertexFormat {
    * @private
    */
   _evaluateHash() {
-    let stringElementBatch;
+    let stringElementBatch = "";
     const stringElementsBatch = [];
     let stringElementRender;
     const stringElementsRender = [];
@@ -232,7 +217,7 @@ export class VertexFormat {
       const element = this._elements[i];
 
       // create string description of each element that is relevant for batching
-      stringElementBatch = element.name;
+      stringElementBatch = element.semantic;
       stringElementBatch += element.dataType;
       stringElementBatch += element.numComponents;
       stringElementBatch += element.normalize;

@@ -20,6 +20,11 @@ class App {
       powerPreference: "default",
     });
 
+    const boxModel: EasyCG.iGeometryBuilder = EasyCG.boxBuilder();
+    const geometry = new EasyCG.Geometry(boxModel);
+
+    console.error(geometry);
+
     // var scene = BABYLON.creator(BABYLON.Scene, engine);
     this.app.runRenderLoop(() => {
       // console.error(123);
