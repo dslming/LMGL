@@ -70,6 +70,8 @@ interface WebGLRenderingContext {
   ANY_SAMPLES_PASSED: number;
   QUERY_RESULT_AVAILABLE: number;
   QUERY_RESULT: number;
+
+  readonly DYNAMIC_COPY: GLenum;
 }
 
 interface WebGLProgram {

@@ -1,3 +1,5 @@
+import { BUFFER_DYNAMIC, BUFFER_STATIC, BUFFER_STREAM } from "../constants";
+
 export interface iExtensions {
   /** Defines if float color buffer are supported */
   extColorBufferFloat: any;
@@ -54,3 +56,9 @@ export interface iCapabilities {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext
 export interface EngineOptions extends WebGLContextAttributes {}
+
+export enum Usage {
+  DYNAMIC = BUFFER_DYNAMIC,
+  STATIC = BUFFER_STATIC,
+  STREAM = BUFFER_STREAM,
+}

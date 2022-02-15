@@ -5,6 +5,7 @@ import { EngineOptions, iCapabilities, iExtensions } from "./engine.interface";
 
 import { EngineDraw } from "./engine.draw";
 import { EngineViewPort } from "./engine.viewPort";
+import { EngineBuffer } from "./engine.buffer";
 
 export class Engine extends EventHandler {
   public gl: WebGLRenderingContext;
@@ -17,6 +18,11 @@ export class Engine extends EventHandler {
   // 模块
   public engineDraw: EngineDraw;
   public engineViewPort: EngineViewPort;
+  public engineBuffer: EngineBuffer;
+
+  public _vram = {
+    ib: 0,
+  };
 
   constructor(canvas: HTMLCanvasElement, options?: EngineOptions) {
     super();
@@ -34,6 +40,7 @@ export class Engine extends EventHandler {
 
     this.engineDraw = new EngineDraw(this);
     this.engineViewPort = new EngineViewPort(this);
+    this.engineBuffer = new EngineBuffer(this);
   }
 
   private _contextLostHandler(event: Event) {

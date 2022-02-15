@@ -8,7 +8,7 @@ import {
   PRIMITIVE_TRIANGLES,
   PRIMITIVE_TRISTRIP,
   PRIMITIVE_TRIFAN
-} from "./constants";
+} from "../constants";
 
 export enum PrimitiveType {
   POINTS = PRIMITIVE_POINTS,
@@ -23,7 +23,7 @@ export enum PrimitiveType {
 export interface Primitive {
   type: PrimitiveType;
   indexed: boolean;
-  count: number
+  count: number;
 }
 
 export class EngineDraw {

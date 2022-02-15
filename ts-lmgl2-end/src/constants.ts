@@ -25,133 +25,133 @@ export const ADDRESS_MIRRORED_REPEAT: number = 2;
  *
  * @type {number}
  */
-export const BLENDMODE_ZERO = 0;
+export const BLENDMODE_ZERO: number = 0;
 
 /**
  * Multiply all fragment components by one.
  *
  * @type {number}
  */
-export const BLENDMODE_ONE = 1;
+export const BLENDMODE_ONE: number = 1;
 
 /**
  * Multiply all fragment components by the components of the source fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_SRC_COLOR = 2;
+export const BLENDMODE_SRC_COLOR: number = 2;
 
 /**
  * Multiply all fragment components by one minus the components of the source fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_ONE_MINUS_SRC_COLOR = 3;
+export const BLENDMODE_ONE_MINUS_SRC_COLOR: number = 3;
 
 /**
  * Multiply all fragment components by the components of the destination fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_DST_COLOR = 4;
+export const BLENDMODE_DST_COLOR: number = 4;
 
 /**
  * Multiply all fragment components by one minus the components of the destination fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_ONE_MINUS_DST_COLOR = 5;
+export const BLENDMODE_ONE_MINUS_DST_COLOR: number = 5;
 
 /**
  * Multiply all fragment components by the alpha value of the source fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_SRC_ALPHA = 6;
+export const BLENDMODE_SRC_ALPHA: number = 6;
 
 /**
  * Multiply all fragment components by the alpha value of the source fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_SRC_ALPHA_SATURATE = 7;
+export const BLENDMODE_SRC_ALPHA_SATURATE: number = 7;
 
 /**
  * Multiply all fragment components by one minus the alpha value of the source fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_ONE_MINUS_SRC_ALPHA = 8;
+export const BLENDMODE_ONE_MINUS_SRC_ALPHA: number = 8;
 
 /**
  * Multiply all fragment components by the alpha value of the destination fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_DST_ALPHA = 9;
+export const BLENDMODE_DST_ALPHA: number = 9;
 
 /**
  * Multiply all fragment components by one minus the alpha value of the destination fragment.
  *
  * @type {number}
  */
-export const BLENDMODE_ONE_MINUS_DST_ALPHA = 10;
+export const BLENDMODE_ONE_MINUS_DST_ALPHA: number = 10;
 
 /**
  * Add the results of the source and destination fragment multiplies.
  *
  * @type {number}
  */
-export const BLENDEQUATION_ADD = 0;
+export const BLENDEQUATION_ADD: number = 0;
 
 /**
  * Subtract the results of the source and destination fragment multiplies.
  *
  * @type {number}
  */
-export const BLENDEQUATION_SUBTRACT = 1;
+export const BLENDEQUATION_SUBTRACT: number = 1;
 
 /**
  * Reverse and subtract the results of the source and destination fragment multiplies.
  *
  * @type {number}
  */
-export const BLENDEQUATION_REVERSE_SUBTRACT = 2;
+export const BLENDEQUATION_REVERSE_SUBTRACT: number = 2;
 
 /**
  * Use the smallest value. Check app.graphicsDevice.extBlendMinmax for support.
  *
  * @type {number}
  */
-export const BLENDEQUATION_MIN = 3;
+export const BLENDEQUATION_MIN: number = 3;
 
 /**
  * Use the largest value. Check app.graphicsDevice.extBlendMinmax for support.
  *
  * @type {number}
  */
-export const BLENDEQUATION_MAX = 4;
+export const BLENDEQUATION_MAX: number = 4;
 
 /**
  * The data store contents will be modified once and used many times.
  *
  * @type {number}
  */
-export const BUFFER_STATIC = 0;
+export const BUFFER_STATIC: number = 0;
 
 /**
  * The data store contents will be modified repeatedly and used many times.
  *
  * @type {number}
  */
-export const BUFFER_DYNAMIC = 1;
+export const BUFFER_DYNAMIC: number = 1;
 
 /**
  * The data store contents will be modified once and used at most a few times.
  *
  * @type {number}
  */
-export const BUFFER_STREAM = 2;
+export const BUFFER_STREAM: number = 2;
 
 /**
  * The data store contents will be modified repeatedly on the GPU and used many times. Optimal for
@@ -159,91 +159,91 @@ export const BUFFER_STREAM = 2;
  *
  * @type {number}
  */
-export const BUFFER_GPUDYNAMIC = 3;
+export const BUFFER_GPUDYNAMIC: number = 3;
 
 /**
  * Clear the color buffer.
  *
  * @type {number}
  */
-export const CLEARFLAG_COLOR = 1;
+export const CLEARFLAG_COLOR: number = 1;
 
 /**
  * Clear the depth buffer.
  *
  * @type {number}
  */
-export const CLEARFLAG_DEPTH = 2;
+export const CLEARFLAG_DEPTH: number = 2;
 
 /**
  * Clear the stencil buffer.
  *
  * @type {number}
  */
-export const CLEARFLAG_STENCIL = 4;
+export const CLEARFLAG_STENCIL: number = 4;
 
 /**
  * The positive X face of a cubemap.
  *
  * @type {number}
  */
-export const CUBEFACE_POSX = 0;
+export const CUBEFACE_POSX: number = 0;
 
 /**
  * The negative X face of a cubemap.
  *
  * @type {number}
  */
-export const CUBEFACE_NEGX = 1;
+export const CUBEFACE_NEGX: number = 1;
 
 /**
  * The positive Y face of a cubemap.
  *
  * @type {number}
  */
-export const CUBEFACE_POSY = 2;
+export const CUBEFACE_POSY: number = 2;
 
 /**
  * The negative Y face of a cubemap.
  *
  * @type {number}
  */
-export const CUBEFACE_NEGY = 3;
+export const CUBEFACE_NEGY: number = 3;
 
 /**
  * The positive Z face of a cubemap.
  *
  * @type {number}
  */
-export const CUBEFACE_POSZ = 4;
+export const CUBEFACE_POSZ: number = 4;
 
 /**
  * The negative Z face of a cubemap.
  *
  * @type {number}
  */
-export const CUBEFACE_NEGZ = 5;
+export const CUBEFACE_NEGZ: number = 5;
 
 /**
  * No triangles are culled.
  *
  * @type {number}
  */
-export const CULLFACE_NONE = 0;
+export const CULLFACE_NONE: number = 0;
 
 /**
  * Triangles facing away from the view direction are culled.
  *
  * @type {number}
  */
-export const CULLFACE_BACK = 1;
+export const CULLFACE_BACK: number = 1;
 
 /**
  * Triangles facing the view direction are culled.
  *
  * @type {number}
  */
-export const CULLFACE_FRONT = 2;
+export const CULLFACE_FRONT: number = 2;
 
 /**
  * Triangles are culled regardless of their orientation with respect to the view direction. Note
@@ -251,182 +251,182 @@ export const CULLFACE_FRONT = 2;
  *
  * @type {number}
  */
-export const CULLFACE_FRONTANDBACK = 3;
+export const CULLFACE_FRONTANDBACK: number = 3;
 
 /**
  * Point sample filtering.
  *
  * @type {number}
  */
-export const FILTER_NEAREST = 0;
+export const FILTER_NEAREST: number = 0;
 
 /**
  * Bilinear filtering.
  *
  * @type {number}
  */
-export const FILTER_LINEAR = 1;
+export const FILTER_LINEAR: number = 1;
 
 /**
  * Use the nearest neighbor in the nearest mipmap level.
  *
  * @type {number}
  */
-export const FILTER_NEAREST_MIPMAP_NEAREST = 2;
+export const FILTER_NEAREST_MIPMAP_NEAREST: number = 2;
 
 /**
  * Linearly interpolate in the nearest mipmap level.
  *
  * @type {number}
  */
-export const FILTER_NEAREST_MIPMAP_LINEAR = 3;
+export const FILTER_NEAREST_MIPMAP_LINEAR: number = 3;
 
 /**
  * Use the nearest neighbor after linearly interpolating between mipmap levels.
  *
  * @type {number}
  */
-export const FILTER_LINEAR_MIPMAP_NEAREST = 4;
+export const FILTER_LINEAR_MIPMAP_NEAREST: number = 4;
 
 /**
  * Linearly interpolate both the mipmap levels and between texels.
  *
  * @type {number}
  */
-export const FILTER_LINEAR_MIPMAP_LINEAR = 5;
+export const FILTER_LINEAR_MIPMAP_LINEAR: number = 5;
 
 /**
  * Never pass.
  *
  * @type {number}
  */
-export const FUNC_NEVER = 0;
+export const FUNC_NEVER: number = 0;
 
 /**
  * Pass if (ref & mask) < (stencil & mask).
  *
  * @type {number}
  */
-export const FUNC_LESS = 1;
+export const FUNC_LESS: number = 1;
 
 /**
  * Pass if (ref & mask) == (stencil & mask).
  *
  * @type {number}
  */
-export const FUNC_EQUAL = 2;
+export const FUNC_EQUAL: number = 2;
 
 /**
  * Pass if (ref & mask) <= (stencil & mask).
  *
  * @type {number}
  */
-export const FUNC_LESSEQUAL = 3;
+export const FUNC_LESSEQUAL: number = 3;
 
 /**
  * Pass if (ref & mask) > (stencil & mask).
  *
  * @type {number}
  */
-export const FUNC_GREATER = 4;
+export const FUNC_GREATER: number = 4;
 
 /**
  * Pass if (ref & mask) != (stencil & mask).
  *
  * @type {number}
  */
-export const FUNC_NOTEQUAL = 5;
+export const FUNC_NOTEQUAL: number = 5;
 
 /**
  * Pass if (ref & mask) >= (stencil & mask).
  *
  * @type {number}
  */
-export const FUNC_GREATEREQUAL = 6;
+export const FUNC_GREATEREQUAL: number = 6;
 
 /**
  * Always pass.
  *
  * @type {number}
  */
-export const FUNC_ALWAYS = 7;
+export const FUNC_ALWAYS: number = 7;
 
 /**
  * 8-bit unsigned vertex indices (0 to 255).
  *
  * @type {number}
  */
-export const INDEXFORMAT_UINT8 = 0;
+export const INDEXFORMAT_UINT8: number = 0;
 
 /**
  * 16-bit unsigned vertex indices (0 to 65,535).
  *
  * @type {number}
  */
-export const INDEXFORMAT_UINT16 = 1;
+export const INDEXFORMAT_UINT16: number = 1;
 
 /**
  * 32-bit unsigned vertex indices (0 to 4,294,967,295).
  *
  * @type {number}
  */
-export const INDEXFORMAT_UINT32 = 2;
+export const INDEXFORMAT_UINT32: number = 2;
 
 /**
  * 8-bit alpha.
  *
  * @type {number}
  */
-export const PIXELFORMAT_A8 = 0;
+export const PIXELFORMAT_A8: number = 0;
 
 /**
  * 8-bit luminance.
  *
  * @type {number}
  */
-export const PIXELFORMAT_L8 = 1;
+export const PIXELFORMAT_L8: number = 1;
 
 /**
  * 8-bit luminance with 8-bit alpha.
  *
  * @type {number}
  */
-export const PIXELFORMAT_L8_A8 = 2;
+export const PIXELFORMAT_L8_A8: number = 2;
 
 /**
  * 16-bit RGB (5-bits for red channel, 6 for green and 5 for blue).
  *
  * @type {number}
  */
-export const PIXELFORMAT_R5_G6_B5 = 3;
+export const PIXELFORMAT_R5_G6_B5: number = 3;
 
 /**
  * 16-bit RGBA (5-bits for red channel, 5 for green, 5 for blue with 1-bit alpha).
  *
  * @type {number}
  */
-export const PIXELFORMAT_R5_G5_B5_A1 = 4;
+export const PIXELFORMAT_R5_G5_B5_A1: number = 4;
 
 /**
  * 16-bit RGBA (4-bits for red channel, 4 for green, 4 for blue with 4-bit alpha).
  *
  * @type {number}
  */
-export const PIXELFORMAT_R4_G4_B4_A4 = 5;
+export const PIXELFORMAT_R4_G4_B4_A4: number = 5;
 
 /**
  * 24-bit RGB (8-bits for red channel, 8 for green and 8 for blue).
  *
  * @type {number}
  */
-export const PIXELFORMAT_R8_G8_B8 = 6;
+export const PIXELFORMAT_R8_G8_B8: number = 6;
 
 /**
  * 32-bit RGBA (8-bits for red channel, 8 for green, 8 for blue with 8-bit alpha).
  *
  * @type {number}
  */
-export const PIXELFORMAT_R8_G8_B8_A8 = 7;
+export const PIXELFORMAT_R8_G8_B8_A8: number = 7;
 
 /**
  * Block compressed format storing 16 input pixels in 64 bits of output, consisting of two 16-bit
@@ -434,7 +434,7 @@ export const PIXELFORMAT_R8_G8_B8_A8 = 7;
  *
  * @type {number}
  */
-export const PIXELFORMAT_DXT1 = 8;
+export const PIXELFORMAT_DXT1: number = 8;
 
 /**
  * Block compressed format storing 16 input pixels (corresponding to a 4x4 pixel block) into 128
@@ -443,7 +443,7 @@ export const PIXELFORMAT_DXT1 = 8;
  *
  * @type {number}
  */
-export const PIXELFORMAT_DXT3 = 9;
+export const PIXELFORMAT_DXT3: number = 9;
 
 /**
  * Block compressed format storing 16 input pixels into 128 bits of output, consisting of 64 bits
@@ -452,56 +452,56 @@ export const PIXELFORMAT_DXT3 = 9;
  *
  * @type {number}
  */
-export const PIXELFORMAT_DXT5 = 10;
+export const PIXELFORMAT_DXT5: number = 10;
 
 /**
  * 16-bit floating point RGB (16-bit float for each red, green and blue channels).
  *
  * @type {number}
  */
-export const PIXELFORMAT_RGB16F = 11;
+export const PIXELFORMAT_RGB16F: number = 11;
 
 /**
  * 16-bit floating point RGBA (16-bit float for each red, green, blue and alpha channels).
  *
  * @type {number}
  */
-export const PIXELFORMAT_RGBA16F = 12;
+export const PIXELFORMAT_RGBA16F: number = 12;
 
 /**
  * 32-bit floating point RGB (32-bit float for each red, green and blue channels).
  *
  * @type {number}
  */
-export const PIXELFORMAT_RGB32F = 13;
+export const PIXELFORMAT_RGB32F: number = 13;
 
 /**
  * 32-bit floating point RGBA (32-bit float for each red, green, blue and alpha channels).
  *
  * @type {number}
  */
-export const PIXELFORMAT_RGBA32F = 14;
+export const PIXELFORMAT_RGBA32F: number = 14;
 
 /**
  * 32-bit floating point single channel format (WebGL2 only).
  *
  * @type {number}
  */
-export const PIXELFORMAT_R32F = 15;
+export const PIXELFORMAT_R32F: number = 15;
 
 /**
  * A readable depth buffer format.
  *
  * @type {number}
  */
-export const PIXELFORMAT_DEPTH = 16;
+export const PIXELFORMAT_DEPTH: number = 16;
 
 /**
  * A readable depth/stencil buffer format (WebGL2 only).
  *
  * @type {number}
  */
-export const PIXELFORMAT_DEPTHSTENCIL = 17;
+export const PIXELFORMAT_DEPTHSTENCIL: number = 17;
 
 /**
  * A floating-point color-only format with 11 bits for red and green channels and 10 bits for the
@@ -509,91 +509,91 @@ export const PIXELFORMAT_DEPTHSTENCIL = 17;
  *
  * @type {number}
  */
-export const PIXELFORMAT_111110F = 18;
+export const PIXELFORMAT_111110F: number = 18;
 
 /**
  * Color-only sRGB format (WebGL2 only).
  *
  * @type {number}
  */
-export const PIXELFORMAT_SRGB = 19;
+export const PIXELFORMAT_SRGB: number = 19;
 
 /**
  * Color sRGB format with additional alpha channel (WebGL2 only).
  *
  * @type {number}
  */
-export const PIXELFORMAT_SRGBA = 20;
+export const PIXELFORMAT_SRGBA: number = 20;
 
 /**
  * ETC1 compressed format.
  *
  * @type {number}
  */
-export const PIXELFORMAT_ETC1 = 21;
+export const PIXELFORMAT_ETC1: number = 21;
 
 /**
  * ETC2 (RGB) compressed format.
  *
  * @type {number}
  */
-export const PIXELFORMAT_ETC2_RGB = 22;
+export const PIXELFORMAT_ETC2_RGB: number = 22;
 
 /**
  * ETC2 (RGBA) compressed format.
  *
  * @type {number}
  */
-export const PIXELFORMAT_ETC2_RGBA = 23;
+export const PIXELFORMAT_ETC2_RGBA: number = 23;
 
 /**
  * PVRTC (2BPP RGB) compressed format.
  *
  * @type {number}
  */
-export const PIXELFORMAT_PVRTC_2BPP_RGB_1 = 24;
+export const PIXELFORMAT_PVRTC_2BPP_RGB_1: number = 24;
 
 /**
  * PVRTC (2BPP RGBA) compressed format.
  *
  * @type {number}
  */
-export const PIXELFORMAT_PVRTC_2BPP_RGBA_1 = 25;
+export const PIXELFORMAT_PVRTC_2BPP_RGBA_1: number = 25;
 
 /**
  * PVRTC (4BPP RGB) compressed format.
  *
  * @type {number}
  */
-export const PIXELFORMAT_PVRTC_4BPP_RGB_1 = 26;
+export const PIXELFORMAT_PVRTC_4BPP_RGB_1: number = 26;
 
 /**
  * PVRTC (4BPP RGBA) compressed format.
  *
  * @type {number}
  */
-export const PIXELFORMAT_PVRTC_4BPP_RGBA_1 = 27;
+export const PIXELFORMAT_PVRTC_4BPP_RGBA_1: number = 27;
 
 /**
  * ATC compressed format with alpha channel in blocks of 4x4.
  *
  * @type {number}
  */
-export const PIXELFORMAT_ASTC_4x4 = 28;
+export const PIXELFORMAT_ASTC_4x4: number = 28;
 
 /**
  * ATC compressed format with no alpha channel.
  *
  * @type {number}
  */
-export const PIXELFORMAT_ATC_RGB = 29;
+export const PIXELFORMAT_ATC_RGB: number = 29;
 
 /**
  * ATC compressed format with alpha channel.
  *
  * @type {number}
  */
-export const PIXELFORMAT_ATC_RGBA = 30;
+export const PIXELFORMAT_ATC_RGBA: number = 30;
 
 // only add compressed formats next
 
@@ -602,14 +602,14 @@ export const PIXELFORMAT_ATC_RGBA = 30;
  *
  * @type {number}
  */
-export const PRIMITIVE_POINTS = 0;
+export const PRIMITIVE_POINTS: number = 0;
 
 /**
  * Discrete list of line segments.
  *
  * @type {number}
  */
-export const PRIMITIVE_LINES = 1;
+export const PRIMITIVE_LINES: number = 1;
 
 /**
  * List of points that are linked sequentially by line segments, with a closing line segment
@@ -617,77 +617,77 @@ export const PRIMITIVE_LINES = 1;
  *
  * @type {number}
  */
-export const PRIMITIVE_LINELOOP = 2;
+export const PRIMITIVE_LINELOOP: number = 2;
 
 /**
  * List of points that are linked sequentially by line segments.
  *
  * @type {number}
  */
-export const PRIMITIVE_LINESTRIP = 3;
+export const PRIMITIVE_LINESTRIP: number = 3;
 
 /**
  * Discrete list of triangles.
  *
  * @type {number}
  */
-export const PRIMITIVE_TRIANGLES = 4;
+export const PRIMITIVE_TRIANGLES: number = 4;
 
 /**
  * Connected strip of triangles where a specified vertex forms a triangle using the previous two.
  *
  * @type {number}
  */
-export const PRIMITIVE_TRISTRIP = 5;
+export const PRIMITIVE_TRISTRIP: number = 5;
 
 /**
  * Connected fan of triangles where the first vertex forms triangles with the following pairs of vertices.
  *
  * @type {number}
  */
-export const PRIMITIVE_TRIFAN = 6;
+export const PRIMITIVE_TRIFAN: number = 6;
 
 /**
  * Vertex attribute to be treated as a position.
  *
  * @type {string}
  */
-export const SEMANTIC_POSITION = "POSITION";
+export const SEMANTIC_POSITION: string = "POSITION";
 
 /**
  * Vertex attribute to be treated as a normal.
  *
  * @type {string}
  */
-export const SEMANTIC_NORMAL = "NORMAL";
+export const SEMANTIC_NORMAL: string = "NORMAL";
 
 /**
  * Vertex attribute to be treated as a tangent.
  *
  * @type {string}
  */
-export const SEMANTIC_TANGENT = "TANGENT";
+export const SEMANTIC_TANGENT: string = "TANGENT";
 
 /**
  * Vertex attribute to be treated as skin blend weights.
  *
  * @type {string}
  */
-export const SEMANTIC_BLENDWEIGHT = "BLENDWEIGHT";
+export const SEMANTIC_BLENDWEIGHT: string = "BLENDWEIGHT";
 
 /**
  * Vertex attribute to be treated as skin blend indices.
  *
  * @type {string}
  */
-export const SEMANTIC_BLENDINDICES = "BLENDINDICES";
+export const SEMANTIC_BLENDINDICES: string = "BLENDINDICES";
 
 /**
  * Vertex attribute to be treated as a color.
  *
  * @type {string}
  */
-export const SEMANTIC_COLOR = "COLOR";
+export const SEMANTIC_COLOR: string = "COLOR";
 
 // private semantic used for programmatic construction of individual texcoord semantics
 export const SEMANTIC_TEXCOORD = "TEXCOORD";
@@ -697,56 +697,56 @@ export const SEMANTIC_TEXCOORD = "TEXCOORD";
  *
  * @type {string}
  */
-export const SEMANTIC_TEXCOORD0 = "TEXCOORD0";
+export const SEMANTIC_TEXCOORD0: string = "TEXCOORD0";
 
 /**
  * Vertex attribute to be treated as a texture coordinate (set 1).
  *
  * @type {string}
  */
-export const SEMANTIC_TEXCOORD1 = "TEXCOORD1";
+export const SEMANTIC_TEXCOORD1: string = "TEXCOORD1";
 
 /**
  * Vertex attribute to be treated as a texture coordinate (set 2).
  *
  * @type {string}
  */
-export const SEMANTIC_TEXCOORD2 = "TEXCOORD2";
+export const SEMANTIC_TEXCOORD2: string = "TEXCOORD2";
 
 /**
  * Vertex attribute to be treated as a texture coordinate (set 3).
  *
  * @type {string}
  */
-export const SEMANTIC_TEXCOORD3 = "TEXCOORD3";
+export const SEMANTIC_TEXCOORD3: string = "TEXCOORD3";
 
 /**
  * Vertex attribute to be treated as a texture coordinate (set 4).
  *
  * @type {string}
  */
-export const SEMANTIC_TEXCOORD4 = "TEXCOORD4";
+export const SEMANTIC_TEXCOORD4: string = "TEXCOORD4";
 
 /**
  * Vertex attribute to be treated as a texture coordinate (set 5).
  *
  * @type {string}
  */
-export const SEMANTIC_TEXCOORD5 = "TEXCOORD5";
+export const SEMANTIC_TEXCOORD5: string = "TEXCOORD5";
 
 /**
  * Vertex attribute to be treated as a texture coordinate (set 6).
  *
  * @type {string}
  */
-export const SEMANTIC_TEXCOORD6 = "TEXCOORD6";
+export const SEMANTIC_TEXCOORD6: string = "TEXCOORD6";
 
 /**
  * Vertex attribute to be treated as a texture coordinate (set 7).
  *
  * @type {string}
  */
-export const SEMANTIC_TEXCOORD7 = "TEXCOORD7";
+export const SEMANTIC_TEXCOORD7: string = "TEXCOORD7";
 
 // private semantic used for programmatic construction of individual attr semantics
 export const SEMANTIC_ATTR = "ATTR";
@@ -756,112 +756,112 @@ export const SEMANTIC_ATTR = "ATTR";
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR0 = "ATTR0";
+export const SEMANTIC_ATTR0: string = "ATTR0";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR1 = "ATTR1";
+export const SEMANTIC_ATTR1: string = "ATTR1";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR2 = "ATTR2";
+export const SEMANTIC_ATTR2: string = "ATTR2";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR3 = "ATTR3";
+export const SEMANTIC_ATTR3: string = "ATTR3";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR4 = "ATTR4";
+export const SEMANTIC_ATTR4: string = "ATTR4";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR5 = "ATTR5";
+export const SEMANTIC_ATTR5: string = "ATTR5";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR6 = "ATTR6";
+export const SEMANTIC_ATTR6: string = "ATTR6";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR7 = "ATTR7";
+export const SEMANTIC_ATTR7: string = "ATTR7";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR8 = "ATTR8";
+export const SEMANTIC_ATTR8: string = "ATTR8";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR9 = "ATTR9";
+export const SEMANTIC_ATTR9: string = "ATTR9";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR10 = "ATTR10";
+export const SEMANTIC_ATTR10: string = "ATTR10";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR11 = "ATTR11";
+export const SEMANTIC_ATTR11: string = "ATTR11";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR12 = "ATTR12";
+export const SEMANTIC_ATTR12: string = "ATTR12";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR13 = "ATTR13";
+export const SEMANTIC_ATTR13: string = "ATTR13";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR14 = "ATTR14";
+export const SEMANTIC_ATTR14: string = "ATTR14";
 
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
  */
-export const SEMANTIC_ATTR15 = "ATTR15";
+export const SEMANTIC_ATTR15: string = "ATTR15";
 
 export const SHADERTAG_MATERIAL = 1;
 
@@ -870,91 +870,91 @@ export const SHADERTAG_MATERIAL = 1;
  *
  * @type {number}
  */
-export const STENCILOP_KEEP = 0;
+export const STENCILOP_KEEP: number = 0;
 
 /**
  * Set value to zero.
  *
  * @type {number}
  */
-export const STENCILOP_ZERO = 1;
+export const STENCILOP_ZERO: number = 1;
 
 /**
  * Replace value with the reference value (see {@link GraphicsDevice#setStencilFunc}).
  *
  * @type {number}
  */
-export const STENCILOP_REPLACE = 2;
+export const STENCILOP_REPLACE: number = 2;
 
 /**
  * Increment the value.
  *
  * @type {number}
  */
-export const STENCILOP_INCREMENT = 3;
+export const STENCILOP_INCREMENT: number = 3;
 
 /**
  * Increment the value but wrap it to zero when it's larger than a maximum representable value.
  *
  * @type {number}
  */
-export const STENCILOP_INCREMENTWRAP = 4;
+export const STENCILOP_INCREMENTWRAP: number = 4;
 
 /**
  * Decrement the value.
  *
  * @type {number}
  */
-export const STENCILOP_DECREMENT = 5;
+export const STENCILOP_DECREMENT: number = 5;
 
 /**
  * Decrement the value but wrap it to a maximum representable value if the current value is 0.
  *
  * @type {number}
  */
-export const STENCILOP_DECREMENTWRAP = 6;
+export const STENCILOP_DECREMENTWRAP: number = 6;
 
 /**
  * Invert the value bitwise.
  *
  * @type {number}
  */
-export const STENCILOP_INVERT = 7;
+export const STENCILOP_INVERT: number = 7;
 
 /**
  * Read only. Any changes to the locked mip level's pixels will not update the texture.
  *
  * @type {number}
  */
-export const TEXTURELOCK_READ = 1;
+export const TEXTURELOCK_READ: number = 1;
 
 /**
  * Write only. The contents of the specified mip level will be entirely replaced.
  *
  * @type {number}
  */
-export const TEXTURELOCK_WRITE = 2;
+export const TEXTURELOCK_WRITE: number = 2;
 
 /**
  * Texture is a default type.
  *
  * @type {string}
  */
-export const TEXTURETYPE_DEFAULT = 'default';
+export const TEXTURETYPE_DEFAULT: string = "default";
 
 /**
  * Texture stores high dynamic range data in RGBM format.
  *
  * @type {string}
  */
-export const TEXTURETYPE_RGBM = 'rgbm';
+export const TEXTURETYPE_RGBM: string = "rgbm";
 
 /**
  * Texture stores high dynamic range data in RGBE format.
  *
  * @type {string}
  */
-export const TEXTURETYPE_RGBE = 'rgbe';
+export const TEXTURETYPE_RGBE: string = "rgbe";
 
 /**
  * Texture stores normalmap data swizzled in GGGR format. This is used for tangent space normal
@@ -963,7 +963,7 @@ export const TEXTURETYPE_RGBE = 'rgbe';
  *
  * @type {string}
  */
-export const TEXTURETYPE_SWIZZLEGGGR = 'swizzleGGGR';
+export const TEXTURETYPE_SWIZZLEGGGR: string = "swizzleGGGR";
 
 export const TEXHINT_NONE = 0;
 export const TEXHINT_SHADOWMAP = 1;
@@ -975,77 +975,77 @@ export const TEXHINT_LIGHTMAP = 3;
  *
  * @type {string}
  */
-export const TEXTUREPROJECTION_NONE = "none";
+export const TEXTUREPROJECTION_NONE: string = "none";
 
 /**
  * Texture data is stored in cubemap projection format.
  *
  * @type {string}
  */
-export const TEXTUREPROJECTION_CUBE = "cube";
+export const TEXTUREPROJECTION_CUBE: string = "cube";
 
 /**
  * Texture data is stored in equirectangular projection format.
  *
  * @type {string}
  */
-export const TEXTUREPROJECTION_EQUIRECT = "equirect";
+export const TEXTUREPROJECTION_EQUIRECT: string = "equirect";
 
 /**
  * Texture data is stored in octahedral projection format.
  *
  * @type {string}
  */
-export const TEXTUREPROJECTION_OCTAHEDRAL = "octahedral";
+export const TEXTUREPROJECTION_OCTAHEDRAL: string = "octahedral";
 
 /**
  * Signed byte vertex element type.
  *
  * @type {number}
  */
-export const TYPE_INT8 = 0;
+export const TYPE_INT8: number = 0;
 
 /**
  * Unsigned byte vertex element type.
  *
  * @type {number}
  */
-export const TYPE_UINT8 = 1;
+export const TYPE_UINT8: number = 1;
 
 /**
  * Signed short vertex element type.
  *
  * @type {number}
  */
-export const TYPE_INT16 = 2;
+export const TYPE_INT16: number = 2;
 
 /**
  * Unsigned short vertex element type.
  *
  * @type {number}
  */
-export const TYPE_UINT16 = 3;
+export const TYPE_UINT16: number = 3;
 
 /**
  * Signed integer vertex element type.
  *
  * @type {number}
  */
-export const TYPE_INT32 = 4;
+export const TYPE_INT32: number = 4;
 
 /**
  * Unsigned integer vertex element type.
  *
  * @type {number}
  */
-export const TYPE_UINT32 = 5;
+export const TYPE_UINT32: number = 5;
 
 /**
  * Floating point vertex element type.
  *
  * @type {number}
  */
-export const TYPE_FLOAT32 = 6;
+export const TYPE_FLOAT32: number = 6;
 
 export const UNIFORMTYPE_BOOL = 0;
 export const UNIFORMTYPE_INT = 1;
@@ -1078,13 +1078,13 @@ export const typedArrayTypesByteSize = [1, 1, 2, 2, 4, 4, 4];
 
 // map of typed array to engine TYPE_***
 export const typedArrayToType = {
-    "Int8Array": TYPE_INT8,
-    "Uint8Array": TYPE_UINT8,
-    "Int16Array": TYPE_INT16,
-    "Uint16Array": TYPE_UINT16,
-    "Int32Array": TYPE_INT32,
-    "Uint32Array": TYPE_UINT32,
-    "Float32Array": TYPE_FLOAT32
+  Int8Array: TYPE_INT8,
+  Uint8Array: TYPE_UINT8,
+  Int16Array: TYPE_INT16,
+  Uint16Array: TYPE_UINT16,
+  Int32Array: TYPE_INT32,
+  Uint32Array: TYPE_UINT32,
+  Float32Array: TYPE_FLOAT32,
 };
 
 // map of engine INDEXFORMAT_*** to their corresponding typed array constructors and byte sizes

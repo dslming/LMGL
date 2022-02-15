@@ -1,10 +1,18 @@
 import { Vec2 } from "../maths/math.vec2";
 import { Vec3 } from "../maths/math.vec3";
+import { DataArray, FloatArray, IndicesArray, Nullable } from "../types";
+export interface iGeometryBuilder {
+  positions: Nullable<FloatArray>;
+  normals: Nullable<FloatArray>;
+  // vertexTextureCoords: DataArray;
+  indices: Nullable<IndicesArray>;
+  uvs: Nullable<FloatArray>;
+}
 
 const primitiveUv1Padding = 4.0 / 64;
 const primitiveUv1PaddingScale = 1.0 - primitiveUv1Padding * 2;
 
-export function boxBuilder(opts: any) {
+export function boxBuilder(opts: any): iGeometryBuilder {
   // Check the supplied options and provide defaults for unspecified ones
   const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new Vec3(0.5, 0.5, 0.5);
   const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 1;
@@ -103,17 +111,16 @@ export function boxBuilder(opts: any) {
   generateFace(Sides.RIGHT, ls, hs);
   generateFace(Sides.LEFT, ls, hs);
 
-  const options = {
+  return {
     positions: positions,
     normals: normals,
     uvs: uvs,
-    uvs1: uvs1,
+    // uvs1: uvs1,
     indices: indices,
   };
-  return options;
 }
 
-export function createSphere(opts: any) {
+export function createSphere(opts: any): iGeometryBuilder {
   // Check the supplied options and provide defaults for unspecified ones
   const radius = opts && opts.radius !== undefined ? opts.radius : 0.5;
   const latitudeBands = opts && opts.latitudeBands !== undefined ? opts.latitudeBands : 16;
@@ -159,17 +166,18 @@ export function createSphere(opts: any) {
     }
   }
 
-  const options = {
+  return {
+    positions: positions,
     normals: normals,
     uvs: uvs,
-    uvs1: uvs, // UV1 = UV0 for sphere
+    // uvs1: uvs, // UV1 = UV0 for sphere
     indices: indices,
   };
 
   // return createMesh(device, positions, options);
 }
 
-export function createPlane(opts: any) {
+export function createPlane(opts: any): iGeometryBuilder {
   // Check the supplied options and provide defaults for unspecified ones
   const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new Vec2(0.5, 0.5);
   const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 5;
@@ -214,10 +222,11 @@ export function createPlane(opts: any) {
     }
   }
 
-  const options = {
+  return {
+    positions: positions,
     normals: normals,
     uvs: uvs,
-    uvs1: uvs, // UV1 = UV0 for plane
+    // uvs1: uvs, // UV1 = UV0 for plane
     indices: indices,
   };
 

@@ -117,6 +117,10 @@ interface WebGLRenderingContext {
   clearBufferfi(buffer: number, drawbuffer: number, depth: number, stencil: number): void;
 }
 
+interface WebGL2RenderingContext extends WebGLObject {
+  readonly DYNAMIC_COPY: GLenum;
+}
+
 interface ImageBitmap {
   readonly width: number;
   readonly height: number;
