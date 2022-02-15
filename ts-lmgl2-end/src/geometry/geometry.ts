@@ -1,20 +1,47 @@
 import { GeometryData, GeometryVertexStream } from "./geometry.data";
-import { VertexElementType, VertexSemantic } from "../engines/vertex.format";
+import { iVertexDescription, VertexElementType, VertexFormat, VertexSemantic } from "../engines/vertex.format";
 import { VertexBuffer } from "./vertex.buffer";
 import { IndexBuffer } from "./index.buffer";
 import { iGeometryBuilder } from "./builder";
 import { PrimitiveType } from "../engines/engine.draw";
 import { BoundingBox } from "../shape/bounding.box";
+import { Nullable } from "../types";
+import { Engine } from "../engines/engine";
+import { VertexIterator } from "./vertex.iterator";
+import { IndexFormat } from "../engines/index.format";
 
 
 export class Geometry {
   private _geometryData: GeometryData;
-  private vertexBuffer: VertexBuffer;
-  private indexBuffer: Array<IndexBuffer>;
+  private vertexBuffer: Nullable<VertexBuffer>;
+  private indexBuffer: Array<IndexBuffer | null>;
   // AABB for object space mesh vertices
   private _aabb: BoundingBox;
+  device: Engine;
+  primitive: [
+    {
+      type: any;
+      base: any;
+      count: any;
+      indexed: boolean;
+    }
+  ];
 
-  constructor(dataModel: iGeometryBuilder) {
+  /**
+   * The axis-aligned bounding box for the object space vertices of this mesh.
+   *
+   * @type {BoundingBox}
+   */
+  set aabb(aabb) {
+    this._aabb = aabb;
+  }
+
+  get aabb() {
+    return this._aabb;
+  }
+
+  constructor(device: Engine, dataModel: iGeometryBuilder) {
+    this.device = device;
     this.setPositions(dataModel.positions);
 
     if (dataModel.indices) {
@@ -171,6 +198,67 @@ export class Geometry {
     return count;
   }
 
+  // builds vertex format based on attached vertex streams
+  private _buildVertexFormat(vertexCount: number) {
+    const vertexDesc: Array<iVertexDescription> = [];
+
+    for (const semantic in this._geometryData.vertexStreamDictionary) {
+      const stream = this._geometryData.vertexStreamDictionary[semantic];
+      vertexDesc.push({
+        semantic: semantic as VertexSemantic,
+        numComponents: stream.componentCount,
+        dataType: stream.dataType,
+        normalize: stream.dataTypeNormalize,
+      });
+    }
+
+    return new VertexFormat(this.device, vertexDesc, vertexCount);
+  }
+
+  // copy attached data into vertex buffer
+  private _updateVertexBuffer() {
+    // if we don't have vertex buffer, create new one, otherwise update existing one
+    if (!this.vertexBuffer) {
+      const allocateVertexCount = this._geometryData.maxVertices;
+      const format = this._buildVertexFormat(allocateVertexCount);
+      this.vertexBuffer = new VertexBuffer(this.device, format, allocateVertexCount, this._geometryData.verticesUsage);
+    }
+
+    // lock vertex buffer and create typed access arrays for individual elements
+    const iterator = new VertexIterator(this.vertexBuffer);
+
+    // copy all stream data into vertex buffer
+    const numVertices = this._geometryData.vertexCount;
+    for (const semantic in this._geometryData.vertexStreamDictionary) {
+      const stream = this._geometryData.vertexStreamDictionary[semantic];
+      iterator.writeData(semantic, stream.data, numVertices);
+
+      // remove stream
+      delete this._geometryData.vertexStreamDictionary[semantic];
+    }
+
+    iterator.end();
+  }
+
+  // copy attached data into index buffer
+  private _updateIndexBuffer() {
+    // if we don't have index buffer, create new one, otherwise update existing one
+    if (!this.indexBuffer || this.indexBuffer.length <= 0 || !this.indexBuffer[0]) {
+      const createFormat = this._geometryData.maxVertices > 0xffff ? IndexFormat.UINT32 : IndexFormat.UINT16;
+      this.indexBuffer = [];
+      this.indexBuffer[0] = new IndexBuffer(this.device, createFormat, this._geometryData.maxIndices, this._geometryData.indicesUsage);
+    }
+
+    const srcIndices = this._geometryData.indices;
+    if (srcIndices) {
+      const indexBuffer = this.indexBuffer[0];
+      indexBuffer.writeData(srcIndices, this._geometryData.indexCount);
+
+      // remove data
+      this._geometryData.indices = null;
+    }
+  }
+
   update(primitiveType?: PrimitiveType, updateBoundingBox: boolean = true) {
     if (primitiveType === undefined) {
       primitiveType = PrimitiveType.TRIANGLES;
@@ -188,5 +276,68 @@ export class Geometry {
         }
       }
     }
+
+    // destroy vertex buffer if recreate was requested or if vertices don't fit
+    let destroyVB = this._geometryData.recreate;
+    if (this._geometryData.vertexCount > this._geometryData.maxVertices) {
+      destroyVB = true;
+      this._geometryData.maxVertices = this._geometryData.vertexCount;
+    }
+
+    if (destroyVB) {
+      if (this.vertexBuffer) {
+        this.vertexBuffer.destroy();
+        this.vertexBuffer = null;
+      }
+    }
+
+    // destroy index buffer if recreate was requested or if indices don't fit
+    let destroyIB = this._geometryData.recreate;
+    if (this._geometryData.indexCount > this._geometryData.maxIndices) {
+      destroyIB = true;
+      this._geometryData.maxIndices = this._geometryData.indexCount;
+    }
+
+    if (destroyIB) {
+      if (this.indexBuffer && this.indexBuffer.length > 0 && this.indexBuffer[0]) {
+        this.indexBuffer[0].destroy();
+        this.indexBuffer[0] = null;
+      }
+    }
+
+    // update vertices if needed
+    if (this._geometryData.vertexStreamsUpdated) {
+      this._updateVertexBuffer();
+    }
+
+    // update indices if needed
+    if (this._geometryData.indexStreamUpdated) {
+      this._updateIndexBuffer();
+    }
+
+    // set up primitive parameters
+    this.primitive[0].type = primitiveType;
+
+    if (this.indexBuffer && this.indexBuffer.length > 0 && this.indexBuffer[0]) {
+      // indexed
+      if (this._geometryData.indexStreamUpdated) {
+        this.primitive[0].count = this._geometryData.indexCount;
+        this.primitive[0].indexed = true;
+      }
+    } else {
+      // non-indexed
+      if (this._geometryData.vertexStreamsUpdated) {
+        this.primitive[0].count = this._geometryData.vertexCount;
+        this.primitive[0].indexed = false;
+      }
+    }
+
+    // counts can be changed on next frame, so set them to 0
+    this._geometryData.vertexCount = 0;
+    this._geometryData.indexCount = 0;
+
+    this._geometryData.vertexStreamsUpdated = false;
+    this._geometryData.indexStreamUpdated = false;
+    this._geometryData.recreate = false;
   }
 }

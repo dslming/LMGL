@@ -1,9 +1,9 @@
-import {  typedArrayIndexFormatsByteSize } from "../constants.js";
-import { Engine } from "../engines/engine.js";
-import { IndexFormat } from "../engines/index.format.js";
-import { BufferUsage } from "../engines/webgl/webgl-buffer.js";
-import { WebglIndexBuffer } from "../engines/webgl/webgl-index-buffer.js";
-import { Logger } from "../misc/logger.js";
+import {  typedArrayIndexFormatsByteSize } from "../constants";
+import { Engine } from "../engines/engine";
+import { IndexFormat } from "../engines/index.format";
+import { BufferUsage } from "../engines/webgl/webgl-buffer";
+import { WebglIndexBuffer } from "../engines/webgl/webgl-index-buffer";
+import { Logger } from "../misc/logger";
 
 /**
  * An index buffer stores index values into a {@link VertexBuffer}. Indexed graphical primitives
@@ -51,7 +51,7 @@ class IndexBuffer {
    *                                      pc.BUFFER_STATIC,
    *                                      indices);
    */
-  constructor(engine: Engine, format: IndexFormat, numIndices: number, usage: BufferUsage = BufferUsage.STATIC, initialData: ArrayBuffer) {
+  constructor(engine: Engine, format: IndexFormat, numIndices: number, usage: BufferUsage = BufferUsage.STATIC, initialData?: ArrayBuffer) {
     // By default, index buffers are static (better for performance since buffer data can be cached in VRAM)
     this.device = engine;
     this.format = format;

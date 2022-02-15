@@ -67,7 +67,7 @@ export interface iVertexDescription {
   dataType: VertexElementType;
 }
 
-interface iVertexElement extends iVertexDescription{
+export interface iVertexElement extends iVertexDescription{
   size: number
 }
 

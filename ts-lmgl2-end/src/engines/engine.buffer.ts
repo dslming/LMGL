@@ -6,8 +6,9 @@ import { WebglVertexBuffer } from "./webgl/webgl-vertex-buffer";
 export class EngineBuffer {
   private _engine: Engine;
   public boundVao: any;
-  public buffers: Array<any>;
+  public buffers: Array<any> = [];
   public indexBuffer: any;
+
   constructor(engine: Engine) {
     this._engine = engine;
   }

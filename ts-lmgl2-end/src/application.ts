@@ -7,9 +7,10 @@ import { PrecisionDate } from "./misc/precisionDate";
 export class Application extends EventHandler {
   public engine: Engine;
 
-  constructor(canvas: any, options?: any) {
+  constructor(engine:Engine, options?: any) {
     super();
-    this.engine = new Engine(canvas, options);
+    this.engine = engine;
+
     Logger.Log("Powered by EasyCG " + Engine.Version);
 
     this._renderLoop = this._renderLoop.bind(this);

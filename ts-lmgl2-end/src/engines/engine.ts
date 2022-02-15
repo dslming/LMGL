@@ -25,8 +25,10 @@ export class Engine extends EventHandler {
     vb: 0,
   };
 
-  constructor(canvas: HTMLCanvasElement, options?: EngineOptions) {
+  constructor(canvas: any, options?: EngineOptions) {
     super();
+    if (!canvas) return;
+
     this._renderingCanvas = canvas;
     try {
       this.gl = canvas.getContext("webgl2", options) as any;

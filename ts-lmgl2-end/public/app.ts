@@ -11,17 +11,17 @@ class App {
   private app: EasyCG.Application;
 
   constructor() {
-    this.canvas = document.getElementById("renderCanvas");
-    this.app = new EasyCG.Application(this.canvas, {
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new EasyCG.Engine(canvas, {
       antialias: true,
       alpha: true,
       preserveDrawingBuffer: false,
-      preferWebGl2: true,
       powerPreference: "default",
     });
 
-    const boxModel: EasyCG.iGeometryBuilder = EasyCG.boxBuilder();
-    const geometry = new EasyCG.Geometry(boxModel);
+    const app = new EasyCG.Application(engine);
+    const boxModel = EasyCG.boxBuilder();
+    const geometry = new EasyCG.Geometry(engine, boxModel);
 
     console.error(geometry);
 

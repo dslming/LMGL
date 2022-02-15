@@ -1,7 +1,8 @@
 import { BufferUsage } from '../engines/webgl/webgl-buffer';
-import { Engine } from '../engines/engine.js';
-import { VertexFormat } from '../engines/vertex.format.js';
-import { Logger } from '../misc/logger.js';
+import { Engine } from '../engines/engine';
+import { VertexFormat } from '../engines/vertex.format';
+import { Logger } from '../misc/logger';
+import { WebglVertexBuffer } from '../engines/webgl/webgl-vertex-buffer';
 
 let id = 0;
 
@@ -15,7 +16,7 @@ class VertexBuffer {
   numVertices: any;
   usage: BufferUsage;
   id: number;
-  impl: any;
+  impl: WebglVertexBuffer;
   instancing: boolean;
   numBytes: any;
   storage: ArrayBuffer;
@@ -30,7 +31,7 @@ class VertexBuffer {
    * @param {number} [usage] - The usage type of the vertex buffer (see BUFFER_*). Defaults to BUFFER_STATIC.
    * @param {ArrayBuffer} [initialData] - Initial data.
    */
-  constructor(graphicsDevice: Engine, format: VertexFormat, numVertices: number, usage: BufferUsage = BufferUsage.STATIC, initialData: ArrayBuffer) {
+  constructor(graphicsDevice: Engine, format: VertexFormat, numVertices: number, usage: BufferUsage = BufferUsage.STATIC, initialData?: ArrayBuffer) {
     // By default, vertex buffers are static (better for performance since buffer data can be cached in VRAM)
     this.device = graphicsDevice;
     this.format = format;
@@ -128,7 +129,7 @@ class VertexBuffer {
    */
   unlock() {
     // Upload the new vertex data
-    this.impl.unlock(this);
+    this.impl.unlock(this.device, this.usage, this.storage);
   }
 
   /**
