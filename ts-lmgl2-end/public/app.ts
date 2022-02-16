@@ -26,11 +26,13 @@ class App {
     console.error(geometry);
 
     // var scene = BABYLON.creator(BABYLON.Scene, engine);
-    this.app.runRenderLoop(() => {
+    app.runRenderLoop(() => {
       // console.error(123);
     });
 
-    window.addEventListener("resize", () => this.app.resizeCanvas());
+    window.addEventListener("resize", () => app.resizeCanvas());
+
+    this.app = app;
     // const scene = new lmgl.Scene(engine);
 
     // const camera = new lmgl.TargetCamera("Camera", new lmgl.Vector3(0, 0, 10), scene);

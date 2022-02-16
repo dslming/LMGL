@@ -3,13 +3,12 @@ import { iVertexDescription, VertexElementType, VertexFormat, VertexSemantic } f
 import { VertexBuffer } from "./vertex.buffer";
 import { IndexBuffer } from "./index.buffer";
 import { iGeometryBuilder } from "./builder";
-import { PrimitiveType } from "../engines/engine.draw";
+import { Primitive, PrimitiveType } from "../engines/engine.draw";
 import { BoundingBox } from "../shape/bounding.box";
 import { Nullable } from "../types";
 import { Engine } from "../engines/engine";
 import { VertexIterator } from "./vertex.iterator";
 import { IndexFormat } from "../engines/index.format";
-
 
 export class Geometry {
   private _geometryData: GeometryData;
@@ -18,14 +17,7 @@ export class Geometry {
   // AABB for object space mesh vertices
   private _aabb: BoundingBox;
   device: Engine;
-  primitive: [
-    {
-      type: any;
-      base: any;
-      count: any;
-      indexed: boolean;
-    }
-  ];
+  primitive: Primitive[];
 
   /**
    * The axis-aligned bounding box for the object space vertices of this mesh.
@@ -48,6 +40,26 @@ export class Geometry {
       this.setIndices(dataModel.indices);
     }
 
+    /**
+     * Array of primitive objects defining how vertex (and index) data in the mesh should be
+     * interpreted by the graphics device.
+     *
+     * - `type` is the type of primitive to render. Can be:
+     *
+     * - `base` is the offset of the first index or vertex to dispatch in the draw call.
+     * - `count` is the number of indices or vertices to dispatch in the draw call.
+     * - `indexed` specifies whether to interpret the primitive as indexed, thereby using the
+     * currently set index buffer.
+     *
+     * @type {Array.<{type: number, base: number, count: number, indexed: boolean|undefined}>}
+     */
+    this.primitive = [
+      {
+        type: 0,
+        base: 0,
+        count: 0,
+      },
+    ];
     this._aabb = new BoundingBox();
     this.update();
   }
@@ -261,7 +273,7 @@ export class Geometry {
 
   update(primitiveType?: PrimitiveType, updateBoundingBox: boolean = true) {
     if (primitiveType === undefined) {
-      primitiveType = PrimitiveType.TRIANGLES;
+      primitiveType = PrimitiveType.PRIMITIVE_TRIANGLES;
     }
 
     if (!this._geometryData) return;

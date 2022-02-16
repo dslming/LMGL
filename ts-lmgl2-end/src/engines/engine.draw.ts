@@ -1,29 +1,20 @@
 import { Engine } from "./engine";
-// prettier-ignore
-import {
-  PRIMITIVE_POINTS,
-  PRIMITIVE_LINES,
-  PRIMITIVE_LINELOOP,
-  PRIMITIVE_LINESTRIP,
-  PRIMITIVE_TRIANGLES,
-  PRIMITIVE_TRISTRIP,
-  PRIMITIVE_TRIFAN
-} from "../constants";
 
 export enum PrimitiveType {
-  POINTS = PRIMITIVE_POINTS,
-  LINES = PRIMITIVE_LINES,
-  LINELOOP = PRIMITIVE_LINELOOP,
-  LINESTRIP = PRIMITIVE_LINESTRIP,
-  TRIANGLES = PRIMITIVE_TRIANGLES,
-  TRISTRIP = PRIMITIVE_TRISTRIP,
-  TRIFAN = PRIMITIVE_TRIFAN,
+  PRIMITIVE_POINTS = 0,
+  PRIMITIVE_LINES = 1,
+  PRIMITIVE_LINELOOP = 2,
+  PRIMITIVE_LINESTRIP = 3,
+  PRIMITIVE_TRIANGLES = 4,
+  PRIMITIVE_TRISTRIP = 5,
+  PRIMITIVE_TRIFAN = 6,
 }
 
 export interface Primitive {
   type: PrimitiveType;
-  indexed: boolean;
+  indexed?: boolean;
   count: number;
+  base: number;
 }
 
 export class EngineDraw {

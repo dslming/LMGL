@@ -1,8 +1,7 @@
-import { typedArrayTypes } from '../constants';
-import { iVertexElement } from '../engines/vertex.format';
-import { Logger } from '../misc/logger';
-import { VertexBuffer } from './vertex.buffer';
-
+import { typedArrayTypes } from "../constants";
+import { iVertexElement } from "../engines/vertex.format";
+import { Logger } from "../misc/logger";
+import { VertexBuffer } from "./vertex.buffer";
 
 /**
  * Helps with accessing a specific vertex attribute.
@@ -73,7 +72,7 @@ class VertexIteratorAccessor {
     }
 
     // BYTES_PER_ELEMENT is on the instance and constructor for Chrome, Safari and Firefox, but just the constructor for Opera
-      if (vertexElement.stride !== undefined) this.stride = vertexElement.stride / (this.array.constructor as any).BYTES_PER_ELEMENT;
+    if (vertexElement.stride !== undefined) this.stride = vertexElement.stride / (this.array.constructor as any).BYTES_PER_ELEMENT;
 
     // Methods
     switch (vertexElement.numComponents) {
@@ -218,6 +217,7 @@ class VertexIteratorAccessor {
 
 /**
  * A vertex iterator simplifies the process of writing vertex data to a vertex buffer.
+ * 顶点迭代器简化了将顶点数据写入顶点缓冲区的过程。
  */
 class VertexIterator {
   vertexBuffer: any;
