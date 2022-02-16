@@ -1,19 +1,20 @@
 import { GeometryData, GeometryVertexStream } from "./geometry.data";
-import { iVertexDescription, VertexElementType, VertexFormat, VertexSemantic } from "../engines/vertex.format";
+import { iVertexDescription, VertexElementType, VertexFormat, VertexSemantic } from "../../engines/vertex.format";
 import { VertexBuffer } from "./vertex.buffer";
 import { IndexBuffer } from "./index.buffer";
 import { iGeometryBuilder } from "./builder";
-import { Primitive, PrimitiveType } from "../engines/engine.draw";
-import { BoundingBox } from "../shape/bounding.box";
-import { Nullable } from "../types";
-import { Engine } from "../engines/engine";
+import { Primitive, PrimitiveType } from "../../engines/engine.draw";
+import { BoundingBox } from "../../shape/bounding.box";
+import { Nullable } from "../../types";
+import { Engine } from "../../engines/engine";
 import { VertexIterator } from "./vertex.iterator";
-import { IndexFormat } from "../engines/index.format";
+import { IndexFormat } from "../../engines/index.format";
+import { RefCountedObject } from "../../misc/ref.counted.object";
 
-export class Geometry {
+export class Geometry extends RefCountedObject{
   private _geometryData: GeometryData;
-  private vertexBuffer: Nullable<VertexBuffer>;
-  private indexBuffer: Array<IndexBuffer | null>;
+  public vertexBuffer: Nullable<VertexBuffer>;
+  public indexBuffer: Array<IndexBuffer | null>;
   // AABB for object space mesh vertices
   private _aabb: BoundingBox;
   device: Engine;
@@ -33,6 +34,7 @@ export class Geometry {
   }
 
   constructor(device: Engine, dataModel: iGeometryBuilder) {
+    super();
     this.device = device;
     this.setPositions(dataModel.positions);
 
@@ -256,7 +258,7 @@ export class Geometry {
   private _updateIndexBuffer() {
     // if we don't have index buffer, create new one, otherwise update existing one
     if (!this.indexBuffer || this.indexBuffer.length <= 0 || !this.indexBuffer[0]) {
-      const createFormat = this._geometryData.maxVertices > 0xffff ? IndexFormat.UINT32 : IndexFormat.UINT16;
+      const createFormat = this._geometryData.maxVertices > 0xffff ? IndexFormat.INDEXFORMAT_UINT32 : IndexFormat.INDEXFORMAT_UINT16;
       this.indexBuffer = [];
       this.indexBuffer[0] = new IndexBuffer(this.device, createFormat, this._geometryData.maxIndices, this._geometryData.indicesUsage);
     }

@@ -3,6 +3,7 @@ import { IndexFormat } from "./index.format";
 import { WebglIndexBuffer } from "./webgl/webgl-index-buffer";
 import { WebglVertexBuffer } from "./webgl/webgl-vertex-buffer";
 
+
 export class EngineBuffer {
   private _engine: Engine;
   public boundVao: any;

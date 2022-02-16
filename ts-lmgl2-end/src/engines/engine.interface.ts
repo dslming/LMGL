@@ -1,4 +1,4 @@
-import { BUFFER_DYNAMIC, BUFFER_STATIC, BUFFER_STREAM } from "../constants";
+// import { BUFFER_DYNAMIC, BUFFER_STATIC, BUFFER_STREAM } from "../constants";
 
 export interface iWebGLExtensions {
   /** Defines if float color buffer are supported */

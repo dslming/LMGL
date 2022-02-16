@@ -15,11 +15,11 @@ class WebglIndexBuffer extends WebglBuffer {
 
     const gl = engine.gl;
     // const format = indexBuffer.format;
-    if (format === IndexFormat.UINT8) {
+    if (format === IndexFormat.INDEXFORMAT_UINT8) {
       this.glFormat = gl.UNSIGNED_BYTE;
-    } else if (format === IndexFormat.UINT16) {
+    } else if (format === IndexFormat.INDEXFORMAT_UINT16) {
       this.glFormat = gl.UNSIGNED_SHORT;
-    } else if (format === IndexFormat.UINT32) {
+    } else if (format === IndexFormat.INDEXFORMAT_UINT32) {
       this.glFormat = gl.UNSIGNED_INT;
     }
   }

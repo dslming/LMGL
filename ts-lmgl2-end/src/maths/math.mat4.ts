@@ -37,7 +37,7 @@ class Mat4 {
     }
 
     // Static function which evaluates perspective projection matrix half size at the near plane
-    static _getPerspectiveHalfSize(halfSize: Vec2, fov: number, aspect: number, znear: number, fovIsHorizontal: any) {
+    static _getPerspectiveHalfSize(halfSize: Vec2|Vec3, fov: number, aspect: number, znear: number, fovIsHorizontal: any) {
         if (fovIsHorizontal) {
             halfSize.x = znear * Math.tan(fov * Math.PI / 360);
             halfSize.y = halfSize.x / aspect;
@@ -584,7 +584,7 @@ class Mat4 {
      * // Create a 4x4 perspective projection matrix
      * var persp = pc.Mat4().setPerspective(45, 16 / 9, 1, 1000);
      */
-    setPerspective(fov: any, aspect: any, znear: any, zfar: any, fovIsHorizontal: any) {
+    setPerspective(fov: any, aspect: any, znear: any, zfar: any, fovIsHorizontal?: any) {
         Mat4._getPerspectiveHalfSize(_halfSize, fov, aspect, znear, fovIsHorizontal);
         return this.setFrustum(-_halfSize.x, _halfSize.x, -_halfSize.y, _halfSize.y, znear, zfar);
     }

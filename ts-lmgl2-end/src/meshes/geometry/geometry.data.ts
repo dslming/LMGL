@@ -1,6 +1,7 @@
-import { BUFFER_STATIC } from "../../constants";
+// import { BUFFER_STATIC } from "../../constants";
 import { Logger } from "../../misc/logger";
 import { VertexElementType, VertexSemantic } from "../../engines/vertex.format";
+import { BufferUsage } from "../../engines/webgl/webgl-buffer";
 
 // class storing information about single vertex data stream
 export class GeometryVertexStream {
@@ -53,8 +54,8 @@ export class GeometryData {
     this.recreate = false;
 
     // usage for buffers
-    this.verticesUsage = BUFFER_STATIC;
-    this.indicesUsage = BUFFER_STATIC;
+    this.verticesUsage = BufferUsage.BUFFER_STATIC;
+    this.indicesUsage = BufferUsage.BUFFER_STATIC;
 
     // vertex and index buffer allocated size (maximum number of vertices / indices that can be stored in those without the need to reallocate them)
     this.maxVertices = 0;

@@ -31,7 +31,7 @@ class VertexBuffer {
    * @param {number} [usage] - The usage type of the vertex buffer (see BUFFER_*). Defaults to BUFFER_STATIC.
    * @param {ArrayBuffer} [initialData] - Initial data.
    */
-  constructor(graphicsDevice: Engine, format: VertexFormat, numVertices: number, usage: BufferUsage = BufferUsage.STATIC, initialData?: ArrayBuffer) {
+  constructor(graphicsDevice: Engine, format: VertexFormat, numVertices: number, usage: BufferUsage = BufferUsage.BUFFER_STATIC, initialData?: ArrayBuffer) {
     // By default, vertex buffers are static (better for performance since buffer data can be cached in VRAM)
     this.device = graphicsDevice;
     this.format = format;

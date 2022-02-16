@@ -1,1134 +1,811 @@
 /**
- * Ignores the integer part of texture coordinates, using only the fractional part.
+ * Subtract the color of the source fragment from the destination fragment and write the result to
+ * the frame buffer.
  *
  * @type {number}
  */
-export const ADDRESS_REPEAT: number = 0;
+export const BLEND_SUBTRACTIVE = 0;
 
 /**
- * Clamps texture coordinate to the range 0 to 1.
+ * Add the color of the source fragment to the destination fragment and write the result to the
+ * frame buffer.
  *
  * @type {number}
  */
-export const ADDRESS_CLAMP_TO_EDGE: number = 1;
+export const BLEND_ADDITIVE = 1;
 
 /**
- * Texture coordinate to be set to the fractional part if the integer part is even. If the integer
- * part is odd, then the texture coordinate is set to 1 minus the fractional part.
+ * Enable simple translucency for materials such as glass. This is equivalent to enabling a source
+ * blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of
+ * {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
  *
  * @type {number}
  */
-export const ADDRESS_MIRRORED_REPEAT: number = 2;
+export const BLEND_NORMAL = 2;
 
 /**
- * Multiply all fragment components by zero.
+ * Disable blending.
  *
  * @type {number}
  */
-export const BLENDMODE_ZERO: number = 0;
+export const BLEND_NONE = 3;
 
 /**
- * Multiply all fragment components by one.
+ * Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been
+ * multiplied by the source alpha value.
  *
  * @type {number}
  */
-export const BLENDMODE_ONE: number = 1;
+export const BLEND_PREMULTIPLIED = 4;
 
 /**
- * Multiply all fragment components by the components of the source fragment.
+ * Multiply the color of the source fragment by the color of the destination fragment and write the
+ * result to the frame buffer.
  *
  * @type {number}
  */
-export const BLENDMODE_SRC_COLOR: number = 2;
+export const BLEND_MULTIPLICATIVE = 5;
 
 /**
- * Multiply all fragment components by one minus the components of the source fragment.
+ * Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
  *
  * @type {number}
  */
-export const BLENDMODE_ONE_MINUS_SRC_COLOR: number = 3;
+export const BLEND_ADDITIVEALPHA = 6;
 
 /**
- * Multiply all fragment components by the components of the destination fragment.
+ * Multiplies colors and doubles the result.
  *
  * @type {number}
  */
-export const BLENDMODE_DST_COLOR: number = 4;
+export const BLEND_MULTIPLICATIVE2X = 7;
 
 /**
- * Multiply all fragment components by one minus the components of the destination fragment.
+ * Softer version of additive.
  *
  * @type {number}
  */
-export const BLENDMODE_ONE_MINUS_DST_COLOR: number = 5;
+export const BLEND_SCREEN = 8;
 
 /**
- * Multiply all fragment components by the alpha value of the source fragment.
+ * Minimum color. Check app.graphicsDevice.extBlendMinmax for support.
  *
  * @type {number}
  */
-export const BLENDMODE_SRC_ALPHA: number = 6;
+export const BLEND_MIN = 9;
 
 /**
- * Multiply all fragment components by the alpha value of the source fragment.
+ * Maximum color. Check app.graphicsDevice.extBlendMinmax for support.
  *
  * @type {number}
  */
-export const BLENDMODE_SRC_ALPHA_SATURATE: number = 7;
+export const BLEND_MAX = 10;
 
 /**
- * Multiply all fragment components by one minus the alpha value of the source fragment.
- *
- * @type {number}
- */
-export const BLENDMODE_ONE_MINUS_SRC_ALPHA: number = 8;
-
-/**
- * Multiply all fragment components by the alpha value of the destination fragment.
- *
- * @type {number}
- */
-export const BLENDMODE_DST_ALPHA: number = 9;
-
-/**
- * Multiply all fragment components by one minus the alpha value of the destination fragment.
- *
- * @type {number}
- */
-export const BLENDMODE_ONE_MINUS_DST_ALPHA: number = 10;
-
-/**
- * Add the results of the source and destination fragment multiplies.
- *
- * @type {number}
- */
-export const BLENDEQUATION_ADD: number = 0;
-
-/**
- * Subtract the results of the source and destination fragment multiplies.
- *
- * @type {number}
- */
-export const BLENDEQUATION_SUBTRACT: number = 1;
-
-/**
- * Reverse and subtract the results of the source and destination fragment multiplies.
- *
- * @type {number}
- */
-export const BLENDEQUATION_REVERSE_SUBTRACT: number = 2;
-
-/**
- * Use the smallest value. Check app.graphicsDevice.extBlendMinmax for support.
- *
- * @type {number}
- */
-export const BLENDEQUATION_MIN: number = 3;
-
-/**
- * Use the largest value. Check app.graphicsDevice.extBlendMinmax for support.
- *
- * @type {number}
- */
-export const BLENDEQUATION_MAX: number = 4;
-
-/**
- * The data store contents will be modified once and used many times.
- *
- * @type {number}
- */
-export const BUFFER_STATIC: number = 0;
-
-/**
- * The data store contents will be modified repeatedly and used many times.
- *
- * @type {number}
- */
-export const BUFFER_DYNAMIC: number = 1;
-
-/**
- * The data store contents will be modified once and used at most a few times.
- *
- * @type {number}
- */
-export const BUFFER_STREAM: number = 2;
-
-/**
- * The data store contents will be modified repeatedly on the GPU and used many times. Optimal for
- * transform feedback usage (WebGL2 only).
- *
- * @type {number}
- */
-export const BUFFER_GPUDYNAMIC: number = 3;
-
-/**
- * Clear the color buffer.
- *
- * @type {number}
- */
-export const CLEARFLAG_COLOR: number = 1;
-
-/**
- * Clear the depth buffer.
- *
- * @type {number}
- */
-export const CLEARFLAG_DEPTH: number = 2;
-
-/**
- * Clear the stencil buffer.
- *
- * @type {number}
- */
-export const CLEARFLAG_STENCIL: number = 4;
-
-/**
- * The positive X face of a cubemap.
- *
- * @type {number}
- */
-export const CUBEFACE_POSX: number = 0;
-
-/**
- * The negative X face of a cubemap.
- *
- * @type {number}
- */
-export const CUBEFACE_NEGX: number = 1;
-
-/**
- * The positive Y face of a cubemap.
- *
- * @type {number}
- */
-export const CUBEFACE_POSY: number = 2;
-
-/**
- * The negative Y face of a cubemap.
- *
- * @type {number}
- */
-export const CUBEFACE_NEGY: number = 3;
-
-/**
- * The positive Z face of a cubemap.
- *
- * @type {number}
- */
-export const CUBEFACE_POSZ: number = 4;
-
-/**
- * The negative Z face of a cubemap.
- *
- * @type {number}
- */
-export const CUBEFACE_NEGZ: number = 5;
-
-/**
- * No triangles are culled.
- *
- * @type {number}
- */
-export const CULLFACE_NONE: number = 0;
-
-/**
- * Triangles facing away from the view direction are culled.
- *
- * @type {number}
- */
-export const CULLFACE_BACK: number = 1;
-
-/**
- * Triangles facing the view direction are culled.
- *
- * @type {number}
- */
-export const CULLFACE_FRONT: number = 2;
-
-/**
- * Triangles are culled regardless of their orientation with respect to the view direction. Note
- * that point or line primitives are unaffected by this render state.
- *
- * @type {number}
- */
-export const CULLFACE_FRONTANDBACK: number = 3;
-
-/**
- * Point sample filtering.
- *
- * @type {number}
- */
-export const FILTER_NEAREST: number = 0;
-
-/**
- * Bilinear filtering.
- *
- * @type {number}
- */
-export const FILTER_LINEAR: number = 1;
-
-/**
- * Use the nearest neighbor in the nearest mipmap level.
- *
- * @type {number}
- */
-export const FILTER_NEAREST_MIPMAP_NEAREST: number = 2;
-
-/**
- * Linearly interpolate in the nearest mipmap level.
- *
- * @type {number}
- */
-export const FILTER_NEAREST_MIPMAP_LINEAR: number = 3;
-
-/**
- * Use the nearest neighbor after linearly interpolating between mipmap levels.
- *
- * @type {number}
- */
-export const FILTER_LINEAR_MIPMAP_NEAREST: number = 4;
-
-/**
- * Linearly interpolate both the mipmap levels and between texels.
- *
- * @type {number}
- */
-export const FILTER_LINEAR_MIPMAP_LINEAR: number = 5;
-
-/**
- * Never pass.
- *
- * @type {number}
- */
-export const FUNC_NEVER: number = 0;
-
-/**
- * Pass if (ref & mask) < (stencil & mask).
- *
- * @type {number}
- */
-export const FUNC_LESS: number = 1;
-
-/**
- * Pass if (ref & mask) == (stencil & mask).
- *
- * @type {number}
- */
-export const FUNC_EQUAL: number = 2;
-
-/**
- * Pass if (ref & mask) <= (stencil & mask).
- *
- * @type {number}
- */
-export const FUNC_LESSEQUAL: number = 3;
-
-/**
- * Pass if (ref & mask) > (stencil & mask).
- *
- * @type {number}
- */
-export const FUNC_GREATER: number = 4;
-
-/**
- * Pass if (ref & mask) != (stencil & mask).
- *
- * @type {number}
- */
-export const FUNC_NOTEQUAL: number = 5;
-
-/**
- * Pass if (ref & mask) >= (stencil & mask).
- *
- * @type {number}
- */
-export const FUNC_GREATEREQUAL: number = 6;
-
-/**
- * Always pass.
- *
- * @type {number}
- */
-export const FUNC_ALWAYS: number = 7;
-
-/**
- * 8-bit unsigned vertex indices (0 to 255).
- *
- * @type {number}
- */
-export const INDEXFORMAT_UINT8: number = 0;
-
-/**
- * 16-bit unsigned vertex indices (0 to 65,535).
- *
- * @type {number}
- */
-export const INDEXFORMAT_UINT16: number = 1;
-
-/**
- * 32-bit unsigned vertex indices (0 to 4,294,967,295).
- *
- * @type {number}
- */
-export const INDEXFORMAT_UINT32: number = 2;
-
-/**
- * 8-bit alpha.
- *
- * @type {number}
- */
-export const PIXELFORMAT_A8: number = 0;
-
-/**
- * 8-bit luminance.
- *
- * @type {number}
- */
-export const PIXELFORMAT_L8: number = 1;
-
-/**
- * 8-bit luminance with 8-bit alpha.
- *
- * @type {number}
- */
-export const PIXELFORMAT_L8_A8: number = 2;
-
-/**
- * 16-bit RGB (5-bits for red channel, 6 for green and 5 for blue).
- *
- * @type {number}
- */
-export const PIXELFORMAT_R5_G6_B5: number = 3;
-
-/**
- * 16-bit RGBA (5-bits for red channel, 5 for green, 5 for blue with 1-bit alpha).
- *
- * @type {number}
- */
-export const PIXELFORMAT_R5_G5_B5_A1: number = 4;
-
-/**
- * 16-bit RGBA (4-bits for red channel, 4 for green, 4 for blue with 4-bit alpha).
- *
- * @type {number}
- */
-export const PIXELFORMAT_R4_G4_B4_A4: number = 5;
-
-/**
- * 24-bit RGB (8-bits for red channel, 8 for green and 8 for blue).
- *
- * @type {number}
- */
-export const PIXELFORMAT_R8_G8_B8: number = 6;
-
-/**
- * 32-bit RGBA (8-bits for red channel, 8 for green, 8 for blue with 8-bit alpha).
- *
- * @type {number}
- */
-export const PIXELFORMAT_R8_G8_B8_A8: number = 7;
-
-/**
- * Block compressed format storing 16 input pixels in 64 bits of output, consisting of two 16-bit
- * RGB 5:6:5 color values and a 4x4 two bit lookup table.
- *
- * @type {number}
- */
-export const PIXELFORMAT_DXT1: number = 8;
-
-/**
- * Block compressed format storing 16 input pixels (corresponding to a 4x4 pixel block) into 128
- * bits of output, consisting of 64 bits of alpha channel data (4 bits for each pixel) followed by
- * 64 bits of color data; encoded the same way as DXT1.
- *
- * @type {number}
- */
-export const PIXELFORMAT_DXT3: number = 9;
-
-/**
- * Block compressed format storing 16 input pixels into 128 bits of output, consisting of 64 bits
- * of alpha channel data (two 8 bit alpha values and a 4x4 3 bit lookup table) followed by 64 bits
- * of color data (encoded the same way as DXT1).
- *
- * @type {number}
- */
-export const PIXELFORMAT_DXT5: number = 10;
-
-/**
- * 16-bit floating point RGB (16-bit float for each red, green and blue channels).
- *
- * @type {number}
- */
-export const PIXELFORMAT_RGB16F: number = 11;
-
-/**
- * 16-bit floating point RGBA (16-bit float for each red, green, blue and alpha channels).
- *
- * @type {number}
- */
-export const PIXELFORMAT_RGBA16F: number = 12;
-
-/**
- * 32-bit floating point RGB (32-bit float for each red, green and blue channels).
- *
- * @type {number}
- */
-export const PIXELFORMAT_RGB32F: number = 13;
-
-/**
- * 32-bit floating point RGBA (32-bit float for each red, green, blue and alpha channels).
- *
- * @type {number}
- */
-export const PIXELFORMAT_RGBA32F: number = 14;
-
-/**
- * 32-bit floating point single channel format (WebGL2 only).
- *
- * @type {number}
- */
-export const PIXELFORMAT_R32F: number = 15;
-
-/**
- * A readable depth buffer format.
- *
- * @type {number}
- */
-export const PIXELFORMAT_DEPTH: number = 16;
-
-/**
- * A readable depth/stencil buffer format (WebGL2 only).
- *
- * @type {number}
- */
-export const PIXELFORMAT_DEPTHSTENCIL: number = 17;
-
-/**
- * A floating-point color-only format with 11 bits for red and green channels and 10 bits for the
- * blue channel (WebGL2 only).
- *
- * @type {number}
- */
-export const PIXELFORMAT_111110F: number = 18;
-
-/**
- * Color-only sRGB format (WebGL2 only).
- *
- * @type {number}
- */
-export const PIXELFORMAT_SRGB: number = 19;
-
-/**
- * Color sRGB format with additional alpha channel (WebGL2 only).
- *
- * @type {number}
- */
-export const PIXELFORMAT_SRGBA: number = 20;
-
-/**
- * ETC1 compressed format.
- *
- * @type {number}
- */
-export const PIXELFORMAT_ETC1: number = 21;
-
-/**
- * ETC2 (RGB) compressed format.
- *
- * @type {number}
- */
-export const PIXELFORMAT_ETC2_RGB: number = 22;
-
-/**
- * ETC2 (RGBA) compressed format.
- *
- * @type {number}
- */
-export const PIXELFORMAT_ETC2_RGBA: number = 23;
-
-/**
- * PVRTC (2BPP RGB) compressed format.
- *
- * @type {number}
- */
-export const PIXELFORMAT_PVRTC_2BPP_RGB_1: number = 24;
-
-/**
- * PVRTC (2BPP RGBA) compressed format.
- *
- * @type {number}
- */
-export const PIXELFORMAT_PVRTC_2BPP_RGBA_1: number = 25;
-
-/**
- * PVRTC (4BPP RGB) compressed format.
- *
- * @type {number}
- */
-export const PIXELFORMAT_PVRTC_4BPP_RGB_1: number = 26;
-
-/**
- * PVRTC (4BPP RGBA) compressed format.
- *
- * @type {number}
- */
-export const PIXELFORMAT_PVRTC_4BPP_RGBA_1: number = 27;
-
-/**
- * ATC compressed format with alpha channel in blocks of 4x4.
- *
- * @type {number}
- */
-export const PIXELFORMAT_ASTC_4x4: number = 28;
-
-/**
- * ATC compressed format with no alpha channel.
- *
- * @type {number}
- */
-export const PIXELFORMAT_ATC_RGB: number = 29;
-
-/**
- * ATC compressed format with alpha channel.
- *
- * @type {number}
- */
-export const PIXELFORMAT_ATC_RGBA: number = 30;
-
-// only add compressed formats next
-
-/**
- * List of distinct points.
- *
- * @type {number}
- */
-export const PRIMITIVE_POINTS: number = 0;
-
-/**
- * Discrete list of line segments.
- *
- * @type {number}
- */
-export const PRIMITIVE_LINES: number = 1;
-
-/**
- * List of points that are linked sequentially by line segments, with a closing line segment
- * between the last and first points.
- *
- * @type {number}
- */
-export const PRIMITIVE_LINELOOP: number = 2;
-
-/**
- * List of points that are linked sequentially by line segments.
- *
- * @type {number}
- */
-export const PRIMITIVE_LINESTRIP: number = 3;
-
-/**
- * Discrete list of triangles.
- *
- * @type {number}
- */
-export const PRIMITIVE_TRIANGLES: number = 4;
-
-/**
- * Connected strip of triangles where a specified vertex forms a triangle using the previous two.
- *
- * @type {number}
- */
-export const PRIMITIVE_TRISTRIP: number = 5;
-
-/**
- * Connected fan of triangles where the first vertex forms triangles with the following pairs of vertices.
- *
- * @type {number}
- */
-export const PRIMITIVE_TRIFAN: number = 6;
-
-/**
- * Vertex attribute to be treated as a position.
+ * No fog is applied to the scene.
  *
  * @type {string}
  */
-export const SEMANTIC_POSITION: string = "POSITION";
+export const FOG_NONE = "none";
 
 /**
- * Vertex attribute to be treated as a normal.
+ * Fog rises linearly from zero to 1 between a start and end depth.
  *
  * @type {string}
  */
-export const SEMANTIC_NORMAL: string = "NORMAL";
+export const FOG_LINEAR = "linear";
 
 /**
- * Vertex attribute to be treated as a tangent.
+ * Fog rises according to an exponential curve controlled by a density value.
  *
  * @type {string}
  */
-export const SEMANTIC_TANGENT: string = "TANGENT";
+export const FOG_EXP = "exp";
 
 /**
- * Vertex attribute to be treated as skin blend weights.
+ * Fog rises according to an exponential curve controlled by a density value.
  *
  * @type {string}
  */
-export const SEMANTIC_BLENDWEIGHT: string = "BLENDWEIGHT";
+export const FOG_EXP2 = "exp2";
 
 /**
- * Vertex attribute to be treated as skin blend indices.
- *
- * @type {string}
- */
-export const SEMANTIC_BLENDINDICES: string = "BLENDINDICES";
-
-/**
- * Vertex attribute to be treated as a color.
- *
- * @type {string}
- */
-export const SEMANTIC_COLOR: string = "COLOR";
-
-// private semantic used for programmatic construction of individual texcoord semantics
-export const SEMANTIC_TEXCOORD = "TEXCOORD";
-
-/**
- * Vertex attribute to be treated as a texture coordinate (set 0).
- *
- * @type {string}
- */
-export const SEMANTIC_TEXCOORD0: string = "TEXCOORD0";
-
-/**
- * Vertex attribute to be treated as a texture coordinate (set 1).
- *
- * @type {string}
- */
-export const SEMANTIC_TEXCOORD1: string = "TEXCOORD1";
-
-/**
- * Vertex attribute to be treated as a texture coordinate (set 2).
- *
- * @type {string}
- */
-export const SEMANTIC_TEXCOORD2: string = "TEXCOORD2";
-
-/**
- * Vertex attribute to be treated as a texture coordinate (set 3).
- *
- * @type {string}
- */
-export const SEMANTIC_TEXCOORD3: string = "TEXCOORD3";
-
-/**
- * Vertex attribute to be treated as a texture coordinate (set 4).
- *
- * @type {string}
- */
-export const SEMANTIC_TEXCOORD4: string = "TEXCOORD4";
-
-/**
- * Vertex attribute to be treated as a texture coordinate (set 5).
- *
- * @type {string}
- */
-export const SEMANTIC_TEXCOORD5: string = "TEXCOORD5";
-
-/**
- * Vertex attribute to be treated as a texture coordinate (set 6).
- *
- * @type {string}
- */
-export const SEMANTIC_TEXCOORD6: string = "TEXCOORD6";
-
-/**
- * Vertex attribute to be treated as a texture coordinate (set 7).
- *
- * @type {string}
- */
-export const SEMANTIC_TEXCOORD7: string = "TEXCOORD7";
-
-// private semantic used for programmatic construction of individual attr semantics
-export const SEMANTIC_ATTR = "ATTR";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR0: string = "ATTR0";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR1: string = "ATTR1";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR2: string = "ATTR2";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR3: string = "ATTR3";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR4: string = "ATTR4";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR5: string = "ATTR5";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR6: string = "ATTR6";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR7: string = "ATTR7";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR8: string = "ATTR8";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR9: string = "ATTR9";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR10: string = "ATTR10";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR11: string = "ATTR11";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR12: string = "ATTR12";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR13: string = "ATTR13";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR14: string = "ATTR14";
-
-/**
- * Vertex attribute with a user defined semantic.
- *
- * @type {string}
- */
-export const SEMANTIC_ATTR15: string = "ATTR15";
-
-export const SHADERTAG_MATERIAL = 1;
-
-/**
- * Don't change the stencil buffer value.
+ * No Fresnel.
  *
  * @type {number}
  */
-export const STENCILOP_KEEP: number = 0;
+export const FRESNEL_NONE = 0;
 
 /**
- * Set value to zero.
+ * Schlick's approximation of Fresnel.
  *
  * @type {number}
  */
-export const STENCILOP_ZERO: number = 1;
+export const FRESNEL_SCHLICK = 2;
 
+// Legacy
+export const LAYER_HUD = 0;
+export const LAYER_GIZMO = 1;
+export const LAYER_FX = 2;
+// 3 - 14 are custom user layers
+export const LAYER_WORLD = 15;
+
+// New layers
 /**
- * Replace value with the reference value (see {@link GraphicsDevice#setStencilFunc}).
+ * The world layer.
  *
  * @type {number}
  */
-export const STENCILOP_REPLACE: number = 2;
+export const LAYERID_WORLD = 0;
 
 /**
- * Increment the value.
+ * The depth layer.
  *
  * @type {number}
  */
-export const STENCILOP_INCREMENT: number = 3;
+export const LAYERID_DEPTH = 1;
 
 /**
- * Increment the value but wrap it to zero when it's larger than a maximum representable value.
+ * The skybox layer.
  *
  * @type {number}
  */
-export const STENCILOP_INCREMENTWRAP: number = 4;
+export const LAYERID_SKYBOX = 2;
 
 /**
- * Decrement the value.
+ * The immediate layer.
  *
  * @type {number}
  */
-export const STENCILOP_DECREMENT: number = 5;
+export const LAYERID_IMMEDIATE = 3;
 
 /**
- * Decrement the value but wrap it to a maximum representable value if the current value is 0.
+ * The UI layer.
  *
  * @type {number}
  */
-export const STENCILOP_DECREMENTWRAP: number = 6;
+export const LAYERID_UI = 4;
 
 /**
- * Invert the value bitwise.
+ * Directional (global) light source.
  *
  * @type {number}
  */
-export const STENCILOP_INVERT: number = 7;
+export const LIGHTTYPE_DIRECTIONAL = 0;
 
 /**
- * Read only. Any changes to the locked mip level's pixels will not update the texture.
+ * Omni-directional (local) light source.
  *
  * @type {number}
  */
-export const TEXTURELOCK_READ: number = 1;
+export const LIGHTTYPE_OMNI = 1;
 
 /**
- * Write only. The contents of the specified mip level will be entirely replaced.
+ * Point (local) light source.
+ *
+ * @type {number}
+ * @ignore
+ */
+export const LIGHTTYPE_POINT = LIGHTTYPE_OMNI;
+
+/**
+ * Spot (local) light source.
  *
  * @type {number}
  */
-export const TEXTURELOCK_WRITE: number = 2;
+export const LIGHTTYPE_SPOT = 2;
 
 /**
- * Texture is a default type.
+ * Infinitesimally small point light source shape.
+ *
+ * @type {number}
+ */
+export const LIGHTSHAPE_PUNCTUAL = 0;
+
+/**
+ * Rectangle shape of light source.
+ *
+ * @type {number}
+ */
+export const LIGHTSHAPE_RECT = 1;
+
+/**
+ * Disk shape of light source.
+ *
+ * @type {number}
+ */
+export const LIGHTSHAPE_DISK = 2;
+
+/**
+ * Sphere shape of light source.
+ *
+ * @type {number}
+ */
+export const LIGHTSHAPE_SPHERE = 3;
+
+/**
+ * Linear distance falloff model for light attenuation.
+ *
+ * @type {number}
+ */
+export const LIGHTFALLOFF_LINEAR = 0;
+
+/**
+ * Inverse squared distance falloff model for light attenuation.
+ *
+ * @type {number}
+ */
+export const LIGHTFALLOFF_INVERSESQUARED = 1;
+
+/**
+ * Render depth (color-packed on WebGL 1.0), can be used for PCF 3x3 sampling.
+ *
+ * @type {number}
+ */
+export const SHADOW_PCF3 = 0;
+export const SHADOW_DEPTH = 0; // alias for SHADOW_PCF3 for backwards compatibility
+
+/**
+ * Render packed variance shadow map. All shadow receivers must also cast shadows for this mode to
+ * work correctly.
+ *
+ * @type {number}
+ */
+export const SHADOW_VSM8 = 1;
+
+/**
+ * Render 16-bit exponential variance shadow map. Requires OES_texture_half_float extension. Falls
+ * back to {@link SHADOW_VSM8}, if not supported.
+ *
+ * @type {number}
+ */
+export const SHADOW_VSM16 = 2;
+
+/**
+ * Render 32-bit exponential variance shadow map. Requires OES_texture_float extension. Falls back
+ * to {@link SHADOW_VSM16}, if not supported.
+ *
+ * @type {number}
+ */
+export const SHADOW_VSM32 = 3;
+
+/**
+ * Render depth buffer only, can be used for hardware-accelerated PCF 5x5 sampling. Requires
+ * WebGL 2. Falls back to {@link SHADOW_PCF3} on WebGL 1.
+ *
+ * @type {number}
+ */
+export const SHADOW_PCF5 = 4;
+
+/**
+ * Render depth (color-packed on WebGL 1.0), can be used for PCF 1x1 sampling.
+ *
+ * @type {number}
+ */
+export const SHADOW_PCF1 = 5;
+
+// non-public: number of supported depth shadow modes
+export const SHADOW_COUNT = 6;
+
+/**
+ * map of engine SHADOW__*** to a string representation
+ *
+ * @type {object}
+ * @ignore
+ */
+// export const shadowTypeToString = {};
+// shadowTypeToString[SHADOW_PCF3] = "PCF3";
+// shadowTypeToString[SHADOW_VSM8] = "VSM8";
+// shadowTypeToString[SHADOW_VSM16] = "VSM16";
+// shadowTypeToString[SHADOW_VSM32] = "VSM32";
+// shadowTypeToString[SHADOW_PCF5] = "PCF5";
+// shadowTypeToString[SHADOW_PCF1] = "PCF1";
+
+/**
+ * Box filter.
+ *
+ * @type {number}
+ */
+export const BLUR_BOX = 0;
+
+/**
+ * Gaussian filter. May look smoother than box, but requires more samples.
+ *
+ * @type {number}
+ */
+export const BLUR_GAUSSIAN = 1;
+
+/**
+ * No sorting, particles are drawn in arbitrary order. Can be simulated on GPU.
+ *
+ * @type {number}
+ */
+export const PARTICLESORT_NONE = 0;
+
+/**
+ * Sorting based on distance to the camera. CPU only.
+ *
+ * @type {number}
+ */
+export const PARTICLESORT_DISTANCE = 1;
+
+/**
+ * Newer particles are drawn first. CPU only.
+ *
+ * @type {number}
+ */
+export const PARTICLESORT_NEWER_FIRST = 2;
+
+/**
+ * Older particles are drawn first. CPU only.
+ *
+ * @type {number}
+ */
+export const PARTICLESORT_OLDER_FIRST = 3;
+
+export const PARTICLEMODE_GPU = 0;
+export const PARTICLEMODE_CPU = 1;
+
+/**
+ * Box shape parameterized by emitterExtents. Initial velocity is directed towards local Z axis.
+ *
+ * @type {number}
+ */
+export const EMITTERSHAPE_BOX = 0;
+
+/**
+ * Sphere shape parameterized by emitterRadius. Initial velocity is directed outwards from the
+ * center.
+ *
+ * @type {number}
+ */
+export const EMITTERSHAPE_SPHERE = 1;
+
+/**
+ * Particles are facing camera.
+ *
+ * @type {number}
+ */
+export const PARTICLEORIENTATION_SCREEN = 0;
+
+/**
+ * User defines world space normal (particleNormal) to set planes orientation.
+ *
+ * @type {number}
+ */
+export const PARTICLEORIENTATION_WORLD = 1;
+
+/**
+ * Similar to previous, but the normal is affected by emitter(entity) transformation.
+ *
+ * @type {number}
+ */
+export const PARTICLEORIENTATION_EMITTER = 2;
+
+/**
+ * A perspective camera projection where the frustum shape is essentially pyramidal.
+ *
+ * @type {number}
+ */
+export const PROJECTION_PERSPECTIVE = 0;
+
+/**
+ * An orthographic camera projection where the frustum shape is essentially a cuboid.
+ *
+ * @type {number}
+ */
+export const PROJECTION_ORTHOGRAPHIC = 1;
+
+/**
+ * Render mesh instance as solid geometry.
+ *
+ * @type {number}
+ */
+export const RENDERSTYLE_SOLID = 0;
+
+/**
+ * Render mesh instance as wireframe.
+ *
+ * @type {number}
+ */
+export const RENDERSTYLE_WIREFRAME = 1;
+
+/**
+ * Render mesh instance as points.
+ *
+ * @type {number}
+ */
+export const RENDERSTYLE_POINTS = 2;
+
+/**
+ * The cube map is treated as if it is infinitely far away.
+ *
+ * @type {number}
+ */
+export const CUBEPROJ_NONE = 0;
+
+/**
+ * The cube map is box-projected based on a world space axis-aligned bounding box.
+ *
+ * @type {number}
+ */
+export const CUBEPROJ_BOX = 1;
+
+/**
+ * Phong without energy conservation. You should only use it as a backwards compatibility with
+ * older projects.
+ *
+ * @type {number}
+ */
+export const SPECULAR_PHONG = 0;
+
+/**
+ * Energy-conserving Blinn-Phong.
+ *
+ * @type {number}
+ */
+export const SPECULAR_BLINN = 1;
+
+/**
+ * Multiply together the primary and secondary colors.
  *
  * @type {string}
  */
-export const TEXTURETYPE_DEFAULT: string = "default";
+export const DETAILMODE_MUL = "mul";
 
 /**
- * Texture stores high dynamic range data in RGBM format.
+ * Add together the primary and secondary colors.
  *
  * @type {string}
  */
-export const TEXTURETYPE_RGBM: string = "rgbm";
+export const DETAILMODE_ADD = "add";
 
 /**
- * Texture stores high dynamic range data in RGBE format.
+ * Softer version of {@link DETAILMODE_ADD}.
+ *
+ * @name DETAILMODE_SCREEN
+ */
+export const DETAILMODE_SCREEN = "screen";
+
+/**
+ * Multiplies or screens the colors, depending on the primary color.
  *
  * @type {string}
  */
-export const TEXTURETYPE_RGBE: string = "rgbe";
+export const DETAILMODE_OVERLAY = "overlay";
 
 /**
- * Texture stores normalmap data swizzled in GGGR format. This is used for tangent space normal
- * maps. The R component is stored in alpha and G is stored in RGB. This packing can result in
- * higher quality when the texture data is compressed.
+ * Select whichever of the primary and secondary colors is darker, component-wise.
  *
  * @type {string}
  */
-export const TEXTURETYPE_SWIZZLEGGGR: string = "swizzleGGGR";
-
-export const TEXHINT_NONE = 0;
-export const TEXHINT_SHADOWMAP = 1;
-export const TEXHINT_ASSET = 2;
-export const TEXHINT_LIGHTMAP = 3;
+export const DETAILMODE_MIN = "min";
 
 /**
- * Texture data is not stored a specific projection format.
+ * Select whichever of the primary and secondary colors is lighter, component-wise.
  *
  * @type {string}
  */
-export const TEXTUREPROJECTION_NONE: string = "none";
+export const DETAILMODE_MAX = "max";
 
 /**
- * Texture data is stored in cubemap projection format.
- *
- * @type {string}
- */
-export const TEXTUREPROJECTION_CUBE: string = "cube";
-
-/**
- * Texture data is stored in equirectangular projection format.
- *
- * @type {string}
- */
-export const TEXTUREPROJECTION_EQUIRECT: string = "equirect";
-
-/**
- * Texture data is stored in octahedral projection format.
- *
- * @type {string}
- */
-export const TEXTUREPROJECTION_OCTAHEDRAL: string = "octahedral";
-
-/**
- * Signed byte vertex element type.
+ * No gamma correction.
  *
  * @type {number}
  */
-export const TYPE_INT8: number = 0;
+export const GAMMA_NONE = 0;
 
 /**
- * Unsigned byte vertex element type.
+ * Apply sRGB gamma correction.
  *
  * @type {number}
  */
-export const TYPE_UINT8: number = 1;
+export const GAMMA_SRGB = 1;
 
 /**
- * Signed short vertex element type.
+ * Apply sRGB (fast) gamma correction.
+ *
+ * @type {number}
+ * @deprecated
+ * @ignore
+ */
+export const GAMMA_SRGBFAST = 2; // deprecated
+
+/**
+ * Apply sRGB (HDR) gamma correction.
  *
  * @type {number}
  */
-export const TYPE_INT16: number = 2;
+export const GAMMA_SRGBHDR = 3;
 
 /**
- * Unsigned short vertex element type.
+ * Linear tonemapping.
  *
  * @type {number}
  */
-export const TYPE_UINT16: number = 3;
+export const TONEMAP_LINEAR = 0;
 
 /**
- * Signed integer vertex element type.
+ * Filmic tonemapping curve.
  *
  * @type {number}
  */
-export const TYPE_INT32: number = 4;
+export const TONEMAP_FILMIC = 1;
 
 /**
- * Unsigned integer vertex element type.
+ * Hejl filmic tonemapping curve.
  *
  * @type {number}
  */
-export const TYPE_UINT32: number = 5;
+export const TONEMAP_HEJL = 2;
 
 /**
- * Floating point vertex element type.
+ * ACES filmic tonemapping curve.
  *
  * @type {number}
  */
-export const TYPE_FLOAT32: number = 6;
+export const TONEMAP_ACES = 3;
 
-export const UNIFORMTYPE_BOOL = 0;
-export const UNIFORMTYPE_INT = 1;
-export const UNIFORMTYPE_FLOAT = 2;
-export const UNIFORMTYPE_VEC2 = 3;
-export const UNIFORMTYPE_VEC3 = 4;
-export const UNIFORMTYPE_VEC4 = 5;
-export const UNIFORMTYPE_IVEC2 = 6;
-export const UNIFORMTYPE_IVEC3 = 7;
-export const UNIFORMTYPE_IVEC4 = 8;
-export const UNIFORMTYPE_BVEC2 = 9;
-export const UNIFORMTYPE_BVEC3 = 10;
-export const UNIFORMTYPE_BVEC4 = 11;
-export const UNIFORMTYPE_MAT2 = 12;
-export const UNIFORMTYPE_MAT3 = 13;
-export const UNIFORMTYPE_MAT4 = 14;
-export const UNIFORMTYPE_TEXTURE2D = 15;
-export const UNIFORMTYPE_TEXTURECUBE = 16;
-export const UNIFORMTYPE_FLOATARRAY = 17;
-export const UNIFORMTYPE_TEXTURE2D_SHADOW = 18;
-export const UNIFORMTYPE_TEXTURECUBE_SHADOW = 19;
-export const UNIFORMTYPE_TEXTURE3D = 20;
-export const UNIFORMTYPE_VEC2ARRAY = 21;
-export const UNIFORMTYPE_VEC3ARRAY = 22;
-export const UNIFORMTYPE_VEC4ARRAY = 23;
+/**
+ * ACES v2 filmic tonemapping curve.
+ *
+ * @type {number}
+ */
+export const TONEMAP_ACES2 = 4;
+
+/**
+ * No specular occlusion.
+ *
+ * @type {number}
+ */
+export const SPECOCC_NONE = 0;
+
+/**
+ * Use AO directly to occlude specular.
+ *
+ * @type {number}
+ */
+export const SPECOCC_AO = 1;
+
+/**
+ * Modify AO based on material glossiness/view angle to occlude specular.
+ *
+ * @type {number}
+ */
+export const SPECOCC_GLOSSDEPENDENT = 2;
+
+// 16 bits for shader defs
+export const SHADERDEF_NOSHADOW = 1;
+export const SHADERDEF_SKIN = 2;
+export const SHADERDEF_UV0 = 4;
+export const SHADERDEF_UV1 = 8;
+export const SHADERDEF_VCOLOR = 16;
+export const SHADERDEF_INSTANCING = 32;
+export const SHADERDEF_LM = 64;
+export const SHADERDEF_DIRLM = 128;
+export const SHADERDEF_SCREENSPACE = 256;
+export const SHADERDEF_TANGENTS = 512;
+export const SHADERDEF_MORPH_POSITION = 1024;
+export const SHADERDEF_MORPH_NORMAL = 2048;
+export const SHADERDEF_MORPH_TEXTURE_BASED = 4096;
+export const SHADERDEF_LMAMBIENT = 8192; // lightmaps contain ambient
+
+export const LINEBATCH_WORLD = 0;
+export const LINEBATCH_OVERLAY = 1;
+export const LINEBATCH_GIZMO = 2;
+
+/**
+ * The shadow map is not to be updated.
+ *
+ * @type {number}
+ */
+export const SHADOWUPDATE_NONE = 0;
+
+/**
+ * The shadow map is regenerated this frame and not on subsequent frames.
+ *
+ * @type {number}
+ */
+export const SHADOWUPDATE_THISFRAME = 1;
+
+/**
+ * The shadow map is regenerated every frame.
+ *
+ * @type {number}
+ */
+export const SHADOWUPDATE_REALTIME = 2;
+
+export const SORTKEY_FORWARD = 0;
+export const SORTKEY_DEPTH = 1;
+
+// flags used on the mask property of the Light, and also on mask property of the MeshInstance
+export const MASK_AFFECT_DYNAMIC = 1;
+export const MASK_AFFECT_LIGHTMAPPED = 2;
+export const MASK_BAKE = 4;
+
+/**
+ * Render shaded materials with gamma correction and tonemapping.
+ *
+ * @type {number}
+ */
+export const SHADER_FORWARD = 0;
+
+/**
+ * Render shaded materials without gamma correction and tonemapping.
+ *
+ * @type {number}
+ */
+export const SHADER_FORWARDHDR = 1;
+
+/**
+ * Render RGBA-encoded depth value.
+ *
+ * @type {number}
+ */
+export const SHADER_DEPTH = 2;
+
+// next are undocumented
+export const SHADER_SHADOW = 3; // PCF3
+// 4 = VSM8,
+// 5 = VSM16,
+// 6 = VSM32,
+// 7 = PCF5,
+// 8 = PCF3 POINT
+// 9 = VSM8 POINT,
+// 10 = VSM16 POINT,
+// 11 = VSM32 POINT,
+// 12 = PCF5 POINT
+// 13 = PCF3 SPOT
+// 14 = VSM8 SPOT,
+// 15 = VSM16 SPOT,
+// 16 = VSM32 SPOT,
+// 17 = PCF5 SPOT
+export const SHADER_PICK = 18;
+
+/**
+ * This mode renders a sprite as a simple quad.
+ *
+ * @type {number}
+ */
+export const SPRITE_RENDERMODE_SIMPLE = 0;
+
+/**
+ * This mode renders a sprite using 9-slicing in 'sliced' mode. Sliced mode stretches the top and
+ * bottom regions of the sprite horizontally, the left and right regions vertically and the middle
+ * region both horizontally and vertically.
+ *
+ * @type {number}
+ */
+export const SPRITE_RENDERMODE_SLICED = 1;
+
+/**
+ * This mode renders a sprite using 9-slicing in 'tiled' mode. Tiled mode tiles the top and bottom
+ * regions of the sprite horizontally, the left and right regions vertically and the middle region
+ * both horizontally and vertically.
+ *
+ * @type {number}
+ */
+export const SPRITE_RENDERMODE_TILED = 2;
+
+/**
+ * Single color lightmap.
+ *
+ * @type {number}
+ */
+export const BAKE_COLOR = 0;
+
+/**
+ * Single color lightmap + dominant light direction (used for bump/specular).
+ *
+ * @type {number}
+ */
+export const BAKE_COLORDIR = 1;
+
+/**
+ * Center of view.
+ *
+ * @type {number}
+ */
+export const VIEW_CENTER = 0;
+
+/**
+ * Left of view. Only used in stereo rendering.
+ *
+ * @type {number}
+ */
+export const VIEW_LEFT = 1;
+
+/**
+ * Right of view. Only used in stereo rendering.
+ *
+ * @type {number}
+ */
+export const VIEW_RIGHT = 2;
+
+/**
+ * No sorting is applied. Mesh instances are rendered in the same order they were added to a layer.
+ *
+ * @type {number}
+ */
+export const SORTMODE_NONE = 0;
+
+/**
+ * Mesh instances are sorted based on {@link MeshInstance#drawOrder}.
+ *
+ * @type {number}
+ */
+export const SORTMODE_MANUAL = 1;
+
+/**
+ * Mesh instances are sorted to minimize switching between materials and meshes to improve
+ * rendering performance.
+ *
+ * @type {number}
+ */
+export const SORTMODE_MATERIALMESH = 2;
+
+/**
+ * Mesh instances are sorted back to front. This is the way to properly render many
+ * semi-transparent objects on different depth, one is blended on top of another.
+ *
+ * @type {number}
+ */
+export const SORTMODE_BACK2FRONT = 3;
+
+/**
+ * Mesh instances are sorted front to back. Depending on GPU and the scene, this option may give
+ * better performance than {@link SORTMODE_MATERIALMESH} due to reduced overdraw.
+ *
+ * @type {number}
+ */
+export const SORTMODE_FRONT2BACK = 4;
+
+/**
+ * Provide custom functions for sorting drawcalls and calculating distance.
+ *
+ * @type {number}
+ * @ignore
+ */
+export const SORTMODE_CUSTOM = 5;
+
+export const COMPUPDATED_INSTANCES = 1;
+export const COMPUPDATED_LIGHTS = 2;
+export const COMPUPDATED_CAMERAS = 4;
+export const COMPUPDATED_BLEND = 8;
+
+/**
+ * Automatically set aspect ratio to current render target's width divided by height.
+ *
+ * @type {number}
+ */
+export const ASPECT_AUTO = 0;
+
+/**
+ * Use the manual aspect ratio value.
+ *
+ * @type {number}
+ */
+export const ASPECT_MANUAL = 1;
+
+/**
+ * Horizontal orientation.
+ *
+ * @type {number}
+ */
+export const ORIENTATION_HORIZONTAL = 0;
+
+/**
+ * Vertical orientation.
+ *
+ * @type {number}
+ */
+export const ORIENTATION_VERTICAL = 1;
+
 
 // map of engine TYPE_*** enums to their corresponding typed array constructors and byte sizes
 export const typedArrayTypes = [Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array];
 export const typedArrayTypesByteSize = [1, 1, 2, 2, 4, 4, 4];
 
-// map of typed array to engine TYPE_***
-export const typedArrayToType = {
-  Int8Array: TYPE_INT8,
-  Uint8Array: TYPE_UINT8,
-  Int16Array: TYPE_INT16,
-  Uint16Array: TYPE_UINT16,
-  Int32Array: TYPE_INT32,
-  Uint32Array: TYPE_UINT32,
-  Float32Array: TYPE_FLOAT32,
-};
-
 // map of engine INDEXFORMAT_*** to their corresponding typed array constructors and byte sizes
 export const typedArrayIndexFormats = [Uint8Array, Uint16Array, Uint32Array];
 export const typedArrayIndexFormatsByteSize = [1, 2, 4];
-
-/**
- * Map of engine semantics into location on device in range 0..15 (note - semantics mapping to the
- * same location cannot be used at the same time) organized in a way that ATTR0-ATTR7 do not
- * overlap with common important semantics.
- *
- * @type {object}
- * @ignore
- */
-export const semanticToLocation: any = {};
-
-semanticToLocation[SEMANTIC_POSITION] = 0;
-semanticToLocation[SEMANTIC_NORMAL] = 1;
-semanticToLocation[SEMANTIC_BLENDWEIGHT] = 2;
-semanticToLocation[SEMANTIC_BLENDINDICES] = 3;
-semanticToLocation[SEMANTIC_COLOR] = 4;
-semanticToLocation[SEMANTIC_TEXCOORD0] = 5;
-semanticToLocation[SEMANTIC_TEXCOORD1] = 6;
-semanticToLocation[SEMANTIC_TEXCOORD2] = 7;
-semanticToLocation[SEMANTIC_TEXCOORD3] = 8;
-semanticToLocation[SEMANTIC_TEXCOORD4] = 9;
-semanticToLocation[SEMANTIC_TEXCOORD5] = 10;
-semanticToLocation[SEMANTIC_TEXCOORD6] = 11;
-semanticToLocation[SEMANTIC_TEXCOORD7] = 12;
-semanticToLocation[SEMANTIC_TANGENT] = 13;
-
-semanticToLocation[SEMANTIC_ATTR0] = 0;
-semanticToLocation[SEMANTIC_ATTR1] = 1;
-semanticToLocation[SEMANTIC_ATTR2] = 2;
-semanticToLocation[SEMANTIC_ATTR3] = 3;
-semanticToLocation[SEMANTIC_ATTR4] = 4;
-semanticToLocation[SEMANTIC_ATTR5] = 5;
-semanticToLocation[SEMANTIC_ATTR6] = 6;
-semanticToLocation[SEMANTIC_ATTR7] = 7;
-semanticToLocation[SEMANTIC_ATTR8] = 8;
-semanticToLocation[SEMANTIC_ATTR9] = 9;
-semanticToLocation[SEMANTIC_ATTR10] = 10;
-semanticToLocation[SEMANTIC_ATTR11] = 11;
-semanticToLocation[SEMANTIC_ATTR12] = 12;
-semanticToLocation[SEMANTIC_ATTR13] = 13;
-semanticToLocation[SEMANTIC_ATTR14] = 14;
-semanticToLocation[SEMANTIC_ATTR15] = 15;

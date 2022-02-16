@@ -1,6 +1,6 @@
-import { typedArrayTypes } from '../constants';
-import { iVertexElement } from '../engines/vertex.format';
-import { Logger } from '../misc/logger';
+import { typedArrayTypes } from '../../constants';
+import { iVertexElement } from '../../engines/vertex.format';
+import { Logger } from '../../misc/logger';
 import { VertexBuffer } from './vertex.buffer';
 
 

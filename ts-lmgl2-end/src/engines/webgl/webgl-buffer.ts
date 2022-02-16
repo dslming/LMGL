@@ -2,10 +2,10 @@ import { Nullable } from "../../types.js";
 import { Engine } from "../engine.js";
 
 export enum BufferUsage {
-  DYNAMIC = 0,
-  STATIC = 1,
-  STREAM = 2,
-  GPUDYNAMIC =3
+  BUFFER_DYNAMIC = 0,
+  BUFFER_STATIC = 1,
+  BUFFER_STREAM = 2,
+  BUFFER_GPUDYNAMIC = 3,
 }
 
 /**
@@ -36,16 +36,16 @@ class WebglBuffer {
 
     let glUsage: number;
     switch (usage) {
-      case BufferUsage.STATIC:
+      case BufferUsage.BUFFER_STATIC:
         glUsage = gl.STATIC_DRAW;
         break;
-      case BufferUsage.DYNAMIC:
+      case BufferUsage.BUFFER_DYNAMIC:
         glUsage = gl.DYNAMIC_DRAW;
         break;
-      case BufferUsage.STREAM:
+      case BufferUsage.BUFFER_STREAM:
         glUsage = gl.STREAM_DRAW;
         break;
-      case BufferUsage.GPUDYNAMIC:
+      case BufferUsage.BUFFER_GPUDYNAMIC:
         if (device.webgl2) {
           glUsage = gl.DYNAMIC_COPY;
         } else {

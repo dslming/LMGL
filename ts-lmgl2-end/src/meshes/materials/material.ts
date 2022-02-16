@@ -1,6 +1,7 @@
 import { BlendMode, BlendeEquation } from "../../engines/engine.alpha";
 import { CullFaceMode } from "../../engines/engine.state";
 import { Logger } from "../../misc/logger";
+import { Mesh } from "../mesh";
 
 const { BLENDMODE_ONE, BLENDMODE_ZERO, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_SRC_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR } = BlendMode;
 const { BLENDEQUATION_ADD, BLENDEQUATION_MIN, BLENDEQUATION_MAX } = BlendeEquation;
@@ -23,9 +24,9 @@ export enum MaterialBlend {
 export class Material {
   name: string;
   id: number;
-  _shader: null;
+  _shader: any;
   variants: {};
-  parameters: {};
+  parameters: any;
   alphaTest: number;
   alphaToCoverage: boolean;
   blend: boolean;
@@ -47,7 +48,7 @@ export class Material {
   greenWrite: boolean;
   blueWrite: boolean;
   alphaWrite: boolean;
-  meshInstances: never[];
+  meshInstances: Mesh[];
   _shaderVersion: number;
   _scene: null;
   _dirtyBlend: boolean;
@@ -181,7 +182,7 @@ export class Material {
     }
     if (prevBlend !== this.blend) {
       if (this._scene) {
-        this._scene.layers._dirtyBlend = true;
+        // this._scene.layers._dirtyBlend = true;
       } else {
         this._dirtyBlend = true;
       }
@@ -221,9 +222,9 @@ export class Material {
     }
   }
 
-  updateUniforms(device:any, scene:any) {}
+  updateUniforms(device: any, scene: any) {}
 
-  updateShader(device:any, scene:any, objDefs:any) {
+  updateShader(device: any, scene: any, objDefs: any) {
     // For vanilla materials, the shader can only be set by the user
   }
 
@@ -260,7 +261,7 @@ export class Material {
    * @param {string} name - The name of the parameter to query.
    * @returns {object} The named parameter.
    */
-  getParameter(name) {
+  getParameter(name: string) {
     return this.parameters[name];
   }
 
@@ -270,28 +271,27 @@ export class Material {
    * @param {string} name - The name of the parameter to set.
    * @param {number|number[]|Texture} data - The value for the specified parameter.
    */
-  setParameter(name, data) {
-    if (data === undefined && typeof name === "object") {
-      const uniformObject = name;
-      if (uniformObject.length) {
-        for (let i = 0; i < uniformObject.length; i++) {
-          this.setParameter(uniformObject[i]);
-        }
-        return;
-      }
-      name = uniformObject.name;
-      data = uniformObject.value;
-    }
-
-    const param = this.parameters[name];
-    if (param) {
-      param.data = data;
-    } else {
-      this.parameters[name] = {
-        scopeId: null,
-        data: data,
-      };
-    }
+  setParameter(name: string | number[], data: undefined) {
+    // if (data === undefined && typeof name === "object") {
+    //   const uniformObject = name;
+    //   if (uniformObject.length) {
+    //     for (let i = 0; i < uniformObject.length; i++) {
+    //       this.setParameter(uniformObject[i]);
+    //     }
+    //     return;
+    //   }
+    //   name = uniformObject.name;
+    //   data = uniformObject.value;
+    // }
+    // const param = this.parameters[name];
+    // if (param) {
+    //   param.data = data;
+    // } else {
+    //   this.parameters[name] = {
+    //     scopeId: null,
+    //     data: data,
+    //   };
+    // }
   }
 
   /**
@@ -299,7 +299,7 @@ export class Material {
    *
    * @param {string} name - The name of the parameter to delete.
    */
-  deleteParameter(name) {
+  deleteParameter(name: string | number) {
     if (this.parameters[name]) {
       delete this.parameters[name];
     }
@@ -307,19 +307,19 @@ export class Material {
 
   // used to apply parameters from this material into scope of uniforms, called internally by forward-renderer
   // optional list of parameter names to be set can be specified, otherwise all parameters are set
-  setParameters(device, names) {
-    const parameters = this.parameters;
-    if (names === undefined) names = parameters;
-    for (const paramName in names) {
-      const parameter = parameters[paramName];
-      if (parameter) {
-        if (!parameter.scopeId) {
-          parameter.scopeId = device.scope.resolve(paramName);
-        }
-        parameter.scopeId.setValue(parameter.data);
-      }
-    }
-  }
+  // setParameters(device, names) {
+  //   const parameters = this.parameters;
+  //   if (names === undefined) names = parameters;
+  //   for (const paramName in names) {
+  //     const parameter = parameters[paramName];
+  //     if (parameter) {
+  //       if (!parameter.scopeId) {
+  //         parameter.scopeId = device.scope.resolve(paramName);
+  //       }
+  //       parameter.scopeId.setValue(parameter.data);
+  //     }
+  //   }
+  // }
 
   /**
    * Removes this material from the scene and possibly frees up memory from its shaders (if there
@@ -336,24 +336,24 @@ export class Material {
       }
       meshInstance._material = null;
 
-      if (meshInstance.mesh) {
-        const defaultMaterial = DefaultMaterial.get(meshInstance.mesh.device);
-        if (this !== defaultMaterial) {
-          meshInstance.material = defaultMaterial;
-        }
-      } else {
-        Logger.Warn("pc.Material: MeshInstance mesh is null, default material cannot be assigned to the MeshInstance");
-      }
+      // if (meshInstance.mesh) {
+      //   const defaultMaterial = DefaultMaterial.get(meshInstance.mesh.device);
+      //   if (this !== defaultMaterial) {
+      //     meshInstance.material = defaultMaterial;
+      //   }
+      // } else {
+      //   Logger.Warn("pc.Material: MeshInstance mesh is null, default material cannot be assigned to the MeshInstance");
+      // }
     }
   }
 
   // registers mesh instance as referencing the material
-  addMeshInstanceRef(meshInstance) {
+  addMeshInstanceRef(meshInstance: Mesh) {
     this.meshInstances.push(meshInstance);
   }
 
   // de-registers mesh instance as referencing the material
-  removeMeshInstanceRef(meshInstance) {
+  removeMeshInstanceRef(meshInstance: Mesh) {
     const meshInstances = this.meshInstances;
     const i = meshInstances.indexOf(meshInstance);
     if (i !== -1) {
