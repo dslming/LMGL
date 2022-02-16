@@ -1,6 +1,6 @@
-import { BUFFER_STATIC } from "../constants";
-import { Logger } from "../misc/logger";
-import { VertexElementType, VertexSemantic } from "../engines/vertex.format";
+import { BUFFER_STATIC } from "../../constants";
+import { Logger } from "../../misc/logger";
+import { VertexElementType, VertexSemantic } from "../../engines/vertex.format";
 
 // class storing information about single vertex data stream
 export class GeometryVertexStream {

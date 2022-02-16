@@ -1,7 +1,7 @@
 import { EventHandler } from "../misc/event.handler";
 import { Logger } from "../misc/logger";
 import { Nullable } from "../types";
-import { EngineOptions, iCapabilities, iExtensions } from "./engine.interface";
+import { EngineOptions, iWebGLCapabilities, iWebGLExtensions } from "./engine.interface";
 
 import { EngineDraw } from "./engine.draw";
 import { EngineViewPort } from "./engine.viewPort";
@@ -12,8 +12,8 @@ export class Engine extends EventHandler {
   public _renderingCanvas: Nullable<HTMLCanvasElement>;
   public _contextWasLost = false;
   public webgl2 = true;
-  public supportExtensions: iExtensions;
-  public capabilities: iCapabilities;
+  public supportExtensions: iWebGLExtensions;
+  public capabilities: iWebGLCapabilities;
 
   // 模块
   public engineDraw: EngineDraw;

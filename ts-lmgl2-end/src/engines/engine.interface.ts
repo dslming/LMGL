@@ -1,6 +1,6 @@
 import { BUFFER_DYNAMIC, BUFFER_STATIC, BUFFER_STREAM } from "../constants";
 
-export interface iExtensions {
+export interface iWebGLExtensions {
   /** Defines if float color buffer are supported */
   extColorBufferFloat: any;
   extDisjointTimerQuery: any;
@@ -29,7 +29,7 @@ export interface iExtensions {
   extColorBufferHalfFloat: any;
 }
 
-export interface iCapabilities {
+export interface iWebGLCapabilities {
   maxPrecision: any;
   supportsMsaa: any;
   supportsStencil: any;

@@ -1,9 +1,9 @@
-import {  typedArrayIndexFormatsByteSize } from "../constants";
-import { Engine } from "../engines/engine";
-import { IndexFormat } from "../engines/index.format";
-import { BufferUsage } from "../engines/webgl/webgl-buffer";
-import { WebglIndexBuffer } from "../engines/webgl/webgl-index-buffer";
-import { Logger } from "../misc/logger";
+import { typedArrayIndexFormatsByteSize } from "../../constants";
+import { Engine } from "../../engines/engine";
+import { IndexFormat } from "../../engines/index.format";
+import { BufferUsage } from "../../engines/webgl/webgl-buffer";
+import { WebglIndexBuffer } from "../../engines/webgl/webgl-index-buffer";
+import { Logger } from "../../misc/logger";
 
 /**
  * An index buffer stores index values into a {@link VertexBuffer}. Indexed graphical primitives

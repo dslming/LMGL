@@ -1,6 +1,6 @@
-import { Vec2 } from "../maths/math.vec2";
-import { Vec3 } from "../maths/math.vec3";
-import { Nullable } from "../types";
+import { Vec2 } from "../../maths/math.vec2";
+import { Vec3 } from "../../maths/math.vec3";
+import { Nullable } from "../../types";
 
 export interface iGeometryBuilder {
   positions: number[];

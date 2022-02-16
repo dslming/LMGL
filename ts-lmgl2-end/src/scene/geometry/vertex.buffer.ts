@@ -1,8 +1,8 @@
-import { BufferUsage } from '../engines/webgl/webgl-buffer';
-import { Engine } from '../engines/engine';
-import { VertexFormat } from '../engines/vertex.format';
-import { Logger } from '../misc/logger';
-import { WebglVertexBuffer } from '../engines/webgl/webgl-vertex-buffer';
+import { BufferUsage } from "../../engines/webgl/webgl-buffer";
+import { Engine } from "../../engines/engine";
+import { VertexFormat } from "../../engines/vertex.format";
+import { Logger } from "../../misc/logger";
+import { WebglVertexBuffer } from "../../engines/webgl/webgl-vertex-buffer";
 
 let id = 0;
 
