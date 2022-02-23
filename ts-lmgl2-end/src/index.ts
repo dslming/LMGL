@@ -3,3 +3,4 @@ export * from "./application";
 export * from "./misc/logger";
 export * from "./meshes/index";
 export * from "./camera/camera"
+export * from "./scene/index"

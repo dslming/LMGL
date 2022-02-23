@@ -12,6 +12,7 @@ class App {
 
   constructor() {
     const canvas = document.getElementById("renderCanvas");
+
     const engine = new EasyCG.Engine(canvas, {
       antialias: true,
       alpha: true,
@@ -19,6 +20,7 @@ class App {
       powerPreference: "default",
     });
 
+    // const
     const app = new EasyCG.Application(engine);
 
     const boxModel = EasyCG.boxBuilder();
