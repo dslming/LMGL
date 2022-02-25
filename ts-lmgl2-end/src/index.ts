@@ -1,6 +1,5 @@
 export * from "./engines/engine";
-export * from "./application";
+export * from "./scene/scene";
 export * from "./misc/logger";
 export * from "./meshes/index";
 export * from "./camera/camera"
-export * from "./scene/index"

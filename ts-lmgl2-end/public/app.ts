@@ -1,14 +1,13 @@
 import * as EasyCG from "../src/index";
 (window as any).EasyCG = EasyCG;
 class App {
-  private scene: any;
   private camera: any;
   private sphere: any;
   private engine: any;
   private canvas: any;
   private light: any;
   private sphereMesh: any;
-  private app: EasyCG.Application;
+  private scene: EasyCG.Scene;
 
   constructor() {
     const canvas = document.getElementById("renderCanvas");
@@ -19,25 +18,23 @@ class App {
       preserveDrawingBuffer: false,
       powerPreference: "default",
     });
-
-    // const
-    const app = new EasyCG.Application(engine);
+    const scene = new EasyCG.Scene(engine);
 
     const boxModel = EasyCG.boxBuilder();
     const geometry = new EasyCG.Geometry(engine, boxModel);
     const material = new EasyCG.Material();
     const mesh = new EasyCG.Mesh(geometry, material)
+    scene.addMesh(mesh);
 
     const camera = new EasyCG.Camera()
-    console.error(mesh);
+    scene.setActiveCamera(camera);
 
-    // var scene = BABYLON.creator(BABYLON.Scene, engine);
-    app.runRenderLoop(() => {
-      // console.error(123);
+    scene.runRenderLoop(() => {
+      scene.render();
     });
 
-    window.addEventListener("resize", () => app.resizeCanvas());
-    this.app = app;
+    window.addEventListener("resize", () => engine.resize());
+    this.scene = scene;
   }
 }
 

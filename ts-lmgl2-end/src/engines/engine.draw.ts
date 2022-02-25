@@ -57,4 +57,36 @@ export class EngineDraw {
       // gl.drawElements(mode, count, format, offset);
     }
   }
+
+  /**
+   * Clear the current render buffer or the current render target (if any is set up)
+   * @param color defines the color to use
+   * @param backBuffer defines if the back buffer must be cleared
+   * @param depth defines if the depth buffer must be cleared
+   * @param stencil defines if the stencil buffer must be cleared
+   */
+  public clear(color: Nullable<IColor4Like>, backBuffer: boolean, depth: boolean, stencil: boolean = false): void {
+    this.engine.engineState.applyStates();
+
+    var mode = 0;
+    if (backBuffer && color) {
+      this._gl.clearColor(color.r, color.g, color.b, color.a !== undefined ? color.a : 1.0);
+      mode |= this._gl.COLOR_BUFFER_BIT;
+    }
+
+    if (depth) {
+      // if (this.useReverseDepthBuffer) {
+      //   this._depthCullingState.depthFunc = this._gl.GREATER;
+      //   this._gl.clearDepth(0.0);
+      // } else {
+      //   this._gl.clearDepth(1.0);
+      // }
+      mode |= this._gl.DEPTH_BUFFER_BIT;
+    }
+    if (stencil) {
+      this._gl.clearStencil(0);
+      mode |= this._gl.STENCIL_BUFFER_BIT;
+    }
+    this._gl.clear(mode);
+  }
 }

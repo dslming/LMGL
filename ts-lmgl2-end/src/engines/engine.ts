@@ -6,6 +6,7 @@ import { EngineOptions, iWebGLCapabilities, iWebGLExtensions } from "./engine.in
 import { EngineDraw } from "./engine.draw";
 import { EngineViewPort } from "./engine.viewPort";
 import { EngineBuffer } from "./engine.buffer";
+import { EngineFramebuffer } from "./engine.framebuffer";
 
 export class Engine extends EventHandler {
   public gl: WebGLRenderingContext;
@@ -19,6 +20,7 @@ export class Engine extends EventHandler {
   public engineDraw: EngineDraw;
   public engineViewPort: EngineViewPort;
   public engineBuffer: EngineBuffer;
+  public engineFramebuffer: EngineFramebuffer;
 
   public _vram = {
     ib: 0,
@@ -44,6 +46,7 @@ export class Engine extends EventHandler {
     this.engineDraw = new EngineDraw(this);
     this.engineViewPort = new EngineViewPort(this);
     this.engineBuffer = new EngineBuffer(this);
+    this.engineFramebuffer = new EngineFramebuffer(this);
   }
 
   private _contextLostHandler(event: Event) {
@@ -172,4 +175,30 @@ export class Engine extends EventHandler {
       supportsAreaLights: true,
     };
   }
+
+  /**
+   * Force a specific size of the canvas
+   * @param width defines the new canvas' width
+   * @param height defines the new canvas' height
+   * @returns true if the size was changed
+   */
+  public resize(width?: number, height?: number): boolean {
+    if (!this._renderingCanvas) {
+      return false;
+    }
+
+    width = width ? width : window.innerWidth;
+    height = height ? height : window.innerHeight;
+
+    if (this._renderingCanvas.width === width && this._renderingCanvas.height === height) {
+      return false;
+    }
+
+    this._renderingCanvas.width = width;
+    this._renderingCanvas.height = height;
+
+    return true;
+  }
+
+
 }
