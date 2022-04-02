@@ -147,7 +147,7 @@ export class Stage {
     // this.control = new CameraControl({
     //   distance: this.camera.position.z,
     // }, this.camera, param[0])
-    this.control = new MyOrbitControls(this.camera, param[0])
+    // this.control = new MyOrbitControls(this.camera, param[0])
 
     dao.setData({ name: "gl", data: this.gl })
     dao.setData({ name: "engine", data: this.engine })
@@ -170,7 +170,7 @@ export class Stage {
   }
 
   run() {
-    this.control.update()
+    // this.control.update()
     window.requestAnimationFrame(this.run)
     this.camera.updateMatrix()
     this.camera.updateMatrixWorld()

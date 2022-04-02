@@ -44,7 +44,7 @@ window.onload = () => {
   mat.side = LMGL.SIDE.DoubleSide
   let mesh = new LMGL.Mesh(geo, mat);
    stage.addUpdate("loop",()=>{
-    mesh.rotation.y += 0.01;
+    // mesh.rotation.y += 0.01;
   })
   stage.add(mesh)
   stage.run()
