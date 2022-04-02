@@ -36,17 +36,23 @@ class Demo {
       const geoInfo = {
           indices: model.indices,
           attributes: {
-              aPosition: {
-                  value: model.positions,
-                  itemSize: 3,
-              },
+            aPosition: {
+              value: model.positions,
+              itemSize: 3,
+            },
+            aUv: {
+              value: model.uv,
+              itemSize:2
+            }
           },
       };
         const geometry = new lmgl.Geometry(engine, geoInfo);
 
         const vertexShader = `
       in vec3 aPosition;
+      in vec2 aUv;
       in vec4 aColor;
+      out vec2 vUv;
       out vec4 vColor;
 
       uniform mat4 projectionMatrix;
@@ -55,14 +61,16 @@ class Demo {
       void main() {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
       vColor = aColor;
+      vUv = aUv;
       }
     `;
         const fragmentShader = `
       in vec4 vColor;
+      in vec2 vUv;
       out vec4 FragColor;
 
       void main() {
-        FragColor = vec4(1.,0.,0.,1.);
+        FragColor = vec4(vUv.x, vUv.y,0.,1.);
       }
     `;
         const material = new lmgl.Material(engine, {

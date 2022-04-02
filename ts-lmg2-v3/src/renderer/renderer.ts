@@ -87,6 +87,7 @@ export default class Renderer {
       if (mesh.visible == false) return;
 
       const { geometry, material } = mesh ;
+      const { geometryInfo } = geometry;
       const program = material.program;
 
       mesh.active();
@@ -94,9 +95,9 @@ export default class Renderer {
       this._updateUniformMatrix(program, mesh, camera);
       material.needUpdate && material.setUniform();
       this._engine.engineDraw.draw({
-          type: geometry.type,
-          indexed: true,
-        count: geometry.count,
+          type: geometryInfo.type,
+          indexed: geometryInfo.indices.length>0,
+          count: geometryInfo.count,
       });
         // const geoType = geometry.type;
         // let count = geometry.indices.length;

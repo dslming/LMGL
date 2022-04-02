@@ -13,9 +13,9 @@ export enum PrimitiveType {
 }
 
 export interface Primitive {
-    type: PrimitiveType;
+    type?: PrimitiveType;
     indexed?: boolean;
-    count: number;
+    count?: number;
     base?: number;
 }
 
@@ -47,17 +47,21 @@ export class EngineDraw {
     }
 
     public draw(primitive: Primitive) {
+        if (!primitive.type) {
+            throw new Error("error primitive type");
+        }
+
+        if (primitive.count === undefined) {
+            throw new Error("error primitive count");
+        }
+
         const mode = this._glPrimitive[primitive.type];
         const count = primitive.count;
         const { gl } = this._engine;
-         gl.cullFace(gl.FRONT_AND_BACK);
-         gl.disable(gl.CULL_FACE);
+        //  gl.cullFace(gl.FRONT_AND_BACK);
+        //  gl.disable(gl.CULL_FACE);
         if (primitive.indexed) {
-            // const indexBuffer = this.indexBuffer;
-            // const format = indexBuffer.glFormat;
-            const offset = 0;
-            // gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset);
-             gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
         }
     }
 
