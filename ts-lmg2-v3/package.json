@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack-dev-server --config webpack.dev.js --progress",
-    "build-dev": "webpack --config webpack.build.js --env=development --progress",
-    "build-pro": "webpack --config webpack.build.js --env=production --progress"
+    "build": "webpack --config webpack.build.js --env=development --progress"
   },
   "repository": {
     "type": "git",

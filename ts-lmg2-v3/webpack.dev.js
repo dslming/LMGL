@@ -16,7 +16,7 @@ module.exports = {
     port: 9999,
     open: false,
     compress: false,
-    contentBase: path.join(__dirname,"./")
+    contentBase: path.join(__dirname, "./")
   },
   plugins: [
     new WebpackBar(),
@@ -29,19 +29,17 @@ module.exports = {
     new forkTsCheckerWebpackPlugin()
   ],
   module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-          use: [{
-            loader: 'ts-loader',
-            options: {
-              transpileOnly: true
-            }
-          }]
-      }
-    ]
+    rules: [{
+      test: /\.tsx?$/,
+      use: [{
+        loader: 'ts-loader',
+        options: {
+          transpileOnly: true
+        }
+      }]
+    }]
   },
-   resolve: {
-     extensions: ['.tsx', '.ts', '.js']
-   },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js']
+  },
 }

@@ -5,14 +5,13 @@
 
 import { Engine } from "../engines/engine";
 import { PrimitiveType } from "../engines/engine.draw";
-
-
+import { Logger } from "../misc/logger";
 
 export interface iGeometryAttributes {
     [name: string]: {
-        value: any[],
-        itemSize: number
-    }
+        value: any[];
+        itemSize: number;
+    };
 }
 
 /**
@@ -41,7 +40,7 @@ export interface iGeometryInfo {
     count?: number;
 }
 
-export  class Geometry {
+export class Geometry {
     private _geometryInfo: iGeometryInfo;
     private _attributeBuffer = new Map();
     private _engine: Engine;
@@ -52,6 +51,10 @@ export  class Geometry {
         this._engine = engine;
 
         this._geometryInfo = geometryInfo;
+        if (!this._geometryInfo.attributes) {
+            Logger.Warn("geometry no attributes");
+        }
+
         if (!this._geometryInfo.type) {
             this._geometryInfo.type = PrimitiveType.PRIMITIVE_TRIANGLES;
         }

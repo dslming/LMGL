@@ -10,18 +10,24 @@ export class Application {
     renderer: Renderer;
 
     constructor(engine: Engine, scene: Scene) {
-      this.engine = engine;
-      this.scene = scene;
-      this.camera = new PerspectiveCamera(45, 1, 0.01, 5000);
-      this.renderer = new Renderer(engine);
-      this.loop = this.loop.bind(this);
-      this.handleResize(this.engine.renderingCanvas.clientWidth, this.engine.renderingCanvas.clientHeight);
-      this.camera.position.set(0,0.,10)
+        this.engine = engine;
+        this.scene = scene;
+        this.camera = new PerspectiveCamera(45, 1, 0.01, 5000);
+        this.renderer = new Renderer(engine);
+        this.loop = this.loop.bind(this);
+        this.handleResize(this.engine.renderingCanvas.clientWidth, this.engine.renderingCanvas.clientHeight);
+        this.camera.position.set(0, 0, 10);
+
+        window.onresize = () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            this.handleResize(width, height);
+        };
     }
 
     handleResize(width: number, height: number) {
-      const canvas = this.engine.renderingCanvas;
-        const ratio = window.devicePixelRatio
+        const canvas = this.engine.renderingCanvas;
+        const ratio = window.devicePixelRatio;
         canvas.width = width;
         canvas.height = height;
 

@@ -1,7 +1,7 @@
 import * as lmgl from "../src/index";
 (window as any).lmgl = lmgl;
 
-export function getGeometry(width=10, height=10) {
+export function getGeometry(width = 10, height = 10) {
     if (width == undefined) {
         width = 1;
     }
@@ -21,7 +21,6 @@ export function getGeometry(width=10, height=10) {
     };
 }
 
-
 class Demo {
     private app: any;
 
@@ -30,22 +29,21 @@ class Demo {
         const engine = new lmgl.Engine(canvas);
         const scene = new lmgl.Scene(engine);
 
-      const model = getGeometry(2,2);
-
-
-      const geoInfo = {
-          indices: model.indices,
-          attributes: {
-            aPosition: {
-              value: model.positions,
-              itemSize: 3,
+        const model = getGeometry(2, 2);
+        const geoInfo = {
+            indices: model.indices,
+            attributes: {
+                aPosition: {
+                    value: model.positions,
+                    itemSize: 3,
+                },
+                aUv: {
+                    value: model.uv,
+                    itemSize: 2,
+                },
             },
-            aUv: {
-              value: model.uv,
-              itemSize:2
-            }
-          },
-      };
+        };
+
         const geometry = new lmgl.Geometry(engine, geoInfo);
 
         const vertexShader = `
@@ -77,8 +75,8 @@ class Demo {
             vertexShader,
             fragmentShader,
         });
-      const mesh = new lmgl.Mesh(engine, geometry, material);
-      mesh.position.set(0, 0, 0)
+        const mesh = new lmgl.Mesh(engine, geometry, material);
+        mesh.position.set(0, 0, 0);
         scene.add(mesh);
 
         const app = new lmgl.Application(engine, scene);
@@ -88,6 +86,6 @@ class Demo {
 }
 
 window.onload = () => {
-  const app = new Demo();
-  (window as any).lm = app;
+    const app = new Demo();
+    (window as any).lm = app;
 };
