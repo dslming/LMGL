@@ -38,9 +38,9 @@ export class Mesh {
     rotation: any;
     quaternion: any;
     setVBO: boolean;
-    VAO: any;
+    // VAO: any;
     indicesBuffer: any;
-    visible:boolean
+    visible: boolean;
     private _engine: Engine;
 
     constructor(engine: Engine, geometry: Geometry, material: Material) {
@@ -49,13 +49,14 @@ export class Mesh {
         this.uuid = MathTool.generateUUID();
         this.material = material;
         this.visible = true;
-        // VBO 集合
+
         this.matrix = new Mat4();
         this.normalMatrix = new Mat3();
         this.position = new Vec3();
         this.scale = new Vec3(1, 1, 1);
         this.rotation = new Euler();
         this.quaternion = new Quat();
+
         this.setVBO = false;
         this.updateMatrix = this.updateMatrix.bind(this);
         this._onRotationChange = this._onRotationChange.bind(this);
@@ -63,55 +64,19 @@ export class Mesh {
         this.position = addProxy(this.position, this.updateMatrix);
         this.scale = addProxy(this.scale, this.updateMatrix);
         this.rotation = addProxy(this.rotation, this._onRotationChange);
-
-        this.VAO = this._engine.engineVertex.createVertexArray();
-        this._engine.engineVertex.bindVertexArray(this.VAO);
-        this.geometry.buildGeometry();
-        this.geometry.setAttributesBuffer(this.material.program);
-        // this._setAttributesBuffer();
-        this._engine.engineVertex.bindVertexArray(null);
-        this.geometry.disableVertexAttrib(this.material.program);
-        // this._disableVertexAttrib();
     }
 
-    // changeMaterial(material) {
-    //     const gl = dao.getData("gl");
-    //     WebGLInterface.bindVertexArray(gl, this.VAO);
-    //     this.material = material;
-    //     this._setAttributesBuffer();
-    // }
-
-    _onRotationChange() {
+    private _onRotationChange() {
         this.quaternion.setFromEuler(this.rotation, false);
         this.updateMatrix();
     }
 
-
-
-
-
-    _disableVertexAttrib() {
-        // const { geometry } = this;
-        // const { attribute } = geometry;
-        // const keys = Object.keys(attribute);
-        // const { program } = this.material;
-        // const gl = dao.getData("gl");
-        // for (let i = 0; i < keys.length; i++) {
-        //     const attribureName = keys[i];
-        //     const attribure = WebGLInterface.getAttribLocation(gl, program, attribureName);
-        //     attribure != -1 && WebGLInterface.disableVertexAttribArray(gl, attribure);
-        // }
+    public active() {
+        this.geometry.setBuffers(this.material.program);
     }
 
-    updateMatrix() {
+    public updateMatrix() {
         this.matrix.compose(this.position, this.quaternion, this.scale);
-    }
-
-    dispose() {
-        const { program } = this.material;
-        // todo: 删除vao,vbo...
-        // WebGLInterface.deleteProgram(program);
-        // WebGLInterface.deleteVertexArray(this.VAO);
     }
 }
 

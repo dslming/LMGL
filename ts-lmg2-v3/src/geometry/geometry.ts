@@ -21,6 +21,7 @@ export  class Geometry {
     private _engine: Engine;
     indicesBuffer: WebGLBuffer | null;
     count: number;
+    VAO: any;
 
     constructor(engine: Engine, geoInfo: any) {
         this._engine = engine;
@@ -38,20 +39,28 @@ export  class Geometry {
         } else {
             this.count = 0;
         }
+        this._createVertexArray();
     }
 
-    public buildGeometry() {
-
+    /**
+     * 创建VAO
+     */
+    private _createVertexArray() {
+        this.VAO = this._engine.engineVertex.createVertexArray();
+        this._engine.engineVertex.bindVertexArray(this.VAO);
         for (let name in this.geoInfo.attributes) {
             this.attributeBuffer.set(name, this._engine.engineVertex.createBuffer());
         }
 
         // 创建顶点缓冲区
         this.indicesBuffer = this._engine.engineVertex.createBuffer();
+        this._engine.engineVertex.bindVertexArray(null);
     }
 
-    // 设置VBO
-    public setAttributesBuffer(program: any) {
+
+    public setBuffers(program: any) {
+        // 绑定VAO
+        this._engine.engineVertex.bindVertexArray(this.VAO);
         const { attributeBuffer, indicesBuffer } = this;
         for (let name in this.geoInfo.attributes) {
             const attribute = this.geoInfo.attributes[name];
@@ -62,6 +71,8 @@ export  class Geometry {
                 itemSize: itemSize,
             });
         }
+
+        // 绑定顶点索引
         if (this.geoInfo.indices.length > 0) {
             this._engine.engineVertex.setIndicesBuffer(indicesBuffer, this.geoInfo.indices);
         }
@@ -74,53 +85,4 @@ export  class Geometry {
             attribure != -1 && this._engine.engineVertex.disableVertexAttribArray(attribure);
         }
     }
-
-    // getGeometryInfo() {
-    //     return this.geoInfo;
-    // }
-
-    // computeBoundingBox() {
-    //     if (this.boundingBox === null) {
-    //         this.boundingBox = new Box3();
-    //     }
-    //     const position = new Attribute(this.attribute.aPosition);
-    //     if (position !== undefined) {
-    //         this.boundingBox.setFromBufferAttribute(position);
-    //     }
-
-    //     if (isNaN(this.boundingBox.min.x) || isNaN(this.boundingBox.min.y) || isNaN(this.boundingBox.min.z)) {
-    //         console.error('Geometry.computeBoundingBox(): Computed min/max have NaN values. The "position" attribute is likely to have NaN values.', this);
-    //     }
-    // }
-
-    // computeBoundingSphere() {
-    //     if (this.boundingSphere === null) {
-    //         this.boundingSphere = new Sphere();
-    //     }
-
-    //     const _vector = new Vector3();
-    //     const _box = new Box3();
-
-    //     const position = new Attribute(this.attribute.aPosition);
-
-    //     if (position != undefined) {
-    //         // first, find the center of the bounding sphere
-    //         const center = this.boundingSphere.center;
-    //         _box.setFromBufferAttribute(position);
-    //         _box.getCenter(center);
-
-    //         // second, try to find a boundingSphere with a radius smaller than the
-    //         // boundingSphere of the boundingBox: sqrt(3) smaller in the best case
-    //         let maxRadiusSq = 0;
-    //         for (let i = 0, il = position.count; i < il; i++) {
-    //             _vector.fromBufferAttribute(position, i);
-    //             maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_vector));
-    //         }
-
-    //         this.boundingSphere.radius = Math.sqrt(maxRadiusSq);
-    //         if (isNaN(this.boundingSphere.radius)) {
-    //             console.error('Geometry.computeBoundingSphere(): Computed radius is NaN. The "aPosition" attribute is likely to have NaN values.', this);
-    //         }
-    //     }
-    // }
 }

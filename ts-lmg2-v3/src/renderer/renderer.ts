@@ -89,7 +89,7 @@ export default class Renderer {
       const { geometry, material } = mesh ;
       const program = material.program;
 
-      this._engine.engineVertex.bindVertexArray(mesh.VAO);
+      mesh.active();
 
       this._updateUniformMatrix(program, mesh, camera);
       material.needUpdate && material.setUniform();
