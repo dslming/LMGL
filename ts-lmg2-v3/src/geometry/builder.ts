@@ -6,7 +6,7 @@ export interface iGeometryBuilder {
     positions: number[];
     normals: Nullable<number[]>;
     indices: number[];
-    uvs: Nullable<number[]>;
+    uvs: number[];
 }
 
 const primitiveUv1Padding = 4.0 / 64;
@@ -177,58 +177,78 @@ export function sphereBuilder(opts: any): iGeometryBuilder {
     // return createMesh(device, positions, options);
 }
 
-export function planeBuilder(opts?: any): iGeometryBuilder {
-    // Check the supplied options and provide defaults for unspecified ones
-    const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new Vec2(0.5, 0.5);
-    const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 5;
-    const ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 5;
-    const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+// export function planeBuilder(opts?: any): iGeometryBuilder {
+//     // Check the supplied options and provide defaults for unspecified ones
+//     const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new Vec2(0.5, 0.5);
+//     const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 5;
+//     const ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 5;
+//     const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
 
-    // Variable declarations
-    const positions: Array<number> = [];
-    const normals: Array<number> = [];
-    const uvs: Array<number> = [];
-    const indices: Array<number> = [];
+//     // Variable declarations
+//     const positions: Array<number> = [];
+//     const normals: Array<number> = [];
+//     const uvs: Array<number> = [];
+//     const indices: Array<number> = [];
 
-    // Generate plane as follows (assigned UVs denoted at corners):
-    // (0,1)x---------x(1,1)
-    //      |         |
-    //      |         |
-    //      |    O--X |length
-    //      |    |    |
-    //      |    Z    |
-    // (0,0)x---------x(1,0)
-    // width
-    let vcounter = 0;
+//     // Generate plane as follows (assigned UVs denoted at corners):
+//     // (0,1)x---------x(1,1)
+//     //      |         |
+//     //      |         |
+//     //      |    O--X |length
+//     //      |    |    |
+//     //      |    Z    |
+//     // (0,0)x---------x(1,0)
+//     // width
+//     let vcounter = 0;
 
-    for (let i = 0; i <= ws; i++) {
-        for (let j = 0; j <= ls; j++) {
-            const x = -he.x + (2 * he.x * i) / ws;
-            const y = 0.0;
-            const z = -(-he.y + (2 * he.y * j) / ls);
-            const u = i / ws;
-            const v = j / ls;
+//     for (let i = 0; i <= ws; i++) {
+//         for (let j = 0; j <= ls; j++) {
+//             const x = -he.x + (2 * he.x * i) / ws;
+//             const y = 0.0;
+//             const z = -(-he.y + (2 * he.y * j) / ls);
+//             const u = i / ws;
+//             const v = j / ls;
 
-            positions.push(x, y, z);
-            normals.push(0, 1, 0);
-            uvs.push(u, 1 - v);
+//             positions.push(x, y, z);
+//             normals.push(0, 1, 0);
+//             uvs.push(u, 1 - v);
 
-            if (i < ws && j < ls) {
-                indices.push(vcounter + ls + 1, vcounter + 1, vcounter);
-                indices.push(vcounter + ls + 1, vcounter + ls + 2, vcounter + 1);
-            }
+//             if (i < ws && j < ls) {
+//                 indices.push(vcounter + ls + 1, vcounter + 1, vcounter);
+//                 indices.push(vcounter + ls + 1, vcounter + ls + 2, vcounter + 1);
+//             }
 
-            vcounter++;
-        }
+//             vcounter++;
+//         }
+//     }
+
+//     return {
+//         positions: positions,
+//         normals: normals,
+//         uvs: uvs,
+//         // uvs1: uvs, // UV1 = UV0 for plane
+//         indices: indices,
+//     };
+
+//     // return createMesh(device, positions, options);
+// }
+
+export function planeBuilder(width?: number, height?: number): iGeometryBuilder {
+    if (width == undefined) {
+        width = 1;
+    }
+    if (height == undefined) {
+        height = 1;
     }
 
+    const vert = [-width, height, 0, -width, -height, 0, width, -height, 0, width, height, 0];
+    const indices = [0, 1, 2, 2, 3, 0];
+    const normal = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
+
     return {
-        positions: positions,
-        normals: normals,
-        uvs: uvs,
-        // uvs1: uvs, // UV1 = UV0 for plane
+        positions: vert,
+        normals: normal,
+        uvs: [0, 1, 0, 0, 1, 0, 1, 1],
         indices: indices,
     };
-
-    // return createMesh(device, positions, options);
 }

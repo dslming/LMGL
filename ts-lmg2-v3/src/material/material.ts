@@ -4,11 +4,19 @@
 // import PhysicalDecorate from '../MaterialDecorate/PhysicalDecorate.js'
 
 import { Engine } from "../engines/engine";
+import { UniformsType } from "../engines/engine.enum";
+import { cloneUniforms } from "../misc/tool";
 
+export interface iMaterialUniforms {
+    [name: string]: {
+        value: any;
+        type: UniformsType;
+    };
+}
 export interface iMagerialInfo {
     vertexShader: string;
     fragmentShader: string;
-    uniforms?: any;
+    uniforms?: iMaterialUniforms;
 }
 
 export class Material {
@@ -24,38 +32,34 @@ export class Material {
     blendRGB_ADst: any;
     depthTest: boolean;
     side: any;
-  needUpdate: boolean;
-  private _engine: Engine;
+    needUpdate: boolean;
+    private _engine: Engine;
 
-  constructor(engine: Engine, matInfo: iMagerialInfo) {
-    this._engine = engine;;
-        let mat = matInfo;
-        mat.vertexShader = JSON.parse(JSON.stringify(matInfo.vertexShader));
-        mat.fragmentShader = JSON.parse(JSON.stringify(matInfo.fragmentShader));
+    vertexShader: string;
+    fragmentShader: string;
+    inputVertexShader: string;
+    inputFragmentShader: string;
+
+    constructor(engine: Engine, materialInfo: iMagerialInfo) {
+        this._engine = engine;
+        // let mat = matInfo;
+        this.inputVertexShader = JSON.parse(JSON.stringify(materialInfo.vertexShader));
+        this.inputFragmentShader = JSON.parse(JSON.stringify(materialInfo.fragmentShader));
+        this.uniforms = cloneUniforms(materialInfo.uniforms || {});
 
         const header = `#version 300 es
       precision mediump float;
     `;
-        // let ret = "";
-        // if (!mat.defines) {
-        //     mat.defines = [];
-        // }
-        // mat.defines.forEach(d => {
-        //     ret += "#define " + d;
-        //     ret += "\n";
-        // });
-        // ret += "\n";
 
-        mat.vertexShader = header + mat.vertexShader;
-        mat.fragmentShader = header + mat.fragmentShader;
-
-        // console.error(mat.vertexShader);
-        // console.error(mat.fragmentShader);
+        this.vertexShader = header + this.inputVertexShader;
+        this.fragmentShader = header + this.inputFragmentShader;
 
         this.uniformBlockIndex = 0;
         this.uniformBlockCatch = new Map();
-        this.program = engine.enginePrograms.createProgram(mat);
-        this.uniforms = mat.uniforms || {};
+        this.program = engine.enginePrograms.createProgram({
+            vertexShader: this.vertexShader,
+            fragmentShader: this.fragmentShader,
+        });
 
         // this.blending = false;
         // this.blendingType = BLENDING_TYPE.RGBA;
@@ -132,12 +136,12 @@ export class Material {
     //     return this.uniformBlockCatch.get(name);
     // }
 
-    _getBufferData(keys:string, content:any) {
+    _getBufferData(keys: string, content: any) {
         let len = 0;
         let offset = [0];
 
         for (let i = 0; i < keys.length; i++) {
-            const propName:string = keys[i];
+            const propName: string = keys[i];
             const { type } = content[propName];
             if (type == "f") {
                 len += 4;
@@ -187,10 +191,10 @@ export class Material {
     //     gl.bindBuffer(gl.UNIFORM_BUFFER, null);
     //     gl.bindBufferBase(gl.UNIFORM_BUFFER, ubb, ubo);
     // }
-    private _handleUniform(obj:any) {
+    private _handleUniform(obj: any) {
         const { program } = this;
 
-        let textureId = 0;
+        // let textureId = 0;
         const keys = Object.keys(obj);
         for (let i = 0; i < keys.length; i++) {
             const name = keys[i];
@@ -205,9 +209,9 @@ export class Material {
                 this._engine.engineUniform.setUniform(program, name, value, type);
             }
 
-            if (type == "t" || type == "tcube") {
-                textureId += 1;
-            }
+            // if (type == "t" || type == "tcube") {
+            //     textureId += 1;
+            // }
         }
     }
 
@@ -216,5 +220,13 @@ export class Material {
         // const gl = dao.getData("gl");
         this._engine.enginePrograms.useProgram(program);
         this._handleUniform(uniforms);
+    }
+
+    clone() {
+        return new Material(this._engine, {
+            vertexShader: this.inputVertexShader,
+            fragmentShader: this.inputFragmentShader,
+            uniforms: this.uniforms,
+        });
     }
 }

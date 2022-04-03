@@ -1,6 +1,6 @@
-import { Nullable } from "../types";
 import { EngineDraw } from "./engine.draw";
 import { EngineProgram } from "./engine.programs";
+import { EngineTexture } from "./engine.texture";
 import { EngineUniform } from "./engine.uniforms";
 import { EngineVertex } from "./engine.vertex";
 import { EngineViewPort } from "./engine.viewPort";
@@ -17,6 +17,7 @@ export class Engine {
     public enginePrograms: EngineProgram;
     public engineUniform: EngineUniform;
     public engineVertex: EngineVertex;
+    public engineTexture: EngineTexture;
 
     constructor(canvas: any) {
         if (!canvas) return;
@@ -32,5 +33,6 @@ export class Engine {
         this.enginePrograms = new EngineProgram(this);
         this.engineUniform = new EngineUniform(this);
         this.engineVertex = new EngineVertex(this);
+        this.engineTexture = new EngineTexture(this);
     }
 }

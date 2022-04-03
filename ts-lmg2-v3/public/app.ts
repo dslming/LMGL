@@ -1,26 +1,6 @@
 import * as lmgl from "../src/index";
 (window as any).lmgl = lmgl;
 
-export function getGeometry(width = 10, height = 10) {
-    if (width == undefined) {
-        width = 1;
-    }
-    if (height == undefined) {
-        height = 1;
-    }
-
-    const vert = [-width, height, 0, -width, -height, 0, width, -height, 0, width, height, 0];
-    const indices = [0, 1, 2, 2, 3, 0];
-    const normal = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
-
-    return {
-        positions: vert,
-        normal: normal,
-        uv: [0, 1, 0, 0, 1, 0, 1, 1],
-        indices: indices,
-    };
-}
-
 class Demo {
     private app: any;
 
@@ -29,7 +9,7 @@ class Demo {
         const engine = new lmgl.Engine(canvas);
         const scene = new lmgl.Scene(engine);
 
-        const model = getGeometry(2, 2);
+        const model = lmgl.planeBuilder(2, 2);
         const geoInfo = {
             indices: model.indices,
             attributes: {
@@ -38,7 +18,7 @@ class Demo {
                     itemSize: 3,
                 },
                 aUv: {
-                    value: model.uv,
+                    value: model.uvs,
                     itemSize: 2,
                 },
             },
@@ -63,29 +43,51 @@ class Demo {
       }
     `;
         const fragmentShader = `
-      in vec4 vColor;
       in vec2 vUv;
       out vec4 FragColor;
+      uniform sampler2D uTexture;
 
       void main() {
-        FragColor = vec4(vUv.x, vUv.y,0.,1.);
+        // FragColor = vec4(vUv.x,vUv.y,0.,1.);
+        // FragColor = texture(uTexture, vUv);
+        FragColor = texture(uTexture, vec2(vUv.x, vUv.y));
       }
     `;
         const material = new lmgl.Material(engine, {
             vertexShader,
             fragmentShader,
+            uniforms: {
+                uTexture: {
+                    value: null,
+                    type: lmgl.UniformsType.Texture,
+                },
+            },
         });
-        const mesh = new lmgl.Mesh(engine, geometry, material);
-        mesh.position.set(0, 0, 0);
-        scene.add(mesh);
+        const mesh1 = new lmgl.Mesh(engine, geometry, material);
+        mesh1.position.set(-3, 0, 0);
+        mesh1.name = "1";
+        scene.add(mesh1);
 
+        const mesh2 = new lmgl.Mesh(engine, geometry, material.clone());
+        mesh2.position.set(3, 0, 0);
+        mesh2.name = "2";
+        scene.add(mesh2);
+
+        new lmgl.TextureLoader(engine).load("./public/images/test.png").then(texture => {
+            mesh1.material.uniforms.uTexture.value = texture;
+        });
+
+        new lmgl.TextureLoader(engine).load("./public/images/book.png").then(texture => {
+            mesh2.material.uniforms.uTexture.value = texture;
+        });
         const app = new lmgl.Application(engine, scene);
         app.loop();
+
         this.app = app;
+        (window as any).lm = app;
     }
 }
 
 window.onload = () => {
-    const app = new Demo();
-    (window as any).lm = app;
+    new Demo();
 };

@@ -1,8 +1,7 @@
 // import { bindCubeTexture, bindTexture, activeTexture } from "./texture.js";
 
 import { Engine } from "./engine";
-
-
+import { UniformsType } from "./engine.enum";
 
 export class EngineUniform {
     private _engine: Engine;
@@ -16,7 +15,7 @@ export class EngineUniform {
         return gl.getUniformLocation(program, name);
     }
 
-    public setUniform(program: any, name: string, value: any, type: string) {
+    public setUniform(program: any, name: string, value: any, type: UniformsType) {
         const { gl } = this._engine;
 
         if (value == null) {
@@ -31,28 +30,33 @@ export class EngineUniform {
         }
 
         switch (type) {
-            case "f":
+            case UniformsType.Float:
                 gl.uniform1f(addr, value);
                 break;
 
-            case "v2":
+            case UniformsType.Vector2:
                 gl.uniform2f(addr, value.x, value.y);
                 break;
 
-            case "v3":
+            case UniformsType.Vector3:
                 gl.uniform3f(addr, value.x, value.y, value.z);
                 break;
 
-            case "v4":
+            case UniformsType.Vector4:
                 gl.uniform4f(addr, value.x, value.y, value.z, value.w);
                 break;
 
-            case "m3":
+            case UniformsType.Matrix3:
                 gl.uniformMatrix3fv(addr, false, new Float32Array(value));
                 break;
 
-            case "m4":
+            case UniformsType.Matrix4:
                 gl.uniformMatrix4fv(addr, false, new Float32Array(value));
+                break;
+
+            case UniformsType.Texture:
+                this._engine.engineTexture.setTexture(value, 0);
+                gl.uniform1i(addr, 0);
                 break;
 
             default:
