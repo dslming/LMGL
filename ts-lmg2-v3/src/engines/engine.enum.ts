@@ -6,6 +6,8 @@ export enum UniformsType {
     "Vector4",
     "Matrix3",
     "Matrix4",
+    "Struct",
+    "Array",
 }
 
 export enum TextureFormat {
