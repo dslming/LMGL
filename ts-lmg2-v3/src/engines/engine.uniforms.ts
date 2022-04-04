@@ -1,6 +1,5 @@
 // import { bindCubeTexture, bindTexture, activeTexture } from "./texture.js";
 
-import { iMaterialUniforms } from "../material";
 import { Engine } from "./engine";
 import { UniformsType } from "./engine.enum";
 

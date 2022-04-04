@@ -1,17 +1,17 @@
-import { iMagerialInfo } from "../material/material";
 import { Engine } from "./engine";
+import { iProgrameOptions } from "./engine.enum";
 
 // 查询信息类型
-enum SHADER_INFO_TYPE  {
-  DELETE_STATUS = "DELETE_STATUS",
-  COMPILE_STATUS = "COMPILE_STATUS",
-  SHADER_TYPE = "SHADER_TYPE"
+enum SHADER_INFO_TYPE {
+    DELETE_STATUS = "DELETE_STATUS",
+    COMPILE_STATUS = "COMPILE_STATUS",
+    SHADER_TYPE = "SHADER_TYPE",
 }
 
-  // shader 类型
-enum SHADER_TYPE  {
-  VERTEX_SHADER = "VERTEX_SHADER",
-  FRAGMENT_SHADER = "FRAGMENT_SHADER",
+// shader 类型
+enum SHADER_TYPE {
+    VERTEX_SHADER = "VERTEX_SHADER",
+    FRAGMENT_SHADER = "FRAGMENT_SHADER",
 }
 
 export class EngineProgram {
@@ -76,7 +76,7 @@ export class EngineProgram {
         throw errorLog;
     }
 
-    public createProgram(shaderSource: iMagerialInfo) {
+    public createProgram(shaderSource: iProgrameOptions) {
         const { vertexShader: vs, fragmentShader: fs } = shaderSource;
         //创建顶点着色器
         const vertexShader = this._getShader(SHADER_TYPE.VERTEX_SHADER, vs);

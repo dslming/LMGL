@@ -1,6 +1,6 @@
-import { iMaterialUniforms, iUniformBlock } from "../material";
+import { iUniformBlock } from "../material";
 import { Engine } from "./engine";
-import { UniformsType } from "./engine.enum";
+import { iProgramUniforms, UniformsType } from "./engine.enum";
 
 export class EngineUniformBuffer {
     private _engine: Engine;
@@ -24,7 +24,7 @@ export class EngineUniformBuffer {
         return uniformBlock.blockCatch.get(name);
     }
 
-    private _getBufferData(keys: string[], content: iMaterialUniforms) {
+    private _getBufferData(keys: string[], content: iProgramUniforms) {
         let len = 0;
         let offset = [0];
 
@@ -65,7 +65,7 @@ export class EngineUniformBuffer {
         return result;
     }
 
-    handleUniformBlock(program: any, blockName: string, content: iMaterialUniforms, uniformBlock: iUniformBlock) {
+    handleUniformBlock(program: any, blockName: string, content: iProgramUniforms, uniformBlock: iUniformBlock) {
         const { gl } = this._engine;
 
         const ubi = gl.getUniformBlockIndex(program, blockName);

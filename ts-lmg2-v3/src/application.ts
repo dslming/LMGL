@@ -9,9 +9,10 @@ export class Application {
     camera: PerspectiveCamera;
     renderer: Renderer;
 
-    constructor(engine: Engine, scene: Scene) {
+    constructor(engine: Engine, scene?: Scene) {
         this.engine = engine;
-        this.scene = scene;
+        scene && (this.scene = scene);
+
         this.camera = new PerspectiveCamera(45, 1, 0.01, 5000);
         this.renderer = new Renderer(engine);
         this.loop = this.loop.bind(this);

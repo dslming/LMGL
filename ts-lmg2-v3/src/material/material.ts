@@ -1,18 +1,6 @@
 import { Engine } from "../engines/engine";
-import { UniformsType } from "../engines/engine.enum";
+import { iProgrameOptions, UniformsType } from "../engines/engine.enum";
 import { cloneUniforms } from "../misc/tool";
-
-export interface iMaterialUniforms {
-    [name: string]: {
-        value: any | iMaterialUniforms;
-        type: UniformsType;
-    };
-}
-export interface iMagerialInfo {
-    vertexShader: string;
-    fragmentShader: string;
-    uniforms?: iMaterialUniforms;
-}
 
 export interface iUniformBlock {
     blockIndex: number;
@@ -41,7 +29,7 @@ export class Material {
 
     uniformBlock: iUniformBlock;
 
-    constructor(engine: Engine, materialInfo: iMagerialInfo) {
+    constructor(engine: Engine, materialInfo: iProgrameOptions) {
         this._engine = engine;
         // let mat = matInfo;
         this.inputVertexShader = JSON.parse(JSON.stringify(materialInfo.vertexShader));

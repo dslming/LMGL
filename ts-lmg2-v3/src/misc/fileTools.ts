@@ -36,4 +36,35 @@ export class FileTools {
             }
         });
     }
+
+    static LoadTextFiles(filenames: string[], rootPath: string) {
+        return new Promise((resolve, reject) => {
+            var loadedSoFar = 0;
+            var results: any = {};
+            for (var i = 0; i < filenames.length; ++i) {
+                var filename = filenames[i];
+                (function () {
+                    var name = rootPath + filename;
+
+                    var request = new XMLHttpRequest();
+                    request.onreadystatechange = function () {
+                        if (request.readyState === 4) {
+                            //if this reqest is done
+                            //add this file to the results object
+                            var text = request.responseText;
+                            results[name] = text;
+
+                            loadedSoFar += 1;
+                            if (loadedSoFar === filenames.length) {
+                                //if we've loaded all of the files
+                                return resolve(results);
+                            }
+                        }
+                    };
+                    request.open("GET", name, true);
+                    request.send();
+                })();
+            }
+        });
+    }
 }

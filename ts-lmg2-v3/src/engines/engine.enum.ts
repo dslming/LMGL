@@ -261,3 +261,15 @@ export enum CompareFunc {
      */
     FUNC_ALWAYS = 7,
 }
+
+export interface iProgramUniforms {
+    [name: string]: {
+        value: any | iProgramUniforms;
+        type: UniformsType;
+    };
+}
+export interface iProgrameOptions {
+    vertexShader: string;
+    fragmentShader: string;
+    uniforms?: iProgramUniforms;
+}
