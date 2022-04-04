@@ -1090,6 +1090,81 @@ class EngineProgram {
 
 /***/ }),
 
+/***/ "./src/engines/engine.renderTarget.ts":
+/*!********************************************!*\
+  !*** ./src/engines/engine.renderTarget.ts ***!
+  \********************************************/
+/*! exports provided: EngineRenderTarget */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineRenderTarget", function() { return EngineRenderTarget; });
+class EngineRenderTarget {
+    constructor(engine) {
+        this._engine = engine;
+        this.maxRenderBufferSize = this._engine.capabilities.maxRenderBufferSize;
+    }
+    /**
+     * Binds the specified framebuffer object.
+     *
+     * @param {WebGLFramebuffer} fb - The framebuffer to bind.
+     * @ignore
+     */
+    setFramebuffer(fb) {
+        const { gl } = this._engine;
+        if (this.activeFramebuffer !== fb) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+            this.activeFramebuffer = fb;
+        }
+        if (gl.getError() != gl.NO_ERROR) {
+            throw "Some WebGL error occurred while trying to create framebuffer.";
+        }
+    }
+    /**
+     * Initialize render target before it can be used.
+     *
+     * @param {RenderTarget} target - The render target to be initialized.
+     * @ignore
+     */
+    initRenderTarget(target) {
+        if (target.glFrameBuffer)
+            return;
+        const { gl, webgl2 } = this._engine;
+        // ##### Create main FBO #####
+        target.glFrameBuffer = gl.createFramebuffer();
+        this.setFramebuffer(target.glFrameBuffer);
+        // --- Init the provided color buffer (optional) ---
+        const colorBuffer = target.colorBuffer;
+        if (colorBuffer) {
+            if (!colorBuffer.glTexture) {
+                // Clamp the render buffer size to the maximum supported by the device
+                colorBuffer.width = Math.min(colorBuffer.width, this.maxRenderBufferSize);
+                colorBuffer.height = Math.min(colorBuffer.height, this.maxRenderBufferSize);
+                this._engine.engineTexture.setTexture(colorBuffer, 0);
+            }
+            // Attach the color buffer
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorBuffer.glTexture, 0);
+        }
+        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    setRenderTarget(target) {
+        const { gl } = this._engine;
+        if (target !== null) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, target.glFrameBuffer);
+            if (target.depth) {
+                gl.bindRenderbuffer(gl.RENDERBUFFER, target.glDepthBuffer);
+            }
+        }
+        else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/engines/engine.texture.ts":
 /*!***************************************!*\
   !*** ./src/engines/engine.texture.ts ***!
@@ -1239,8 +1314,8 @@ class EngineTexture {
      */
     activeTexture(textureUnit) {
         const { gl } = this._engine;
+        gl.activeTexture(gl.TEXTURE0 + textureUnit);
         if (this.textureUnit !== textureUnit) {
-            gl.activeTexture(gl.TEXTURE0 + textureUnit);
             this.textureUnit = textureUnit;
         }
     }
@@ -1375,8 +1450,14 @@ class EngineTexture {
         // Upload the image, canvas or video
         this.setUnpackFlipY(texture.flipY);
         this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
-        gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texture.source);
-        gl.generateMipmap(texture.glTarget);
+        if (texture.source) {
+            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texture.source);
+            gl.generateMipmap(texture.glTarget);
+        }
+        else {
+            // gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texture.width, texture.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        }
     }
     /**
      * If the texture is not bound on the specified texture unit, active the texture unit and bind
@@ -1410,11 +1491,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Engine", function() { return Engine; });
 /* harmony import */ var _engine_draw__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./engine.draw */ "./src/engines/engine.draw.ts");
 /* harmony import */ var _engine_programs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./engine.programs */ "./src/engines/engine.programs.ts");
-/* harmony import */ var _engine_texture__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./engine.texture */ "./src/engines/engine.texture.ts");
-/* harmony import */ var _engine_uniformBuffer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./engine.uniformBuffer */ "./src/engines/engine.uniformBuffer.ts");
-/* harmony import */ var _engine_uniforms__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./engine.uniforms */ "./src/engines/engine.uniforms.ts");
-/* harmony import */ var _engine_vertex__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./engine.vertex */ "./src/engines/engine.vertex.ts");
-/* harmony import */ var _engine_viewPort__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./engine.viewPort */ "./src/engines/engine.viewPort.ts");
+/* harmony import */ var _engine_renderTarget__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./engine.renderTarget */ "./src/engines/engine.renderTarget.ts");
+/* harmony import */ var _engine_texture__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./engine.texture */ "./src/engines/engine.texture.ts");
+/* harmony import */ var _engine_uniformBuffer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./engine.uniformBuffer */ "./src/engines/engine.uniformBuffer.ts");
+/* harmony import */ var _engine_uniforms__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./engine.uniforms */ "./src/engines/engine.uniforms.ts");
+/* harmony import */ var _engine_vertex__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./engine.vertex */ "./src/engines/engine.vertex.ts");
+/* harmony import */ var _engine_viewPort__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./engine.viewPort */ "./src/engines/engine.viewPort.ts");
+
 
 
 
@@ -1430,18 +1513,44 @@ class Engine {
             return;
         this.renderingCanvas = canvas;
         try {
-            this.gl = canvas.getContext("webgl2");
+            this.gl = canvas.getContext("webgl2", {
+                antialias: true,
+                alpha: true,
+            });
         }
         catch (err) {
             throw new Error("仅支持 webgl2.0");
         }
+        this._initializeCapabilities();
         this.engineDraw = new _engine_draw__WEBPACK_IMPORTED_MODULE_0__["EngineDraw"](this);
-        this.engineViewPort = new _engine_viewPort__WEBPACK_IMPORTED_MODULE_6__["EngineViewPort"](this);
+        this.engineViewPort = new _engine_viewPort__WEBPACK_IMPORTED_MODULE_7__["EngineViewPort"](this);
         this.enginePrograms = new _engine_programs__WEBPACK_IMPORTED_MODULE_1__["EngineProgram"](this);
-        this.engineUniform = new _engine_uniforms__WEBPACK_IMPORTED_MODULE_4__["EngineUniform"](this);
-        this.engineVertex = new _engine_vertex__WEBPACK_IMPORTED_MODULE_5__["EngineVertex"](this);
-        this.engineTexture = new _engine_texture__WEBPACK_IMPORTED_MODULE_2__["EngineTexture"](this);
-        this.engineUniformBuffer = new _engine_uniformBuffer__WEBPACK_IMPORTED_MODULE_3__["EngineUniformBuffer"](this);
+        this.engineUniform = new _engine_uniforms__WEBPACK_IMPORTED_MODULE_5__["EngineUniform"](this);
+        this.engineVertex = new _engine_vertex__WEBPACK_IMPORTED_MODULE_6__["EngineVertex"](this);
+        this.engineTexture = new _engine_texture__WEBPACK_IMPORTED_MODULE_3__["EngineTexture"](this);
+        this.engineUniformBuffer = new _engine_uniformBuffer__WEBPACK_IMPORTED_MODULE_4__["EngineUniformBuffer"](this);
+        this.engineRenderTarget = new _engine_renderTarget__WEBPACK_IMPORTED_MODULE_2__["EngineRenderTarget"](this);
+    }
+    _initializeCapabilities() {
+        const gl = this.gl;
+        const contextAttribs = gl.getContextAttributes();
+        this.capabilities = {
+            supportsMsaa: contextAttribs === null || contextAttribs === void 0 ? void 0 : contextAttribs.antialias,
+            supportsStencil: contextAttribs.stencil,
+            maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+            maxCubeMapSize: gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE),
+            maxRenderBufferSize: gl.getParameter(gl.MAX_RENDERBUFFER_SIZE),
+            maxTextures: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+            maxCombinedTextures: gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+            maxVertexTextures: gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
+            vertexUniformsCount: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
+            fragmentUniformsCount: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
+            maxDrawBuffers: gl.getParameter(gl.MAX_DRAW_BUFFERS),
+            maxColorAttachments: gl.getParameter(gl.MAX_COLOR_ATTACHMENTS),
+            maxVolumeSize: gl.getParameter(gl.MAX_3D_TEXTURE_SIZE),
+            maxSamples: gl.getParameter(gl.SAMPLES),
+            supportsAreaLights: true,
+        };
     }
 }
 
@@ -1593,6 +1702,7 @@ class EngineUniform {
                 break;
         }
     }
+    // 数组
     handleUniformArray(program, name, content) {
         const array = content;
         for (let i = 0; i < array.length; i++) {
@@ -2114,7 +2224,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************!*\
   !*** ./src/index.ts ***!
   \**********************/
-/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, PerspectiveCamera, boxBuilder, sphereBuilder, planeBuilder, Geometry, Material, Mesh, Scene, TextureLoader, Texture, Application */
+/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, PerspectiveCamera, boxBuilder, sphereBuilder, planeBuilder, Geometry, Material, Mesh, Scene, TextureLoader, Texture, RenderTarget, Application */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2159,8 +2269,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _texture_index__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./texture/index */ "./src/texture/index.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Texture", function() { return _texture_index__WEBPACK_IMPORTED_MODULE_7__["Texture"]; });
 
-/* harmony import */ var _application__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./application */ "./src/application.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Application", function() { return _application__WEBPACK_IMPORTED_MODULE_8__["Application"]; });
+/* harmony import */ var _renderer_index__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./renderer/index */ "./src/renderer/index.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RenderTarget", function() { return _renderer_index__WEBPACK_IMPORTED_MODULE_8__["RenderTarget"]; });
+
+/* harmony import */ var _application__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./application */ "./src/application.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Application", function() { return _application__WEBPACK_IMPORTED_MODULE_9__["Application"]; });
+
 
 
 
@@ -8858,6 +8972,101 @@ Object3D.prototype.isObject3D = true;
 
 /***/ }),
 
+/***/ "./src/renderer/index.ts":
+/*!*******************************!*\
+  !*** ./src/renderer/index.ts ***!
+  \*******************************/
+/*! exports provided: RenderTarget */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _render_target__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./render.target */ "./src/renderer/render.target.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RenderTarget", function() { return _render_target__WEBPACK_IMPORTED_MODULE_0__["RenderTarget"]; });
+
+/* harmony import */ var _renderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./renderer */ "./src/renderer/renderer.ts");
+/* empty/unused harmony star reexport */
+
+
+
+/***/ }),
+
+/***/ "./src/renderer/render.target.ts":
+/*!***************************************!*\
+  !*** ./src/renderer/render.target.ts ***!
+  \***************************************/
+/*! exports provided: RenderTarget */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderTarget", function() { return RenderTarget; });
+/* harmony import */ var _engines__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../engines */ "./src/engines/index.ts");
+/* harmony import */ var _misc_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../misc/logger */ "./src/misc/logger.ts");
+/* harmony import */ var _texture__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../texture */ "./src/texture/index.ts");
+
+
+
+class RenderTarget {
+    constructor(engine, options) {
+        this._engine = engine;
+        this.glFrameBuffer = null;
+        this.glDepthBuffer = null;
+        this.colorBuffer = new _texture__WEBPACK_IMPORTED_MODULE_2__["Texture"](engine, {
+            width: options.width,
+            height: options.height,
+            format: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R8_G8_B8_A8,
+            addressU: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE,
+            addressV: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE,
+            minFilter: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_LINEAR,
+            magFilter: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_LINEAR,
+        });
+        this.colorBuffer.needsUpload = true;
+        this.stencil = false;
+        if (this.depthBuffer) {
+            const format = this.depthBuffer.format;
+            if (format === _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTH) {
+                this.depth = true;
+                this.stencil = false;
+            }
+            else if (format === _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTHSTENCIL) {
+                this.depth = true;
+                this.stencil = true;
+            }
+            else {
+                _misc_logger__WEBPACK_IMPORTED_MODULE_1__["Logger"].Warn("Incorrect depthBuffer format. Must be pc.PIXELFORMAT_DEPTH or pc.PIXELFORMAT_DEPTHSTENCIL");
+                this.depth = false;
+                this.stencil = false;
+            }
+        }
+        else {
+            this.depth = options.depth !== undefined ? options.depth : false;
+            this.stencil = options.stencil !== undefined ? options.stencil : false;
+        }
+        this.samples = options.samples !== undefined ? Math.min(options.samples, this._engine.capabilities.maxSamples) : 1;
+        this._engine.engineRenderTarget.initRenderTarget(this);
+    }
+    /**
+     * Width of the render target in pixels.
+     *
+     * @type {number}
+     */
+    get width() {
+        return this.colorBuffer ? this.colorBuffer.width : this.depthBuffer.width;
+    }
+    /**
+     * Height of the render target in pixels.
+     *
+     * @type {number}
+     */
+    get height() {
+        return this.colorBuffer ? this.colorBuffer.height : this.depthBuffer.height;
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/renderer/renderer.ts":
 /*!**********************************!*\
   !*** ./src/renderer/renderer.ts ***!
@@ -8946,14 +9155,30 @@ class Renderer {
         //     gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
         // }
     }
-    renderScene(scene, camera) {
+    setRenderTarget(target) {
+        this._target = target;
+        this._engine.engineRenderTarget.setRenderTarget(target);
+    }
+    clear() {
         this._engine.engineDraw.clear(this.clearColor);
+    }
+    setViewPort() {
+        let width = this._engine.renderingCanvas.clientWidth;
+        let height = this._engine.renderingCanvas.clientHeight;
+        if (this._target) {
+            width = this._target.width;
+            height = this._target.height;
+        }
         this._engine.engineViewPort.setViewport({
             x: 0,
             y: 0,
-            width: this._engine.renderingCanvas.clientWidth,
-            height: this._engine.renderingCanvas.clientHeight,
+            width,
+            height: height,
         });
+    }
+    renderScene(scene, camera) {
+        this.clear();
+        this.setViewPort();
         for (let i = 0; i < scene.children.length; i++) {
             const mesh = scene.children[i];
             this.renderMesh(mesh, camera);
@@ -9053,6 +9278,7 @@ class Texture {
         if (!options) {
             options = {};
         }
+        this._source = null;
         this._minFilter = options.minFilter !== undefined ? options.minFilter : _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_LINEAR_MIPMAP_LINEAR;
         this._magFilter = options.magFilter !== undefined ? options.magFilter : _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_LINEAR;
         this._addressU = options.addressU !== undefined ? options.addressU : _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_REPEAT;
@@ -9063,6 +9289,8 @@ class Texture {
         this._compareFunc = options.compareFunc !== undefined ? options.compareFunc : _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["CompareFunc"].FUNC_LESS;
         this._premultiplyAlpha = options.premultiplyAlpha !== undefined ? options.premultiplyAlpha : false;
         this._parameterFlags = 255; // 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128
+        this._width = options.width !== undefined ? options.width : 0;
+        this._height = options.height !== undefined ? options.height : 0;
     }
     get parameterFlags() {
         return this._parameterFlags;
@@ -9160,6 +9388,18 @@ class Texture {
     }
     get source() {
         return this._source;
+    }
+    get width() {
+        return this._width;
+    }
+    set width(v) {
+        this._width = v;
+    }
+    get height() {
+        return this._height;
+    }
+    set height(v) {
+        this._height = v;
     }
     set source(v) {
         this._source = v;

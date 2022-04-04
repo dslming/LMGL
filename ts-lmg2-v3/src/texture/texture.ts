@@ -36,6 +36,9 @@ export interface iTextureOptions {
     compareFunc?: CompareFunc;
 
     premultiplyAlpha?: boolean;
+
+    width?: number;
+    height?: number;
 }
 
 let id = 0;
@@ -78,7 +81,7 @@ export class Texture {
         if (!options) {
             options = {};
         }
-
+        this._source = null;
         this._minFilter = options.minFilter !== undefined ? options.minFilter : TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR;
         this._magFilter = options.magFilter !== undefined ? options.magFilter : TextureFilter.FILTER_LINEAR;
         this._addressU = options.addressU !== undefined ? options.addressU : TextureAddress.ADDRESS_REPEAT;
@@ -91,6 +94,9 @@ export class Texture {
         this._premultiplyAlpha = options.premultiplyAlpha !== undefined ? options.premultiplyAlpha : false;
 
         this._parameterFlags = 255; // 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128
+
+        this._width = options.width !== undefined ? options.width : 0;
+        this._height = options.height !== undefined ? options.height : 0;
     }
 
     get parameterFlags() {
@@ -204,6 +210,20 @@ export class Texture {
 
     get source() {
         return this._source;
+    }
+
+    get width() {
+        return this._width;
+    }
+    set width(v) {
+        this._width = v;
+    }
+
+    get height() {
+        return this._height;
+    }
+    set height(v) {
+        this._height = v;
     }
 
     set source(v) {

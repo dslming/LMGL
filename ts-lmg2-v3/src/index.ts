@@ -6,4 +6,6 @@ export * from "./mesh/index";
 export * from "./scene/index";
 export * from "./loader/index";
 export * from "./texture/index";
+export * from "./renderer/index";
+
 export * from "./application";

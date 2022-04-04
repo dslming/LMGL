@@ -155,8 +155,8 @@ export class EngineTexture {
     activeTexture(textureUnit: number) {
         const { gl } = this._engine;
 
+        gl.activeTexture(gl.TEXTURE0 + textureUnit);
         if (this.textureUnit !== textureUnit) {
-            gl.activeTexture(gl.TEXTURE0 + textureUnit);
             this.textureUnit = textureUnit;
         }
     }
@@ -305,8 +305,13 @@ export class EngineTexture {
         // Upload the image, canvas or video
         this.setUnpackFlipY(texture.flipY);
         this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
-        gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texture.source);
-        gl.generateMipmap(texture.glTarget);
+        if (texture.source) {
+            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texture.source);
+            gl.generateMipmap(texture.glTarget);
+        } else {
+            // gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texture.width, texture.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        }
     }
     /**
      * If the texture is not bound on the specified texture unit, active the texture unit and bind

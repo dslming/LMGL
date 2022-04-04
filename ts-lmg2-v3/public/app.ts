@@ -8,6 +8,8 @@ class Demo {
         const canvas = document.getElementById("renderCanvas");
         const engine = new lmgl.Engine(canvas);
         const scene = new lmgl.Scene(engine);
+        const app = new lmgl.Application(engine, scene);
+        (window as any).lm = app;
 
         const model = lmgl.planeBuilder(2, 2);
         const geoInfo = {
@@ -26,101 +28,91 @@ class Demo {
 
         const geometry = new lmgl.Geometry(engine, geoInfo);
 
-        const vertexShader = `
-      in vec3 aPosition;
-      in vec2 aUv;
-      in vec4 aColor;
-      out vec2 vUv;
-      out vec4 vColor;
+        const vertexShader1 = `
+            in vec3 aPosition;
+            uniform mat4 projectionMatrix;
+            uniform mat4 modelViewMatrix;
+            in vec2 aUv;
+            out vec2 vUv;
 
-      uniform mat4 projectionMatrix;
-      uniform mat4 modelViewMatrix;
+            void main() {
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+                vUv = aUv;
+            }
+        `;
+        const fragmentShader1 = `
+            in vec2 vUv;
+            out vec4 FragColor;
 
-      void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-      vColor = aColor;
-      vUv = aUv;
-      }
-    `;
-        const fragmentShader = `
-      in vec2 vUv;
-      out vec4 FragColor;
-      uniform sampler2D uTexture;
+            void main() {
+               FragColor = vec4(vUv.x, vUv.y, 0., 1.);
+            }
+            `;
 
-      struct Light0 {
-        vec4 diffuse;
-        vec4 specular;
-      };
+        const vertexShader2 = `
+            in vec3 aPosition;
+            uniform mat4 projectionMatrix;
+            uniform mat4 modelViewMatrix;
+            in vec2 aUv;
+            out vec2 vUv;
 
-    //   uniform float Colors[2];
-      uniform Light0 LightArr[1];
+            void main() {
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+                vUv = aUv;
+            }
+        `;
+        const fragmentShader2 = `
+            in vec2 vUv;
+            out vec4 FragColor;
+            uniform sampler2D uTexture;
 
+            void main() {
+                FragColor = vec4(0.5, 0., 0., 1.);
+                FragColor += texture(uTexture, vUv);
+            }
+            `;
 
-      void main() {
-        // FragColor = vec4(vUv.x,vUv.y,0.,1.);
-        // FragColor = texture(uTexture, vUv);
-        // FragColor = texture(uTexture, vec2(vUv.x, vUv.y));
-        // FragColor.r += light0.diffuse.r;
-        // FragColor.g += light0.specular.g;
+        const material1 = new lmgl.Material(engine, {
+            vertexShader: vertexShader1,
+            fragmentShader: fragmentShader1,
+        });
 
-        // FragColor = vec4(Colors[0],Colors[1],0.,1.);
-        // FragColor = vec4(Colors[0],Colors[1],0.,1.);
-        //    FragColor = LightArr[0].diffuse;
-        FragColor = LightArr[0].specular + LightArr[0].diffuse;
-
-      }
-    `;
-        const material = new lmgl.Material(engine, {
-            vertexShader,
-            fragmentShader,
+        const material2 = new lmgl.Material(engine, {
+            vertexShader: vertexShader2,
+            fragmentShader: fragmentShader2,
             uniforms: {
                 uTexture: {
                     value: null,
                     type: lmgl.UniformsType.Texture,
                 },
-
-                LightArr: {
-                    type: lmgl.UniformsType.Array,
-                    value: [
-                        {
-                            type: lmgl.UniformsType.Struct,
-                            value: {
-                                diffuse: {
-                                    type: lmgl.UniformsType.Vector4,
-                                    value: { x: 0, y: 1, z: 0, w: 1 },
-                                },
-                                specular: {
-                                    type: lmgl.UniformsType.Vector4,
-                                    value: { x: 1, y: 0, z: 0, w: 1 },
-                                },
-                            },
-                        },
-                    ],
-                },
             },
         });
-        const mesh1 = new lmgl.Mesh(engine, geometry, material);
-        mesh1.position.set(-3, 0, 0);
-        mesh1.name = "1";
-        scene.add(mesh1);
 
-        const mesh2 = new lmgl.Mesh(engine, geometry, material.clone());
-        mesh2.position.set(3, 0, 0);
-        mesh2.name = "2";
+        const mesh1 = new lmgl.Mesh(engine, geometry, material1);
+        const mesh2 = new lmgl.Mesh(engine, geometry, material2);
+        scene.add(mesh1);
         scene.add(mesh2);
 
-        new lmgl.TextureLoader(engine).load("./public/images/test.png").then(texture => {
-            mesh1.material.uniforms.uTexture.value = texture;
+        const target = new lmgl.RenderTarget(engine, {
+            width: 512,
+            height: 512,
         });
 
-        new lmgl.TextureLoader(engine).load("./public/images/book.png").then(texture => {
-            mesh2.material.uniforms.uTexture.value = texture;
-        });
-        const app = new lmgl.Application(engine, scene);
-        app.loop();
+        var loop = () => {
+            app.renderer.setRenderTarget(target);
+            app.renderer.clear();
+            app.renderer.setViewPort();
+            app.renderer.renderMesh(mesh1, app.camera);
+            mesh1.rotation.y += 0.5;
 
-        this.app = app;
-        (window as any).lm = app;
+            app.renderer.setRenderTarget(null);
+            mesh2.material.uniforms.uTexture.value = target.colorBuffer;
+            app.renderer.setViewPort();
+            app.renderer.clear();
+            app.renderer.renderMesh(mesh2, app.camera);
+            window.requestAnimationFrame(loop);
+        };
+        loop();
     }
 }
 

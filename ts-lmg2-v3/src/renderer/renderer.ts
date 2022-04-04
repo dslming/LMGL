@@ -10,12 +10,14 @@ import { Mat4 } from "../maths/math.mat4";
 import { Vec3 } from "../maths/math.vec3";
 import { Mesh } from "../mesh/mesh";
 import { Scene } from "../scene/scene";
+import { RenderTarget } from "./render.target";
 
 export default class Renderer {
     private _engine: Engine;
     currentPrograme: null;
     currentRenderTarget: null;
     clearColor: Color4;
+    private _target: RenderTarget | null;
 
     constructor(engine: Engine) {
         this._engine = engine;
@@ -98,14 +100,35 @@ export default class Renderer {
         // }
     }
 
-    renderScene(scene: Scene, camera: Camera) {
+    setRenderTarget(target: RenderTarget | null) {
+        this._target = target;
+        this._engine.engineRenderTarget.setRenderTarget(target);
+    }
+
+    clear() {
         this._engine.engineDraw.clear(this.clearColor);
+    }
+
+    setViewPort() {
+        let width = this._engine.renderingCanvas.clientWidth;
+        let height = this._engine.renderingCanvas.clientHeight;
+
+        if (this._target) {
+            width = this._target.width;
+            height = this._target.height;
+        }
+
         this._engine.engineViewPort.setViewport({
             x: 0,
             y: 0,
-            width: this._engine.renderingCanvas.clientWidth,
-            height: this._engine.renderingCanvas.clientHeight,
+            width,
+            height: height,
         });
+    }
+
+    renderScene(scene: Scene, camera: Camera) {
+        this.clear();
+        this.setViewPort();
         for (let i = 0; i < scene.children.length; i++) {
             const mesh = scene.children[i];
             this.renderMesh(mesh, camera);

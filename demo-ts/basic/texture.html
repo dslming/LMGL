@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../style.css" />
+        <title>Document</title>
+    </head>
+    <body>
+        <webgl-component></webgl-component>
+        <script src="../webgl_component.js"></script>
+
+        <script type="module">
+            import "../lib/lmgl.max.js";
+
+            let canvas;
+            let engine;
+            let scene;
+
+            class Plane {
+                constructor() {
+                    const vertexShader = `
+                      in vec3 aPosition;
+                      in vec2 aUv;
+                      out vec2 vUv;
+
+                      uniform mat4 projectionMatrix;
+                      uniform mat4 modelViewMatrix;
+
+                      void main() {
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+                        vUv = aUv;
+                      }
+                    `;
+
+                    const fragmentShader = `
+                      in vec2 vUv;
+                      uniform sampler2D uTexture;
+                      out vec4 FragColor;
+
+                      void main() {
+                        FragColor = texture(uTexture, vUv);
+                      }
+                      `;
+
+                    const model = lmgl.planeBuilder(2, 2);
+                    const geoInfo = {
+                        indices: model.indices,
+                        attributes: {
+                            aPosition: {
+                                value: model.positions,
+                                itemSize: 3,
+                            },
+                            aUv: {
+                                value: model.uvs,
+                                itemSize: 2,
+                            },
+                            uTexture: {
+                                value: null,
+                                type: lmgl.UniformsType.Texture,
+                            },
+                        },
+                    };
+
+                    const matInfo = {
+                        vertexShader,
+                        fragmentShader,
+                        uniforms: {
+                            uTexture: {
+                                value: null,
+                                type: lmgl.UniformsType.Texture,
+                            },
+                        },
+                    };
+
+                    const geometry = new lmgl.Geometry(engine, geoInfo);
+                    const material = new lmgl.Material(engine, matInfo);
+                    const mesh = new lmgl.Mesh(engine, geometry, material);
+
+                    new lmgl.TextureLoader().load("./images/test.png").then(texture => {
+                        material.uniforms.uTexture.value = texture;
+                    });
+
+                    scene.add(mesh);
+                }
+            }
+
+            window.onload = () => {
+                canvas = document.getElementById("renderCanvas");
+                engine = new lmgl.Engine(canvas);
+                scene = new lmgl.Scene(engine);
+
+                new Plane();
+
+                const app = new lmgl.Application(engine, scene);
+                app.loop();
+            };
+        </script>
+    </body>
+</html>
