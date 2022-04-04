@@ -15,21 +15,14 @@ module.exports = {
   ],
   module: {
     rules: [{
-        test: /\.js$/,
-        use: [{
-          loader: 'babel-loader',
-        }]
-      },
-      {
-        test: /\.tsx?$/,
-        use: [{
-          loader: 'ts-loader',
-          options: {
-            transpileOnly: true
-          }
-        }]
-      }
-    ]
+      test: /\.tsx?$/,
+      use: [{
+        loader: 'ts-loader',
+        options: {
+          transpileOnly: true
+        }
+      }]
+    }]
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js']

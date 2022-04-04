@@ -66,6 +66,7 @@ export class EngineUniform {
         }
     }
 
+    // 数组
     handleUniformArray(program: any, name: string, content: any[]) {
         const array = content;
         for (let i = 0; i < array.length; i++) {

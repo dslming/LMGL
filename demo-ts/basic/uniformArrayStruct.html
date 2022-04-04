@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../style.css" />
+        <title>Document</title>
+    </head>
+    <body>
+        <webgl-component></webgl-component>
+        <script src="../webgl_component.js"></script>
+
+        <script type="module">
+            import "../lib/lmgl.max.js";
+
+            let canvas;
+            let engine;
+            let scene;
+
+            class Triangle {
+                constructor() {
+                    const vertexShader = `
+                      in vec3 aPosition;
+
+                      uniform mat4 projectionMatrix;
+                      uniform mat4 modelViewMatrix;
+
+                      void main() {
+                      gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+                      }
+                    `;
+
+                    const fragmentShader = `
+                      out vec4 FragColor;
+
+                       struct Light0 {
+                        vec4 diffuse;
+                        vec4 specular;
+                       };
+                       uniform Light0 LightArr[1];
+
+                      void main() {
+                        FragColor = LightArr[0].diffuse + LightArr[0].specular;
+                      }
+                      `;
+
+                    const geoInfo = {
+                        indices: [0, 1, 2],
+                        attributes: {
+                            aPosition: {
+                                value: [-2, -2, 0, 2, -2, 0, 0, 1.5, 0],
+                                itemSize: 3,
+                            },
+                        },
+                    };
+
+                    const matInfo = {
+                        vertexShader,
+                        fragmentShader,
+                        uniforms: {
+                            LightArr: {
+                                type: lmgl.UniformsType.Array,
+                                value: [
+                                    {
+                                        type: lmgl.UniformsType.Struct,
+                                        value: {
+                                            diffuse: {
+                                                type: lmgl.UniformsType.Vector4,
+                                                value: { x: 0, y: 1, z: 0, w: 1 },
+                                            },
+                                            specular: {
+                                                type: lmgl.UniformsType.Vector4,
+                                                value: { x: 1, y: 0, z: 0, w: 1 },
+                                            },
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    };
+
+                    const geometry = new lmgl.Geometry(engine, geoInfo);
+                    const material = new lmgl.Material(engine, matInfo);
+                    const mesh = new lmgl.Mesh(engine, geometry, material);
+                    scene.add(mesh);
+                }
+            }
+
+            window.onload = () => {
+                canvas = document.getElementById("renderCanvas");
+                engine = new lmgl.Engine(canvas);
+                scene = new lmgl.Scene(engine);
+
+                new Triangle();
+
+                const app = new lmgl.Application(engine, scene);
+                app.loop();
+            };
+        </script>
+    </body>
+</html>

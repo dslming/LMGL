@@ -53,7 +53,7 @@ class Demo {
       };
 
     //   uniform float Colors[2];
-      uniform Light0 LightArr[2];
+      uniform Light0 LightArr[1];
 
 
       void main() {
@@ -65,7 +65,9 @@ class Demo {
 
         // FragColor = vec4(Colors[0],Colors[1],0.,1.);
         // FragColor = vec4(Colors[0],Colors[1],0.,1.);
-           FragColor = LightArr[0].diffuse;
+        //    FragColor = LightArr[0].diffuse;
+        FragColor = LightArr[0].specular + LightArr[0].diffuse;
+
       }
     `;
         const material = new lmgl.Material(engine, {
@@ -76,44 +78,22 @@ class Demo {
                     value: null,
                     type: lmgl.UniformsType.Texture,
                 },
-                // Light0: {
-                //     type: lmgl.UniformsType.Struct,
-                //     value: {
-                //         diffuse: {
-                //             type: lmgl.UniformsType.Vector4,
-                //             value: { x: 1, y: 0, z: 0, w: 1 },
-                //         },
-                //         specular: {
-                //             type: lmgl.UniformsType.Vector4,
-                //             value: { x: 0, y: 1, z: 0, w: 1 },
-                //         },
-                //     },
-                // },
-                Colors: {
-                    type: lmgl.UniformsType.Array,
-                    value: [
-                        {
-                            type: lmgl.UniformsType.Float,
-                            value: 0.9,
-                        },
-                        {
-                            type: lmgl.UniformsType.Float,
-                            value: 0.8,
-                        },
-                    ],
-                },
+
                 LightArr: {
                     type: lmgl.UniformsType.Array,
                     value: [
                         {
-                            name: "diffuse",
-                            type: lmgl.UniformsType.Vector4,
-                            value: { x: 1, y: 0, z: 0, w: 1 },
-                        },
-                        {
-                            name: "specular",
-                            type: lmgl.UniformsType.Vector4,
-                            value: { x: 0, y: 1, z: 0, w: 1 },
+                            type: lmgl.UniformsType.Struct,
+                            value: {
+                                diffuse: {
+                                    type: lmgl.UniformsType.Vector4,
+                                    value: { x: 0, y: 1, z: 0, w: 1 },
+                                },
+                                specular: {
+                                    type: lmgl.UniformsType.Vector4,
+                                    value: { x: 1, y: 0, z: 0, w: 1 },
+                                },
+                            },
                         },
                     ],
                 },
