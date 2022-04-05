@@ -11,7 +11,6 @@ export class EngineTexture {
     private textureUnits: any[];
     private glFilter: number[];
     private glAddress: number[];
-    glComparison: number[];
 
     constructor(engine: Engine) {
         this._engine = engine;
@@ -27,8 +26,6 @@ export class EngineTexture {
         this.glFilter = [gl.NEAREST, gl.LINEAR, gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR, gl.LINEAR_MIPMAP_NEAREST, gl.LINEAR_MIPMAP_LINEAR];
 
         this.glAddress = [gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT];
-
-        this.glComparison = [gl.NEVER, gl.LESS, gl.EQUAL, gl.LEQUAL, gl.GREATER, gl.NOTEQUAL, gl.GEQUAL, gl.ALWAYS];
     }
 
     /**
@@ -189,7 +186,7 @@ export class EngineTexture {
      * @ignore
      */
     setTextureParameters(texture: Texture) {
-        const { gl, webgl2 } = this._engine;
+        const { gl, webgl2, glComparison } = this._engine;
 
         const flags = texture.parameterFlags;
         const target = texture.glTarget;
@@ -224,7 +221,7 @@ export class EngineTexture {
         }
         if (flags & 64) {
             if (webgl2) {
-                gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, this.glComparison[texture.compareFunc]);
+                gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, glComparison[texture.compareFunc]);
             }
         }
     }

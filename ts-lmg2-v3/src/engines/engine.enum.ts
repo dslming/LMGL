@@ -273,3 +273,87 @@ export interface iProgrameOptions {
     fragmentShader: string;
     uniforms?: iProgramUniforms;
 }
+
+export enum BlendMode {
+    /**
+     * Multiply all fragment components by zero.
+     */
+    BLENDMODE_ZERO = 0,
+
+    /**
+     * Multiply all fragment components by one.
+     */
+    BLENDMODE_ONE = 1,
+
+    /**
+     * Multiply all fragment components by the components of the source fragment.
+     */
+    BLENDMODE_SRC_COLOR = 2,
+
+    /**
+     * Multiply all fragment components by one minus the components of the source fragment.
+     */
+    BLENDMODE_ONE_MINUS_SRC_COLOR = 3,
+
+    /**
+     * Multiply all fragment components by the components of the destination fragment.
+     */
+    BLENDMODE_DST_COLOR = 4,
+
+    /**
+     * Multiply all fragment components by one minus the components of the destination fragment.
+     */
+    BLENDMODE_ONE_MINUS_DST_COLOR = 5,
+
+    /**
+     * Multiply all fragment components by the alpha value of the source fragment.
+     */
+    BLENDMODE_SRC_ALPHA = 6,
+
+    /**
+     * Multiply all fragment components by the alpha value of the source fragment.
+     */
+    BLENDMODE_SRC_ALPHA_SATURATE = 7,
+
+    /**
+     * Multiply all fragment components by one minus the alpha value of the source fragment.
+     */
+    BLENDMODE_ONE_MINUS_SRC_ALPHA = 8,
+
+    /**
+     * Multiply all fragment components by the alpha value of the destination fragment.
+     */
+    BLENDMODE_DST_ALPHA = 9,
+
+    /**
+     * Multiply all fragment components by one minus the alpha value of the destination fragment.
+     */
+    BLENDMODE_ONE_MINUS_DST_ALPHA = 10,
+}
+
+export enum BlendEquation {
+    /**
+     * Add the results of the source and destination fragment multiplies.
+     */
+    BLENDEQUATION_ADD = 0,
+
+    /**
+     * Subtract the results of the source and destination fragment multiplies.
+     */
+    BLENDEQUATION_SUBTRACT = 1,
+
+    /**
+     * Reverse and subtract the results of the source and destination fragment multiplies.
+     */
+    BLENDEQUATION_REVERSE_SUBTRACT = 2,
+
+    /**
+     * Use the smallest value. Check app.graphicsDevice.extBlendMinmax for support.
+     */
+    BLENDEQUATION_MIN = 3,
+
+    /**
+     * Use the largest value. Check app.graphicsDevice.extBlendMinmax for support.
+     */
+    BLENDEQUATION_MAX = 4,
+}

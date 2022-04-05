@@ -1,6 +1,7 @@
 import { EngineDraw } from "./engine.draw";
 import { EngineProgram } from "./engine.programs";
 import { EngineRenderTarget } from "./engine.renderTarget";
+import { EngineState } from "./engine.state";
 import { EngineTexture } from "./engine.texture";
 import { EngineUniformBuffer } from "./engine.uniformBuffer";
 import { EngineUniform } from "./engine.uniforms";
@@ -48,6 +49,8 @@ export class Engine {
     public engineTexture: EngineTexture;
     public engineUniformBuffer: EngineUniformBuffer;
     public engineRenderTarget: EngineRenderTarget;
+    public engineState: EngineState;
+    public glComparison: number[];
 
     constructor(canvas: any) {
         if (!canvas) return;
@@ -63,6 +66,9 @@ export class Engine {
         }
         this._initializeCapabilities();
 
+        const gl = this.gl;
+        this.glComparison = [gl.NEVER, gl.LESS, gl.EQUAL, gl.LEQUAL, gl.GREATER, gl.NOTEQUAL, gl.GEQUAL, gl.ALWAYS];
+
         this.engineDraw = new EngineDraw(this);
         this.engineViewPort = new EngineViewPort(this);
         this.enginePrograms = new EngineProgram(this);
@@ -71,6 +77,7 @@ export class Engine {
         this.engineTexture = new EngineTexture(this);
         this.engineUniformBuffer = new EngineUniformBuffer(this);
         this.engineRenderTarget = new EngineRenderTarget(this);
+        this.engineState = new EngineState(this);
     }
 
     private _initializeCapabilities() {
