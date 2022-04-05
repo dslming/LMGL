@@ -1,5 +1,5 @@
-import { DEG2RAD, RAD2DEG } from '../maths/math.constants';
-import { Camera } from './camera';
+import { DEG2RAD, RAD2DEG } from "../maths/math.constants";
+import { Camera } from "./camera";
 
 class PerspectiveCamera extends Camera {
     fov: number;
@@ -16,7 +16,7 @@ class PerspectiveCamera extends Camera {
 
     constructor(fov = 50, aspect = 1, near = 0.1, far = 2000) {
         super();
-      this.useRightHandedSystem = true;
+        this.useRightHandedSystem = true;
         this.type = "PerspectiveCamera";
 
         this.fov = fov;

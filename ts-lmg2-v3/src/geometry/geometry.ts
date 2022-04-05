@@ -31,7 +31,7 @@ export interface iGeometryAttributes {
  */
 export interface iGeometryInfo {
     // 几何体的顶点索引
-    indices: any[];
+    indices?: any[];
     // 几何体的顶点属性
     attributes: iGeometryAttributes;
     // 绘制类型,默认是三角形
@@ -62,8 +62,6 @@ export class Geometry {
         // 三角形数量
         if (this._geometryInfo.indices) {
             this._geometryInfo.count = this._geometryInfo.indices.length;
-        } else {
-            this._geometryInfo.count = 0;
         }
         this._createVertexArray();
     }
@@ -102,7 +100,7 @@ export class Geometry {
         }
 
         // 绑定顶点索引
-        if (this._geometryInfo.indices.length > 0) {
+        if (this._geometryInfo.indices) {
             this._engine.engineVertex.setIndicesBuffer(_indicesBuffer, this._geometryInfo.indices);
         }
     }

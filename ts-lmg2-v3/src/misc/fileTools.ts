@@ -37,7 +37,9 @@ export class FileTools {
         });
     }
 
-    static LoadTextFiles(filenames: string[], rootPath: string) {
+    static LoadTextFiles(filenames: string[], rootPath?: string) {
+        if (rootPath === undefined) rootPath = "";
+
         return new Promise((resolve, reject) => {
             var loadedSoFar = 0;
             var results: any = {};

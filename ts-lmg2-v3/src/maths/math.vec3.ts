@@ -1,15 +1,47 @@
 import { Mat4 } from "./math.mat4";
+import { Quat } from "./math.quat";
 
 /**
  * 3-dimensional vector.
  */
 class Vec3 {
-    applyQuaternion(quaternion: any) {
-        throw new Error("Method not implemented.");
+    applyQuaternion(q: Quat) {
+        const x = this.x,
+            y = this.y,
+            z = this.z;
+        const qx = q.x,
+            qy = q.y,
+            qz = q.z,
+            qw = q.w;
+
+        // calculate quat * vector
+
+        const ix = qw * x + qy * z - qz * y;
+        const iy = qw * y + qz * x - qx * z;
+        const iz = qw * z + qx * y - qy * x;
+        const iw = -qx * x - qy * y - qz * z;
+
+        // calculate result * inverse quat
+
+        this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+        this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+        this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+
+        return this;
     }
-    multiplyScalar(distance: any): any {
-        throw new Error("Method not implemented.");
+
+    manhattanDistanceTo(v: Vec3) {
+        return Math.abs(this.x - v.x) + Math.abs(this.y - v.y) + Math.abs(this.z - v.z);
     }
+
+    multiplyScalar(scalar: number) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+
+        return this;
+    }
+
     setFromMatrixPosition(m: Mat4) {
         const e = m.data;
 
@@ -331,11 +363,18 @@ class Vec3 {
      * r.lerp(a, b, 0.5); // r is 5, 5, 5
      * r.lerp(a, b, 1);   // r is equal to b
      */
-    lerp(lhs: Vec3, rhs: Vec3, alpha: number): Vec3 {
+    lerp2(lhs: Vec3, rhs: Vec3, alpha: number): Vec3 {
         this.x = lhs.x + alpha * (rhs.x - lhs.x);
         this.y = lhs.y + alpha * (rhs.y - lhs.y);
         this.z = lhs.z + alpha * (rhs.z - lhs.z);
 
+        return this;
+    }
+
+    lerp(v: Vec3, alpha: number) {
+        this.x += (v.x - this.x) * alpha;
+        this.y += (v.y - this.y) * alpha;
+        this.z += (v.z - this.z) * alpha;
         return this;
     }
 
@@ -682,6 +721,10 @@ class Vec3 {
      * @readonly
      */
     static BACK: Vec3 = Object.freeze(new Vec3(0, 0, 1));
+
+    static AXIS_X: Vec3 = Object.freeze(new Vec3(1, 0, 0));
+    static AXIS_Y: Vec3 = Object.freeze(new Vec3(0, 1, 0));
+    static AXIS_Z: Vec3 = Object.freeze(new Vec3(0, 0, 1));
 }
 
 export { Vec3 };

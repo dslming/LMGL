@@ -178,7 +178,7 @@ export class Postprocessing {
 
         this._engine.engineDraw.draw({
             type: geometryInfo.type,
-            indexed: geometryInfo.indices.length > 0,
+            indexed: geometryInfo.indices,
             count: geometryInfo.count,
         });
         return this;

@@ -87,7 +87,7 @@ export default class Renderer {
 
         this._engine.engineDraw.draw({
             type: geometryInfo.type,
-            indexed: geometryInfo.indices.length > 0,
+            indexed: geometryInfo.indices,
             count: geometryInfo.count,
         });
 

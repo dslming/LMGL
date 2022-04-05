@@ -14,7 +14,7 @@ export enum PrimitiveType {
 
 export interface Primitive {
     type?: PrimitiveType;
-    indexed?: boolean;
+    indexed?: boolean | undefined | any[];
     count?: number;
     base?: number;
 }
@@ -60,8 +60,11 @@ export class EngineDraw {
         const { gl } = this._engine;
         //  gl.cullFace(gl.FRONT_AND_BACK);
         //  gl.disable(gl.CULL_FACE);
-        if (primitive.indexed) {
+        if (primitive.indexed && primitive.type === PrimitiveType.PRIMITIVE_TRIANGLES) {
             gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
+        } else if (primitive.type === PrimitiveType.PRIMITIVE_LINES) {
+            gl.lineWidth(1);
+            gl.drawArrays(gl.LINES, 0, count);
         }
     }
 

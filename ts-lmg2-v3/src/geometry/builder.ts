@@ -72,8 +72,8 @@ export function boxBuilder(opts?: any): iGeometryBuilder {
 
         for (let i = 0; i <= uSegments; i++) {
             for (let j = 0; j <= vSegments; j++) {
-                temp1.lerp(corners[faceAxes[side][0]], corners[faceAxes[side][1]], i / uSegments);
-                temp2.lerp(corners[faceAxes[side][0]], corners[faceAxes[side][2]], j / vSegments);
+                temp1.lerp2(corners[faceAxes[side][0]], corners[faceAxes[side][1]], i / uSegments);
+                temp2.lerp2(corners[faceAxes[side][0]], corners[faceAxes[side][2]], j / vSegments);
                 temp3.sub2(temp2, corners[faceAxes[side][0]]);
                 r.add2(temp1, temp3);
                 let u = i / uSegments;

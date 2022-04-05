@@ -14,12 +14,12 @@ export class Mesh {
     uuid: string;
     material: Material;
 
-    matrix: any;
-    normalMatrix: any;
-    position: any;
-    scale: any;
-    rotation: any;
-    quaternion: any;
+    matrix: Mat4;
+    normalMatrix: Mat3;
+    position: Vec3;
+    scale: Vec3;
+    rotation: Euler;
+    quaternion: Quat;
 
     visible: boolean;
     private _engine: Engine;
@@ -49,7 +49,7 @@ export class Mesh {
     }
 
     private _onRotationChange() {
-        this.quaternion.setFromEuler(this.rotation, false);
+        this.quaternion.setFromEuler(this.rotation);
         this.updateMatrix();
     }
 

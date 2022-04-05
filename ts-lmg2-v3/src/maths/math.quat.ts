@@ -1,4 +1,3 @@
-
 /** @typedef {import('./mat4.js').Mat4} Mat4 */
 
 import { Euler } from "./math.euler";
@@ -342,10 +341,10 @@ class Quat {
      * @returns {Quat} Self for chaining.
      * @example
      * var q = new pc.Quat();
-     * q.setFromAxisAngle(pc.Vec3.UP, 90);
+     * q.setFromAxisAngle(pc.Vec3.UP, Math.PI/2);
      */
     setFromAxisAngle(axis: Vec3, angle: number) {
-        angle *= 0.5 * MathTool.DEG_TO_RAD;
+        angle *= 0.5;
 
         const sa = Math.sin(angle);
         const ca = Math.cos(angle);
@@ -390,9 +389,41 @@ class Quat {
         return this;
     }
 
-  setFromEuler(euler:Euler) {
-    return this.setFromEulerAngles(euler.x, euler.y, euler.z);
-  }
+    /**
+     *
+     * @param euler 弧度的欧拉值
+     * @returns
+     */
+    setFromEuler(euler: Euler) {
+        if (!(euler && euler.isEuler)) {
+            throw new Error("THREE.Quaternion: .setFromEuler() now expects an Euler rotation rather than a Vector3 and order.");
+        }
+
+        const x = euler.x,
+            y = euler.y,
+            z = euler.z;
+
+        // http://www.mathworks.com/matlabcentral/fileexchange/
+        // 	20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/
+        //	content/SpinCalc.m
+
+        const cos = Math.cos;
+        const sin = Math.sin;
+
+        const c1 = cos(x / 2);
+        const c2 = cos(y / 2);
+        const c3 = cos(z / 2);
+
+        const s1 = sin(x / 2);
+        const s2 = sin(y / 2);
+        const s3 = sin(z / 2);
+
+        this.x = s1 * c2 * c3 + c1 * s2 * s3;
+        this.y = c1 * s2 * c3 - s1 * c2 * s3;
+        this.z = c1 * c2 * s3 + s1 * s2 * c3;
+        this.w = c1 * c2 * c3 - s1 * s2 * s3;
+        return this;
+    }
 
     /**
      * Converts the specified 4x4 matrix to a quaternion. Note that since a quaternion is purely a

@@ -8513,6 +8513,8 @@ class FileTools {
         });
     }
     static LoadTextFiles(filenames, rootPath) {
+        if (rootPath === undefined)
+            rootPath = "";
         return new Promise((resolve, reject) => {
             var loadedSoFar = 0;
             var results = {};
@@ -9186,8 +9188,12 @@ class Postprocessing {
     render() {
         if (!this._activeProgram)
             return;
+        const { program, uniforms, uniformBlock } = this._activeProgram;
         const { geometryInfo } = this._geometry;
         this._geometry.setBuffers(this._activeProgram.program);
+        this._engine.enginePrograms.useProgram(program);
+        if (uniforms)
+            this._engine.engineUniform.handleUniform(program, uniforms, uniformBlock);
         this._engine.engineDraw.draw({
             type: geometryInfo.type,
             indexed: geometryInfo.indices.length > 0,

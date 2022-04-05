@@ -28,6 +28,7 @@ export class MathTool {
      */
     static RAD_TO_DEG: number = 180 / Math.PI;
 
+    // 角度转弧度
     static degToRad(degrees: number) {
         return degrees * DEG2RAD;
     }
