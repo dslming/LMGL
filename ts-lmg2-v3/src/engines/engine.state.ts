@@ -1,5 +1,5 @@
 import { Engine } from "./engine";
-import { BlendEquation, BlendMode, CompareFunc } from "./engine.enum";
+import { BlendEquation, BlendMode, CompareFunc, CullFace } from "./engine.enum";
 
 export class EngineState {
     private _engine: Engine;
@@ -17,6 +17,9 @@ export class EngineState {
     private _blendEquation: BlendEquation;
     private _blendAlphaEquation: BlendEquation;
     private _separateAlphaEquation: any;
+    private _glCull: number[];
+    private _cullMode: CullFace;
+    private _cullFace: number;
 
     constructor(engine: Engine) {
         this._engine = engine;
@@ -37,8 +40,12 @@ export class EngineState {
             gl.ONE_MINUS_DST_ALPHA,
         ];
 
+        this._glCull = [0, gl.BACK, gl.FRONT, gl.FRONT_AND_BACK];
         this._glBlendEquation = [gl.FUNC_ADD, gl.FUNC_SUBTRACT, gl.FUNC_REVERSE_SUBTRACT, gl.MIN, gl.MAX];
+
         this.setDepthTest(true);
+        this._cullMode = CullFace.CULLFACE_NONE;
+        this.setCullMode(CullFace.CULLFACE_BACK);
     }
 
     /**
@@ -230,5 +237,47 @@ export class EngineState {
             this._blendAlphaEquation = blendAlphaEquation;
             this._separateAlphaEquation = true;
         }
+    }
+
+    /**
+     * Controls how triangles are culled based on their face direction. The default cull mode is
+     * {@link CULLFACE_BACK}.
+     *
+     * @param {number} cullMode - The cull mode to set. Can be:
+     *
+     * - {@link CULLFACE_NONE}
+     * - {@link CULLFACE_BACK}
+     * - {@link CULLFACE_FRONT}
+     * - {@link CULLFACE_FRONTANDBACK}
+     */
+    setCullMode(cullMode: CullFace) {
+        const { gl } = this._engine;
+
+        if (this._cullMode !== cullMode) {
+            if (cullMode === CullFace.CULLFACE_NONE) {
+                gl.disable(gl.CULL_FACE);
+            } else {
+                if (this._cullMode === CullFace.CULLFACE_NONE) {
+                    gl.enable(gl.CULL_FACE);
+                }
+
+                const mode = this._glCull[cullMode];
+                if (this._cullFace !== mode) {
+                    gl.cullFace(mode);
+                    this._cullFace = mode;
+                }
+            }
+            this._cullMode = cullMode;
+        }
+    }
+
+    /**
+     * Gets the current cull mode.
+     *
+     * @returns {number} The current cull mode.
+     * @ignore
+     */
+    getCullMode() {
+        return this._cullMode;
     }
 }

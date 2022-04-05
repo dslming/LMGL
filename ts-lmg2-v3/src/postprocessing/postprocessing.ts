@@ -1,6 +1,6 @@
 import { Application } from "../application";
 import { Camera } from "../cameras/camera";
-import { Engine, iProgrameOptions, iProgramUniforms } from "../engines";
+import { Engine, iProgramUniforms } from "../engines";
 import { iUniformBlock } from "../engines/engine.uniformBuffer";
 import { Geometry, planeBuilder } from "../geometry";
 import { Color4 } from "../maths/math.color";
@@ -46,10 +46,6 @@ export class Postprocessing {
                 aPosition: {
                     value: model.positions,
                     itemSize: 3,
-                },
-                aUv: {
-                    value: model.uvs,
-                    itemSize: 2,
                 },
             },
         };

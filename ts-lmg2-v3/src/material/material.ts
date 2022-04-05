@@ -33,7 +33,7 @@ export class Material {
         this.uniforms = cloneUniforms(materialInfo.uniforms || {});
 
         const header = `#version 300 es
-      precision mediump float;
+precision mediump float;
     `;
 
         this.uniformBlock = {

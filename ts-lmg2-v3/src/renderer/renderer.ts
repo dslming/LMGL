@@ -109,7 +109,7 @@ export default class Renderer {
         this._engine.engineDraw.clear(this.clearColor);
     }
 
-    setViewPort() {
+    viewport() {
         let width = this._engine.renderingCanvas.clientWidth;
         let height = this._engine.renderingCanvas.clientHeight;
 
@@ -128,7 +128,7 @@ export default class Renderer {
 
     renderScene(scene: Scene, camera: Camera) {
         this.clear();
-        this.setViewPort();
+        this.viewport();
         for (let i = 0; i < scene.children.length; i++) {
             const mesh = scene.children[i];
             this.renderMesh(mesh, camera);

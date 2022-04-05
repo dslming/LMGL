@@ -12,7 +12,10 @@ export class Application {
     renderer: Renderer;
     private _control: CameraControl;
 
+    autoRender: boolean;
+
     constructor(engine: Engine, scene?: Scene) {
+        this.autoRender = true;
         this.engine = engine;
         scene && (this.scene = scene);
 
@@ -42,6 +45,8 @@ export class Application {
         this.scene.add(axis.meshX);
         this.scene.add(axis.meshY);
         this.scene.add(axis.meshZ);
+
+        this.loop();
     }
 
     handleResize(width: number, height: number) {
@@ -55,9 +60,20 @@ export class Application {
         canvas.style.height = height + "px";
     }
 
+    getRenderSize(): { width: number; height: number } {
+        return {
+            width: this.engine.engineDraw.getRenderWidth(),
+            height: this.engine.engineDraw.getRenderHeight(),
+        };
+    }
+
     loop() {
         this._control.update();
-        this.renderer.renderScene(this.scene, this.camera);
+
+        if (this.autoRender) {
+            this.renderer.renderScene(this.scene, this.camera);
+        }
+
         window.requestAnimationFrame(this.loop);
     }
 }

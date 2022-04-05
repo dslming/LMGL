@@ -357,3 +357,26 @@ export enum BlendEquation {
      */
     BLENDEQUATION_MAX = 4,
 }
+
+export enum CullFace {
+    /**
+     * No triangles are culled.
+     */
+    CULLFACE_NONE = 0,
+
+    /**
+     * Triangles facing away from the view direction are culled.
+     */
+    CULLFACE_BACK = 1,
+
+    /**
+     * Triangles facing the view direction are culled.
+     */
+    CULLFACE_FRONT = 2,
+
+    /**
+     * Triangles are culled regardless of their orientation with respect to the view direction. Note
+     * that point or line primitives are unaffected by this render state.
+     */
+    CULLFACE_FRONTANDBACK = 3,
+}
