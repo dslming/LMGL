@@ -1,6 +1,7 @@
 import { Application } from "../application";
 import { Camera } from "../cameras/camera";
 import { Engine, iProgrameOptions, iProgramUniforms } from "../engines";
+import { iUniformBlock } from "../engines/engine.uniformBuffer";
 import { Geometry, planeBuilder } from "../geometry";
 import { Color4 } from "../maths/math.color";
 import { FileTools } from "../misc/fileTools";
@@ -16,12 +17,18 @@ export interface iCreateProgramsFromFiles {
     [name: string]: iPostprocessingProgrameOptions;
 }
 
+interface iProgramStore {
+    program: any;
+    uniforms?: iProgramUniforms;
+    uniformBlock: iUniformBlock;
+}
+
 export class Postprocessing {
     private _engine: Engine;
-    private _programs: Map<any, any>;
+    private _programs: Map<any, iProgramStore>;
+    private _activeProgram: iProgramStore | null | undefined;
     private _rootPath: string;
     private _geometry: Geometry;
-    private _activeProgram: any;
     private _camera: Camera;
     clearColor: Color4;
 
@@ -51,12 +58,16 @@ export class Postprocessing {
         this.clearColor = new Color4(0.2, 0.19, 0.3, 1.0);
     }
 
+    get uniforms() {
+        return this._activeProgram?.uniforms || {};
+    }
+
     setRootPath(v: string) {
         this._rootPath = v;
         return this;
     }
 
-    createProgramFromFiles(programName: string, vertexShaderPath: string | string[], fragmentShaderPath: string | string[]) {
+    createProgramFromFiles(programName: string, vertexShaderPath: string | string[], fragmentShaderPath: string | string[], uniforms?: iProgramUniforms) {
         return new Promise((resolve, reject) => {
             var filesToLoad: string[] = [];
             if (Array.isArray(vertexShaderPath)) {
@@ -94,7 +105,16 @@ export class Postprocessing {
                     vertexShader: vertexShaderSources.join("\n"),
                     fragmentShader: fragmentShaderSources.join("\n"),
                 });
-                this._programs.set(programName, program);
+
+                const uniformBlock = {
+                    blockCatch: new Map(),
+                    blockIndex: 0,
+                };
+                this._programs.set(programName, {
+                    program,
+                    uniforms,
+                    uniformBlock,
+                });
                 resolve(program);
             });
         });
@@ -105,7 +125,7 @@ export class Postprocessing {
             let loaded = 0;
             for (var programName in programParameters) {
                 var parameters = programParameters[programName];
-                this.createProgramFromFiles(programName, parameters.vertexShader, parameters.fragmentShader).then(() => {
+                this.createProgramFromFiles(programName, parameters.vertexShader, parameters.fragmentShader, parameters.uniforms).then(() => {
                     loaded += 1;
                     if (loaded === this._programs.size) {
                         resolve(loaded);
@@ -138,14 +158,24 @@ export class Postprocessing {
 
     useProgram(programName: any) {
         this._activeProgram = this._programs.get(programName);
-        this._engine.enginePrograms.useProgram(this._activeProgram);
+        if (this._activeProgram) {
+            this._engine.enginePrograms.useProgram(this._activeProgram.program);
+        }
         return this;
     }
 
     render() {
+        if (!this._activeProgram) return;
+
+        const { program, uniforms, uniformBlock } = this._activeProgram;
+
         const { geometryInfo } = this._geometry;
 
-        this._geometry.setBuffers(this._activeProgram);
+        this._geometry.setBuffers(this._activeProgram.program);
+        this._engine.enginePrograms.useProgram(program);
+
+        if (uniforms) this._engine.engineUniform.handleUniform(program, uniforms, uniformBlock);
+
         this._engine.engineDraw.draw({
             type: geometryInfo.type,
             indexed: geometryInfo.indices.length > 0,

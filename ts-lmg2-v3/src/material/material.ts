@@ -1,11 +1,7 @@
 import { Engine } from "../engines/engine";
 import { iProgrameOptions, UniformsType } from "../engines/engine.enum";
+import { iUniformBlock } from "../engines/engine.uniformBuffer";
 import { cloneUniforms } from "../misc/tool";
-
-export interface iUniformBlock {
-    blockIndex: number;
-    blockCatch: Map<string, any>;
-}
 
 export class Material {
     program: any;
@@ -89,10 +85,9 @@ export class Material {
     }
 
     setUniform() {
-        const { program, uniforms } = this;
-        // const gl = dao.getData("gl");
+        const { program, uniforms, uniformBlock } = this;
         this._engine.enginePrograms.useProgram(program);
-        this._handleUniform(uniforms);
+        this._engine.engineUniform.handleUniform(program, uniforms, uniformBlock);
     }
 
     clone() {

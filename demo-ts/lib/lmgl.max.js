@@ -379,7 +379,7 @@ __webpack_require__.r(__webpack_exports__);
 class Application {
     constructor(engine, scene) {
         this.engine = engine;
-        this.scene = scene;
+        scene && (this.scene = scene);
         this.camera = new _cameras_PerspectiveCamera__WEBPACK_IMPORTED_MODULE_0__["PerspectiveCamera"](45, 1, 0.01, 5000);
         this.renderer = new _renderer_renderer__WEBPACK_IMPORTED_MODULE_1__["default"](engine);
         this.loop = this.loop.bind(this);
@@ -1723,6 +1723,27 @@ class EngineUniform {
             }
         }
     }
+    handleUniform(program, obj, uniformBlock) {
+        // const { program } = this;
+        let textureId = 0;
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const name = keys[i];
+            const { value, type } = obj[name];
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Array) {
+                this._engine.engineUniform.handleUniformArray(program, name, value);
+            }
+            else if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Struct) {
+                this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, uniformBlock);
+            }
+            else {
+                this._engine.engineUniform.setUniform(program, name, value, type);
+            }
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Texture) {
+                textureId += 1;
+            }
+        }
+    }
 }
 
 
@@ -2224,7 +2245,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************!*\
   !*** ./src/index.ts ***!
   \**********************/
-/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, PerspectiveCamera, boxBuilder, sphereBuilder, planeBuilder, Geometry, Material, Mesh, Scene, TextureLoader, Texture, RenderTarget, Application */
+/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, PerspectiveCamera, boxBuilder, sphereBuilder, planeBuilder, Geometry, Material, Mesh, Scene, TextureLoader, Texture, RenderTarget, Postprocessing, FileTools, Application */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2272,8 +2293,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _renderer_index__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./renderer/index */ "./src/renderer/index.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RenderTarget", function() { return _renderer_index__WEBPACK_IMPORTED_MODULE_8__["RenderTarget"]; });
 
-/* harmony import */ var _application__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./application */ "./src/application.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Application", function() { return _application__WEBPACK_IMPORTED_MODULE_9__["Application"]; });
+/* harmony import */ var _postprocessing_index__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./postprocessing/index */ "./src/postprocessing/index.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Postprocessing", function() { return _postprocessing_index__WEBPACK_IMPORTED_MODULE_9__["Postprocessing"]; });
+
+/* harmony import */ var _misc_fileTools__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./misc/fileTools */ "./src/misc/fileTools.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FileTools", function() { return _misc_fileTools__WEBPACK_IMPORTED_MODULE_10__["FileTools"]; });
+
+/* harmony import */ var _application__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./application */ "./src/application.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Application", function() { return _application__WEBPACK_IMPORTED_MODULE_11__["Application"]; });
+
+
 
 
 
@@ -2443,10 +2472,9 @@ class Material {
         }
     }
     setUniform() {
-        const { program, uniforms } = this;
-        // const gl = dao.getData("gl");
+        const { program, uniforms, uniformBlock } = this;
         this._engine.enginePrograms.useProgram(program);
-        this._handleUniform(uniforms);
+        this._engine.engineUniform.handleUniform(program, uniforms, uniformBlock);
     }
     clone() {
         return new Material(this._engine, {
@@ -8484,6 +8512,34 @@ class FileTools {
             }
         });
     }
+    static LoadTextFiles(filenames, rootPath) {
+        return new Promise((resolve, reject) => {
+            var loadedSoFar = 0;
+            var results = {};
+            for (var i = 0; i < filenames.length; ++i) {
+                var filename = filenames[i];
+                (function () {
+                    var name = rootPath + filename;
+                    var request = new XMLHttpRequest();
+                    request.onreadystatechange = function () {
+                        if (request.readyState === 4) {
+                            //if this reqest is done
+                            //add this file to the results object
+                            var text = request.responseText;
+                            results[name] = text;
+                            loadedSoFar += 1;
+                            if (loadedSoFar === filenames.length) {
+                                //if we've loaded all of the files
+                                return resolve(results);
+                            }
+                        }
+                    };
+                    request.open("GET", name, true);
+                    request.send();
+                })();
+            }
+        });
+    }
 }
 
 
@@ -8968,6 +9024,178 @@ Object3D.DefaultUp = new _maths_math_vec3__WEBPACK_IMPORTED_MODULE_3__["Vec3"](0
 Object3D.DefaultMatrixAutoUpdate = true;
 Object3D.prototype.isObject3D = true;
 
+
+
+/***/ }),
+
+/***/ "./src/postprocessing/index.ts":
+/*!*************************************!*\
+  !*** ./src/postprocessing/index.ts ***!
+  \*************************************/
+/*! exports provided: Postprocessing */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _postprocessing__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./postprocessing */ "./src/postprocessing/postprocessing.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Postprocessing", function() { return _postprocessing__WEBPACK_IMPORTED_MODULE_0__["Postprocessing"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./src/postprocessing/postprocessing.ts":
+/*!**********************************************!*\
+  !*** ./src/postprocessing/postprocessing.ts ***!
+  \**********************************************/
+/*! exports provided: Postprocessing */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Postprocessing", function() { return Postprocessing; });
+/* harmony import */ var _geometry__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../geometry */ "./src/geometry/index.ts");
+/* harmony import */ var _maths_math_color__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../maths/math.color */ "./src/maths/math.color.ts");
+/* harmony import */ var _misc_fileTools__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../misc/fileTools */ "./src/misc/fileTools.ts");
+
+
+
+class Postprocessing {
+    constructor(app) {
+        this._engine = app.engine;
+        this._camera = app.camera;
+        this._programs = new Map();
+        this._rootPath = "/";
+        const model = Object(_geometry__WEBPACK_IMPORTED_MODULE_0__["planeBuilder"])(2, 2);
+        const geoInfo = {
+            indices: model.indices,
+            attributes: {
+                aPosition: {
+                    value: model.positions,
+                    itemSize: 3,
+                },
+                aUv: {
+                    value: model.uvs,
+                    itemSize: 2,
+                },
+            },
+        };
+        this._geometry = new _geometry__WEBPACK_IMPORTED_MODULE_0__["Geometry"](this._engine, geoInfo);
+        this._activeProgram = null;
+        this.clearColor = new _maths_math_color__WEBPACK_IMPORTED_MODULE_1__["Color4"](0.2, 0.19, 0.3, 1.0);
+    }
+    get uniforms() {
+        var _a;
+        return ((_a = this._activeProgram) === null || _a === void 0 ? void 0 : _a.uniforms) || {};
+    }
+    setRootPath(v) {
+        this._rootPath = v;
+        return this;
+    }
+    createProgramFromFiles(programName, vertexShaderPath, fragmentShaderPath, uniforms) {
+        return new Promise((resolve, reject) => {
+            var filesToLoad = [];
+            if (Array.isArray(vertexShaderPath)) {
+                filesToLoad = filesToLoad.concat(vertexShaderPath);
+            }
+            else {
+                filesToLoad.push(vertexShaderPath);
+            }
+            if (Array.isArray(fragmentShaderPath)) {
+                filesToLoad = filesToLoad.concat(fragmentShaderPath);
+            }
+            else {
+                filesToLoad.push(fragmentShaderPath);
+            }
+            _misc_fileTools__WEBPACK_IMPORTED_MODULE_2__["FileTools"].LoadTextFiles(filesToLoad, this._rootPath).then((files) => {
+                var vertexShaderSources = [];
+                if (Array.isArray(vertexShaderPath)) {
+                    for (var i = 0; i < vertexShaderPath.length; ++i) {
+                        vertexShaderSources.push(files[this._rootPath + vertexShaderPath[i]]);
+                    }
+                }
+                else {
+                    vertexShaderSources.push(files[this._rootPath + vertexShaderPath]);
+                }
+                var fragmentShaderSources = [];
+                if (Array.isArray(fragmentShaderPath)) {
+                    for (var i = 0; i < fragmentShaderPath.length; ++i) {
+                        fragmentShaderSources.push(files[this._rootPath + fragmentShaderPath[i]]);
+                    }
+                }
+                else {
+                    fragmentShaderSources.push(files[this._rootPath + fragmentShaderPath]);
+                }
+                const program = this._engine.enginePrograms.createProgram({
+                    vertexShader: vertexShaderSources.join("\n"),
+                    fragmentShader: fragmentShaderSources.join("\n"),
+                });
+                const uniformBlock = {
+                    blockCatch: new Map(),
+                    blockIndex: 0,
+                };
+                this._programs.set(programName, {
+                    program,
+                    uniforms,
+                    uniformBlock,
+                });
+                resolve(program);
+            });
+        });
+    }
+    createProgramsFromFiles(programParameters) {
+        return new Promise((resolve, reject) => {
+            let loaded = 0;
+            for (var programName in programParameters) {
+                var parameters = programParameters[programName];
+                this.createProgramFromFiles(programName, parameters.vertexShader, parameters.fragmentShader, parameters.uniforms).then(() => {
+                    loaded += 1;
+                    if (loaded === this._programs.size) {
+                        resolve(loaded);
+                    }
+                });
+            }
+        });
+    }
+    bindFramebuffer(target) {
+        this._engine.engineRenderTarget.setRenderTarget(target);
+        return this;
+    }
+    clear() {
+        this._engine.engineDraw.clear(this.clearColor);
+    }
+    viewport() {
+        const width = this._engine.renderingCanvas.clientWidth;
+        const height = this._engine.renderingCanvas.clientHeight;
+        this._engine.engineViewPort.setViewport({
+            x: 0,
+            y: 0,
+            width,
+            height,
+        });
+        return this;
+    }
+    useProgram(programName) {
+        this._activeProgram = this._programs.get(programName);
+        if (this._activeProgram) {
+            this._engine.enginePrograms.useProgram(this._activeProgram.program);
+        }
+        return this;
+    }
+    render() {
+        if (!this._activeProgram)
+            return;
+        const { geometryInfo } = this._geometry;
+        this._geometry.setBuffers(this._activeProgram.program);
+        this._engine.engineDraw.draw({
+            type: geometryInfo.type,
+            indexed: geometryInfo.indices.length > 0,
+            count: geometryInfo.count,
+        });
+        return this;
+    }
+}
 
 
 /***/ }),

@@ -1,7 +1,8 @@
 // import { bindCubeTexture, bindTexture, activeTexture } from "./texture.js";
 
 import { Engine } from "./engine";
-import { UniformsType } from "./engine.enum";
+import { iProgramUniforms, UniformsType } from "./engine.enum";
+import { iUniformBlock } from "./engine.uniformBuffer";
 
 export class EngineUniform {
     private _engine: Engine;
@@ -82,6 +83,28 @@ export class EngineUniform {
                 }
             } else {
                 this.setUniform(program, baseName, item.value, item.type);
+            }
+        }
+    }
+
+    public handleUniform(program: any, obj: iProgramUniforms, uniformBlock: iUniformBlock) {
+        // const { program } = this;
+
+        let textureId = 0;
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const name = keys[i];
+            const { value, type } = obj[name];
+            if (type == UniformsType.Array) {
+                this._engine.engineUniform.handleUniformArray(program, name, value);
+            } else if (type == UniformsType.Struct) {
+                this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, uniformBlock);
+            } else {
+                this._engine.engineUniform.setUniform(program, name, value, type);
+            }
+
+            if (type == UniformsType.Texture) {
+                textureId += 1;
             }
         }
     }

@@ -15,7 +15,12 @@ class Demo {
             fullscreen: {
                 vertexShader: ["common.vert", "fullscreen.vert"],
                 fragmentShader: ["common.frag", "fullscreen.frag"],
-                // uniforms: {},
+                uniforms: {
+                    uColor: {
+                        type: lmgl.UniformsType.Vector3,
+                        value: null,
+                    },
+                },
             },
         }).then(() => {
             const loop = () => {
@@ -23,8 +28,8 @@ class Demo {
                 post.bindFramebuffer(null);
                 post.viewport();
                 post.clear();
+                post.uniforms.uColor.value = { x: 0, y: 1, z: 0 };
                 post.render();
-
                 window.requestAnimationFrame(loop);
             };
             loop();

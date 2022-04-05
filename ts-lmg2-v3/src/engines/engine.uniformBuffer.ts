@@ -1,6 +1,10 @@
-import { iUniformBlock } from "../material";
 import { Engine } from "./engine";
 import { iProgramUniforms, UniformsType } from "./engine.enum";
+
+export interface iUniformBlock {
+    blockCatch: Map<any, any>;
+    blockIndex: number;
+}
 
 export class EngineUniformBuffer {
     private _engine: Engine;
