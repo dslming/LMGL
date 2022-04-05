@@ -1,5 +1,13 @@
+import { IColor4Like } from "../maths/math.like";
 import { Engine } from "./engine";
-import { BlendEquation, BlendMode, CompareFunc, CullFace } from "./engine.enum";
+import { BlendEquation, BlendMode, ClearFlag, CompareFunc, CullFace } from "./engine.enum";
+
+export interface iClearOptions {
+    color?: IColor4Like;
+    depth?: number;
+    stencil?: number;
+    flags?: ClearFlag;
+}
 
 export class EngineState {
     private _engine: Engine;
@@ -20,9 +28,18 @@ export class EngineState {
     private _glCull: number[];
     private _cullMode: CullFace;
     private _cullFace: number;
+    private _defaultClearOptions: iClearOptions;
+    private _glClearFlag: number[];
+    private _clearStencil: number;
+    private _clearDepth: number;
+    private _clearRed: number;
+    private _clearGreen: number;
+    private _clearBlue: number;
+    private _clearAlpha: number;
 
     constructor(engine: Engine) {
         this._engine = engine;
+        this._depthWrite = true;
 
         const { gl } = this._engine;
 
@@ -43,6 +60,22 @@ export class EngineState {
         this._glCull = [0, gl.BACK, gl.FRONT, gl.FRONT_AND_BACK];
         this._glBlendEquation = [gl.FUNC_ADD, gl.FUNC_SUBTRACT, gl.FUNC_REVERSE_SUBTRACT, gl.MIN, gl.MAX];
 
+        this._glClearFlag = [
+            0,
+            gl.COLOR_BUFFER_BIT,
+            gl.DEPTH_BUFFER_BIT,
+            gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
+            gl.STENCIL_BUFFER_BIT,
+            gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT,
+            gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
+            gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
+        ];
+        this._defaultClearOptions = {
+            color: { r: 0, g: 0, b: 0, a: 1 },
+            depth: 1,
+            stencil: 0,
+            flags: ClearFlag.CLEARFLAG_COLOR | ClearFlag.CLEARFLAG_DEPTH,
+        };
         this.setDepthTest(true);
         this._cullMode = CullFace.CULLFACE_NONE;
         this.setCullMode(CullFace.CULLFACE_BACK);
@@ -279,5 +312,132 @@ export class EngineState {
      */
     getCullMode() {
         return this._cullMode;
+    }
+
+    /**
+     * Set the stencil clear value used when the stencil buffer is cleared.
+     *
+     * @param {number} value - The stencil value to clear the stencil buffer to.
+     */
+    setClearStencil(value: number) {
+        const { gl } = this._engine;
+
+        if (value !== this._clearStencil) {
+            gl.clearStencil(value);
+            this._clearStencil = value;
+        }
+    }
+
+    /**
+     * Set the depth value used when the depth buffer is cleared.
+     *
+     * @param {number} depth - The depth value to clear the depth buffer to in the range 0.0
+     * to 1.0.
+     * @ignore
+     */
+    setClearDepth(depth: number) {
+        const { gl } = this._engine;
+
+        if (depth !== this._clearDepth) {
+            gl.clearDepth(depth);
+            this._clearDepth = depth;
+        }
+    }
+
+    /**
+     * Set the clear color used when the frame buffer is cleared.
+     *
+     * @param {number} r - The red component of the color in the range 0.0 to 1.0.
+     * @param {number} g - The green component of the color in the range 0.0 to 1.0.
+     * @param {number} b - The blue component of the color in the range 0.0 to 1.0.
+     * @param {number} a - The alpha component of the color in the range 0.0 to 1.0.
+     * @ignore
+     */
+    setClearColor(r: number, g: number, b: number, a: number) {
+        const { gl } = this._engine;
+
+        if (r !== this._clearRed || g !== this._clearGreen || b !== this._clearBlue || a !== this._clearAlpha) {
+            gl.clearColor(r, g, b, a);
+            this._clearRed = r;
+            this._clearGreen = g;
+            this._clearBlue = b;
+            this._clearAlpha = a;
+        }
+    }
+
+    /**
+     * Clears the frame buffer of the currently set render target.
+     *
+     * @param {object} [options] - Optional options object that controls the behavior of the clear
+     * operation defined as follows:
+     * @param {number[]} [options.color] - The color to clear the color buffer to in the range 0.0
+     * to 1.0 for each component.
+     * @param {number} [options.depth=1] - The depth value to clear the depth buffer to in the
+     * range 0.0 to 1.0.
+     * @param {number} [options.flags] - The buffers to clear (the types being color, depth and
+     * stencil). Can be any bitwise combination of:
+     *
+     * - {@link CLEARFLAG_COLOR}
+     * - {@link CLEARFLAG_DEPTH}
+     * - {@link CLEARFLAG_STENCIL}
+     *
+     * @param {number} [options.stencil=0] - The stencil value to clear the stencil buffer to. Defaults to 0.
+     * @example
+     * // Clear color buffer to black and depth buffer to 1.0
+     * device.clear();
+     *
+     * // Clear just the color buffer to red
+     * device.clear({
+     *     color: [1, 0, 0, 1],
+     *     flags: pc.CLEARFLAG_COLOR
+     * });
+     *
+     * // Clear color buffer to yellow and depth to 1.0
+     * device.clear({
+     *     color: [1, 1, 0, 1],
+     *     depth: 1,
+     *     flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
+     * });
+     */
+    clear(options?: iClearOptions) {
+        const { gl } = this._engine;
+
+        const defaultOptions = this._defaultClearOptions;
+        options = options || defaultOptions;
+
+        const flags = options.flags == undefined ? defaultOptions.flags : options.flags;
+        if (flags) {
+            // const gl = this.gl;
+
+            // Set the clear color
+            if (flags & ClearFlag.CLEARFLAG_COLOR) {
+                const color = options.color == undefined ? defaultOptions.color : options.color;
+                color && this.setClearColor(color.r, color.g, color.b, color.a);
+            }
+
+            if (flags & ClearFlag.CLEARFLAG_DEPTH) {
+                // Set the clear depth
+                const depth = options.depth == undefined ? defaultOptions.depth : options.depth;
+                depth && this.setClearDepth(depth);
+                if (!this._depthWrite) {
+                    gl.depthMask(true);
+                }
+            }
+
+            if (flags & ClearFlag.CLEARFLAG_STENCIL) {
+                // Set the clear stencil
+                const stencil = options.stencil == undefined ? defaultOptions.stencil : options.stencil;
+                stencil && this.setClearStencil(stencil);
+            }
+
+            // Clear the frame buffer
+            gl.clear(this._glClearFlag[flags]);
+
+            if (flags & ClearFlag.CLEARFLAG_DEPTH) {
+                if (!this._depthWrite) {
+                    gl.depthMask(false);
+                }
+            }
+        }
     }
 }

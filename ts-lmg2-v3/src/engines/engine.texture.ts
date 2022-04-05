@@ -306,8 +306,8 @@ export class EngineTexture {
             gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texture.source);
             gl.generateMipmap(texture.glTarget);
         } else {
-            // gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, null);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texture.width, texture.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texture.width, texture.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, null);
         }
     }
     /**

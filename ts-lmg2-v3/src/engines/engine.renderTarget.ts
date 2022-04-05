@@ -56,6 +56,19 @@ export class EngineRenderTarget {
             // Attach the color buffer
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorBuffer.glTexture, 0);
         }
+
+        const depthBuffer = target.depthBuffer;
+        if (depthBuffer && webgl2) {
+            // --- Init the provided depth/stencil buffer (optional, WebGL2 only) ---
+            if (!depthBuffer.glTexture) {
+                // Clamp the render buffer size to the maximum supported by the device
+                depthBuffer.width = Math.min(depthBuffer.width, this.maxRenderBufferSize);
+                depthBuffer.height = Math.min(depthBuffer.height, this.maxRenderBufferSize);
+                this._engine.engineTexture.setTexture(depthBuffer, 0);
+            }
+            // Attach
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, target.depthBuffer.glTexture, 0);
+        }
         // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 

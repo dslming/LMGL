@@ -63,7 +63,7 @@ export class Postprocessing {
         return this;
     }
 
-    createProgramFromFiles(programName: string, vertexShaderPath: string | string[], fragmentShaderPath: string | string[], uniforms?: iProgramUniforms) {
+    private _createProgramFromFiles(programName: string, vertexShaderPath: string | string[], fragmentShaderPath: string | string[], uniforms?: iProgramUniforms) {
         return new Promise((resolve, reject) => {
             var filesToLoad: string[] = [];
             if (Array.isArray(vertexShaderPath)) {
@@ -118,13 +118,12 @@ export class Postprocessing {
 
     createProgramsFromFiles(programParameters: iCreateProgramsFromFiles) {
         return new Promise((resolve, reject) => {
-            let loaded = 0;
             for (var programName in programParameters) {
                 var parameters = programParameters[programName];
-                this.createProgramFromFiles(programName, parameters.vertexShader, parameters.fragmentShader, parameters.uniforms).then(() => {
-                    loaded += 1;
-                    if (loaded === this._programs.size) {
-                        resolve(loaded);
+                this._createProgramFromFiles(programName, parameters.vertexShader, parameters.fragmentShader, parameters.uniforms).then(() => {
+                    const total = Object.keys(programParameters).length;
+                    if (this._programs.size === total) {
+                        return resolve(total);
                     }
                 });
             }
@@ -137,7 +136,9 @@ export class Postprocessing {
     }
 
     clear() {
-        this._engine.engineDraw.clear(this.clearColor);
+        this._engine.engineState.clear({
+            color: this.clearColor,
+        });
     }
 
     viewport() {

@@ -19,7 +19,7 @@ export class Application {
         this.engine = engine;
         scene && (this.scene = scene);
 
-        this.camera = new PerspectiveCamera(45, 1, 0.01, 5000);
+        this.camera = new PerspectiveCamera(45, 1, 1, 20);
         this.renderer = new Renderer(engine);
         this.loop = this.loop.bind(this);
         this.handleResize(this.engine.renderingCanvas.clientWidth, this.engine.renderingCanvas.clientHeight);

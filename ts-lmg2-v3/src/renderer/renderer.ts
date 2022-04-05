@@ -106,7 +106,9 @@ export default class Renderer {
     }
 
     clear() {
-        this._engine.engineDraw.clear(this.clearColor);
+        this._engine.engineState.clear({
+            color: this.clearColor,
+        });
     }
 
     viewport() {

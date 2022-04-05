@@ -380,3 +380,21 @@ export enum CullFace {
      */
     CULLFACE_FRONTANDBACK = 3,
 }
+
+export enum ClearFlag {
+    CLEARFLAG_NULL = 0,
+    /**
+     * Clear the color buffer.
+     */
+    CLEARFLAG_COLOR = 1,
+
+    /**
+     * Clear the depth buffer.
+     */
+    CLEARFLAG_DEPTH = 2,
+
+    /**
+     * Clear the stencil buffer.
+     */
+    CLEARFLAG_STENCIL = 4,
+}

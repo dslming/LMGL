@@ -44,19 +44,40 @@ class Demo {
                     },
                 },
             },
+            depth: {
+                vertexShader: ["common.vert", "fullscreen.vert"],
+                fragmentShader: ["common.frag", "packing.glsl", "depth.frag"],
+                uniforms: {
+                    cameraNear: {
+                        type: lmgl.UniformsType.Float,
+                        value: app.camera.near,
+                    },
+                    cameraFar: {
+                        type: lmgl.UniformsType.Float,
+                        value: app.camera.far,
+                    },
+                    tDepth: {
+                        type: lmgl.UniformsType.Texture,
+                        value: null,
+                    },
+                },
+            },
+        });
+
+        const diffuseRenderTarget = new lmgl.RenderTarget(engine, {
+            width: size.width,
+            height: size.height,
+            name: "diffuse",
+            depth: true,
+        });
+
+        const normalRenderTarget = new lmgl.RenderTarget(engine, {
+            width: size.width,
+            height: size.height,
+            name: "normal",
         });
 
         const loop = () => {
-            const diffuseRenderTarget = new lmgl.RenderTarget(engine, {
-                width: size.width,
-                height: size.height,
-            });
-
-            const normalRenderTarget = new lmgl.RenderTarget(engine, {
-                width: size.width,
-                height: size.height,
-            });
-
             app.renderer.setRenderTarget(diffuseRenderTarget);
             this.plane.material = this.planeMat;
             this.tea.material = this.teaMat;
@@ -71,12 +92,19 @@ class Demo {
             app.renderer.viewport();
             app.renderer.renderScene(app.scene, app.camera);
 
-            post.useProgram("fullscreen");
+            post.useProgram("depth");
             post.bindFramebuffer(null);
             post.viewport();
             post.clear();
-            post.uniforms.uTexture.value = normalRenderTarget.colorBuffer;
+            post.uniforms.tDepth.value = diffuseRenderTarget.depthBuffer;
             post.render();
+
+            // post.useProgram("fullscreen");
+            // post.bindFramebuffer(null);
+            // post.viewport();
+            // post.clear();
+            // post.uniforms.uTexture.value = normalRenderTarget.colorBuffer;
+            // post.render();
 
             window.requestAnimationFrame(loop);
         };

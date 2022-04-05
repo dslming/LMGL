@@ -58,45 +58,11 @@ export class EngineDraw {
         const mode = this._glPrimitive[primitive.type];
         const count = primitive.count;
         const { gl } = this._engine;
-        //  gl.cullFace(gl.FRONT_AND_BACK);
-        //  gl.disable(gl.CULL_FACE);
         if (primitive.indexed && primitive.type === PrimitiveType.PRIMITIVE_TRIANGLES) {
             gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
         } else if (primitive.type === PrimitiveType.PRIMITIVE_LINES) {
             gl.lineWidth(1);
             gl.drawArrays(gl.LINES, 0, count);
         }
-    }
-
-    /**
-     * Clear the current render buffer or the current render target (if any is set up)
-     * @param color defines the color to use
-     * @param backBuffer defines if the back buffer must be cleared
-     * @param depth defines if the depth buffer must be cleared
-     * @param stencil defines if the stencil buffer must be cleared
-     */
-    // public clear(color: Nullable<IColor4Like>, backBuffer: boolean, depth: boolean, stencil: boolean = false): void {
-    //     const { gl } = this._engine;
-    //     var mode = 0;
-    //     if (backBuffer && color) {
-    //         gl.clearColor(color.r, color.g, color.b, color.a !== undefined ? color.a : 1.0);
-    //         mode |= gl.COLOR_BUFFER_BIT;
-    //     }
-
-    //     if (depth) {
-    //         mode |= gl.DEPTH_BUFFER_BIT;
-    //     }
-    //     if (stencil) {
-    //         gl.clearStencil(0);
-    //         mode |= gl.STENCIL_BUFFER_BIT;
-    //     }
-    //     gl.clear(mode);
-    // }
-    clear(color: IColor4Like) {
-        const { gl } = this._engine;
-        var mode = 0;
-        gl.clearColor(color.r, color.g, color.b, color.a !== undefined ? color.a : 1.0);
-        mode |= gl.COLOR_BUFFER_BIT;
-        gl.clear(mode);
     }
 }

@@ -21,11 +21,13 @@ export class RenderTarget {
     depth: boolean;
     private _engine: Engine;
     samples: number;
+    name?: string;
 
     constructor(engine: Engine, options: iRenderTargetOptions) {
         this._engine = engine;
         this.glFrameBuffer = null;
         this.glDepthBuffer = null;
+        this.name = options.name;
 
         this.colorBuffer = new Texture(engine, {
             width: options.width,
@@ -38,22 +40,20 @@ export class RenderTarget {
         });
         this.colorBuffer.needsUpload = true;
         this.stencil = false;
+        this.depth = options.depth !== undefined ? options.depth : false;
 
-        if (this.depthBuffer) {
-            const format = this.depthBuffer.format;
-            if (format === TextureFormat.PIXELFORMAT_DEPTH) {
-                this.depth = true;
-                this.stencil = false;
-            } else if (format === TextureFormat.PIXELFORMAT_DEPTHSTENCIL) {
-                this.depth = true;
-                this.stencil = true;
-            } else {
-                Logger.Warn("Incorrect depthBuffer format. Must be pc.PIXELFORMAT_DEPTH or pc.PIXELFORMAT_DEPTHSTENCIL");
-                this.depth = false;
-                this.stencil = false;
-            }
+        if (this.depth) {
+            this.depthBuffer = new Texture(engine, {
+                width: options.width,
+                height: options.height,
+                format: TextureFormat.PIXELFORMAT_DEPTH,
+                addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+                addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+                minFilter: TextureFilter.FILTER_NEAREST,
+                magFilter: TextureFilter.FILTER_NEAREST,
+            });
+            this.depthBuffer.needsUpload = true;
         } else {
-            this.depth = options.depth !== undefined ? options.depth : false;
             this.stencil = options.stencil !== undefined ? options.stencil : false;
         }
 
