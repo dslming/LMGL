@@ -7,6 +7,20 @@ import { Color4 } from "../maths/math.color";
 import { FileTools } from "../misc/fileTools";
 import { RenderTarget } from "../renderer";
 
+function generateDefines(defines: any) {
+    const chunks = [];
+
+    for (const name in defines) {
+        const value = defines[name];
+
+        if (value === false) continue;
+
+        chunks.push("#define " + name + " " + value);
+    }
+
+    return chunks.join("\n");
+}
+
 export interface iPostprocessingProgrameOptions {
     vertexShader: string | string[];
     fragmentShader: string | string[];

@@ -29,6 +29,7 @@ class Demo {
     async initPost() {
         const post = new lmgl.Postprocessing(app);
         post.setRootPath("./public/shaders/");
+        (window as any).post = post;
         await post.createProgramsFromFiles({
             fullscreen: {
                 vertexShader: ["common.vert", "fullscreen.vert"],
@@ -62,6 +63,23 @@ class Demo {
                     },
                 },
             },
+            blur: {
+                vertexShader: ["common.vert", "fullscreen.vert"],
+                fragmentShader: ["common.frag", "blur.frag"],
+                uniforms: {
+                    resolution: {
+                        type: lmgl.UniformsType.Vector2,
+                        value: {
+                            x: size.width,
+                            y: size.height,
+                        },
+                    },
+                    tDiffuse: {
+                        type: lmgl.UniformsType.Texture,
+                        value: null,
+                    },
+                },
+            },
         });
 
         const diffuseRenderTarget = new lmgl.RenderTarget(engine, {
@@ -85,19 +103,19 @@ class Demo {
             app.renderer.viewport();
             app.renderer.renderScene(app.scene, app.camera);
 
-            app.renderer.setRenderTarget(normalRenderTarget);
-            this.plane.material = this.normalMat;
-            this.tea.material = this.normalMat;
-            app.renderer.clear();
-            app.renderer.viewport();
-            app.renderer.renderScene(app.scene, app.camera);
+            // app.renderer.setRenderTarget(normalRenderTarget);
+            // this.plane.material = this.normalMat;
+            // this.tea.material = this.normalMat;
+            // app.renderer.clear();
+            // app.renderer.viewport();
+            // app.renderer.renderScene(app.scene, app.camera);
 
-            post.useProgram("depth");
-            post.bindFramebuffer(null);
-            post.viewport();
-            post.clear();
-            post.uniforms.tDepth.value = diffuseRenderTarget.depthBuffer;
-            post.render();
+            // post.useProgram("depth");
+            // post.bindFramebuffer(null);
+            // post.viewport();
+            // post.clear();
+            // post.uniforms.tDepth.value = diffuseRenderTarget.depthBuffer;
+            // post.render();
 
             // post.useProgram("fullscreen");
             // post.bindFramebuffer(null);
@@ -105,6 +123,13 @@ class Demo {
             // post.clear();
             // post.uniforms.uTexture.value = normalRenderTarget.colorBuffer;
             // post.render();
+
+            post.useProgram("blur");
+            post.bindFramebuffer(null);
+            post.viewport();
+            post.clear();
+            post.uniforms.tDiffuse.value = diffuseRenderTarget.colorBuffer;
+            post.render();
 
             window.requestAnimationFrame(loop);
         };
