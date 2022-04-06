@@ -1,11 +1,11 @@
 export enum UniformsType {
     "Texture",
     "Float",
-    "Vector2",
-    "Vector3",
-    "Vector4",
-    "Matrix3",
-    "Matrix4",
+    "Vec2",
+    "Vec3",
+    "Vec4",
+    "Mat3",
+    "Mat4",
     "Struct",
     "Array",
 }
@@ -268,11 +268,25 @@ export interface iProgramUniforms {
         type: UniformsType;
     };
 }
-export interface iProgrameOptions {
-    vertexShader: string;
-    fragmentShader: string;
-    uniforms?: iProgramUniforms;
+
+export interface iProgrameDefines {
+    [name:string]: number
 }
+
+/**
+ * defines: {
+		'PERSPECTIVE_CAMERA': 1,
+		'KERNEL_SIZE': 32
+	},
+ */
+export interface iProgrameCreateOptions {
+    vertexShader: string | string[];
+    fragmentShader: string | string[];
+    uniforms?: iProgramUniforms;
+    defines?: iProgrameDefines;
+}
+
+
 
 export enum BlendMode {
     /**

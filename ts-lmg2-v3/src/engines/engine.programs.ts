@@ -1,5 +1,6 @@
+import { ShaderProcess } from "../misc/shaderProcess";
 import { Engine } from "./engine";
-import { iProgrameOptions } from "./engine.enum";
+import { iProgrameDefines } from "./engine.enum";
 
 // 查询信息类型
 enum SHADER_INFO_TYPE {
@@ -76,14 +77,30 @@ export class EngineProgram {
         throw errorLog;
     }
 
-    public createProgram(shaderSource: iProgrameOptions) {
-        const { vertexShader: vs, fragmentShader: fs } = shaderSource;
+    public createProgram(shaderSource: { vertexShader: string; fragmentShader: string; defines?: iProgrameDefines }): {
+        vertexShader: string;
+        fragmentShader: string;
+        program: any;
+    } {
+        let { vertexShader: vs, fragmentShader: fs } = shaderSource;
+
+        const header = ShaderProcess.getHead();
+        const defines = ShaderProcess.generateDefines(shaderSource.defines);
+        vs = header +defines+ vs;
+        fs = header +defines+ fs;
+
         //创建顶点着色器
         const vertexShader = this._getShader(SHADER_TYPE.VERTEX_SHADER, vs);
         //创建片元着色器
         let fragmentShader = this._getShader(SHADER_TYPE.FRAGMENT_SHADER, fs);
         //创建着色器程序
-        return this._createProgram(vertexShader, fragmentShader);
+        const program: any = this._createProgram(vertexShader, fragmentShader);
+
+        return {
+            vertexShader: vs,
+            fragmentShader: fs,
+            program,
+        };
     }
 
     public deleteProgram(program: any) {

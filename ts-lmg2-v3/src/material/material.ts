@@ -1,5 +1,5 @@
 import { Engine } from "../engines/engine";
-import { iProgrameOptions, UniformsType } from "../engines/engine.enum";
+import { iProgrameCreateOptions, UniformsType } from "../engines/engine.enum";
 import { iUniformBlock } from "../engines/engine.uniformBuffer";
 import { cloneUniforms } from "../misc/tool";
 
@@ -25,28 +25,32 @@ export class Material {
 
     uniformBlock: iUniformBlock;
 
-    constructor(engine: Engine, materialInfo: iProgrameOptions) {
+    constructor(engine: Engine, materialInfo: iProgrameCreateOptions) {
         this._engine = engine;
         // let mat = matInfo;
         this.inputVertexShader = JSON.parse(JSON.stringify(materialInfo.vertexShader));
         this.inputFragmentShader = JSON.parse(JSON.stringify(materialInfo.fragmentShader));
         this.uniforms = cloneUniforms(materialInfo.uniforms || {});
 
-        const header = `#version 300 es
-precision mediump float;
-    `;
+//         const header = `#version 300 es
+// precision mediump float;
+//     `;
 
         this.uniformBlock = {
             blockCatch: new Map(),
             blockIndex: 0,
         };
-        this.vertexShader = header + this.inputVertexShader;
-        this.fragmentShader = header + this.inputFragmentShader;
+        this.vertexShader =  this.inputVertexShader;
+        this.fragmentShader =  this.inputFragmentShader;
 
-        this.program = engine.enginePrograms.createProgram({
+        const programInfo: any = engine.enginePrograms.createProgram({
             vertexShader: this.vertexShader,
             fragmentShader: this.fragmentShader,
         });
+        this.program = programInfo.program;
+
+          this.vertexShader = programInfo.vertexShader;
+          this.fragmentShader = programInfo.fragmentShader;
 
         // this.blending = false;
         // this.blendingType = BLENDING_TYPE.RGBA;

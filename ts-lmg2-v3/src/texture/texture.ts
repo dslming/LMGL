@@ -233,6 +233,3 @@ export class Texture {
         this.needsUpload = true;
     }
 }
-function generateUUID() {
-    throw new Error("Function not implemented.");
-}

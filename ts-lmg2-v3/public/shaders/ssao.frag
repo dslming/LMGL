@@ -16,13 +16,13 @@ uniform float kernelRadius;
 uniform float minDistance; // avoid artifacts caused by neighbour fragments with minimal depth difference
 uniform float maxDistance; // avoid the influence of fragments which are too far away
 
-varying vec2 vUv;
-
-#include <packing>
+in vec2 vUv;
+out vec4 FragColor;
+// #include <packing>
 
 float getDepth( const in vec2 screenPosition ) {
 
-  return texture2D( tDepth, screenPosition ).x;
+  return texture( tDepth, screenPosition ).x;
 
 }
 
@@ -30,13 +30,13 @@ float getLinearDepth( const in vec2 screenPosition ) {
 
   #if PERSPECTIVE_CAMERA == 1
 
-    float fragCoordZ = texture2D( tDepth, screenPosition ).x;
+    float fragCoordZ = texture( tDepth, screenPosition ).x;
     float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
     return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
 
   #else
 
-    return texture2D( tDepth, screenPosition ).x;
+    return texture( tDepth, screenPosition ).x;
 
   #endif
 
@@ -70,7 +70,7 @@ vec3 getViewPosition( const in vec2 screenPosition, const in float depth, const 
 
 vec3 getViewNormal( const in vec2 screenPosition ) {
 
-  return unpackRGBToNormal( texture2D( tNormal, screenPosition ).xyz );
+  return unpackRGBToNormal( texture( tNormal, screenPosition ).xyz );
 
 }
 
@@ -83,7 +83,7 @@ void main() {
   vec3 viewNormal = getViewNormal( vUv );
 
   vec2 noiseScale = vec2( resolution.x / 4.0, resolution.y / 4.0 );
-  vec3 random = vec3( texture2D( tNoise, vUv * noiseScale ).r );
+  vec3 random = vec3( texture( tNoise, vUv * noiseScale ).r );
 
   // compute matrix used to reorient a kernel vector
 
@@ -117,6 +117,6 @@ void main() {
 
   occlusion = clamp( occlusion / float( KERNEL_SIZE ), 0.0, 1.0 );
 
-  gl_FragColor = vec4( vec3( 1.0 - occlusion ), 1.0 );
+  FragColor = vec4( vec3( 1.0 - occlusion ), 1.0 );
 
 }

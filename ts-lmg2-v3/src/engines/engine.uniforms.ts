@@ -1,5 +1,7 @@
 // import { bindCubeTexture, bindTexture, activeTexture } from "./texture.js";
 
+import { Camera } from "../cameras/camera";
+import { Mat3, Vec3 } from "../maths";
 import { Engine } from "./engine";
 import { iProgramUniforms, UniformsType } from "./engine.enum";
 import { iUniformBlock } from "./engine.uniformBuffer";
@@ -35,23 +37,23 @@ export class EngineUniform {
                 gl.uniform1f(addr, value);
                 break;
 
-            case UniformsType.Vector2:
+            case UniformsType.Vec2:
                 gl.uniform2f(addr, value.x, value.y);
                 break;
 
-            case UniformsType.Vector3:
+            case UniformsType.Vec3:
                 gl.uniform3f(addr, value.x, value.y, value.z);
                 break;
 
-            case UniformsType.Vector4:
+            case UniformsType.Vec4:
                 gl.uniform4f(addr, value.x, value.y, value.z, value.w);
                 break;
 
-            case UniformsType.Matrix3:
+            case UniformsType.Mat3:
                 gl.uniformMatrix3fv(addr, false, new Float32Array(value));
                 break;
 
-            case UniformsType.Matrix4:
+            case UniformsType.Mat4:
                 gl.uniformMatrix4fv(addr, false, new Float32Array(value));
                 break;
 
@@ -85,6 +87,18 @@ export class EngineUniform {
                 this.setUniform(program, baseName, item.value, item.type);
             }
         }
+    }
+
+    public setSystemUniform(program: any, camera: Camera) {
+        let _vector3 = new Vec3();
+        _vector3 = _vector3.setFromMatrixPosition(camera.matrixWorld);
+        this._engine.engineUniform.setUniform(program, "vEyePosition", _vector3, UniformsType.Vec3);
+
+        this._engine.engineUniform.setUniform(program, "viewMatrix", camera.matrixWorldInverse.data, UniformsType.Mat4);
+
+        let _tempMat3 = new Mat3();
+        _tempMat3.setFromMatrix4(camera.matrixWorldInverse).invert();
+        this._engine.engineUniform.setUniform(program, "inverseViewTransform", _tempMat3.data, UniformsType.Mat3);
     }
 
     public handleUniform(program: any, obj: iProgramUniforms, uniformBlock: iUniformBlock) {

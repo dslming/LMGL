@@ -1,54 +1,16 @@
-class Loader {
-    crossOrigin: string;
-    withCredentials: boolean;
-    path: string;
-    resourcePath: string;
-    requestHeader: {};
+import { Engine } from "../engines/engine";
 
-    constructor() {
-        this.crossOrigin = "anonymous";
-        this.withCredentials = false;
-        this.path = "";
-        this.resourcePath = "";
-        this.requestHeader = {};
-    }
+export class Loader {
+    public rootPath: string;
+    public engine: Engine;
 
-    load(/* url, onLoad, onProgress, onError */) {}
-
-    loadAsync(url: any, onProgress: any) {
-        const scope = this;
-
-        return new Promise(function (resolve, reject) {
-            // scope.load(url, resolve, onProgress, reject);
-        });
-    }
-
-    parse(/* data */) {}
-
-    setCrossOrigin(crossOrigin: string) {
-        this.crossOrigin = crossOrigin;
-        return this;
-    }
-
-    setWithCredentials(value: boolean) {
-        this.withCredentials = value;
-        return this;
+    constructor(engine: Engine) {
+        this.engine = engine;
+        this.rootPath = "";
     }
 
     setPath(path: string) {
-        this.path = path;
-        return this;
-    }
-
-    setResourcePath(resourcePath: string) {
-        this.resourcePath = resourcePath;
-        return this;
-    }
-
-    setRequestHeader(requestHeader: {}) {
-        this.requestHeader = requestHeader;
+        this.rootPath = path;
         return this;
     }
 }
-
-export { Loader };

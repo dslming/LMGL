@@ -38,13 +38,13 @@ export class EngineUniformBuffer {
             if (type == UniformsType.Float) {
                 len += 4;
             }
-            if (type == UniformsType.Vector2) {
+            if (type == UniformsType.Vec2) {
                 len += 4;
             }
-            if (type == UniformsType.Vector3) {
+            if (type == UniformsType.Vec3) {
                 len += 4;
             }
-            if (type == UniformsType.Vector4) {
+            if (type == UniformsType.Vec4) {
                 len += 4;
             }
             offset.push(len);
@@ -56,13 +56,13 @@ export class EngineUniformBuffer {
             if (type == UniformsType.Float) {
                 result.set([0, 0, 0, value.x], offset[i]);
             }
-            if (type == UniformsType.Vector2) {
+            if (type == UniformsType.Vec2) {
                 result.set([0, 0, value.x, value.y], offset[i]);
             }
-            if (type == UniformsType.Vector3) {
+            if (type == UniformsType.Vec3) {
                 result.set([0, value.x, value.y, value.z], offset[i]);
             }
-            if (type == UniformsType.Vector4) {
+            if (type == UniformsType.Vec4) {
                 result.set([value.x, value.y, value.z, value.w], offset[i]);
             }
         }

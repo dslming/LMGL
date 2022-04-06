@@ -32,36 +32,25 @@ export default class Renderer {
      * @param mesh
      * @param camera
      */
-    private _updateSystemUniform(program: any, mesh: Mesh, camera: Camera) {
+    private _setMeshUniform(program: any, mesh: Mesh, camera: Camera) {
         camera.updateMatrix();
         camera.updateMatrixWorld();
         camera.updateProjectionMatrix();
         mesh.updateMatrix();
 
-        this._engine.engineUniform.setUniform(program, "projectionMatrix", camera.projectionMatrix.data, UniformsType.Matrix4);
+        this._engine.engineUniform.setUniform(program, "projectionMatrix", camera.projectionMatrix.data, UniformsType.Mat4);
 
         const modelViewMatrix = new Mat4();
         modelViewMatrix.mul2(camera.matrixWorldInverse, mesh.matrix);
-        this._engine.engineUniform.setUniform(program, "modelViewMatrix", modelViewMatrix.data, UniformsType.Matrix4);
+        this._engine.engineUniform.setUniform(program, "modelViewMatrix", modelViewMatrix.data, UniformsType.Mat4);
 
-        this._engine.engineUniform.setUniform(program, "world", mesh.matrix.data, UniformsType.Matrix4);
+        this._engine.engineUniform.setUniform(program, "world", mesh.matrix.data, UniformsType.Mat4);
 
         // 法线: world -> eye
         mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
-        this._engine.engineUniform.setUniform(program, "normalMatrix", mesh.normalMatrix.data, UniformsType.Matrix4);
+        this._engine.engineUniform.setUniform(program, "normalMatrix", mesh.normalMatrix.data, UniformsType.Mat4);
 
-        let _vector3 = new Vec3();
-        _vector3 = _vector3.setFromMatrixPosition(camera.matrixWorld);
-        // vEyePosition/cameraPosition
-        this._engine.engineUniform.setUniform(program, "vEyePosition", _vector3, UniformsType.Vector3);
-
-        this._engine.engineUniform.setUniform(program, "viewMatrix", camera.matrixWorldInverse.data, UniformsType.Matrix4);
-
-        let _tempMat3 = new Mat3();
-        _tempMat3.setFromMatrix4(camera.matrixWorldInverse).invert();
-        this._engine.engineUniform.setUniform(program, "inverseViewTransform", _tempMat3.data, UniformsType.Matrix3);
-
-        this._engine.engineUniform.setUniform(program, "modelMatrix", mesh.matrix.data, UniformsType.Matrix4);
+        this._engine.engineUniform.setUniform(program, "modelMatrix", mesh.matrix.data, UniformsType.Mat4);
     }
 
     // 根据材质设置webgl状态
@@ -83,7 +72,8 @@ export default class Renderer {
         const program = material.program;
 
         mesh.active();
-        this._updateSystemUniform(program, mesh, camera);
+        this._setMeshUniform(program, mesh, camera);
+        this._engine.engineUniform.setSystemUniform(program, camera);
 
         this._engine.engineDraw.draw({
             type: geometryInfo.type,

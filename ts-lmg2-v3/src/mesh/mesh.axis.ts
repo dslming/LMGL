@@ -54,7 +54,7 @@ export class MeshAxis {
             vertexShader,
             fragmentShader,
             uniforms: {
-                uColor: { type: UniformsType.Vector4, value: color },
+                uColor: { type: UniformsType.Vec4, value: color },
             },
         });
         return mat;
