@@ -114,13 +114,13 @@
                 var loop = () => {
                     app.renderer.setRenderTarget(target);
                     app.renderer.clear();
-                    app.renderer.setViewPort();
+                    app.renderer.viewport();
                     app.renderer.renderMesh(mesh1, app.camera);
-                    mesh1.rotation.y += 0.5;
+                    mesh1.rotation.y += 0.1;
 
                     app.renderer.setRenderTarget(null);
                     mesh2.material.uniforms.uTexture.value = target.colorBuffer;
-                    app.renderer.setViewPort();
+                    app.renderer.viewport();
                     app.renderer.clear();
                     app.renderer.renderMesh(mesh2, app.camera);
                     window.requestAnimationFrame(loop);

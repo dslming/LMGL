@@ -228,8 +228,8 @@ export class Texture {
 
     set source(v) {
         this._source = v;
-        this._width = v.width;
-        this._height = v.height;
+        if (v.width !== undefined) this._width = v.width;
+        if (v.height !== undefined) this._height = v.height;
         this.needsUpload = true;
     }
 }

@@ -3,7 +3,7 @@
  * @returns true if the window object exists
  */
 export function IsWindowObjectExist(): boolean {
-    return (typeof window) !== "undefined";
+    return typeof window !== "undefined";
 }
 
 /**
@@ -11,7 +11,7 @@ export function IsWindowObjectExist(): boolean {
  * @returns true if the navigator object exists
  */
 export function IsNavigatorAvailable(): boolean {
-    return (typeof navigator) !== "undefined";
+    return typeof navigator !== "undefined";
 }
 
 /**
@@ -19,7 +19,7 @@ export function IsNavigatorAvailable(): boolean {
  * @returns true if the document object exists
  */
 export function IsDocumentAvailable(): boolean {
-    return (typeof document) !== "undefined";
+    return typeof document !== "undefined";
 }
 
 /**
@@ -35,10 +35,27 @@ export function GetDOMTextContent(element: HTMLElement): string {
         if (child.nodeType === 3) {
             result += child.textContent;
         }
-        child = <any>(child.nextSibling);
+        child = <any>child.nextSibling;
     }
 
     return result;
+}
+
+/**
+ * Reports whether a texture source is a canvas, image, video or ImageBitmap.
+ *
+ * @param {*} texture - Texture source data.
+ * @returns {boolean} True if the texture is a canvas, image, video or ImageBitmap and false
+ * otherwise.
+ * @private
+ */
+export function isBrowserInterface(texture: any): boolean {
+    return (
+        (typeof HTMLCanvasElement !== "undefined" && texture instanceof HTMLCanvasElement) ||
+        (typeof HTMLImageElement !== "undefined" && texture instanceof HTMLImageElement) ||
+        (typeof HTMLVideoElement !== "undefined" && texture instanceof HTMLVideoElement) ||
+        (typeof ImageBitmap !== "undefined" && texture instanceof ImageBitmap)
+    );
 }
 
 /**
@@ -68,5 +85,5 @@ export const DomManagement = {
      * @param element defines the root element
      * @returns a string
      */
-    GetDOMTextContent
+    GetDOMTextContent,
 };

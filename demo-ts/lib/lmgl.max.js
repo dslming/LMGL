@@ -372,24 +372,40 @@ function __classPrivateFieldSet(receiver, state, value, kind, f) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Application", function() { return Application; });
-/* harmony import */ var _cameras_PerspectiveCamera__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./cameras/PerspectiveCamera */ "./src/cameras/PerspectiveCamera.ts");
-/* harmony import */ var _renderer_renderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./renderer/renderer */ "./src/renderer/renderer.ts");
+/* harmony import */ var _cameras_camera_control__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./cameras/camera.control */ "./src/cameras/camera.control.ts");
+/* harmony import */ var _cameras_PerspectiveCamera__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cameras/PerspectiveCamera */ "./src/cameras/PerspectiveCamera.ts");
+/* harmony import */ var _mesh_mesh_axis__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mesh/mesh.axis */ "./src/mesh/mesh.axis.ts");
+/* harmony import */ var _renderer_renderer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./renderer/renderer */ "./src/renderer/renderer.ts");
+
+
 
 
 class Application {
     constructor(engine, scene) {
+        this.autoRender = true;
         this.engine = engine;
         scene && (this.scene = scene);
-        this.camera = new _cameras_PerspectiveCamera__WEBPACK_IMPORTED_MODULE_0__["PerspectiveCamera"](45, 1, 0.01, 5000);
-        this.renderer = new _renderer_renderer__WEBPACK_IMPORTED_MODULE_1__["default"](engine);
+        this.camera = new _cameras_PerspectiveCamera__WEBPACK_IMPORTED_MODULE_1__["PerspectiveCamera"](45, 1, 1, 20);
+        this.renderer = new _renderer_renderer__WEBPACK_IMPORTED_MODULE_3__["default"](engine);
         this.loop = this.loop.bind(this);
         this.handleResize(this.engine.renderingCanvas.clientWidth, this.engine.renderingCanvas.clientHeight);
         this.camera.position.set(0, 0, 10);
+        this._control = new _cameras_camera_control__WEBPACK_IMPORTED_MODULE_0__["CameraControl"]({
+            distance: this.camera.position.z,
+            distRange: {
+                min: 0.01,
+            },
+        }, this.camera, this.engine.renderingCanvas);
         window.onresize = () => {
             const width = window.innerWidth;
             const height = window.innerHeight;
             this.handleResize(width, height);
         };
+        const axis = new _mesh_mesh_axis__WEBPACK_IMPORTED_MODULE_2__["MeshAxis"](engine, 10);
+        this.scene.add(axis.meshX);
+        this.scene.add(axis.meshY);
+        this.scene.add(axis.meshZ);
+        this.loop();
     }
     handleResize(width, height) {
         const canvas = this.engine.renderingCanvas;
@@ -400,8 +416,17 @@ class Application {
         canvas.style.width = width + "px";
         canvas.style.height = height + "px";
     }
+    getRenderSize() {
+        return {
+            width: this.engine.engineDraw.getRenderWidth(),
+            height: this.engine.engineDraw.getRenderHeight(),
+        };
+    }
     loop() {
-        this.renderer.renderScene(this.scene, this.camera);
+        this._control.update();
+        if (this.autoRender) {
+            this.renderer.renderScene(this.scene, this.camera);
+        }
         window.requestAnimationFrame(this.loop);
     }
 }
@@ -586,6 +611,209 @@ PerspectiveCamera.prototype.isPerspectiveCamera = true;
 
 /***/ }),
 
+/***/ "./src/cameras/camera.control.ts":
+/*!***************************************!*\
+  !*** ./src/cameras/camera.control.ts ***!
+  \***************************************/
+/*! exports provided: CameraControl */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CameraControl", function() { return CameraControl; });
+/* harmony import */ var _maths_math_euler__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../maths/math.euler */ "./src/maths/math.euler.ts");
+/* harmony import */ var _maths_math_quat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../maths/math.quat */ "./src/maths/math.quat.ts");
+/* harmony import */ var _maths_math_tool__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maths/math.tool */ "./src/maths/math.tool.ts");
+/* harmony import */ var _maths_math_vec2__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../maths/math.vec2 */ "./src/maths/math.vec2.ts");
+/* harmony import */ var _maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../maths/math.vec3 */ "./src/maths/math.vec3.ts");
+/* harmony import */ var _object3D__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../object3D */ "./src/object3D.ts");
+
+
+
+
+
+
+// 相机控制器
+class CameraControl {
+    /**
+     * @param {object} options
+     * @param { object } options.distRange
+     * @param { number } options.distRange.max
+     * @param { number } options.distRange.min
+     *
+     * @param { object } options.rotRange
+     * @param { number } options.rotRange.xMax
+     * @param { number } options.rotRange.xMin
+     * @param { number } options.rotRange.yMax
+     * @param { number } options.rotRange.yMin
+     *
+     * @param { number } options.distance
+     */
+    constructor(options, camera, container) {
+        this.forceUpdate = true;
+        this.readOptions(options);
+        this.vpW = container.clientWidth;
+        this.vpH = container.clientHeight;
+        this.quatX = new _maths_math_quat__WEBPACK_IMPORTED_MODULE_1__["Quat"]();
+        this.quatY = new _maths_math_quat__WEBPACK_IMPORTED_MODULE_1__["Quat"]();
+        this.camHolder = new _object3D__WEBPACK_IMPORTED_MODULE_5__["Object3D"]();
+        this.camera = camera;
+        this.gyro = {
+            orient: 0,
+            alpha: 0,
+            beta: 0,
+            gamma: 0,
+        };
+        this.defaultEuler = new _maths_math_euler__WEBPACK_IMPORTED_MODULE_0__["Euler"](0, 0, 0);
+        this.initEvent(container);
+    }
+    initEvent(container) {
+        const mouseVec2 = new _maths_math_vec2__WEBPACK_IMPORTED_MODULE_3__["Vec2"]();
+        let disableHammer = true;
+        container.addEventListener("mousedown", (event) => {
+            mouseVec2.set(event.clientX, event.clientY);
+            disableHammer = false;
+        }, false);
+        container.addEventListener("mousemove", (event) => {
+            if (disableHammer)
+                return;
+            const t = 300;
+            let angleX = ((event.clientX - mouseVec2.x) / this.vpW) * t;
+            let angleY = ((event.clientY - mouseVec2.y) / this.vpH) * t;
+            this.orbitBy(angleX, angleY);
+            mouseVec2.set(event.clientX, event.clientY);
+        }, false);
+        container.addEventListener("mouseup", event => {
+            disableHammer = true;
+        }, false);
+        container.addEventListener("wheel", (event) => {
+            const t = 0.08;
+            this.dolly(event.deltaY * t);
+        }, false);
+    }
+    update() {
+        if (!this.forceUpdate && !this.changesOccurred()) {
+            return false;
+        }
+        // 控制相机的旋转
+        this.rotActual.lerp(this.rotTarget, 0.2);
+        this.quatX.setFromAxisAngle(_maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__["Vec3"].AXIS_X, -_maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].degToRad(this.rotActual.y));
+        this.quatY.setFromAxisAngle(_maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__["Vec3"].AXIS_Y, -_maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].degToRad(this.rotActual.x));
+        this.quatY.mul(this.quatX);
+        this.camera.quaternion.copy(this.quatY);
+        // 控制相机的位置
+        this.focusActual.lerp(this.focusTarget, 0.1);
+        this.camera.position.copy(this.focusActual);
+        if (this.distActual !== this.distTarget) {
+            this.distActual = _maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].zTween(this.distActual, this.distTarget, 0.3);
+        }
+        this.camera.translateZ(this.distActual);
+        this.forceUpdate = false;
+        return true;
+    }
+    readOptions(options) {
+        if (options == undefined)
+            options = {};
+        if (options.distRange == undefined)
+            options.distRange = {};
+        if (options.rotRange == undefined)
+            options.rotRange = {};
+        this.options = {
+            distance: options.distance || 90,
+            focusPos: new _maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__["Vec3"](),
+            rotation: new _maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__["Vec3"](),
+            rotRange: {
+                xMax: options.rotRange.xMax || Number.POSITIVE_INFINITY,
+                xMin: options.rotRange.xMin || Number.NEGATIVE_INFINITY,
+                yMax: options.rotRange.yMax || 90,
+                yMin: options.rotRange.yMin || -90,
+            },
+            distRange: {
+                max: options.distRange.max || Number.POSITIVE_INFINITY,
+                min: options.distRange.min || Number.NEGATIVE_INFINITY,
+            },
+            smartUpdates: true,
+        };
+        const opt = this.options;
+        this.distActual = opt.distance;
+        this.distTarget = opt.distance;
+        // 实际焦点
+        this.focusActual = new _maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__["Vec3"](opt.focusPos.x, opt.focusPos.y, opt.focusPos.z);
+        // 目标焦点
+        this.focusTarget = this.focusActual.clone();
+        this.rotActual = new _maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__["Vec3"](opt.rotation.x, opt.rotation.y, opt.rotation.z);
+        this.rotTarget = this.rotActual.clone();
+    }
+    setDistance(dist) {
+        this.distTarget = dist;
+        this.distTarget = _maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].clamp(this.distTarget, this.options.distRange.min, this.options.distRange.max);
+        this.forceUpdate = true;
+    }
+    setDistRange(max, min) {
+        this.options.distRange.max = max;
+        this.options.distRange.min = min;
+    }
+    setRotation(_rotX, _rotY, _rotZ) {
+        if (_rotX === undefined)
+            _rotX = 0;
+        if (_rotY === undefined)
+            _rotY = 0;
+        if (_rotZ === undefined)
+            _rotZ = 0;
+        this.rotActual.set(_rotX, _rotY, _rotZ);
+        this.rotTarget.set(_rotX, _rotY, _rotZ);
+        this.forceUpdate = true;
+    }
+    setRotRange(xMax, xMin, yMax, yMin) {
+        this.options.rotRange.xMax = xMax !== undefined ? xMax : this.options.rotRange.xMax;
+        this.options.rotRange.xMin = xMin !== undefined ? xMin : this.options.rotRange.xMin;
+        this.options.rotRange.yMax = yMax !== undefined ? yMax : this.options.rotRange.yMax;
+        this.options.rotRange.yMin = yMin !== undefined ? yMin : this.options.rotRange.yMin;
+    }
+    clearRotRange() {
+        this.options.rotRange.xMax = Number.POSITIVE_INFINITY;
+        this.options.rotRange.xMin = Number.NEGATIVE_INFINITY;
+        this.options.rotRange.yMax = Number.POSITIVE_INFINITY;
+        this.options.rotRange.yMin = Number.NEGATIVE_INFINITY;
+    }
+    dolly(distance) {
+        this.distTarget += distance;
+        this.distTarget = _maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].clamp(this.distTarget, this.options.distRange.min, this.options.distRange.max);
+    }
+    orbitBy(angleX, angleY) {
+        this.rotTarget.x += angleX;
+        this.rotTarget.y += angleY;
+        this.rotTarget.x = _maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].clamp(this.rotTarget.x, this.options.rotRange.xMin, this.options.rotRange.xMax);
+        this.rotTarget.y = _maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].clamp(this.rotTarget.y, this.options.rotRange.yMin, this.options.rotRange.yMax);
+    }
+    orbitTo(angleX, angleY) {
+        this.rotTarget.x = angleX;
+        this.rotTarget.y = angleY;
+        this.rotTarget.x = _maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].clamp(this.rotTarget.x, this.options.rotRange.xMin, this.options.rotRange.xMax);
+        this.rotTarget.y = _maths_math_tool__WEBPACK_IMPORTED_MODULE_2__["MathTool"].clamp(this.rotTarget.y, this.options.rotRange.yMin, this.options.rotRange.yMax);
+    }
+    pan(distX, distY) {
+        this.focusTarget.x -= distX;
+        this.focusTarget.y += distY;
+    }
+    onWindowResize(vpW, vpH) {
+        this.vpW = vpW;
+        this.vpH = vpH;
+    }
+    changesOccurred() {
+        if (this.options.smartUpdates &&
+            this.rotActual.manhattanDistanceTo(this.rotTarget) < 0.01 &&
+            Math.abs(this.distActual - this.distTarget) < 0.01 &&
+            this.focusActual.manhattanDistanceTo(this.focusTarget) < 0.01) {
+            return false;
+        }
+        return true;
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/cameras/camera.ts":
 /*!*******************************!*\
   !*** ./src/cameras/camera.ts ***!
@@ -711,41 +939,13 @@ class EngineDraw {
         const mode = this._glPrimitive[primitive.type];
         const count = primitive.count;
         const { gl } = this._engine;
-        //  gl.cullFace(gl.FRONT_AND_BACK);
-        //  gl.disable(gl.CULL_FACE);
-        if (primitive.indexed) {
+        if (primitive.indexed && primitive.type === PrimitiveType.PRIMITIVE_TRIANGLES) {
             gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
         }
-    }
-    /**
-     * Clear the current render buffer or the current render target (if any is set up)
-     * @param color defines the color to use
-     * @param backBuffer defines if the back buffer must be cleared
-     * @param depth defines if the depth buffer must be cleared
-     * @param stencil defines if the stencil buffer must be cleared
-     */
-    // public clear(color: Nullable<IColor4Like>, backBuffer: boolean, depth: boolean, stencil: boolean = false): void {
-    //     const { gl } = this._engine;
-    //     var mode = 0;
-    //     if (backBuffer && color) {
-    //         gl.clearColor(color.r, color.g, color.b, color.a !== undefined ? color.a : 1.0);
-    //         mode |= gl.COLOR_BUFFER_BIT;
-    //     }
-    //     if (depth) {
-    //         mode |= gl.DEPTH_BUFFER_BIT;
-    //     }
-    //     if (stencil) {
-    //         gl.clearStencil(0);
-    //         mode |= gl.STENCIL_BUFFER_BIT;
-    //     }
-    //     gl.clear(mode);
-    // }
-    clear(color) {
-        const { gl } = this._engine;
-        var mode = 0;
-        gl.clearColor(color.r, color.g, color.b, color.a !== undefined ? color.a : 1.0);
-        mode |= gl.COLOR_BUFFER_BIT;
-        gl.clear(mode);
+        else if (primitive.type === PrimitiveType.PRIMITIVE_LINES) {
+            gl.lineWidth(1);
+            gl.drawArrays(gl.LINES, 0, count);
+        }
     }
 }
 
@@ -756,7 +956,7 @@ class EngineDraw {
 /*!************************************!*\
   !*** ./src/engines/engine.enum.ts ***!
   \************************************/
-/*! exports provided: UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc */
+/*! exports provided: UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -766,15 +966,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TextureFilter", function() { return TextureFilter; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TextureAddress", function() { return TextureAddress; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CompareFunc", function() { return CompareFunc; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BlendMode", function() { return BlendMode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BlendEquation", function() { return BlendEquation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CullFace", function() { return CullFace; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ClearFlag", function() { return ClearFlag; });
 var UniformsType;
 (function (UniformsType) {
     UniformsType[UniformsType["Texture"] = 0] = "Texture";
     UniformsType[UniformsType["Float"] = 1] = "Float";
-    UniformsType[UniformsType["Vector2"] = 2] = "Vector2";
-    UniformsType[UniformsType["Vector3"] = 3] = "Vector3";
-    UniformsType[UniformsType["Vector4"] = 4] = "Vector4";
-    UniformsType[UniformsType["Matrix3"] = 5] = "Matrix3";
-    UniformsType[UniformsType["Matrix4"] = 6] = "Matrix4";
+    UniformsType[UniformsType["Vec2"] = 2] = "Vec2";
+    UniformsType[UniformsType["Vec3"] = 3] = "Vec3";
+    UniformsType[UniformsType["Vec4"] = 4] = "Vec4";
+    UniformsType[UniformsType["Mat3"] = 5] = "Mat3";
+    UniformsType[UniformsType["Mat4"] = 6] = "Mat4";
     UniformsType[UniformsType["Struct"] = 7] = "Struct";
     UniformsType[UniformsType["Array"] = 8] = "Array";
 })(UniformsType || (UniformsType = {}));
@@ -989,6 +1193,112 @@ var CompareFunc;
      */
     CompareFunc[CompareFunc["FUNC_ALWAYS"] = 7] = "FUNC_ALWAYS";
 })(CompareFunc || (CompareFunc = {}));
+var BlendMode;
+(function (BlendMode) {
+    /**
+     * Multiply all fragment components by zero.
+     */
+    BlendMode[BlendMode["BLENDMODE_ZERO"] = 0] = "BLENDMODE_ZERO";
+    /**
+     * Multiply all fragment components by one.
+     */
+    BlendMode[BlendMode["BLENDMODE_ONE"] = 1] = "BLENDMODE_ONE";
+    /**
+     * Multiply all fragment components by the components of the source fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_SRC_COLOR"] = 2] = "BLENDMODE_SRC_COLOR";
+    /**
+     * Multiply all fragment components by one minus the components of the source fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_ONE_MINUS_SRC_COLOR"] = 3] = "BLENDMODE_ONE_MINUS_SRC_COLOR";
+    /**
+     * Multiply all fragment components by the components of the destination fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_DST_COLOR"] = 4] = "BLENDMODE_DST_COLOR";
+    /**
+     * Multiply all fragment components by one minus the components of the destination fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_ONE_MINUS_DST_COLOR"] = 5] = "BLENDMODE_ONE_MINUS_DST_COLOR";
+    /**
+     * Multiply all fragment components by the alpha value of the source fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_SRC_ALPHA"] = 6] = "BLENDMODE_SRC_ALPHA";
+    /**
+     * Multiply all fragment components by the alpha value of the source fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_SRC_ALPHA_SATURATE"] = 7] = "BLENDMODE_SRC_ALPHA_SATURATE";
+    /**
+     * Multiply all fragment components by one minus the alpha value of the source fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_ONE_MINUS_SRC_ALPHA"] = 8] = "BLENDMODE_ONE_MINUS_SRC_ALPHA";
+    /**
+     * Multiply all fragment components by the alpha value of the destination fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_DST_ALPHA"] = 9] = "BLENDMODE_DST_ALPHA";
+    /**
+     * Multiply all fragment components by one minus the alpha value of the destination fragment.
+     */
+    BlendMode[BlendMode["BLENDMODE_ONE_MINUS_DST_ALPHA"] = 10] = "BLENDMODE_ONE_MINUS_DST_ALPHA";
+})(BlendMode || (BlendMode = {}));
+var BlendEquation;
+(function (BlendEquation) {
+    /**
+     * Add the results of the source and destination fragment multiplies.
+     */
+    BlendEquation[BlendEquation["BLENDEQUATION_ADD"] = 0] = "BLENDEQUATION_ADD";
+    /**
+     * Subtract the results of the source and destination fragment multiplies.
+     */
+    BlendEquation[BlendEquation["BLENDEQUATION_SUBTRACT"] = 1] = "BLENDEQUATION_SUBTRACT";
+    /**
+     * Reverse and subtract the results of the source and destination fragment multiplies.
+     */
+    BlendEquation[BlendEquation["BLENDEQUATION_REVERSE_SUBTRACT"] = 2] = "BLENDEQUATION_REVERSE_SUBTRACT";
+    /**
+     * Use the smallest value. Check app.graphicsDevice.extBlendMinmax for support.
+     */
+    BlendEquation[BlendEquation["BLENDEQUATION_MIN"] = 3] = "BLENDEQUATION_MIN";
+    /**
+     * Use the largest value. Check app.graphicsDevice.extBlendMinmax for support.
+     */
+    BlendEquation[BlendEquation["BLENDEQUATION_MAX"] = 4] = "BLENDEQUATION_MAX";
+})(BlendEquation || (BlendEquation = {}));
+var CullFace;
+(function (CullFace) {
+    /**
+     * No triangles are culled.
+     */
+    CullFace[CullFace["CULLFACE_NONE"] = 0] = "CULLFACE_NONE";
+    /**
+     * Triangles facing away from the view direction are culled.
+     */
+    CullFace[CullFace["CULLFACE_BACK"] = 1] = "CULLFACE_BACK";
+    /**
+     * Triangles facing the view direction are culled.
+     */
+    CullFace[CullFace["CULLFACE_FRONT"] = 2] = "CULLFACE_FRONT";
+    /**
+     * Triangles are culled regardless of their orientation with respect to the view direction. Note
+     * that point or line primitives are unaffected by this render state.
+     */
+    CullFace[CullFace["CULLFACE_FRONTANDBACK"] = 3] = "CULLFACE_FRONTANDBACK";
+})(CullFace || (CullFace = {}));
+var ClearFlag;
+(function (ClearFlag) {
+    ClearFlag[ClearFlag["CLEARFLAG_NULL"] = 0] = "CLEARFLAG_NULL";
+    /**
+     * Clear the color buffer.
+     */
+    ClearFlag[ClearFlag["CLEARFLAG_COLOR"] = 1] = "CLEARFLAG_COLOR";
+    /**
+     * Clear the depth buffer.
+     */
+    ClearFlag[ClearFlag["CLEARFLAG_DEPTH"] = 2] = "CLEARFLAG_DEPTH";
+    /**
+     * Clear the stencil buffer.
+     */
+    ClearFlag[ClearFlag["CLEARFLAG_STENCIL"] = 4] = "CLEARFLAG_STENCIL";
+})(ClearFlag || (ClearFlag = {}));
 
 
 /***/ }),
@@ -1003,6 +1313,8 @@ var CompareFunc;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineProgram", function() { return EngineProgram; });
+/* harmony import */ var _misc_shaderProcess__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../misc/shaderProcess */ "./src/misc/shaderProcess.ts");
+
 // 查询信息类型
 var SHADER_INFO_TYPE;
 (function (SHADER_INFO_TYPE) {
@@ -1071,13 +1383,22 @@ class EngineProgram {
         throw errorLog;
     }
     createProgram(shaderSource) {
-        const { vertexShader: vs, fragmentShader: fs } = shaderSource;
+        let { vertexShader: vs, fragmentShader: fs } = shaderSource;
+        const header = _misc_shaderProcess__WEBPACK_IMPORTED_MODULE_0__["ShaderProcess"].getHead();
+        const defines = _misc_shaderProcess__WEBPACK_IMPORTED_MODULE_0__["ShaderProcess"].generateDefines(shaderSource.defines);
+        vs = header + defines + vs;
+        fs = header + defines + fs;
         //创建顶点着色器
         const vertexShader = this._getShader(SHADER_TYPE.VERTEX_SHADER, vs);
         //创建片元着色器
         let fragmentShader = this._getShader(SHADER_TYPE.FRAGMENT_SHADER, fs);
         //创建着色器程序
-        return this._createProgram(vertexShader, fragmentShader);
+        const program = this._createProgram(vertexShader, fragmentShader);
+        return {
+            vertexShader: vs,
+            fragmentShader: fs,
+            program,
+        };
     }
     deleteProgram(program) {
         this._engine.gl.deleteProgram(program);
@@ -1146,6 +1467,18 @@ class EngineRenderTarget {
             // Attach the color buffer
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorBuffer.glTexture, 0);
         }
+        const depthBuffer = target.depthBuffer;
+        if (depthBuffer && webgl2) {
+            // --- Init the provided depth/stencil buffer (optional, WebGL2 only) ---
+            if (!depthBuffer.glTexture) {
+                // Clamp the render buffer size to the maximum supported by the device
+                depthBuffer.width = Math.min(depthBuffer.width, this.maxRenderBufferSize);
+                depthBuffer.height = Math.min(depthBuffer.height, this.maxRenderBufferSize);
+                this._engine.engineTexture.setTexture(depthBuffer, 0);
+            }
+            // Attach
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, target.depthBuffer.glTexture, 0);
+        }
         // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     setRenderTarget(target) {
@@ -1165,6 +1498,392 @@ class EngineRenderTarget {
 
 /***/ }),
 
+/***/ "./src/engines/engine.state.ts":
+/*!*************************************!*\
+  !*** ./src/engines/engine.state.ts ***!
+  \*************************************/
+/*! exports provided: EngineState */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineState", function() { return EngineState; });
+/* harmony import */ var _engine_enum__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./engine.enum */ "./src/engines/engine.enum.ts");
+
+class EngineState {
+    constructor(engine) {
+        this._engine = engine;
+        this._depthWrite = true;
+        const { gl } = this._engine;
+        this._glBlendFunction = [
+            gl.ZERO,
+            gl.ONE,
+            gl.SRC_COLOR,
+            gl.ONE_MINUS_SRC_COLOR,
+            gl.DST_COLOR,
+            gl.ONE_MINUS_DST_COLOR,
+            gl.SRC_ALPHA,
+            gl.SRC_ALPHA_SATURATE,
+            gl.ONE_MINUS_SRC_ALPHA,
+            gl.DST_ALPHA,
+            gl.ONE_MINUS_DST_ALPHA,
+        ];
+        this._glCull = [0, gl.BACK, gl.FRONT, gl.FRONT_AND_BACK];
+        this._glBlendEquation = [gl.FUNC_ADD, gl.FUNC_SUBTRACT, gl.FUNC_REVERSE_SUBTRACT, gl.MIN, gl.MAX];
+        this._glClearFlag = [
+            0,
+            gl.COLOR_BUFFER_BIT,
+            gl.DEPTH_BUFFER_BIT,
+            gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
+            gl.STENCIL_BUFFER_BIT,
+            gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT,
+            gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
+            gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
+        ];
+        this._defaultClearOptions = {
+            color: { r: 0, g: 0, b: 0, a: 1 },
+            depth: 1,
+            stencil: 0,
+            flags: _engine_enum__WEBPACK_IMPORTED_MODULE_0__["ClearFlag"].CLEARFLAG_COLOR | _engine_enum__WEBPACK_IMPORTED_MODULE_0__["ClearFlag"].CLEARFLAG_DEPTH,
+        };
+        this.setDepthTest(true);
+        this._cullMode = _engine_enum__WEBPACK_IMPORTED_MODULE_0__["CullFace"].CULLFACE_NONE;
+        this.setCullMode(_engine_enum__WEBPACK_IMPORTED_MODULE_0__["CullFace"].CULLFACE_BACK);
+    }
+    /**
+     * Queries whether depth testing is enabled.
+     *
+     * @returns {boolean} True if depth testing is enabled and false otherwise.
+     * @example
+     * var depthTest = device.getDepthTest();
+     * console.log('Depth testing is ' + depthTest ? 'enabled' : 'disabled');
+     */
+    getDepthTest() {
+        return this._depthTest;
+    }
+    /**
+     * Enables or disables depth testing of fragments. Once this state is set, it persists until it
+     * is changed. By default, depth testing is enabled.
+     *
+     * @param {boolean} depthTest - True to enable depth testing and false otherwise.
+     * @example
+     * device.setDepthTest(true);
+     */
+    setDepthTest(depthTest) {
+        const { gl } = this._engine;
+        if (this._depthTest !== depthTest) {
+            if (depthTest) {
+                gl.enable(gl.DEPTH_TEST);
+            }
+            else {
+                gl.disable(gl.DEPTH_TEST);
+            }
+            this._depthTest = depthTest;
+        }
+    }
+    /**
+     * Configures the depth test.
+     *
+     * @param {number} func - A function to compare a new depth value with an existing z-buffer
+     * value and decide if to write a pixel. Can be:
+     *
+     * - {@link FUNC_NEVER}: don't draw
+     * - {@link FUNC_LESS}: draw if new depth < depth buffer
+     * - {@link FUNC_EQUAL}: draw if new depth == depth buffer
+     * - {@link FUNC_LESSEQUAL}: draw if new depth <= depth buffer
+     * - {@link FUNC_GREATER}: draw if new depth > depth buffer
+     * - {@link FUNC_NOTEQUAL}: draw if new depth != depth buffer
+     * - {@link FUNC_GREATEREQUAL}: draw if new depth >= depth buffer
+     * - {@link FUNC_ALWAYS}: always draw
+     */
+    setDepthFunc(func) {
+        const { gl, glComparison } = this._engine;
+        if (this._depthFunc === func)
+            return;
+        gl.depthFunc(glComparison[func]);
+        this._depthFunc = func;
+    }
+    /**
+     * Queries whether writes to the depth buffer are enabled.
+     *
+     * @returns {boolean} True if depth writing is enabled and false otherwise.
+     * @example
+     * var depthWrite = device.getDepthWrite();
+     * console.log('Depth writing is ' + depthWrite ? 'enabled' : 'disabled');
+     */
+    getDepthWrite() {
+        return this._depthWrite;
+    }
+    /**
+     * Enables or disables writes to the depth buffer. Once this state is set, it persists until it
+     * is changed. By default, depth writes are enabled.
+     *
+     * @param {boolean} writeDepth - True to enable depth writing and false otherwise.
+     * @example
+     * device.setDepthWrite(true);
+     */
+    setDepthWrite(writeDepth) {
+        const { gl } = this._engine;
+        if (this._depthWrite !== writeDepth) {
+            gl.depthMask(writeDepth);
+            this._depthWrite = writeDepth;
+        }
+    }
+    /**
+     * Queries whether blending is enabled.
+     *
+     * @returns {boolean} True if blending is enabled and false otherwise.
+     */
+    getBlending() {
+        return this._blending;
+    }
+    /**
+     * Enables or disables blending.
+     *
+     * @param {boolean} blending - True to enable blending and false to disable it.
+     */
+    setBlending(blending) {
+        const { gl } = this._engine;
+        if (this._blending !== blending) {
+            if (blending) {
+                gl.enable(gl.BLEND);
+            }
+            else {
+                gl.disable(gl.BLEND);
+            }
+            this._blending = blending;
+        }
+    }
+    /**
+     * Configures blending operations. Both source and destination blend modes can take the
+     * following values:
+     *
+     * @param {number} blendSrc - The source blend function.
+     * @param {number} blendDst - The destination blend function.
+     */
+    setBlendFunction(blendSrc, blendDst) {
+        const { gl } = this._engine;
+        if (this._blendSrc !== blendSrc || this._blendDst !== blendDst || this._separateAlphaBlend) {
+            gl.blendFunc(this._glBlendFunction[blendSrc], this._glBlendFunction[blendDst]);
+            this._blendSrc = blendSrc;
+            this._blendDst = blendDst;
+            this._separateAlphaBlend = false;
+        }
+    }
+    /**
+     * Configures blending operations. Both source and destination blend modes can take the
+     * following values:
+     *
+     * - {@link BLENDMODE_ZERO}
+     * - {@link BLENDMODE_ONE}
+     * - {@link BLENDMODE_SRC_COLOR}
+     * - {@link BLENDMODE_ONE_MINUS_SRC_COLOR}
+     * - {@link BLENDMODE_DST_COLOR}
+     * - {@link BLENDMODE_ONE_MINUS_DST_COLOR}
+     * - {@link BLENDMODE_SRC_ALPHA}
+     * - {@link BLENDMODE_SRC_ALPHA_SATURATE}
+     * - {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}
+     * - {@link BLENDMODE_DST_ALPHA}
+     * - {@link BLENDMODE_ONE_MINUS_DST_ALPHA}
+     *
+     * @param {number} blendSrc - The source blend function.
+     * @param {number} blendDst - The destination blend function.
+     * @param {number} blendSrcAlpha - The separate source blend function for the alpha channel.
+     * @param {number} blendDstAlpha - The separate destination blend function for the alpha channel.
+     */
+    setBlendFunctionSeparate(blendSrc, blendDst, blendSrcAlpha, blendDstAlpha) {
+        const { gl } = this._engine;
+        if (this._blendSrc !== blendSrc || this._blendDst !== blendDst || this._blendSrcAlpha !== blendSrcAlpha || this._blendDstAlpha !== blendDstAlpha || !this._separateAlphaBlend) {
+            gl.blendFuncSeparate(this._glBlendFunction[blendSrc], this._glBlendFunction[blendDst], this._glBlendFunction[blendSrcAlpha], this._glBlendFunction[blendDstAlpha]);
+            this._blendSrc = blendSrc;
+            this._blendDst = blendDst;
+            this._blendSrcAlpha = blendSrcAlpha;
+            this._blendDstAlpha = blendDstAlpha;
+            this._separateAlphaBlend = true;
+        }
+    }
+    /**
+     * Configures the blending equation. The default blend equation is {@link BLENDEQUATION_ADD}.
+     *
+     * @param {number} blendEquation - The blend equation. Can be:
+     *
+     * - {@link BLENDEQUATION_ADD}
+     * - {@link BLENDEQUATION_SUBTRACT}
+     * - {@link BLENDEQUATION_REVERSE_SUBTRACT}
+     * - {@link BLENDEQUATION_MIN}
+     * - {@link BLENDEQUATION_MAX}
+     *
+     * Note that MIN and MAX modes require either EXT_blend_minmax or WebGL2 to work (check
+     * device.extBlendMinmax).
+     * @param {number} blendAlphaEquation - A separate blend equation for the alpha channel.
+     * Accepts same values as `blendEquation`.
+     */
+    setBlendEquationSeparate(blendEquation, blendAlphaEquation) {
+        const { gl } = this._engine;
+        if (this._blendEquation !== blendEquation || this._blendAlphaEquation !== blendAlphaEquation || !this._separateAlphaEquation) {
+            gl.blendEquationSeparate(this._glBlendEquation[blendEquation], this._glBlendEquation[blendAlphaEquation]);
+            this._blendEquation = blendEquation;
+            this._blendAlphaEquation = blendAlphaEquation;
+            this._separateAlphaEquation = true;
+        }
+    }
+    /**
+     * Controls how triangles are culled based on their face direction. The default cull mode is
+     * {@link CULLFACE_BACK}.
+     *
+     * @param {number} cullMode - The cull mode to set. Can be:
+     *
+     * - {@link CULLFACE_NONE}
+     * - {@link CULLFACE_BACK}
+     * - {@link CULLFACE_FRONT}
+     * - {@link CULLFACE_FRONTANDBACK}
+     */
+    setCullMode(cullMode) {
+        const { gl } = this._engine;
+        if (this._cullMode !== cullMode) {
+            if (cullMode === _engine_enum__WEBPACK_IMPORTED_MODULE_0__["CullFace"].CULLFACE_NONE) {
+                gl.disable(gl.CULL_FACE);
+            }
+            else {
+                if (this._cullMode === _engine_enum__WEBPACK_IMPORTED_MODULE_0__["CullFace"].CULLFACE_NONE) {
+                    gl.enable(gl.CULL_FACE);
+                }
+                const mode = this._glCull[cullMode];
+                if (this._cullFace !== mode) {
+                    gl.cullFace(mode);
+                    this._cullFace = mode;
+                }
+            }
+            this._cullMode = cullMode;
+        }
+    }
+    /**
+     * Gets the current cull mode.
+     *
+     * @returns {number} The current cull mode.
+     * @ignore
+     */
+    getCullMode() {
+        return this._cullMode;
+    }
+    /**
+     * Set the stencil clear value used when the stencil buffer is cleared.
+     *
+     * @param {number} value - The stencil value to clear the stencil buffer to.
+     */
+    setClearStencil(value) {
+        const { gl } = this._engine;
+        if (value !== this._clearStencil) {
+            gl.clearStencil(value);
+            this._clearStencil = value;
+        }
+    }
+    /**
+     * Set the depth value used when the depth buffer is cleared.
+     *
+     * @param {number} depth - The depth value to clear the depth buffer to in the range 0.0
+     * to 1.0.
+     * @ignore
+     */
+    setClearDepth(depth) {
+        const { gl } = this._engine;
+        if (depth !== this._clearDepth) {
+            gl.clearDepth(depth);
+            this._clearDepth = depth;
+        }
+    }
+    /**
+     * Set the clear color used when the frame buffer is cleared.
+     *
+     * @param {number} r - The red component of the color in the range 0.0 to 1.0.
+     * @param {number} g - The green component of the color in the range 0.0 to 1.0.
+     * @param {number} b - The blue component of the color in the range 0.0 to 1.0.
+     * @param {number} a - The alpha component of the color in the range 0.0 to 1.0.
+     * @ignore
+     */
+    setClearColor(r, g, b, a) {
+        const { gl } = this._engine;
+        if (r !== this._clearRed || g !== this._clearGreen || b !== this._clearBlue || a !== this._clearAlpha) {
+            gl.clearColor(r, g, b, a);
+            this._clearRed = r;
+            this._clearGreen = g;
+            this._clearBlue = b;
+            this._clearAlpha = a;
+        }
+    }
+    /**
+     * Clears the frame buffer of the currently set render target.
+     *
+     * @param {object} [options] - Optional options object that controls the behavior of the clear
+     * operation defined as follows:
+     * @param {number[]} [options.color] - The color to clear the color buffer to in the range 0.0
+     * to 1.0 for each component.
+     * @param {number} [options.depth=1] - The depth value to clear the depth buffer to in the
+     * range 0.0 to 1.0.
+     * @param {number} [options.flags] - The buffers to clear (the types being color, depth and
+     * stencil). Can be any bitwise combination of:
+     *
+     * - {@link CLEARFLAG_COLOR}
+     * - {@link CLEARFLAG_DEPTH}
+     * - {@link CLEARFLAG_STENCIL}
+     *
+     * @param {number} [options.stencil=0] - The stencil value to clear the stencil buffer to. Defaults to 0.
+     * @example
+     * // Clear color buffer to black and depth buffer to 1.0
+     * device.clear();
+     *
+     * // Clear just the color buffer to red
+     * device.clear({
+     *     color: [1, 0, 0, 1],
+     *     flags: pc.CLEARFLAG_COLOR
+     * });
+     *
+     * // Clear color buffer to yellow and depth to 1.0
+     * device.clear({
+     *     color: [1, 1, 0, 1],
+     *     depth: 1,
+     *     flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
+     * });
+     */
+    clear(options) {
+        const { gl } = this._engine;
+        const defaultOptions = this._defaultClearOptions;
+        options = options || defaultOptions;
+        const flags = options.flags == undefined ? defaultOptions.flags : options.flags;
+        if (flags) {
+            // const gl = this.gl;
+            // Set the clear color
+            if (flags & _engine_enum__WEBPACK_IMPORTED_MODULE_0__["ClearFlag"].CLEARFLAG_COLOR) {
+                const color = options.color == undefined ? defaultOptions.color : options.color;
+                color && this.setClearColor(color.r, color.g, color.b, color.a);
+            }
+            if (flags & _engine_enum__WEBPACK_IMPORTED_MODULE_0__["ClearFlag"].CLEARFLAG_DEPTH) {
+                // Set the clear depth
+                const depth = options.depth == undefined ? defaultOptions.depth : options.depth;
+                depth && this.setClearDepth(depth);
+                if (!this._depthWrite) {
+                    gl.depthMask(true);
+                }
+            }
+            if (flags & _engine_enum__WEBPACK_IMPORTED_MODULE_0__["ClearFlag"].CLEARFLAG_STENCIL) {
+                // Set the clear stencil
+                const stencil = options.stencil == undefined ? defaultOptions.stencil : options.stencil;
+                stencil && this.setClearStencil(stencil);
+            }
+            // Clear the frame buffer
+            gl.clear(this._glClearFlag[flags]);
+            if (flags & _engine_enum__WEBPACK_IMPORTED_MODULE_0__["ClearFlag"].CLEARFLAG_DEPTH) {
+                if (!this._depthWrite) {
+                    gl.depthMask(false);
+                }
+            }
+        }
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/engines/engine.texture.ts":
 /*!***************************************!*\
   !*** ./src/engines/engine.texture.ts ***!
@@ -1175,7 +1894,9 @@ class EngineRenderTarget {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineTexture", function() { return EngineTexture; });
-/* harmony import */ var _engine_enum__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./engine.enum */ "./src/engines/engine.enum.ts");
+/* harmony import */ var _misc_domManagement__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../misc/domManagement */ "./src/misc/domManagement.ts");
+/* harmony import */ var _engine_enum__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./engine.enum */ "./src/engines/engine.enum.ts");
+
 
 class EngineTexture {
     constructor(engine) {
@@ -1189,7 +1910,6 @@ class EngineTexture {
         this.targetToSlot[gl.TEXTURE_3D] = 2;
         this.glFilter = [gl.NEAREST, gl.LINEAR, gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR, gl.LINEAR_MIPMAP_NEAREST, gl.LINEAR_MIPMAP_LINEAR];
         this.glAddress = [gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT];
-        this.glComparison = [gl.NEVER, gl.LESS, gl.EQUAL, gl.LEQUAL, gl.GREATER, gl.NOTEQUAL, gl.GEQUAL, gl.ALWAYS];
     }
     /**
      * Allocate WebGL resources for a texture and add it to the array of textures managed by this
@@ -1203,47 +1923,47 @@ class EngineTexture {
         texture.glTexture = gl.createTexture();
         texture.glTarget = texture.cubemap ? gl.TEXTURE_CUBE_MAP : texture.volume ? gl.TEXTURE_3D : gl.TEXTURE_2D;
         switch (texture.format) {
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_A8:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_A8:
                 texture.glFormat = gl.ALPHA;
                 texture.glInternalFormat = gl.ALPHA;
                 texture.glPixelType = gl.UNSIGNED_BYTE;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_L8:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_L8:
                 texture.glFormat = gl.LUMINANCE;
                 texture.glInternalFormat = gl.LUMINANCE;
                 texture.glPixelType = gl.UNSIGNED_BYTE;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_L8_A8:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_L8_A8:
                 texture.glFormat = gl.LUMINANCE_ALPHA;
                 texture.glInternalFormat = gl.LUMINANCE_ALPHA;
                 texture.glPixelType = gl.UNSIGNED_BYTE;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R5_G6_B5:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_R5_G6_B5:
                 texture.glFormat = gl.RGB;
                 texture.glInternalFormat = gl.RGB;
                 texture.glPixelType = gl.UNSIGNED_SHORT_5_6_5;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R5_G5_B5_A1:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_R5_G5_B5_A1:
                 texture.glFormat = gl.RGBA;
                 texture.glInternalFormat = gl.RGBA;
                 texture.glPixelType = gl.UNSIGNED_SHORT_5_5_5_1;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R4_G4_B4_A4:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_R4_G4_B4_A4:
                 texture.glFormat = gl.RGBA;
                 texture.glInternalFormat = gl.RGBA;
                 texture.glPixelType = gl.UNSIGNED_SHORT_4_4_4_4;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R8_G8_B8:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_R8_G8_B8:
                 texture.glFormat = gl.RGB;
                 texture.glInternalFormat = webgl2 ? gl.RGB8 : gl.RGB;
                 texture.glPixelType = gl.UNSIGNED_BYTE;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R8_G8_B8_A8:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_R8_G8_B8_A8:
                 texture.glFormat = gl.RGBA;
                 texture.glInternalFormat = webgl2 ? gl.RGBA8 : gl.RGBA;
                 texture.glPixelType = gl.UNSIGNED_BYTE;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_RGB32F:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_RGB32F:
                 // definition varies between WebGL1 and 2
                 texture.glFormat = gl.RGB;
                 if (webgl2) {
@@ -1254,7 +1974,7 @@ class EngineTexture {
                 }
                 texture.glPixelType = gl.FLOAT;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_RGBA32F:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_RGBA32F:
                 // definition varies between WebGL1 and 2
                 texture.glFormat = gl.RGBA;
                 if (webgl2) {
@@ -1265,12 +1985,12 @@ class EngineTexture {
                 }
                 texture.glPixelType = gl.FLOAT;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R32F: // WebGL2 only
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_R32F: // WebGL2 only
                 texture.glFormat = gl.RED;
                 texture.glInternalFormat = gl.R32F;
                 texture.glPixelType = gl.FLOAT;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTH:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_DEPTH:
                 if (webgl2) {
                     // native WebGL2
                     texture.glFormat = gl.DEPTH_COMPONENT;
@@ -1284,22 +2004,22 @@ class EngineTexture {
                     texture.glPixelType = gl.UNSIGNED_SHORT; // the only acceptable value?
                 }
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTHSTENCIL: // WebGL2 only
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_DEPTHSTENCIL: // WebGL2 only
                 texture.glFormat = gl.DEPTH_STENCIL;
                 texture.glInternalFormat = gl.DEPTH24_STENCIL8;
                 texture.glPixelType = gl.UNSIGNED_INT_24_8;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_111110F: // WebGL2 only
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_111110F: // WebGL2 only
                 texture.glFormat = gl.RGB;
                 texture.glInternalFormat = gl.R11F_G11F_B10F;
                 texture.glPixelType = gl.UNSIGNED_INT_10F_11F_11F_REV;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_SRGB: // WebGL2 only
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_SRGB: // WebGL2 only
                 texture.glFormat = gl.RGB;
                 texture.glInternalFormat = gl.SRGB8;
                 texture.glPixelType = gl.UNSIGNED_BYTE;
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_SRGBA: // WebGL2 only
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_SRGBA: // WebGL2 only
                 texture.glFormat = gl.RGBA;
                 texture.glInternalFormat = gl.SRGB8_ALPHA8;
                 texture.glPixelType = gl.UNSIGNED_BYTE;
@@ -1344,7 +2064,7 @@ class EngineTexture {
      * @ignore
      */
     setTextureParameters(texture) {
-        const { gl, webgl2 } = this._engine;
+        const { gl, webgl2, glComparison } = this._engine;
         const flags = texture.parameterFlags;
         const target = texture.glTarget;
         if (flags & 1) {
@@ -1360,7 +2080,7 @@ class EngineTexture {
             }
             else {
                 // WebGL1 doesn't support all addressing modes with NPOT textures
-                gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.glAddress[texture.pot ? texture.addressU : _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE]);
+                gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.glAddress[texture.pot ? texture.addressU : _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE]);
             }
         }
         if (flags & 8) {
@@ -1369,7 +2089,7 @@ class EngineTexture {
             }
             else {
                 // WebGL1 doesn't support all addressing modes with NPOT textures
-                gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture.pot ? texture.addressV : _engine_enum__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE]);
+                gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture.pot ? texture.addressV : _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE]);
             }
         }
         if (flags & 32) {
@@ -1379,7 +2099,7 @@ class EngineTexture {
         }
         if (flags & 64) {
             if (webgl2) {
-                gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, this.glComparison[texture.compareFunc]);
+                gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, glComparison[texture.compareFunc]);
             }
         }
     }
@@ -1420,7 +2140,7 @@ class EngineTexture {
      * @ignore
      */
     setUnpackFlipY(flipY) {
-        const { gl, webgl2 } = this._engine;
+        const { gl } = this._engine;
         if (this.unpackFlipY !== flipY) {
             this.unpackFlipY = flipY;
             // Note: the WebGL spec states that UNPACK_FLIP_Y_WEBGL only affects
@@ -1447,16 +2167,18 @@ class EngineTexture {
     uploadTexture(texture) {
         const { gl } = this._engine;
         let mipLevel = 0;
-        // Upload the image, canvas or video
-        this.setUnpackFlipY(texture.flipY);
-        this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
-        if (texture.source) {
+        if (Object(_misc_domManagement__WEBPACK_IMPORTED_MODULE_0__["isBrowserInterface"])(texture.source)) {
+            // Upload the image, canvas or video
+            this.setUnpackFlipY(texture.flipY);
+            this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
             gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texture.source);
             gl.generateMipmap(texture.glTarget);
         }
         else {
-            // gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, null);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texture.width, texture.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            this.setUnpackFlipY(false);
+            this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texture.width, texture.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, texture.source);
         }
     }
     /**
@@ -1492,11 +2214,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _engine_draw__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./engine.draw */ "./src/engines/engine.draw.ts");
 /* harmony import */ var _engine_programs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./engine.programs */ "./src/engines/engine.programs.ts");
 /* harmony import */ var _engine_renderTarget__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./engine.renderTarget */ "./src/engines/engine.renderTarget.ts");
-/* harmony import */ var _engine_texture__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./engine.texture */ "./src/engines/engine.texture.ts");
-/* harmony import */ var _engine_uniformBuffer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./engine.uniformBuffer */ "./src/engines/engine.uniformBuffer.ts");
-/* harmony import */ var _engine_uniforms__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./engine.uniforms */ "./src/engines/engine.uniforms.ts");
-/* harmony import */ var _engine_vertex__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./engine.vertex */ "./src/engines/engine.vertex.ts");
-/* harmony import */ var _engine_viewPort__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./engine.viewPort */ "./src/engines/engine.viewPort.ts");
+/* harmony import */ var _engine_state__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./engine.state */ "./src/engines/engine.state.ts");
+/* harmony import */ var _engine_texture__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./engine.texture */ "./src/engines/engine.texture.ts");
+/* harmony import */ var _engine_uniformBuffer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./engine.uniformBuffer */ "./src/engines/engine.uniformBuffer.ts");
+/* harmony import */ var _engine_uniforms__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./engine.uniforms */ "./src/engines/engine.uniforms.ts");
+/* harmony import */ var _engine_vertex__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./engine.vertex */ "./src/engines/engine.vertex.ts");
+/* harmony import */ var _engine_viewPort__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./engine.viewPort */ "./src/engines/engine.viewPort.ts");
+
 
 
 
@@ -1522,14 +2246,17 @@ class Engine {
             throw new Error("仅支持 webgl2.0");
         }
         this._initializeCapabilities();
+        const gl = this.gl;
+        this.glComparison = [gl.NEVER, gl.LESS, gl.EQUAL, gl.LEQUAL, gl.GREATER, gl.NOTEQUAL, gl.GEQUAL, gl.ALWAYS];
         this.engineDraw = new _engine_draw__WEBPACK_IMPORTED_MODULE_0__["EngineDraw"](this);
-        this.engineViewPort = new _engine_viewPort__WEBPACK_IMPORTED_MODULE_7__["EngineViewPort"](this);
+        this.engineViewPort = new _engine_viewPort__WEBPACK_IMPORTED_MODULE_8__["EngineViewPort"](this);
         this.enginePrograms = new _engine_programs__WEBPACK_IMPORTED_MODULE_1__["EngineProgram"](this);
-        this.engineUniform = new _engine_uniforms__WEBPACK_IMPORTED_MODULE_5__["EngineUniform"](this);
-        this.engineVertex = new _engine_vertex__WEBPACK_IMPORTED_MODULE_6__["EngineVertex"](this);
-        this.engineTexture = new _engine_texture__WEBPACK_IMPORTED_MODULE_3__["EngineTexture"](this);
-        this.engineUniformBuffer = new _engine_uniformBuffer__WEBPACK_IMPORTED_MODULE_4__["EngineUniformBuffer"](this);
+        this.engineUniform = new _engine_uniforms__WEBPACK_IMPORTED_MODULE_6__["EngineUniform"](this);
+        this.engineVertex = new _engine_vertex__WEBPACK_IMPORTED_MODULE_7__["EngineVertex"](this);
+        this.engineTexture = new _engine_texture__WEBPACK_IMPORTED_MODULE_4__["EngineTexture"](this);
+        this.engineUniformBuffer = new _engine_uniformBuffer__WEBPACK_IMPORTED_MODULE_5__["EngineUniformBuffer"](this);
         this.engineRenderTarget = new _engine_renderTarget__WEBPACK_IMPORTED_MODULE_2__["EngineRenderTarget"](this);
+        this.engineState = new _engine_state__WEBPACK_IMPORTED_MODULE_3__["EngineState"](this);
     }
     _initializeCapabilities() {
         const gl = this.gl;
@@ -1595,13 +2322,13 @@ class EngineUniformBuffer {
             if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Float) {
                 len += 4;
             }
-            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector2) {
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vec2) {
                 len += 4;
             }
-            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector3) {
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vec3) {
                 len += 4;
             }
-            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector4) {
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vec4) {
                 len += 4;
             }
             offset.push(len);
@@ -1613,13 +2340,13 @@ class EngineUniformBuffer {
             if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Float) {
                 result.set([0, 0, 0, value.x], offset[i]);
             }
-            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector2) {
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vec2) {
                 result.set([0, 0, value.x, value.y], offset[i]);
             }
-            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector3) {
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vec3) {
                 result.set([0, value.x, value.y, value.z], offset[i]);
             }
-            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector4) {
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vec4) {
                 result.set([value.x, value.y, value.z, value.w], offset[i]);
             }
         }
@@ -1652,8 +2379,10 @@ class EngineUniformBuffer {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineUniform", function() { return EngineUniform; });
-/* harmony import */ var _engine_enum__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./engine.enum */ "./src/engines/engine.enum.ts");
+/* harmony import */ var _maths__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../maths */ "./src/maths/index.ts");
+/* harmony import */ var _engine_enum__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./engine.enum */ "./src/engines/engine.enum.ts");
 // import { bindCubeTexture, bindTexture, activeTexture } from "./texture.js";
+
 
 class EngineUniform {
     constructor(engine) {
@@ -1675,25 +2404,25 @@ class EngineUniform {
             return;
         }
         switch (type) {
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Float:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Float:
                 gl.uniform1f(addr, value);
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector2:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Vec2:
                 gl.uniform2f(addr, value.x, value.y);
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector3:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Vec3:
                 gl.uniform3f(addr, value.x, value.y, value.z);
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector4:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Vec4:
                 gl.uniform4f(addr, value.x, value.y, value.z, value.w);
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix3:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Mat3:
                 gl.uniformMatrix3fv(addr, false, new Float32Array(value));
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix4:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Mat4:
                 gl.uniformMatrix4fv(addr, false, new Float32Array(value));
                 break;
-            case _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Texture:
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Texture:
                 this._engine.engineTexture.setTexture(value, 0);
                 gl.uniform1i(addr, 0);
                 break;
@@ -1708,7 +2437,7 @@ class EngineUniform {
         for (let i = 0; i < array.length; i++) {
             let baseName = `${name}[${i}]`;
             const item = array[i];
-            if (item.type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Struct) {
+            if (item.type == _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Struct) {
                 const keys = Object.keys(item.value);
                 for (let j = 0; j < keys.length; j++) {
                     const key = keys[j];
@@ -1723,6 +2452,15 @@ class EngineUniform {
             }
         }
     }
+    setSystemUniform(program, camera) {
+        let _vector3 = new _maths__WEBPACK_IMPORTED_MODULE_0__["Vec3"]();
+        _vector3 = _vector3.setFromMatrixPosition(camera.matrixWorld);
+        this._engine.engineUniform.setUniform(program, "vEyePosition", _vector3, _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Vec3);
+        this._engine.engineUniform.setUniform(program, "viewMatrix", camera.matrixWorldInverse.data, _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Mat4);
+        let _tempMat3 = new _maths__WEBPACK_IMPORTED_MODULE_0__["Mat3"]();
+        _tempMat3.setFromMatrix4(camera.matrixWorldInverse).invert();
+        this._engine.engineUniform.setUniform(program, "inverseViewTransform", _tempMat3.data, _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Mat3);
+    }
     handleUniform(program, obj, uniformBlock) {
         // const { program } = this;
         let textureId = 0;
@@ -1730,16 +2468,16 @@ class EngineUniform {
         for (let i = 0; i < keys.length; i++) {
             const name = keys[i];
             const { value, type } = obj[name];
-            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Array) {
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Array) {
                 this._engine.engineUniform.handleUniformArray(program, name, value);
             }
-            else if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Struct) {
+            else if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Struct) {
                 this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, uniformBlock);
             }
             else {
                 this._engine.engineUniform.setUniform(program, name, value, type);
             }
-            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Texture) {
+            if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Texture) {
                 textureId += 1;
             }
         }
@@ -1883,7 +2621,7 @@ class EngineViewPort {
 /*!******************************!*\
   !*** ./src/engines/index.ts ***!
   \******************************/
-/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc */
+/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1901,6 +2639,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TextureAddress", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureAddress"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CompareFunc", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["CompareFunc"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BlendMode", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["BlendMode"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BlendEquation", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["BlendEquation"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CullFace", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["CullFace"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ClearFlag", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["ClearFlag"]; });
 
 
 
@@ -1978,8 +2724,8 @@ function boxBuilder(opts) {
         const r = new _maths_math_vec3__WEBPACK_IMPORTED_MODULE_0__["Vec3"]();
         for (let i = 0; i <= uSegments; i++) {
             for (let j = 0; j <= vSegments; j++) {
-                temp1.lerp(corners[faceAxes[side][0]], corners[faceAxes[side][1]], i / uSegments);
-                temp2.lerp(corners[faceAxes[side][0]], corners[faceAxes[side][2]], j / vSegments);
+                temp1.lerp2(corners[faceAxes[side][0]], corners[faceAxes[side][1]], i / uSegments);
+                temp2.lerp2(corners[faceAxes[side][0]], corners[faceAxes[side][2]], j / vSegments);
                 temp3.sub2(temp2, corners[faceAxes[side][0]]);
                 r.add2(temp1, temp3);
                 let u = i / uSegments;
@@ -2065,53 +2811,12 @@ function sphereBuilder(opts) {
     };
     // return createMesh(device, positions, options);
 }
-// export function planeBuilder(opts?: any): iGeometryBuilder {
-//     // Check the supplied options and provide defaults for unspecified ones
-//     const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new Vec2(0.5, 0.5);
-//     const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 5;
-//     const ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 5;
-//     const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
-//     // Variable declarations
-//     const positions: Array<number> = [];
-//     const normals: Array<number> = [];
-//     const uvs: Array<number> = [];
-//     const indices: Array<number> = [];
-//     // Generate plane as follows (assigned UVs denoted at corners):
-//     // (0,1)x---------x(1,1)
-//     //      |         |
-//     //      |         |
-//     //      |    O--X |length
-//     //      |    |    |
-//     //      |    Z    |
-//     // (0,0)x---------x(1,0)
-//     // width
-//     let vcounter = 0;
-//     for (let i = 0; i <= ws; i++) {
-//         for (let j = 0; j <= ls; j++) {
-//             const x = -he.x + (2 * he.x * i) / ws;
-//             const y = 0.0;
-//             const z = -(-he.y + (2 * he.y * j) / ls);
-//             const u = i / ws;
-//             const v = j / ls;
-//             positions.push(x, y, z);
-//             normals.push(0, 1, 0);
-//             uvs.push(u, 1 - v);
-//             if (i < ws && j < ls) {
-//                 indices.push(vcounter + ls + 1, vcounter + 1, vcounter);
-//                 indices.push(vcounter + ls + 1, vcounter + ls + 2, vcounter + 1);
-//             }
-//             vcounter++;
-//         }
-//     }
-//     return {
-//         positions: positions,
-//         normals: normals,
-//         uvs: uvs,
-//         // uvs1: uvs, // UV1 = UV0 for plane
-//         indices: indices,
-//     };
-//     // return createMesh(device, positions, options);
-// }
+/**
+ * Z轴朝上
+ * @param width
+ * @param height
+ * @returns
+ */
 function planeBuilder(width, height) {
     if (width == undefined) {
         width = 1;
@@ -2166,9 +2871,6 @@ class Geometry {
         if (this._geometryInfo.indices) {
             this._geometryInfo.count = this._geometryInfo.indices.length;
         }
-        else {
-            this._geometryInfo.count = 0;
-        }
         this._createVertexArray();
     }
     get geometryInfo() {
@@ -2201,7 +2903,7 @@ class Geometry {
             });
         }
         // 绑定顶点索引
-        if (this._geometryInfo.indices.length > 0) {
+        if (this._geometryInfo.indices) {
             this._engine.engineVertex.setIndicesBuffer(_indicesBuffer, this._geometryInfo.indices);
         }
     }
@@ -2245,7 +2947,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************!*\
   !*** ./src/index.ts ***!
   \**********************/
-/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, PerspectiveCamera, boxBuilder, sphereBuilder, planeBuilder, Geometry, Material, Mesh, Scene, TextureLoader, Texture, RenderTarget, Postprocessing, FileTools, Application */
+/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag, PerspectiveCamera, boxBuilder, sphereBuilder, planeBuilder, Geometry, Material, Mesh, Scene, TextureLoader, ShaderLoader, Texture, RenderTarget, Postprocessing, Vec2, Vec3, Mat3, Mat4, Euler, Quat, MathTool, FileTools, Application */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2262,6 +2964,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TextureAddress", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CompareFunc", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["CompareFunc"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BlendMode", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["BlendMode"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BlendEquation", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["BlendEquation"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CullFace", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["CullFace"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ClearFlag", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["ClearFlag"]; });
 
 /* harmony import */ var _cameras_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cameras/index */ "./src/cameras/index.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "PerspectiveCamera", function() { return _cameras_index__WEBPACK_IMPORTED_MODULE_1__["PerspectiveCamera"]; });
@@ -2287,6 +2997,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _loader_index__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./loader/index */ "./src/loader/index.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TextureLoader", function() { return _loader_index__WEBPACK_IMPORTED_MODULE_6__["TextureLoader"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ShaderLoader", function() { return _loader_index__WEBPACK_IMPORTED_MODULE_6__["ShaderLoader"]; });
+
 /* harmony import */ var _texture_index__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./texture/index */ "./src/texture/index.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Texture", function() { return _texture_index__WEBPACK_IMPORTED_MODULE_7__["Texture"]; });
 
@@ -2296,11 +3008,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _postprocessing_index__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./postprocessing/index */ "./src/postprocessing/index.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Postprocessing", function() { return _postprocessing_index__WEBPACK_IMPORTED_MODULE_9__["Postprocessing"]; });
 
-/* harmony import */ var _misc_fileTools__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./misc/fileTools */ "./src/misc/fileTools.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FileTools", function() { return _misc_fileTools__WEBPACK_IMPORTED_MODULE_10__["FileTools"]; });
+/* harmony import */ var _maths_index__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./maths/index */ "./src/maths/index.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Vec2", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["Vec2"]; });
 
-/* harmony import */ var _application__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./application */ "./src/application.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Application", function() { return _application__WEBPACK_IMPORTED_MODULE_11__["Application"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Vec3", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["Vec3"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Mat3", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["Mat3"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Mat4", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["Mat4"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Euler", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["Euler"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Quat", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["Quat"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MathTool", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["MathTool"]; });
+
+/* harmony import */ var _misc_fileTools__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./misc/fileTools */ "./src/misc/fileTools.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FileTools", function() { return _misc_fileTools__WEBPACK_IMPORTED_MODULE_11__["FileTools"]; });
+
+/* harmony import */ var _application__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./application */ "./src/application.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Application", function() { return _application__WEBPACK_IMPORTED_MODULE_12__["Application"]; });
+
 
 
 
@@ -2339,7 +3067,7 @@ window.lmgl = _index__WEBPACK_IMPORTED_MODULE_0__;
 /*!*****************************!*\
   !*** ./src/loader/index.ts ***!
   \*****************************/
-/*! exports provided: TextureLoader */
+/*! exports provided: TextureLoader, ShaderLoader */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2347,7 +3075,79 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _texture_loader__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./texture.loader */ "./src/loader/texture.loader.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TextureLoader", function() { return _texture_loader__WEBPACK_IMPORTED_MODULE_0__["TextureLoader"]; });
 
+/* harmony import */ var _shader_loader__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./shader.loader */ "./src/loader/shader.loader.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ShaderLoader", function() { return _shader_loader__WEBPACK_IMPORTED_MODULE_1__["ShaderLoader"]; });
 
+
+
+
+
+/***/ }),
+
+/***/ "./src/loader/loader.ts":
+/*!******************************!*\
+  !*** ./src/loader/loader.ts ***!
+  \******************************/
+/*! exports provided: Loader */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Loader", function() { return Loader; });
+class Loader {
+    constructor(engine) {
+        this.engine = engine;
+        this.rootPath = "";
+    }
+    setPath(path) {
+        this.rootPath = path;
+        return this;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/loader/shader.loader.ts":
+/*!*************************************!*\
+  !*** ./src/loader/shader.loader.ts ***!
+  \*************************************/
+/*! exports provided: ShaderLoader */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ShaderLoader", function() { return ShaderLoader; });
+/* harmony import */ var _misc_fileTools__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../misc/fileTools */ "./src/misc/fileTools.ts");
+/* harmony import */ var _loader__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./loader */ "./src/loader/loader.ts");
+
+
+class ShaderLoader extends _loader__WEBPACK_IMPORTED_MODULE_1__["Loader"] {
+    constructor(engine) {
+        super(engine);
+    }
+    load(options) {
+        return new Promise((resolve, reject) => {
+            let filesToLoad = [];
+            filesToLoad = filesToLoad.concat(options.vsPaths);
+            filesToLoad = filesToLoad.concat(options.fsPaths);
+            _misc_fileTools__WEBPACK_IMPORTED_MODULE_0__["FileTools"].LoadTextFiles(filesToLoad, this.rootPath).then((files) => {
+                var vertexShaderSources = [];
+                for (var i = 0; i < options.vsPaths.length; ++i) {
+                    vertexShaderSources.push(files[this.rootPath + options.vsPaths[i]]);
+                }
+                var fragmentShaderSources = [];
+                for (var i = 0; i < options.fsPaths.length; ++i) {
+                    fragmentShaderSources.push(files[this.rootPath + options.fsPaths[i]]);
+                }
+                resolve({
+                    vertexShader: vertexShaderSources.join("\n"),
+                    fragmentShader: fragmentShaderSources.join("\n"),
+                });
+            });
+        });
+    }
+}
 
 
 /***/ }),
@@ -2365,18 +3165,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/_tslib@2.3.1@tslib/tslib.es6.js");
 /* harmony import */ var _misc_fileTools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../misc/fileTools */ "./src/misc/fileTools.ts");
 /* harmony import */ var _texture__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../texture */ "./src/texture/index.ts");
+/* harmony import */ var _loader__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./loader */ "./src/loader/loader.ts");
 
 
 
-class TextureLoader {
+
+class TextureLoader extends _loader__WEBPACK_IMPORTED_MODULE_3__["Loader"] {
     constructor(engine) {
-        this._engine = engine;
+        super(engine);
     }
     load(url) {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-                const image = yield _misc_fileTools__WEBPACK_IMPORTED_MODULE_1__["FileTools"].LoadImage(url);
-                const texture = new _texture__WEBPACK_IMPORTED_MODULE_2__["Texture"](this._engine);
+                const image = yield _misc_fileTools__WEBPACK_IMPORTED_MODULE_1__["FileTools"].LoadImage(url, this.rootPath);
+                const texture = new _texture__WEBPACK_IMPORTED_MODULE_2__["Texture"](this.engine);
                 texture.source = image;
                 return resolve(texture);
             }));
@@ -2425,19 +3227,19 @@ class Material {
         this.inputVertexShader = JSON.parse(JSON.stringify(materialInfo.vertexShader));
         this.inputFragmentShader = JSON.parse(JSON.stringify(materialInfo.fragmentShader));
         this.uniforms = Object(_misc_tool__WEBPACK_IMPORTED_MODULE_1__["cloneUniforms"])(materialInfo.uniforms || {});
-        const header = `#version 300 es
-      precision mediump float;
-    `;
         this.uniformBlock = {
             blockCatch: new Map(),
             blockIndex: 0,
         };
-        this.vertexShader = header + this.inputVertexShader;
-        this.fragmentShader = header + this.inputFragmentShader;
-        this.program = engine.enginePrograms.createProgram({
+        this.vertexShader = this.inputVertexShader;
+        this.fragmentShader = this.inputFragmentShader;
+        const programInfo = engine.enginePrograms.createProgram({
             vertexShader: this.vertexShader,
             fragmentShader: this.fragmentShader,
         });
+        this.program = programInfo.program;
+        this.vertexShader = programInfo.vertexShader;
+        this.fragmentShader = programInfo.fragmentShader;
         // this.blending = false;
         // this.blendingType = BLENDING_TYPE.RGBA;
         // this.blendRGBASrc = BLENDING_FACTOR.ONE;
@@ -2484,6 +3286,47 @@ class Material {
         });
     }
 }
+
+
+/***/ }),
+
+/***/ "./src/maths/index.ts":
+/*!****************************!*\
+  !*** ./src/maths/index.ts ***!
+  \****************************/
+/*! exports provided: Vec2, Vec3, Mat3, Mat4, Euler, Quat, MathTool */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _math_vec2__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./math.vec2 */ "./src/maths/math.vec2.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Vec2", function() { return _math_vec2__WEBPACK_IMPORTED_MODULE_0__["Vec2"]; });
+
+/* harmony import */ var _math_vec3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./math.vec3 */ "./src/maths/math.vec3.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Vec3", function() { return _math_vec3__WEBPACK_IMPORTED_MODULE_1__["Vec3"]; });
+
+/* harmony import */ var _math_mat3__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./math.mat3 */ "./src/maths/math.mat3.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Mat3", function() { return _math_mat3__WEBPACK_IMPORTED_MODULE_2__["Mat3"]; });
+
+/* harmony import */ var _math_mat4__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./math.mat4 */ "./src/maths/math.mat4.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Mat4", function() { return _math_mat4__WEBPACK_IMPORTED_MODULE_3__["Mat4"]; });
+
+/* harmony import */ var _math_euler__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./math.euler */ "./src/maths/math.euler.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Euler", function() { return _math_euler__WEBPACK_IMPORTED_MODULE_4__["Euler"]; });
+
+/* harmony import */ var _math_quat__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./math.quat */ "./src/maths/math.quat.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Quat", function() { return _math_quat__WEBPACK_IMPORTED_MODULE_5__["Quat"]; });
+
+/* harmony import */ var _math_tool__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./math.tool */ "./src/maths/math.tool.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MathTool", function() { return _math_tool__WEBPACK_IMPORTED_MODULE_6__["MathTool"]; });
+
+
+
+
+
+
+
+
 
 
 /***/ }),
@@ -5597,10 +6440,10 @@ class Quat {
      * @returns {Quat} Self for chaining.
      * @example
      * var q = new pc.Quat();
-     * q.setFromAxisAngle(pc.Vec3.UP, 90);
+     * q.setFromAxisAngle(pc.Vec3.UP, Math.PI/2);
      */
     setFromAxisAngle(axis, angle) {
-        angle *= 0.5 * _math_tool__WEBPACK_IMPORTED_MODULE_0__["MathTool"].DEG_TO_RAD;
+        angle *= 0.5;
         const sa = Math.sin(angle);
         const ca = Math.cos(angle);
         this.x = sa * axis.x;
@@ -5637,8 +6480,32 @@ class Quat {
         this.w = cx * cy * cz + sx * sy * sz;
         return this;
     }
+    /**
+     *
+     * @param euler 弧度的欧拉值
+     * @returns
+     */
     setFromEuler(euler) {
-        return this.setFromEulerAngles(euler.x, euler.y, euler.z);
+        if (!(euler && euler.isEuler)) {
+            throw new Error("THREE.Quaternion: .setFromEuler() now expects an Euler rotation rather than a Vector3 and order.");
+        }
+        const x = euler.x, y = euler.y, z = euler.z;
+        // http://www.mathworks.com/matlabcentral/fileexchange/
+        // 	20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/
+        //	content/SpinCalc.m
+        const cos = Math.cos;
+        const sin = Math.sin;
+        const c1 = cos(x / 2);
+        const c2 = cos(y / 2);
+        const c3 = cos(z / 2);
+        const s1 = sin(x / 2);
+        const s2 = sin(y / 2);
+        const s3 = sin(z / 2);
+        this.x = s1 * c2 * c3 + c1 * s2 * s3;
+        this.y = c1 * s2 * c3 - s1 * c2 * s3;
+        this.z = c1 * c2 * s3 + s1 * s2 * c3;
+        this.w = c1 * c2 * c3 - s1 * s2 * s3;
+        return this;
     }
     /**
      * Converts the specified 4x4 matrix to a quaternion. Note that since a quaternion is purely a
@@ -6255,6 +7122,7 @@ __webpack_require__.r(__webpack_exports__);
  * @description Math API.
  */
 class MathTool {
+    // 角度转弧度
     static degToRad(degrees) {
         return degrees * _math_constants__WEBPACK_IMPORTED_MODULE_0__["DEG2RAD"];
     }
@@ -7200,11 +8068,28 @@ class Vec3 {
         this.y = y || 0;
         this.z = z || 0;
     }
-    applyQuaternion(quaternion) {
-        throw new Error("Method not implemented.");
+    applyQuaternion(q) {
+        const x = this.x, y = this.y, z = this.z;
+        const qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+        // calculate quat * vector
+        const ix = qw * x + qy * z - qz * y;
+        const iy = qw * y + qz * x - qx * z;
+        const iz = qw * z + qx * y - qy * x;
+        const iw = -qx * x - qy * y - qz * z;
+        // calculate result * inverse quat
+        this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+        this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+        this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+        return this;
     }
-    multiplyScalar(distance) {
-        throw new Error("Method not implemented.");
+    manhattanDistanceTo(v) {
+        return Math.abs(this.x - v.x) + Math.abs(this.y - v.y) + Math.abs(this.z - v.z);
+    }
+    multiplyScalar(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+        return this;
     }
     setFromMatrixPosition(m) {
         const e = m.data;
@@ -7481,10 +8366,16 @@ class Vec3 {
      * r.lerp(a, b, 0.5); // r is 5, 5, 5
      * r.lerp(a, b, 1);   // r is equal to b
      */
-    lerp(lhs, rhs, alpha) {
+    lerp2(lhs, rhs, alpha) {
         this.x = lhs.x + alpha * (rhs.x - lhs.x);
         this.y = lhs.y + alpha * (rhs.y - lhs.y);
         this.z = lhs.z + alpha * (rhs.z - lhs.z);
+        return this;
+    }
+    lerp(v, alpha) {
+        this.x += (v.x - this.x) * alpha;
+        this.y += (v.y - this.y) * alpha;
+        this.z += (v.z - this.z) * alpha;
         return this;
     }
     /**
@@ -7807,6 +8698,9 @@ Vec3.FORWARD = Object.freeze(new Vec3(0, 0, -1));
  * @readonly
  */
 Vec3.BACK = Object.freeze(new Vec3(0, 0, 1));
+Vec3.AXIS_X = Object.freeze(new Vec3(1, 0, 0));
+Vec3.AXIS_Y = Object.freeze(new Vec3(0, 1, 0));
+Vec3.AXIS_Z = Object.freeze(new Vec3(0, 0, 1));
 
 
 
@@ -8375,6 +9269,86 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/mesh/mesh.axis.ts":
+/*!*******************************!*\
+  !*** ./src/mesh/mesh.axis.ts ***!
+  \*******************************/
+/*! exports provided: MeshAxis */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MeshAxis", function() { return MeshAxis; });
+/* harmony import */ var _engines__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../engines */ "./src/engines/index.ts");
+/* harmony import */ var _engines_engine_draw__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../engines/engine.draw */ "./src/engines/engine.draw.ts");
+/* harmony import */ var _geometry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../geometry */ "./src/geometry/index.ts");
+/* harmony import */ var _material_material__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../material/material */ "./src/material/material.ts");
+/* harmony import */ var _mesh__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./mesh */ "./src/mesh/mesh.ts");
+
+
+
+
+
+class MeshAxis {
+    constructor(engine, size) {
+        this._engine = engine;
+        const geoX = this.getGeoX(size);
+        const geoY = this.getGeoX(size);
+        const geoZ = this.getGeoX(size);
+        geoY.attributes.aPosition.value = [0, 0, 0, 0, 1 * size, 0];
+        geoZ.attributes.aPosition.value = [0, 0, 0, 0, 0, 1 * size];
+        const matX = this.getMat({ x: 1, y: 0, z: 0, w: 1 });
+        const matY = this.getMat({ x: 0, y: 1, z: 0, w: 1 });
+        const matZ = this.getMat({ x: 0, y: 0, z: 1, w: 1 });
+        this.meshX = new _mesh__WEBPACK_IMPORTED_MODULE_4__["Mesh"](this._engine, new _geometry__WEBPACK_IMPORTED_MODULE_2__["Geometry"](engine, geoX), matX);
+        this.meshY = new _mesh__WEBPACK_IMPORTED_MODULE_4__["Mesh"](this._engine, new _geometry__WEBPACK_IMPORTED_MODULE_2__["Geometry"](engine, geoY), matY);
+        this.meshZ = new _mesh__WEBPACK_IMPORTED_MODULE_4__["Mesh"](this._engine, new _geometry__WEBPACK_IMPORTED_MODULE_2__["Geometry"](engine, geoZ), matZ);
+    }
+    getMat(color) {
+        const vertexShader = `
+      in vec3 aPosition;
+
+      uniform mat4 projectionMatrix;
+      uniform mat4 modelViewMatrix;
+
+      void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+      }
+    `;
+        const fragmentShader = `
+      uniform vec4 uColor;
+      out vec4 FragColor;
+
+      void main() {
+        FragColor = uColor;
+      }
+      `;
+        const mat = new _material_material__WEBPACK_IMPORTED_MODULE_3__["Material"](this._engine, {
+            vertexShader,
+            fragmentShader,
+            uniforms: {
+                uColor: { type: _engines__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vec4, value: color },
+            },
+        });
+        return mat;
+    }
+    getGeoX(size) {
+        return {
+            count: 2,
+            attributes: {
+                aPosition: {
+                    value: [0, 0, 0, 1 * size, 0, 0],
+                    itemSize: 3,
+                },
+            },
+            type: _engines_engine_draw__WEBPACK_IMPORTED_MODULE_1__["PrimitiveType"].PRIMITIVE_LINES,
+        };
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/mesh/mesh.ts":
 /*!**************************!*\
   !*** ./src/mesh/mesh.ts ***!
@@ -8419,7 +9393,7 @@ class Mesh {
         this.rotation = Object(_misc_tool__WEBPACK_IMPORTED_MODULE_6__["addProxy"])(this.rotation, this._onRotationChange);
     }
     _onRotationChange() {
-        this.quaternion.setFromEuler(this.rotation, false);
+        this.quaternion.setFromEuler(this.rotation);
         this.updateMatrix();
     }
     active() {
@@ -8466,6 +9440,103 @@ class ArrayTools {
 
 /***/ }),
 
+/***/ "./src/misc/domManagement.ts":
+/*!***********************************!*\
+  !*** ./src/misc/domManagement.ts ***!
+  \***********************************/
+/*! exports provided: IsWindowObjectExist, IsNavigatorAvailable, IsDocumentAvailable, GetDOMTextContent, isBrowserInterface, DomManagement */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "IsWindowObjectExist", function() { return IsWindowObjectExist; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "IsNavigatorAvailable", function() { return IsNavigatorAvailable; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "IsDocumentAvailable", function() { return IsDocumentAvailable; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GetDOMTextContent", function() { return GetDOMTextContent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isBrowserInterface", function() { return isBrowserInterface; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DomManagement", function() { return DomManagement; });
+/**
+ * Checks if the window object exists
+ * @returns true if the window object exists
+ */
+function IsWindowObjectExist() {
+    return typeof window !== "undefined";
+}
+/**
+ * Checks if the navigator object exists
+ * @returns true if the navigator object exists
+ */
+function IsNavigatorAvailable() {
+    return typeof navigator !== "undefined";
+}
+/**
+ * Check if the document object exists
+ * @returns true if the document object exists
+ */
+function IsDocumentAvailable() {
+    return typeof document !== "undefined";
+}
+/**
+ * Extracts text content from a DOM element hierarchy
+ * @param element defines the root element
+ * @returns a string
+ */
+function GetDOMTextContent(element) {
+    var result = "";
+    var child = element.firstChild;
+    while (child) {
+        if (child.nodeType === 3) {
+            result += child.textContent;
+        }
+        child = child.nextSibling;
+    }
+    return result;
+}
+/**
+ * Reports whether a texture source is a canvas, image, video or ImageBitmap.
+ *
+ * @param {*} texture - Texture source data.
+ * @returns {boolean} True if the texture is a canvas, image, video or ImageBitmap and false
+ * otherwise.
+ * @private
+ */
+function isBrowserInterface(texture) {
+    return ((typeof HTMLCanvasElement !== "undefined" && texture instanceof HTMLCanvasElement) ||
+        (typeof HTMLImageElement !== "undefined" && texture instanceof HTMLImageElement) ||
+        (typeof HTMLVideoElement !== "undefined" && texture instanceof HTMLVideoElement) ||
+        (typeof ImageBitmap !== "undefined" && texture instanceof ImageBitmap));
+}
+/**
+ * Sets of helpers dealing with the DOM and some of the recurrent functions needed in
+ * Babylon.js
+ */
+const DomManagement = {
+    /**
+     * Checks if the window object exists
+     * @returns true if the window object exists
+     */
+    IsWindowObjectExist,
+    /**
+     * Checks if the navigator object exists
+     * @returns true if the navigator object exists
+     */
+    IsNavigatorAvailable,
+    /**
+     * Check if the document object exists
+     * @returns true if the document object exists
+     */
+    IsDocumentAvailable,
+    /**
+     * Extracts text content from a DOM element hierarchy
+     * @param element defines the root element
+     * @returns a string
+     */
+    GetDOMTextContent,
+};
+
+
+/***/ }),
+
 /***/ "./src/misc/fileTools.ts":
 /*!*******************************!*\
   !*** ./src/misc/fileTools.ts ***!
@@ -8480,7 +9551,9 @@ __webpack_require__.r(__webpack_exports__);
  * @hidden
  */
 class FileTools {
-    static LoadImage(src) {
+    static LoadImage(src, rootPath) {
+        if (rootPath === undefined)
+            rootPath = "";
         return new Promise(function (resolve, reject) {
             let img = new Image();
             img.crossOrigin = "anonymous";
@@ -8490,7 +9563,7 @@ class FileTools {
             img.onerror = function () {
                 reject("ERROR WHILE TRYING TO LOAD SKYBOX TEXTURE");
             };
-            img.src = src;
+            img.src = rootPath + src;
         });
     }
     static LoadCubeImages(urls) {
@@ -8687,6 +9760,42 @@ Logger.Warn = Logger._WarnEnabled;
  * Write an error message to the console
  */
 Logger.Error = Logger._ErrorEnabled;
+
+
+/***/ }),
+
+/***/ "./src/misc/shaderProcess.ts":
+/*!***********************************!*\
+  !*** ./src/misc/shaderProcess.ts ***!
+  \***********************************/
+/*! exports provided: ShaderProcess */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ShaderProcess", function() { return ShaderProcess; });
+class ShaderProcess {
+    static generateDefines(defines) {
+        if (defines == undefined)
+            return "";
+        const chunks = [];
+        for (const name in defines) {
+            const value = defines[name];
+            if (value === false)
+                continue;
+            chunks.push("#define " + name + " " + value);
+        }
+        chunks.push("\r\n");
+        return chunks.join("\n");
+    }
+    static getHead() {
+        const header = `#version 300 es
+precision mediump float;
+    `;
+        return header;
+        ;
+    }
+}
 
 
 /***/ }),
@@ -9057,9 +10166,11 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Postprocessing", function() { return Postprocessing; });
-/* harmony import */ var _geometry__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../geometry */ "./src/geometry/index.ts");
-/* harmony import */ var _maths_math_color__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../maths/math.color */ "./src/maths/math.color.ts");
-/* harmony import */ var _misc_fileTools__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../misc/fileTools */ "./src/misc/fileTools.ts");
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/_tslib@2.3.1@tslib/tslib.es6.js");
+/* harmony import */ var _geometry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../geometry */ "./src/geometry/index.ts");
+/* harmony import */ var _loader_shader_loader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../loader/shader.loader */ "./src/loader/shader.loader.ts");
+/* harmony import */ var _maths_math_color__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../maths/math.color */ "./src/maths/math.color.ts");
+
 
 
 
@@ -9069,7 +10180,7 @@ class Postprocessing {
         this._camera = app.camera;
         this._programs = new Map();
         this._rootPath = "/";
-        const model = Object(_geometry__WEBPACK_IMPORTED_MODULE_0__["planeBuilder"])(2, 2);
+        const model = Object(_geometry__WEBPACK_IMPORTED_MODULE_1__["planeBuilder"])(2, 2);
         const geoInfo = {
             indices: model.indices,
             attributes: {
@@ -9077,15 +10188,11 @@ class Postprocessing {
                     value: model.positions,
                     itemSize: 3,
                 },
-                aUv: {
-                    value: model.uvs,
-                    itemSize: 2,
-                },
             },
         };
-        this._geometry = new _geometry__WEBPACK_IMPORTED_MODULE_0__["Geometry"](this._engine, geoInfo);
+        this._geometry = new _geometry__WEBPACK_IMPORTED_MODULE_1__["Geometry"](this._engine, geoInfo);
         this._activeProgram = null;
-        this.clearColor = new _maths_math_color__WEBPACK_IMPORTED_MODULE_1__["Color4"](0.2, 0.19, 0.3, 1.0);
+        this.clearColor = new _maths_math_color__WEBPACK_IMPORTED_MODULE_3__["Color4"](0.2, 0.19, 0.3, 1.0);
     }
     get uniforms() {
         var _a;
@@ -9095,66 +10202,47 @@ class Postprocessing {
         this._rootPath = v;
         return this;
     }
-    createProgramFromFiles(programName, vertexShaderPath, fragmentShaderPath, uniforms) {
-        return new Promise((resolve, reject) => {
-            var filesToLoad = [];
-            if (Array.isArray(vertexShaderPath)) {
-                filesToLoad = filesToLoad.concat(vertexShaderPath);
-            }
-            else {
-                filesToLoad.push(vertexShaderPath);
-            }
-            if (Array.isArray(fragmentShaderPath)) {
-                filesToLoad = filesToLoad.concat(fragmentShaderPath);
-            }
-            else {
-                filesToLoad.push(fragmentShaderPath);
-            }
-            _misc_fileTools__WEBPACK_IMPORTED_MODULE_2__["FileTools"].LoadTextFiles(filesToLoad, this._rootPath).then((files) => {
-                var vertexShaderSources = [];
-                if (Array.isArray(vertexShaderPath)) {
-                    for (var i = 0; i < vertexShaderPath.length; ++i) {
-                        vertexShaderSources.push(files[this._rootPath + vertexShaderPath[i]]);
-                    }
-                }
-                else {
-                    vertexShaderSources.push(files[this._rootPath + vertexShaderPath]);
-                }
-                var fragmentShaderSources = [];
-                if (Array.isArray(fragmentShaderPath)) {
-                    for (var i = 0; i < fragmentShaderPath.length; ++i) {
-                        fragmentShaderSources.push(files[this._rootPath + fragmentShaderPath[i]]);
-                    }
-                }
-                else {
-                    fragmentShaderSources.push(files[this._rootPath + fragmentShaderPath]);
-                }
-                const program = this._engine.enginePrograms.createProgram({
-                    vertexShader: vertexShaderSources.join("\n"),
-                    fragmentShader: fragmentShaderSources.join("\n"),
+    _createProgramFromFiles(programName, vertexShaderPath, fragmentShaderPath, uniforms, defines) {
+        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                const vsPaths = Array.isArray(vertexShaderPath) ? vertexShaderPath : [vertexShaderPath];
+                const fsPaths = Array.isArray(fragmentShaderPath) ? fragmentShaderPath : [fragmentShaderPath];
+                new _loader_shader_loader__WEBPACK_IMPORTED_MODULE_2__["ShaderLoader"](this._engine)
+                    .setPath(this._rootPath)
+                    .load({
+                    vsPaths: vsPaths,
+                    fsPaths: fsPaths,
+                })
+                    .then((shader) => {
+                    const { program, vertexShader, fragmentShader } = this._engine.enginePrograms.createProgram({
+                        vertexShader: shader.vertexShader,
+                        fragmentShader: shader.fragmentShader,
+                        defines: defines,
+                    });
+                    const uniformBlock = {
+                        blockCatch: new Map(),
+                        blockIndex: 0,
+                    };
+                    this._programs.set(programName, {
+                        vertexShader,
+                        fragmentShader,
+                        program,
+                        uniforms,
+                        uniformBlock,
+                    });
+                    resolve(program);
                 });
-                const uniformBlock = {
-                    blockCatch: new Map(),
-                    blockIndex: 0,
-                };
-                this._programs.set(programName, {
-                    program,
-                    uniforms,
-                    uniformBlock,
-                });
-                resolve(program);
             });
         });
     }
     createProgramsFromFiles(programParameters) {
         return new Promise((resolve, reject) => {
-            let loaded = 0;
             for (var programName in programParameters) {
                 var parameters = programParameters[programName];
-                this.createProgramFromFiles(programName, parameters.vertexShader, parameters.fragmentShader, parameters.uniforms).then(() => {
-                    loaded += 1;
-                    if (loaded === this._programs.size) {
-                        resolve(loaded);
+                this._createProgramFromFiles(programName, parameters.vertexShader, parameters.fragmentShader, parameters.uniforms, parameters.defines).then(() => {
+                    const total = Object.keys(programParameters).length;
+                    if (this._programs.size === total) {
+                        return resolve(total);
                     }
                 });
             }
@@ -9165,7 +10253,10 @@ class Postprocessing {
         return this;
     }
     clear() {
-        this._engine.engineDraw.clear(this.clearColor);
+        this._engine.engineState.clear({
+            color: this.clearColor,
+        });
+        return this;
     }
     viewport() {
         const width = this._engine.renderingCanvas.clientWidth;
@@ -9187,18 +10278,26 @@ class Postprocessing {
     }
     render() {
         if (!this._activeProgram)
-            return;
+            return this;
         const { program, uniforms, uniformBlock } = this._activeProgram;
         const { geometryInfo } = this._geometry;
         this._geometry.setBuffers(this._activeProgram.program);
         this._engine.enginePrograms.useProgram(program);
-        if (uniforms)
+        if (uniforms) {
             this._engine.engineUniform.handleUniform(program, uniforms, uniformBlock);
+            this._engine.engineUniform.setSystemUniform(program, this._camera);
+        }
         this._engine.engineDraw.draw({
             type: geometryInfo.type,
-            indexed: geometryInfo.indices.length > 0,
+            indexed: geometryInfo.indices,
             count: geometryInfo.count,
         });
+        return this;
+    }
+    setUniform(name, value) {
+        if (this._activeProgram && this._activeProgram.uniforms && this._activeProgram.uniforms[name]) {
+            this._activeProgram.uniforms[name].value = value;
+        }
         return this;
     }
 }
@@ -9236,9 +10335,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderTarget", function() { return RenderTarget; });
 /* harmony import */ var _engines__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../engines */ "./src/engines/index.ts");
-/* harmony import */ var _misc_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../misc/logger */ "./src/misc/logger.ts");
-/* harmony import */ var _texture__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../texture */ "./src/texture/index.ts");
-
+/* harmony import */ var _texture__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../texture */ "./src/texture/index.ts");
 
 
 class RenderTarget {
@@ -9246,7 +10343,8 @@ class RenderTarget {
         this._engine = engine;
         this.glFrameBuffer = null;
         this.glDepthBuffer = null;
-        this.colorBuffer = new _texture__WEBPACK_IMPORTED_MODULE_2__["Texture"](engine, {
+        this.name = options.name;
+        this.colorBuffer = new _texture__WEBPACK_IMPORTED_MODULE_1__["Texture"](engine, {
             width: options.width,
             height: options.height,
             format: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R8_G8_B8_A8,
@@ -9257,24 +10355,20 @@ class RenderTarget {
         });
         this.colorBuffer.needsUpload = true;
         this.stencil = false;
-        if (this.depthBuffer) {
-            const format = this.depthBuffer.format;
-            if (format === _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTH) {
-                this.depth = true;
-                this.stencil = false;
-            }
-            else if (format === _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTHSTENCIL) {
-                this.depth = true;
-                this.stencil = true;
-            }
-            else {
-                _misc_logger__WEBPACK_IMPORTED_MODULE_1__["Logger"].Warn("Incorrect depthBuffer format. Must be pc.PIXELFORMAT_DEPTH or pc.PIXELFORMAT_DEPTHSTENCIL");
-                this.depth = false;
-                this.stencil = false;
-            }
+        this.depth = options.depth !== undefined ? options.depth : false;
+        if (this.depth) {
+            this.depthBuffer = new _texture__WEBPACK_IMPORTED_MODULE_1__["Texture"](engine, {
+                width: options.width,
+                height: options.height,
+                format: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTH,
+                addressU: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE,
+                addressV: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE,
+                minFilter: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_NEAREST,
+                magFilter: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_NEAREST,
+            });
+            this.depthBuffer.needsUpload = true;
         }
         else {
-            this.depth = options.depth !== undefined ? options.depth : false;
             this.stencil = options.stencil !== undefined ? options.stencil : false;
         }
         this.samples = options.samples !== undefined ? Math.min(options.samples, this._engine.capabilities.maxSamples) : 1;
@@ -9313,12 +10407,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Renderer; });
 /* harmony import */ var _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../engines/engine.enum */ "./src/engines/engine.enum.ts");
 /* harmony import */ var _maths_math_color__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../maths/math.color */ "./src/maths/math.color.ts");
-/* harmony import */ var _maths_math_mat3__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maths/math.mat3 */ "./src/maths/math.mat3.ts");
-/* harmony import */ var _maths_math_mat4__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../maths/math.mat4 */ "./src/maths/math.mat4.ts");
-/* harmony import */ var _maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../maths/math.vec3 */ "./src/maths/math.vec3.ts");
+/* harmony import */ var _maths_math_mat4__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maths/math.mat4 */ "./src/maths/math.mat4.ts");
 // WebGLIndexedBufferRenderer.js
-
-
 
 
 
@@ -9335,28 +10425,20 @@ class Renderer {
      * @param mesh
      * @param camera
      */
-    _updateSystemUniform(program, mesh, camera) {
+    _setMeshUniform(program, mesh, camera) {
         camera.updateMatrix();
         camera.updateMatrixWorld();
         camera.updateProjectionMatrix();
         mesh.updateMatrix();
-        this._engine.engineUniform.setUniform(program, "projectionMatrix", camera.projectionMatrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix4);
-        const modelViewMatrix = new _maths_math_mat4__WEBPACK_IMPORTED_MODULE_3__["Mat4"]();
+        this._engine.engineUniform.setUniform(program, "projectionMatrix", camera.projectionMatrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Mat4);
+        const modelViewMatrix = new _maths_math_mat4__WEBPACK_IMPORTED_MODULE_2__["Mat4"]();
         modelViewMatrix.mul2(camera.matrixWorldInverse, mesh.matrix);
-        this._engine.engineUniform.setUniform(program, "modelViewMatrix", modelViewMatrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix4);
-        this._engine.engineUniform.setUniform(program, "world", mesh.matrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix4);
+        this._engine.engineUniform.setUniform(program, "modelViewMatrix", modelViewMatrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Mat4);
+        this._engine.engineUniform.setUniform(program, "world", mesh.matrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Mat4);
         // 法线: world -> eye
         mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
-        this._engine.engineUniform.setUniform(program, "normalMatrix", mesh.normalMatrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix4);
-        let _vector3 = new _maths_math_vec3__WEBPACK_IMPORTED_MODULE_4__["Vec3"]();
-        _vector3 = _vector3.setFromMatrixPosition(camera.matrixWorld);
-        // vEyePosition/cameraPosition
-        this._engine.engineUniform.setUniform(program, "vEyePosition", _vector3, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Vector3);
-        this._engine.engineUniform.setUniform(program, "viewMatrix", camera.matrixWorldInverse.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix4);
-        let _tempMat3 = new _maths_math_mat3__WEBPACK_IMPORTED_MODULE_2__["Mat3"]();
-        _tempMat3.setFromMatrix4(camera.matrixWorldInverse).invert();
-        this._engine.engineUniform.setUniform(program, "inverseViewTransform", _tempMat3.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix3);
-        this._engine.engineUniform.setUniform(program, "modelMatrix", mesh.matrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Matrix4);
+        this._engine.engineUniform.setUniform(program, "normalMatrix", mesh.normalMatrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Mat4);
+        this._engine.engineUniform.setUniform(program, "modelMatrix", mesh.matrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Mat4);
     }
     // 根据材质设置webgl状态
     // _readMaterial(material) {
@@ -9375,10 +10457,11 @@ class Renderer {
         const { geometryInfo } = geometry;
         const program = material.program;
         mesh.active();
-        this._updateSystemUniform(program, mesh, camera);
+        this._setMeshUniform(program, mesh, camera);
+        this._engine.engineUniform.setSystemUniform(program, camera);
         this._engine.engineDraw.draw({
             type: geometryInfo.type,
-            indexed: geometryInfo.indices.length > 0,
+            indexed: geometryInfo.indices,
             count: geometryInfo.count,
         });
         // 多采样帧缓冲区
@@ -9394,9 +10477,11 @@ class Renderer {
         this._engine.engineRenderTarget.setRenderTarget(target);
     }
     clear() {
-        this._engine.engineDraw.clear(this.clearColor);
+        this._engine.engineState.clear({
+            color: this.clearColor,
+        });
     }
-    setViewPort() {
+    viewport() {
         let width = this._engine.renderingCanvas.clientWidth;
         let height = this._engine.renderingCanvas.clientHeight;
         if (this._target) {
@@ -9412,7 +10497,7 @@ class Renderer {
     }
     renderScene(scene, camera) {
         this.clear();
-        this.setViewPort();
+        this.viewport();
         for (let i = 0; i < scene.children.length; i++) {
             const mesh = scene.children[i];
             this.renderMesh(mesh, camera);
@@ -9637,13 +10722,12 @@ class Texture {
     }
     set source(v) {
         this._source = v;
-        this._width = v.width;
-        this._height = v.height;
+        if (v.width !== undefined)
+            this._width = v.width;
+        if (v.height !== undefined)
+            this._height = v.height;
         this.needsUpload = true;
     }
-}
-function generateUUID() {
-    throw new Error("Function not implemented.");
 }
 
 

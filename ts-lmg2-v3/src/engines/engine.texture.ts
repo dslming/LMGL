@@ -1,3 +1,4 @@
+import { isBrowserInterface } from "../misc/domManagement";
 import { Texture } from "../texture/texture";
 import { Engine } from "./engine";
 import { TextureAddress, TextureFilter, TextureFormat } from "./engine.enum";
@@ -265,7 +266,7 @@ export class EngineTexture {
      * @ignore
      */
     setUnpackFlipY(flipY: boolean) {
-        const { gl, webgl2 } = this._engine;
+        const { gl } = this._engine;
 
         if (this.unpackFlipY !== flipY) {
             this.unpackFlipY = flipY;
@@ -299,15 +300,18 @@ export class EngineTexture {
         const { gl } = this._engine;
         let mipLevel = 0;
 
-        // Upload the image, canvas or video
-        this.setUnpackFlipY(texture.flipY);
-        this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
-        if (texture.source) {
+        if (isBrowserInterface(texture.source)) {
+            // Upload the image, canvas or video
+            this.setUnpackFlipY(texture.flipY);
+            this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
+
             gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texture.source);
             gl.generateMipmap(texture.glTarget);
         } else {
+            this.setUnpackFlipY(false);
+            this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
             // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texture.width, texture.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, null);
+            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, texture.source);
         }
     }
     /**

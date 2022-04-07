@@ -27,32 +27,14 @@ float getDepth( const in vec2 screenPosition ) {
 }
 
 float getLinearDepth( const in vec2 screenPosition ) {
-
-  #if PERSPECTIVE_CAMERA == 1
-
     float fragCoordZ = texture( tDepth, screenPosition ).x;
     float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
     return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
-
-  #else
-
-    return texture( tDepth, screenPosition ).x;
-
-  #endif
-
 }
 
 float getViewZ( const in float depth ) {
 
-  #if PERSPECTIVE_CAMERA == 1
-
     return perspectiveDepthToViewZ( depth, cameraNear, cameraFar );
-
-  #else
-
-    return orthographicDepthToViewZ( depth, cameraNear, cameraFar );
-
-  #endif
 
 }
 
@@ -118,5 +100,7 @@ void main() {
   occlusion = clamp( occlusion / float( KERNEL_SIZE ), 0.0, 1.0 );
 
   FragColor = vec4( vec3( 1.0 - occlusion ), 1.0 );
+  // FragColor = texture( tDepth, vUv )+texture( tNormal, vUv ) + ;
+  // FragColor = vec4(vec3(viewNormal), 1.);
 
 }

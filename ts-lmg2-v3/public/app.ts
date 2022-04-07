@@ -1,4 +1,5 @@
 import * as lmgl from "../src/index";
+
 (window as any).lmgl = lmgl;
 
 let canvas: any;
@@ -6,6 +7,7 @@ let engine: any;
 let scene: any;
 let app: lmgl.Application;
 let size: any;
+const kernelSize = 32;
 
 class Demo {
     planeMat: lmgl.Material;
@@ -13,6 +15,7 @@ class Demo {
     normalMat: lmgl.Material;
     plane: lmgl.Mesh;
     tea: lmgl.Mesh;
+    noiseTexture: lmgl.Texture;
     constructor() {
         canvas = document.getElementById("renderCanvas");
         engine = new lmgl.Engine(canvas);
@@ -23,14 +26,18 @@ class Demo {
         app.autoRender = false;
         (window as any).app = app;
 
+        this.generateRandomKernelRotations();
         this.initMat();
     }
 
+    // initGui() {
+    //     const gui = new GUI();
+    //     gui.add(ssaoPass, "kernelRadius").min(0).max(32);
+    //     gui.add(ssaoPass, "minDistance").min(0.001).max(0.02);
+    //     gui.add(ssaoPass, "maxDistance").min(0.01).max(0.3);
+    // }
     generateSampleKernel() {
-        const kernelRadius = 8;
-        const kernelSize = 32;
         const kernel = [];
-
         for (let i = 0; i < kernelSize; i++) {
             const sample = new lmgl.Vec3();
             sample.x = Math.random() * 2 - 1;
@@ -43,7 +50,10 @@ class Demo {
             scale = lmgl.MathTool.lerp(0.1, 1, scale * scale);
             sample.multiplyScalar(scale);
 
-            kernel.push(sample);
+            kernel.push({
+                type: lmgl.UniformsType.Vec3,
+                value: sample,
+            });
         }
         return kernel;
     }
@@ -67,11 +77,13 @@ class Demo {
 
         const noiseTexture = new lmgl.Texture(engine, {
             format: lmgl.TextureFormat.PIXELFORMAT_R32F,
+            width: width,
+            height: height,
+            minFilter: lmgl.TextureFilter.FILTER_NEAREST,
+            magFilter: lmgl.TextureFilter.FILTER_NEAREST,
         });
-        this.noiseTexture = new DataTexture(data, width, height, RedFormat, FloatType);
-        this.noiseTexture.wrapS = RepeatWrapping;
-        this.noiseTexture.wrapT = RepeatWrapping;
-        this.noiseTexture.needsUpdate = true;
+        noiseTexture.source = data;
+        this.noiseTexture = noiseTexture;
     }
 
     async initPost() {
@@ -133,14 +145,14 @@ class Demo {
                 fragmentShader: ["packing.glsl", "ssao.frag"],
                 defines: {
                     PERSPECTIVE_CAMERA: 1,
-                    KERNEL_SIZE: 32,
+                    KERNEL_SIZE: kernelSize,
                 },
                 uniforms: {
                     tDiffuse: { value: null, type: lmgl.UniformsType.Texture },
                     tNormal: { value: null, type: lmgl.UniformsType.Texture },
                     tDepth: { value: null, type: lmgl.UniformsType.Texture },
                     tNoise: { value: null, type: lmgl.UniformsType.Texture },
-                    kernel: { value: null, type: lmgl.UniformsType.Float },
+                    kernel: { value: null, type: lmgl.UniformsType.Array },
                     cameraNear: { value: null, type: lmgl.UniformsType.Float },
                     cameraFar: { value: null, type: lmgl.UniformsType.Float },
                     resolution: {
@@ -150,11 +162,11 @@ class Demo {
                         },
                         type: lmgl.UniformsType.Vec2,
                     },
-                    cameraProjectionMatrix: { value: new lmgl.Mat4(), type: lmgl.UniformsType.Mat4 },
-                    cameraInverseProjectionMatrix: { value: new lmgl.Mat4(), type: lmgl.UniformsType.Mat4 },
-                    kernelRadius: { value: 8, type: lmgl.UniformsType.Float },
+                    kernelRadius: { value: 16, type: lmgl.UniformsType.Float },
                     minDistance: { value: 0.005, type: lmgl.UniformsType.Float },
                     maxDistance: { value: 0.05, type: lmgl.UniformsType.Float },
+                    cameraProjectionMatrix: { value: null, type: lmgl.UniformsType.Mat4 },
+                    cameraInverseProjectionMatrix: { value: null, type: lmgl.UniformsType.Mat4 },
                 },
             },
         });
@@ -172,15 +184,7 @@ class Demo {
             name: "normal",
         });
 
-        post.useProgram("ssao")
-            .setUniform("tDiffuse", diffuseRenderTarget.colorBuffer)
-            .setUniform("tNormal", normalRenderTarget.colorBuffer)
-            .setUniform("tDepth", diffuseRenderTarget.depthBuffer)
-            // .setUniform("tNoise", diffuseRenderTarget.colorBuffer)
-            .setUniform("kernel", this.generateSampleKernel())
-            .setUniform("cameraNear", app.camera.near)
-            .setUniform("cameraFar", app.camera.far)
-            .setUniform("resolution", diffuseRenderTarget.colorBuffer);
+        post.useProgram("ssao").setUniform("kernel", this.generateSampleKernel());
 
         const loop = () => {
             this.plane.material = this.planeMat;
@@ -214,10 +218,25 @@ class Demo {
             // .render();
 
             // prettier-ignore
-            post.useProgram("fullscreen")
+            // post.useProgram("fullscreen")
+            //     .bindFramebuffer(null)
+            //     .viewport().clear()
+            //     .setUniform("uTexture", diffuseRenderTarget.colorBuffer)
+            //     .render();
+
+            // prettier-ignore
+            post.useProgram("ssao")
                 .bindFramebuffer(null)
-                .viewport().clear()
-                .setUniform("uTexture", normalRenderTarget.colorBuffer)
+                .viewport()
+                .clear()
+                .setUniform("tDiffuse", diffuseRenderTarget.colorBuffer)
+                .setUniform("tNormal", normalRenderTarget.colorBuffer)
+                .setUniform("tDepth", diffuseRenderTarget.depthBuffer)
+                .setUniform("tNoise", this.noiseTexture)
+                .setUniform("cameraNear", app.camera.near)
+                .setUniform("cameraFar", app.camera.far)
+                .setUniform("cameraInverseProjectionMatrix", app.camera.projectionMatrixInverse.data)
+                .setUniform("cameraProjectionMatrix", app.camera.projectionMatrix.data)
                 .render();
 
             window.requestAnimationFrame(loop);
@@ -296,7 +315,7 @@ class Demo {
         const geometry = new lmgl.Geometry(engine, geoInfo);
         const mesh = new lmgl.Mesh(engine, geometry, this.planeMat);
         mesh.rotation.x = -Math.PI / 2;
-        mesh.position.y = -1.3;
+        mesh.position.y = -1.2;
         mesh.scale.mulScalar(2);
         this.plane = mesh;
         scene.add(mesh);

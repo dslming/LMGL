@@ -18,7 +18,7 @@ export class EngineUniform {
         return gl.getUniformLocation(program, name);
     }
 
-    public setUniform(program: any, name: string, value: any, type: UniformsType) {
+    public setUniform(program: any, name: string, value: any, type: UniformsType, textureId?: number) {
         const { gl } = this._engine;
 
         if (value == null) {
@@ -58,8 +58,9 @@ export class EngineUniform {
                 break;
 
             case UniformsType.Texture:
-                this._engine.engineTexture.setTexture(value, 0);
-                gl.uniform1i(addr, 0);
+                if (textureId === undefined) textureId = 0;
+                this._engine.engineTexture.setTexture(value, textureId);
+                gl.uniform1i(addr, textureId);
                 break;
 
             default:
@@ -114,7 +115,7 @@ export class EngineUniform {
             } else if (type == UniformsType.Struct) {
                 this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, uniformBlock);
             } else {
-                this._engine.engineUniform.setUniform(program, name, value, type);
+                this._engine.engineUniform.setUniform(program, name, value, type, textureId);
             }
 
             if (type == UniformsType.Texture) {

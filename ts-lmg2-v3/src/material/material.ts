@@ -32,16 +32,12 @@ export class Material {
         this.inputFragmentShader = JSON.parse(JSON.stringify(materialInfo.fragmentShader));
         this.uniforms = cloneUniforms(materialInfo.uniforms || {});
 
-//         const header = `#version 300 es
-// precision mediump float;
-//     `;
-
         this.uniformBlock = {
             blockCatch: new Map(),
             blockIndex: 0,
         };
-        this.vertexShader =  this.inputVertexShader;
-        this.fragmentShader =  this.inputFragmentShader;
+        this.vertexShader = this.inputVertexShader;
+        this.fragmentShader = this.inputFragmentShader;
 
         const programInfo: any = engine.enginePrograms.createProgram({
             vertexShader: this.vertexShader,
@@ -49,8 +45,8 @@ export class Material {
         });
         this.program = programInfo.program;
 
-          this.vertexShader = programInfo.vertexShader;
-          this.fragmentShader = programInfo.fragmentShader;
+        this.vertexShader = programInfo.vertexShader;
+        this.fragmentShader = programInfo.fragmentShader;
 
         // this.blending = false;
         // this.blendingType = BLENDING_TYPE.RGBA;
@@ -64,28 +60,6 @@ export class Material {
         // 是否需要每帧更新uniform变量
         this.needUpdate = true;
         this.setUniform();
-    }
-
-    private _handleUniform(obj: any) {
-        const { program } = this;
-
-        let textureId = 0;
-        const keys = Object.keys(obj);
-        for (let i = 0; i < keys.length; i++) {
-            const name = keys[i];
-            const { value, type } = obj[name];
-            if (type == UniformsType.Array) {
-                this._engine.engineUniform.handleUniformArray(program, name, value);
-            } else if (type == UniformsType.Struct) {
-                this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, this.uniformBlock);
-            } else {
-                this._engine.engineUniform.setUniform(program, name, value, type);
-            }
-
-            if (type == UniformsType.Texture) {
-                textureId += 1;
-            }
-        }
     }
 
     setUniform() {
