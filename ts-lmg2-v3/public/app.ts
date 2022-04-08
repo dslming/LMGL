@@ -7,7 +7,7 @@ let engine: any;
 let scene: any;
 let app: lmgl.Application;
 let size: any;
-const kernelSize = 32;
+const kernelSize = 2;
 
 class Demo {
     planeMat: lmgl.Material;
@@ -164,7 +164,7 @@ class Demo {
                     },
                     kernelRadius: { value: 16, type: lmgl.UniformsType.Float },
                     minDistance: { value: 0.005, type: lmgl.UniformsType.Float },
-                    maxDistance: { value: 0.05, type: lmgl.UniformsType.Float },
+                    maxDistance: { value: 0.1, type: lmgl.UniformsType.Float },
                     cameraProjectionMatrix: { value: null, type: lmgl.UniformsType.Mat4 },
                     cameraInverseProjectionMatrix: { value: null, type: lmgl.UniformsType.Mat4 },
                 },

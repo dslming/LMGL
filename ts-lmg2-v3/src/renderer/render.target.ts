@@ -47,8 +47,8 @@ export class RenderTarget {
                 width: options.width,
                 height: options.height,
                 format: TextureFormat.PIXELFORMAT_DEPTH,
-                addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+                addressU: TextureAddress.ADDRESS_REPEAT,
+                addressV: TextureAddress.ADDRESS_REPEAT,
                 minFilter: TextureFilter.FILTER_NEAREST,
                 magFilter: TextureFilter.FILTER_NEAREST,
             });
