@@ -167,6 +167,8 @@ export class Postprocessing {
     setUniform(name: string, value: any): Postprocessing {
         if (this._activeProgram && this._activeProgram.uniforms && this._activeProgram.uniforms[name]) {
             this._activeProgram.uniforms[name].value = value;
+        } else {
+            console.error(`不存在,${name}, 需要先定义`);
         }
         return this;
     }

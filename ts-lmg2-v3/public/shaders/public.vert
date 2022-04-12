@@ -1,6 +1,7 @@
 in vec3 aPosition;
 in vec3 aNormal;
 out vec3 vNormal;
+out vec4 vPosition;
 
 uniform mat4 world;
 uniform mat4 projectionMatrix;
@@ -11,5 +12,6 @@ void main() {
   vec3 normal = normalize(normalWorld * aNormal);
   vNormal = normal;
 
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+  vPosition = modelViewMatrix * vec4(aPosition, 1.0 );
+  gl_Position = projectionMatrix * vPosition;
 }

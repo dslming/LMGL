@@ -51,6 +51,9 @@ export default class Renderer {
         this._engine.engineUniform.setUniform(program, "normalMatrix", mesh.normalMatrix.data, UniformsType.Mat4);
 
         this._engine.engineUniform.setUniform(program, "modelMatrix", mesh.matrix.data, UniformsType.Mat4);
+
+        // 与mesh无关的uniform变量
+        this._engine.engineUniform.setSystemUniform(program, camera);
     }
 
     // 根据材质设置webgl状态
@@ -73,7 +76,6 @@ export default class Renderer {
 
         mesh.active();
         this._setMeshUniform(program, mesh, camera);
-        this._engine.engineUniform.setSystemUniform(program, camera);
 
         this._engine.engineDraw.draw({
             type: geometryInfo.type,

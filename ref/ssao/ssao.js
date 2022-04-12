@@ -1,24 +1,23 @@
 // https://www.davepagurek.com/blog/realtime-shadows/
 
-const canvas = document.getElementById('stage');
-const gl = canvas.getContext('webgl');
-const ext = gl && gl.getExtension('WEBGL_draw_buffers');
-const extFloat = gl && gl.getExtension('OES_texture_float');
-const extDepth = gl && gl.getExtension('WEBGL_depth_texture');
-const extDeriv = gl && gl.getExtension('OES_standard_derivatives');
+const canvas = document.getElementById("stage");
+const gl = canvas.getContext("webgl");
+const ext = gl && gl.getExtension("WEBGL_draw_buffers");
+const extFloat = gl && gl.getExtension("OES_texture_float");
+const extDepth = gl && gl.getExtension("WEBGL_depth_texture");
+const extDeriv = gl && gl.getExtension("OES_standard_derivatives");
 
 if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
   while (document.body.firstChild) {
     document.body.removeChild(document.body.firstChild);
   }
-  const img = document.createElement('img');
-  img.src = 'https://www.davepagurek.com/stuff/buffers.png';
+  const img = document.createElement("img");
+  img.src = "https://www.davepagurek.com/stuff/buffers.png";
   document.body.appendChild(img);
-  const err = document.createElement('section');
-  err.innerText = 'Sorry, looks like your browser doesn\'t support the WebGL extensions needed to run this! Here\'s a static image of what you\'re missing.';
+  const err = document.createElement("section");
+  err.innerText = "Sorry, looks like your browser doesn't support the WebGL extensions needed to run this! Here's a static image of what you're missing.";
   document.body.appendChild(err);
 } else {
-
   // ////////////////////////////////////////////////
   // Pass 1: Geometry
   //
@@ -84,12 +83,12 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
   gl.linkProgram(geometryPass);
 
   const info = {
-    camera: gl.getUniformLocation(geometryPass, 'camera'),
-    projection: gl.getUniformLocation(geometryPass, 'projection'),
-    teapotTransform: gl.getUniformLocation(geometryPass, 'teapotTransform'),
-    vertexPosition: gl.getAttribLocation(geometryPass, 'vertexPosition'),
-    vertexNormal: gl.getAttribLocation(geometryPass, 'vertexNormal'),
-    vertexColor: gl.getAttribLocation(geometryPass, 'vertexColor'),
+    camera: gl.getUniformLocation(geometryPass, "camera"),
+    projection: gl.getUniformLocation(geometryPass, "projection"),
+    teapotTransform: gl.getUniformLocation(geometryPass, "teapotTransform"),
+    vertexPosition: gl.getAttribLocation(geometryPass, "vertexPosition"),
+    vertexNormal: gl.getAttribLocation(geometryPass, "vertexNormal"),
+    vertexColor: gl.getAttribLocation(geometryPass, "vertexColor"),
   };
 
   // Set up the buffers
@@ -132,28 +131,14 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.DEPTH_COMPONENT,
-    canvas.width,
-    canvas.height,
-    0,
-    gl.DEPTH_COMPONENT,
-    gl.UNSIGNED_SHORT,
-    null
-  );
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, canvas.width, canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
 
   // In order to be able to render to multiple buffers, we need to bind each texture
   // to a color attachment. Unfortunately there are just constants for each. It's not pretty.
-  gl.framebufferTexture2D(
-    gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, diffuseBuf, 0);
-  gl.framebufferTexture2D(
-    gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, normalBuf, 0);
-  gl.framebufferTexture2D(
-    gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT2_WEBGL, gl.TEXTURE_2D, positionBuf, 0);
-  gl.framebufferTexture2D(
-    gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthBuf, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, diffuseBuf, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, normalBuf, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT2_WEBGL, gl.TEXTURE_2D, positionBuf, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthBuf, 0);
 
   // Set up the geometry to render
 
@@ -172,61 +157,30 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
 
   // A rectangle below the teapot
   const ground = {
-    vertexPositions: [
-      -30, -10, 40,
-      -30, -10, -40,
-      30, -10, -40,
-      30, -10, 40,
-    ],
-    vertexNormals: [
-      0, 1, 0,
-      0, 1, 0,
-      0, 1, 0,
-      0, 1, 0,
-    ],
-    vertexColor: [
-      0.8, 0.85, 0.85,
-      0.8, 0.85, 0.85,
-      0.8, 0.85, 0.85,
-      0.8, 0.85, 0.85,
-    ],
-    indices: [
-      0, 1, 2,
-      0, 2, 3,
-    ],
+    vertexPositions: [-30, -10, 40, -30, -10, -40, 30, -10, -40, 30, -10, 40],
+    vertexNormals: [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+    vertexColor: [0.8, 0.85, 0.85, 0.8, 0.85, 0.85, 0.8, 0.85, 0.85, 0.8, 0.85, 0.85],
+    indices: [0, 1, 2, 0, 2, 3],
   };
 
   // Put the vertex information into buffers
   const position = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, position);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([...teapot.vertexPositions, ...ground.vertexPositions]),
-    gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([...teapot.vertexPositions, ...ground.vertexPositions]), gl.STATIC_DRAW);
 
   const normal = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, normal);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([...teapot.vertexNormals, ...ground.vertexNormals]),
-    gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([...teapot.vertexNormals, ...ground.vertexNormals]), gl.STATIC_DRAW);
 
   const color = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, color);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([...teapot.vertexColor, ...ground.vertexColor]),
-    gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([...teapot.vertexColor, ...ground.vertexColor]), gl.STATIC_DRAW);
 
   const index = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index);
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array(
-      [...teapot.indices, ...ground.indices.map(i => i + teapot.vertexPositions.length / 3)]),
-    gl.STATIC_DRAW);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([...teapot.indices, ...ground.indices.map(i => i + teapot.vertexPositions.length / 3)]), gl.STATIC_DRAW);
 
-  const fieldOfView = 45 * Math.PI / 180;
+  const fieldOfView = (45 * Math.PI) / 180;
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
 
   const zNear = 1;
@@ -239,7 +193,6 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
 
   // We will update this each frame to rotate the teapot
   const teapotTransform = mat4.create();
-
 
   // ////////////////////////////////////////////////
   // Pass 2: Ambient Occlusion
@@ -373,6 +326,8 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
 
       // Accumulate occlusion
       occlusion += sampleOcclusion;
+      // gl_FragData[0] = vec4(vec3(worldSpaceOrigin), 1.);
+
     }
 
     occlusion = 1.0 - occlusion / (4.0 * float(NUM_SAMPLES));
@@ -386,6 +341,8 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
     }
 
     gl_FragData[0] = vec4(occlusion, occlusion, occlusion, 1.0);
+    // gl_FragData[0] = vec4(vec3(1./worldSpaceOrigin.y), 1.);
+
   }
   `;
 
@@ -399,8 +356,7 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.FLOAT, null);
-  gl.framebufferTexture2D(
-    gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, aoBuf, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, aoBuf, 0);
 
   const fragmentShaderAO = gl.createShader(gl.FRAGMENT_SHADER);
   gl.shaderSource(fragmentShaderAO, fragmentShaderSourceAO);
@@ -416,28 +372,19 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
   gl.linkProgram(aoPass);
 
   const infoAO = {
-    diffuseBuf: gl.getUniformLocation(aoPass, 'diffuseBuf'),
-    normalBuf: gl.getUniformLocation(aoPass, 'normalBuf'),
-    positionBuf: gl.getUniformLocation(aoPass, 'positionBuf'),
-    depthBuf: gl.getUniformLocation(aoPass, 'depthBuf'),
-    screenSize: gl.getUniformLocation(aoPass, 'screenSize'),
-    vertexPosition: gl.getAttribLocation(aoPass, 'vertexPosition'),
+    diffuseBuf: gl.getUniformLocation(aoPass, "diffuseBuf"),
+    normalBuf: gl.getUniformLocation(aoPass, "normalBuf"),
+    positionBuf: gl.getUniformLocation(aoPass, "positionBuf"),
+    depthBuf: gl.getUniformLocation(aoPass, "depthBuf"),
+    screenSize: gl.getUniformLocation(aoPass, "screenSize"),
+    vertexPosition: gl.getAttribLocation(aoPass, "vertexPosition"),
   };
 
   // Create a rectangle so that we basically just call the fragment shader on
   // each pixel of the screen without any extra geometry
   const positionAO = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionAO);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([
-      -1.0, -1.0,
-      1.0, -1.0,
-      -1.0, 1.0,
-      1.0, 1.0
-    ]),
-    gl.STATIC_DRAW);
-
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]), gl.STATIC_DRAW);
 
   // ////////////////////////////////////////////////
   // Pass 3: Final shading
@@ -548,33 +495,32 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
   gl.linkProgram(finalPass);
 
   const infoFinal = {
-    diffuseBuf: gl.getUniformLocation(finalPass, 'diffuseBuf'),
-    normalBuf: gl.getUniformLocation(finalPass, 'normalBuf'),
-    positionBuf: gl.getUniformLocation(finalPass, 'positionBuf'),
-    aoBuf: gl.getUniformLocation(finalPass, 'aoBuf'),
-    depthBuf: gl.getUniformLocation(finalPass, 'depthBuf'),
-    screenSize: gl.getUniformLocation(finalPass, 'screenSize'),
-    vertexPosition: gl.getAttribLocation(finalPass, 'vertexPosition'),
+    diffuseBuf: gl.getUniformLocation(finalPass, "diffuseBuf"),
+    normalBuf: gl.getUniformLocation(finalPass, "normalBuf"),
+    positionBuf: gl.getUniformLocation(finalPass, "positionBuf"),
+    aoBuf: gl.getUniformLocation(finalPass, "aoBuf"),
+    depthBuf: gl.getUniformLocation(finalPass, "depthBuf"),
+    screenSize: gl.getUniformLocation(finalPass, "screenSize"),
+    vertexPosition: gl.getAttribLocation(finalPass, "vertexPosition"),
 
-    showAll: gl.getUniformLocation(finalPass, 'showAll'),
-    showPosition: gl.getUniformLocation(finalPass, 'showPosition'),
-    showNormal: gl.getUniformLocation(finalPass, 'showNormal'),
-    showDiffuse: gl.getUniformLocation(finalPass, 'showDiffuse'),
-    showDepth: gl.getUniformLocation(finalPass, 'showDepth'),
-    showAO: gl.getUniformLocation(finalPass, 'showAO'),
-    showBlurredAO: gl.getUniformLocation(finalPass, 'showBlurredAO'),
+    showAll: gl.getUniformLocation(finalPass, "showAll"),
+    showPosition: gl.getUniformLocation(finalPass, "showPosition"),
+    showNormal: gl.getUniformLocation(finalPass, "showNormal"),
+    showDiffuse: gl.getUniformLocation(finalPass, "showDiffuse"),
+    showDepth: gl.getUniformLocation(finalPass, "showDepth"),
+    showAO: gl.getUniformLocation(finalPass, "showAO"),
+    showBlurredAO: gl.getUniformLocation(finalPass, "showBlurredAO"),
   };
 
   const positionFinal = positionAO;
 
-
-  const useAll = document.getElementById('all');
-  const useDiffuse = document.getElementById('diffuse');
-  const usePosition = document.getElementById('position');
-  const useNormal = document.getElementById('normal');
-  const useAO = document.getElementById('ao');
-  const useBlurredAO = document.getElementById('ao2');
-  const useDepth = document.getElementById('depth');
+  const useAll = document.getElementById("all");
+  const useDiffuse = document.getElementById("diffuse");
+  const usePosition = document.getElementById("position");
+  const useNormal = document.getElementById("normal");
+  const useAO = document.getElementById("ao");
+  const useBlurredAO = document.getElementById("ao2");
+  const useDepth = document.getElementById("depth");
 
   const draw = () => {
     // Render geometry pass
@@ -586,53 +532,23 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.useProgram(geometryPass);
 
-    gl.uniformMatrix4fv(
-      info.projection,
-      false,
-      projectionMatrix
-    );
+    gl.uniformMatrix4fv(info.projection, false, projectionMatrix);
 
-    gl.uniformMatrix4fv(
-      info.camera,
-      false,
-      cameraMatrix
-    );
+    gl.uniformMatrix4fv(info.camera, false, cameraMatrix);
 
     mat4.rotate(teapotTransform, teapotTransform, 0.01, [0.0, 1, 0.0]);
-    gl.uniformMatrix4fv(
-      info.teapotTransform,
-      false,
-      teapotTransform
-    );
+    gl.uniformMatrix4fv(info.teapotTransform, false, teapotTransform);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, position);
-    gl.vertexAttribPointer(
-      info.vertexPosition,
-      3,
-      gl.FLOAT,
-      false,
-      0,
-      0);
+    gl.vertexAttribPointer(info.vertexPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(info.vertexPosition);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, normal);
-    gl.vertexAttribPointer(
-      info.vertexNormal,
-      3,
-      gl.FLOAT,
-      false,
-      0,
-      0);
+    gl.vertexAttribPointer(info.vertexNormal, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(info.vertexNormal);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, color);
-    gl.vertexAttribPointer(
-      info.vertexColor,
-      3,
-      gl.FLOAT,
-      false,
-      0,
-      0);
+    gl.vertexAttribPointer(info.vertexColor, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(info.vertexColor);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index);
@@ -642,9 +558,7 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
       ext.COLOR_ATTACHMENT2_WEBGL, // gl_FragData[2]
     ]);
 
-    gl.drawElements(
-      gl.TRIANGLES, teapot.indices.length +
-      ground.indices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, teapot.indices.length + ground.indices.length, gl.UNSIGNED_SHORT, 0);
 
     gl.disableVertexAttribArray(info.vertexPosition);
     gl.disableVertexAttribArray(info.vertexNormal);
@@ -661,13 +575,7 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
     gl.useProgram(aoPass);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, positionAO);
-    gl.vertexAttribPointer(
-      info.vertexPosition,
-      2,
-      gl.FLOAT,
-      false,
-      0,
-      0);
+    gl.vertexAttribPointer(info.vertexPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(infoAO.vertexPosition);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -701,13 +609,7 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
     gl.useProgram(finalPass);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, positionFinal);
-    gl.vertexAttribPointer(
-      info.vertexPosition,
-      2,
-      gl.FLOAT,
-      false,
-      0,
-      0);
+    gl.vertexAttribPointer(info.vertexPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(infoFinal.vertexPosition);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -743,7 +645,7 @@ if (!gl || !ext || !extFloat || !extDepth || !extDeriv) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     requestAnimationFrame(draw);
-  }
+  };
 
   draw();
 }

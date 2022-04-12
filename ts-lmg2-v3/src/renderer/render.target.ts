@@ -10,6 +10,9 @@ export interface iRenderTargetOptions {
     samples?: number;
     width?: number;
     height?: number;
+    format?: TextureFormat;
+    minFilter?: TextureFilter;
+    magFilter?: TextureFilter;
 }
 
 export class RenderTarget {
@@ -32,11 +35,11 @@ export class RenderTarget {
         this.colorBuffer = new Texture(engine, {
             width: options.width,
             height: options.height,
-            format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
+            format: options.format ? options.format : TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
             addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-            minFilter: TextureFilter.FILTER_LINEAR,
-            magFilter: TextureFilter.FILTER_LINEAR,
+            minFilter: options.minFilter ? options.minFilter : TextureFilter.FILTER_LINEAR,
+            magFilter: options.magFilter ? options.magFilter : TextureFilter.FILTER_LINEAR,
         });
         this.colorBuffer.needsUpload = true;
         this.stencil = false;

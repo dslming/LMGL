@@ -6,26 +6,27 @@ import Renderer from "./renderer/renderer";
 import { Scene } from "./scene";
 
 export class Application {
-    engine: Engine;
-    scene: Scene;
-    camera: PerspectiveCamera;
-    renderer: Renderer;
-    private _control: CameraControl;
+    public engine: Engine;
+    public scene: Scene;
+    public camera: PerspectiveCamera;
+    public renderer: Renderer;
+    public control: CameraControl;
 
     autoRender: boolean;
+    private _axis: MeshAxis;
 
     constructor(engine: Engine, scene?: Scene) {
         this.autoRender = true;
         this.engine = engine;
         scene && (this.scene = scene);
 
-        this.camera = new PerspectiveCamera(45, 1, 1, 50);
+        this.camera = new PerspectiveCamera(45, 1, 1, 500);
         this.renderer = new Renderer(engine);
         this.loop = this.loop.bind(this);
         this.handleResize(this.engine.renderingCanvas.clientWidth, this.engine.renderingCanvas.clientHeight);
         this.camera.position.set(0, 0, 10);
 
-        this._control = new CameraControl(
+        this.control = new CameraControl(
             {
                 distance: this.camera.position.z,
                 distRange: {
@@ -42,12 +43,23 @@ export class Application {
             this.handleResize(width, height);
         };
 
-        const axis = new MeshAxis(engine, 10);
-        this.scene.add(axis.meshX);
-        this.scene.add(axis.meshY);
-        this.scene.add(axis.meshZ);
+        const axis = new MeshAxis(engine, 100);
+        this._axis = axis;
+        // this.scene.add(axis.meshX);
+        // this.scene.add(axis.meshY);
+        // this.scene.add(axis.meshZ);
 
         this.loop();
+    }
+
+    set needAxis(v: boolean) {
+        this._axis.meshX.visible = v;
+        this._axis.meshY.visible = v;
+        this._axis.meshZ.visible = v;
+    }
+
+    get needAxis() {
+        return this._axis.meshX.visible;
     }
 
     handleResize(width: number, height: number) {
@@ -69,7 +81,7 @@ export class Application {
     }
 
     loop() {
-        this._control.update();
+        this.control.update();
 
         if (this.autoRender) {
             this.renderer.renderScene(this.scene, this.camera);

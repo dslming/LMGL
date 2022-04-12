@@ -1,127 +1,69 @@
-uniform sampler2D tDiffuse;
-		uniform sampler2D tNormal;
-		uniform sampler2D tDepth;
-		uniform sampler2D tNoise;
+// SSAO Shader
+uniform sampler2D textureSampler;
 
-		uniform vec3 kernel[ KERNEL_SIZE ];
+varying vec2 vUV;
 
-		uniform vec2 resolution;
+#ifdef SSAO
+uniform sampler2D randomSampler;
 
-		uniform float cameraNear;
-		uniform float cameraFar;
-		uniform mat4 cameraProjectionMatrix;
-		uniform mat4 cameraInverseProjectionMatrix;
+uniform float randTextureTiles;
+uniform float samplesFactor;
+uniform vec3 sampleSphere[SAMPLES];
 
-		uniform float kernelRadius;
-		uniform float minDistance; // avoid artifacts caused by neighbour fragments with minimal depth difference
-		uniform float maxDistance; // avoid the influence of fragments which are too far away
+uniform float totalStrength;
+uniform float radius;
+uniform float area;
+uniform float fallOff;
+uniform float base;
 
-		in vec2 vUv;
-		out vec4 FragColor;
+vec3 normalFromDepth(float depth, vec2 coords)
+{
+	vec2 offset1 = vec2(0.0, radius);
+	vec2 offset2 = vec2(radius, 0.0);
 
-		// #include <packing>
+	float depth1 = texture2D(textureSampler, coords + offset1).r;
+	float depth2 = texture2D(textureSampler, coords + offset2).r;
 
-		float getDepth( const in vec2 screenPosition ) {
+	vec3 p1 = vec3(offset1, depth1 - depth);
+	vec3 p2 = vec3(offset2, depth2 - depth);
 
-			return texture( tDepth, screenPosition ).x;
+	vec3 normal = cross(p1, p2);
+	normal.z = -normal.z;
 
-		}
+	return normalize(normal);
+}
 
-		float getLinearDepth( const in vec2 screenPosition ) {
+void main()
+{
+	vec3 random = normalize(texture2D(randomSampler, vUV * randTextureTiles).rgb);
+	float depth = texture2D(textureSampler, vUV).r;
+	vec3 position = vec3(vUV, depth);
+	vec3 normal = normalFromDepth(depth, vUV);
+	float radiusDepth = radius / depth;
+	float occlusion = 0.0;
 
-			#if PERSPECTIVE_CAMERA == 1
+	vec3 ray;
+	vec3 hemiRay;
+	float occlusionDepth;
+	float difference;
 
-				float fragCoordZ = texture( tDepth, screenPosition ).x;
-				float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
-				return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
+	for (int i = 0; i < SAMPLES; i++)
+	{
+		ray = radiusDepth * reflect(sampleSphere[i], random);
+		hemiRay = position + sign(dot(ray, normal)) * ray;
 
-			#else
+		occlusionDepth = texture2D(textureSampler, clamp(hemiRay.xy, vec2(0.001, 0.001), vec2(0.999, 0.999))).r;
+		difference = depth - occlusionDepth;
 
-				return texture( tDepth, screenPosition ).x;
+		occlusion += step(fallOff, difference) * (1.0 - smoothstep(fallOff, area, difference));
+	}
 
-			#endif
+	float ao = 1.0 - totalStrength * occlusion * samplesFactor;
+	float result = clamp(ao + base, 0.0, 1.0);
 
-		}
-
-		float getViewZ( const in float depth ) {
-
-			#if PERSPECTIVE_CAMERA == 1
-
-				return perspectiveDepthToViewZ( depth, cameraNear, cameraFar );
-
-			#else
-
-				return orthographicDepthToViewZ( depth, cameraNear, cameraFar );
-
-			#endif
-
-		}
-
-		vec3 getViewPosition( const in vec2 screenPosition, const in float depth, const in float viewZ ) {
-
-			float clipW = cameraProjectionMatrix[2][3] * viewZ + cameraProjectionMatrix[3][3];
-
-			vec4 clipPosition = vec4( ( vec3( screenPosition, depth ) - 0.5 ) * 2.0, 1.0 );
-
-			clipPosition *= clipW; // unprojection.
-
-			return ( cameraInverseProjectionMatrix * clipPosition ).xyz;
-
-		}
-
-		vec3 getViewNormal( const in vec2 screenPosition ) {
-
-			return unpackRGBToNormal( texture( tNormal, screenPosition ).xyz );
-
-		}
-
-		void main() {
-
-			float depth = getDepth( vUv );
-			float viewZ = getViewZ( depth );
-
-			vec3 viewPosition = getViewPosition( vUv, depth, viewZ );
-			vec3 viewNormal = getViewNormal( vUv );
-
-			vec2 noiseScale = vec2( resolution.x / 4.0, resolution.y / 4.0 );
-			vec3 random = vec3( texture( tNoise, vUv * noiseScale ).r );
-
-			// compute matrix used to reorient a kernel vector
-
-			vec3 tangent = normalize( random - viewNormal * dot( random, viewNormal ) );
-			vec3 bitangent = cross( viewNormal, tangent );
-			mat3 kernelMatrix = mat3( tangent, bitangent, viewNormal );
-
-		 float occlusion = 0.0;
-
-		 for ( int i = 0; i < KERNEL_SIZE; i ++ ) {
-
-				vec3 sampleVector = kernelMatrix * kernel[ i ]; // reorient sample vector in view space
-				vec3 samplePoint = viewPosition + ( sampleVector * kernelRadius ); // calculate sample point
-
-				vec4 samplePointNDC = cameraProjectionMatrix * vec4( samplePoint, 1.0 ); // project point and calculate NDC
-				samplePointNDC /= samplePointNDC.w;
-
-				vec2 samplePointUv = samplePointNDC.xy * 0.5 + 0.5; // compute uv coordinates
-
-				float realDepth = getLinearDepth( samplePointUv ); // get linear depth from depth texture
-				float sampleDepth = viewZToOrthographicDepth( samplePoint.z, cameraNear, cameraFar ); // compute linear depth of the sample view Z value
-				float delta = sampleDepth - realDepth;
-
-				if ( delta > minDistance && delta < maxDistance ) { // if fragment is before sample point, increase occlusion
-
-					occlusion += 1.0;
-
-				}
-        // FragColor = vec4(vec3(depth), 1.);
-
-
-			}
-
-			occlusion = clamp( occlusion / float( KERNEL_SIZE ), 0.0, 1.0 );
-
-			// FragColor = vec4( vec3( 1.0 - occlusion ), 1.0 );
-      FragColor = vec4(vec3(viewZ), 1.);
-
-
-		}
+	gl_FragColor.r = result;
+	gl_FragColor.g = result;
+	gl_FragColor.b = result;
+	gl_FragColor.a = 1.0;
+}
+#endif
