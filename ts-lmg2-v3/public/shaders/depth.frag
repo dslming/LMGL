@@ -14,5 +14,5 @@ float getLinearDepth( const in vec2 screenPosition ) {
 void main() {
 
   float depth = getLinearDepth( vUv );
-  FragColor = vec4( vec3( 1.0 - depth ), 1.0 );
+  FragColor = vec4( vec3(  depth ), 1.0 );
 }

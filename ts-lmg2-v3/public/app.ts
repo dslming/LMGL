@@ -7,8 +7,14 @@ let engine: any;
 let scene: any;
 let app: lmgl.Application;
 let size: any;
-const kernelSize = 2;
-
+const numSamples = 16;
+const ssaoPass = {
+    fallOff: 0.0001,
+    area: 1,
+    radius: 0.005,
+    totalStrength: 1.0,
+    base: 0.5,
+};
 class Demo {
     planeMat: lmgl.Material;
     teaMat: lmgl.Material;
@@ -31,31 +37,38 @@ class Demo {
         this.initMat();
 
         app.control.setDistance(60);
+
+        document.querySelector("#btn")?.addEventListener("click", () => {
+            lmgl.showImage(this.noiseTexture);
+        });
+
+        this.initGui();
     }
 
-    // initGui() {
-    //     const gui = new GUI();
-    //     gui.add(ssaoPass, "kernelRadius").min(0).max(32);
-    //     gui.add(ssaoPass, "minDistance").min(0.001).max(0.02);
-    //     gui.add(ssaoPass, "maxDistance").min(0.01).max(0.3);
-    // }
+    initGui() {
+        const gui = new (window as any).lil.GUI();
+        gui.add(ssaoPass, "fallOff").min(0).max(0.0001);
+        gui.add(ssaoPass, "area").min(0.001).max(5);
+        gui.add(ssaoPass, "radius").min(0.000001).max(0.1);
+        gui.add(ssaoPass, "totalStrength").min(1).max(10);
+        gui.add(ssaoPass, "base").min(0).max(1);
+    }
+
     generateSampleKernel() {
+        var sampleSphere = [
+            0.5381, 0.1856, -0.4319, 0.1379, 0.2486, 0.443, 0.3371, 0.5679, -0.0057, -0.6999, -0.0451, -0.0019, 0.0689, -0.1598, -0.8547, 0.056, 0.0069, -0.1843, -0.0146, 0.1402, 0.0762, 0.01,
+            -0.1924, -0.0344, -0.3577, -0.5301, -0.4358, -0.3169, 0.1063, 0.0158, 0.0103, -0.5869, 0.0046, -0.0897, -0.494, 0.3287, 0.7119, -0.0154, -0.0918, -0.0533, 0.0596, -0.5411, 0.0352, -0.0631,
+            0.546, -0.4776, 0.2847, -0.0271,
+        ];
         const kernel = [];
-        for (let i = 0; i < kernelSize; i++) {
-            const sample = new lmgl.Vec3();
-            sample.x = Math.random() * 2 - 1;
-            sample.y = Math.random() * 2 - 1;
-            sample.z = Math.random();
-
-            sample.normalize();
-
-            let scale = i / kernelSize;
-            scale = lmgl.MathTool.lerp(0.1, 1, scale * scale);
-            sample.multiplyScalar(scale);
-
+        for (let i = 0; i < sampleSphere.length; i += 3) {
             kernel.push({
                 type: lmgl.UniformsType.Vec3,
-                value: sample,
+                value: {
+                    x: sampleSphere[i + 0],
+                    y: sampleSphere[i + 1],
+                    z: sampleSphere[i + 2],
+                },
             });
         }
         return kernel;
@@ -69,29 +82,36 @@ class Demo {
             height: size,
             minFilter: lmgl.TextureFilter.FILTER_LINEAR,
             magFilter: lmgl.TextureFilter.FILTER_LINEAR,
+            compareFunc: lmgl.CompareFunc.FUNC_LESSEQUAL,
         });
         this.noiseTexture = noiseTexture;
 
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const context: any = canvas.getContext("2d");
         var rand = (min: number, max: number) => {
             return Math.random() * (max - min) + min;
         };
 
-        var randVector = new lmgl.Color4();
-        randVector.a = 1;
-        for (var x = 0; x < size; x++) {
-            for (var y = 0; y < size; y++) {
+        var randVector = new lmgl.Color4(0, 0, 0, 255);
+        for (var x = 0; x < size; x += 1) {
+            for (var y = 0; y < size; y += 1) {
                 randVector.r = Math.floor(rand(-1.0, 1.0) * 255);
                 randVector.g = Math.floor(rand(-1.0, 1.0) * 255);
                 randVector.b = Math.floor(rand(-1.0, 1.0) * 255);
-                noiseTexture.setPixel(x, y, randVector);
+                context.fillStyle = "rgb(" + randVector.r + ", " + randVector.g + ", " + randVector.b + ")";
+                context.fillRect(x, y, 1, 1);
             }
         }
+        noiseTexture.source = canvas;
     }
 
     async initPost() {
         const post = new lmgl.Postprocessing(app);
         post.setRootPath("./public/shaders/");
         (window as any).post = post;
+
         await post.createProgramsFromFiles({
             fullscreen: {
                 vertexShader: ["fullscreen.vert"],
@@ -142,47 +162,41 @@ class Demo {
                     },
                 },
             },
-            // ssao: {
-            //     vertexShader: ["fullscreen.vert"],
-            //     fragmentShader: ["packing.glsl", "ssao.frag"],
-            //     defines: {
-            //         PERSPECTIVE_CAMERA: 1,
-            //         KERNEL_SIZE: kernelSize,
-            //     },
-            //     uniforms: {
-            //         // tDiffuse: { value: null, type: lmgl.UniformsType.Texture },
-            //         // tPosition: { value: null, type: lmgl.UniformsType.Texture },
-            //         tNormal: { value: null, type: lmgl.UniformsType.Texture },
-            //         tDepth: { value: null, type: lmgl.UniformsType.Texture },
-            //         tNoise: { value: null, type: lmgl.UniformsType.Texture },
-            //         kernel: { value: null, type: lmgl.UniformsType.Array },
-            //         cameraNear: { value: null, type: lmgl.UniformsType.Float },
-            //         cameraFar: { value: null, type: lmgl.UniformsType.Float },
-            //         resolution: {
-            //             value: {
-            //                 x: size.width,
-            //                 y: size.height,
-            //             },
-            //             type: lmgl.UniformsType.Vec2,
-            //         },
-            //         kernelRadius: { value: 16, type: lmgl.UniformsType.Float },
-            //         minDistance: { value: 0.005, type: lmgl.UniformsType.Float },
-            //         maxDistance: { value: 0.1, type: lmgl.UniformsType.Float },
-            //         cameraProjectionMatrix: { value: null, type: lmgl.UniformsType.Mat4 },
-            //         cameraInverseProjectionMatrix: { value: null, type: lmgl.UniformsType.Mat4 },
-            //     },
-            // },
+            ssao: {
+                vertexShader: ["fullscreen.vert"],
+                fragmentShader: ["ssao.frag"],
+                defines: {
+                    SAMPLES: numSamples,
+                },
+                uniforms: {
+                    textureSampler: { value: null, type: lmgl.UniformsType.Texture },
+                    randomSampler: { value: null, type: lmgl.UniformsType.Texture },
+                    totalStrength: { value: 1, type: lmgl.UniformsType.Float },
+                    randTextureTiles: { value: 4.0, type: lmgl.UniformsType.Float },
+                    radius: { value: null, type: lmgl.UniformsType.Float },
+                    area: { value: null, type: lmgl.UniformsType.Float },
+                    fallOff: { value: null, type: lmgl.UniformsType.Float },
+                    base: { value: null, type: lmgl.UniformsType.Float },
+                    samplesFactor: { value: 1 / numSamples, type: lmgl.UniformsType.Float },
+                    sampleSphere: { value: this.generateSampleKernel(), type: lmgl.UniformsType.Array },
+                },
+            },
+            final: {
+                vertexShader: ["fullscreen.vert"],
+                fragmentShader: ["final.frag"],
+                uniforms: {
+                    viewport: { value: { x: 0, y: 0, z: 1, w: 1 }, type: lmgl.UniformsType.Vec4 },
+                    uSsaoColor: { value: null, type: lmgl.UniformsType.Texture },
+                    uOriginalColor: { value: null, type: lmgl.UniformsType.Texture },
+                },
+            },
         });
-
-        // const diffuseRenderTarget = new lmgl.RenderTarget(engine, {
-        //     width: size.width,
-        //     height: size.height,
-        //     name: "diffuse",
-        //     depth: true,
-        //     minFilter: lmgl.TextureFilter.FILTER_NEAREST,
-        //     magFilter: lmgl.TextureFilter.FILTER_NEAREST,
-        //     format: lmgl.TextureFormat.PIXELFORMAT_RGBA32F,
-        // });
+        const diffuseRenderTarget = new lmgl.RenderTarget(engine, {
+            width: size.width,
+            height: size.height,
+            name: "diffuse",
+            depth: true,
+        });
 
         // const normalRenderTarget = new lmgl.RenderTarget(engine, {
         //     width: size.width,
@@ -193,24 +207,26 @@ class Demo {
         //     format: lmgl.TextureFormat.PIXELFORMAT_RGBA32F,
         // });
 
-        // const positionRenderTarget = new lmgl.RenderTarget(engine, {
-        //     width: size.width,
-        //     height: size.height,
-        //     name: "position",
-        //     minFilter: lmgl.TextureFilter.FILTER_NEAREST,
-        //     magFilter: lmgl.TextureFilter.FILTER_NEAREST,
-        //     format: lmgl.TextureFormat.PIXELFORMAT_RGBA32F,
-        // });
+        const depthRenderTarget = new lmgl.RenderTarget(engine, {
+            width: size.width,
+            height: size.height,
+            name: "depth",
+            colorBufferFormat: lmgl.TextureFormat.PIXELFORMAT_R32F,
+        });
 
-        // post.useProgram("ssao").setUniform("kernel", this.generateSampleKernel());
+        const ssaoRenderTarget = new lmgl.RenderTarget(engine, {
+            width: size.width,
+            height: size.height,
+            name: "ssao",
+        });
 
         const loop = () => {
-            // this.plane.material = this.planeMat;
-            // this.tea.material = this.teaMat;
-            // app.renderer.setRenderTarget(diffuseRenderTarget);
-            // app.renderer.clear();
-            // app.renderer.viewport();
-            // app.renderer.renderScene(app.scene, app.camera);
+            this.plane.material = this.planeMat;
+            this.tea.material = this.teaMat;
+            app.renderer.setRenderTarget(diffuseRenderTarget);
+            app.renderer.clear();
+            app.renderer.viewport();
+            app.renderer.renderScene(app.scene, app.camera);
 
             // this.plane.material = this.normalMat;
             // this.tea.material = this.normalMat;
@@ -228,12 +244,12 @@ class Demo {
             // app.renderer.renderScene(app.scene, app.camera);
 
             // prettier-ignore
-            // post.useProgram("depth")
-            //     .bindFramebuffer(null)
-            //     .viewport()
-            //     .clear()
-            //     .setUniform("tDepth", diffuseRenderTarget.depthBuffer)
-            //     .render();
+            post.useProgram("depth")
+                .bindFramebuffer(depthRenderTarget)
+                .viewport()
+                .clear()
+                .setUniform("tDepth", diffuseRenderTarget.depthBuffer)
+                .render();
 
             // prettier-ignore
             // post.useProgram("blur")
@@ -244,26 +260,34 @@ class Demo {
             // .render();
 
             // prettier-ignore
-            post.useProgram("fullscreen")
-                .bindFramebuffer(null)
-                .viewport().clear()
-                .setUniform("uTexture", this.noiseTexture)
+            // post.useProgram("fullscreen")
+            //     .bindFramebuffer(null)
+            //     .viewport().clear()
+            //     .setUniform("uTexture", depthRenderTarget.colorBuffer)
+            //     .render();
+
+            // prettier-ignore
+            post.useProgram("ssao")
+                .bindFramebuffer(ssaoRenderTarget)
+                .viewport()
+                .clear()
+                .setUniform("textureSampler", depthRenderTarget.colorBuffer)
+                .setUniform("randomSampler", this.noiseTexture)
+                .setUniform("fallOff", ssaoPass.fallOff)
+                .setUniform("area", ssaoPass.area)
+                .setUniform("radius", ssaoPass.radius)
+                .setUniform("totalStrength", ssaoPass.totalStrength)
+                .setUniform("base", ssaoPass.base)
                 .render();
 
             // prettier-ignore
-            // post.useProgram("ssao")
-            //     .bindFramebuffer(null)
-            //     .viewport()
-            //     .clear()
-            //     .setUniform("tDiffuse", diffuseRenderTarget.colorBuffer)
-            //     .setUniform("tNormal", normalRenderTarget.colorBuffer)
-            //     .setUniform("tDepth", diffuseRenderTarget.depthBuffer)
-            //     .setUniform("tPosition", positionRenderTarget.colorBuffer)
-            //     .setUniform("cameraNear", app.camera.near)
-            //     .setUniform("cameraFar", app.camera.far)
-            //     .setUniform("cameraInverseProjectionMatrix", app.camera.projectionMatrixInverse.data)
-            //     .setUniform("cameraProjectionMatrix", app.camera.projectionMatrix.data)
-            //     .render();
+            post.useProgram("final")
+                .bindFramebuffer(null)
+                .viewport()
+                .clear()
+                .setUniform("uSsaoColor", ssaoRenderTarget.colorBuffer)
+                .setUniform("uOriginalColor", diffuseRenderTarget.colorBuffer)
+                .render();
 
             window.requestAnimationFrame(loop);
         };

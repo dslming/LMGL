@@ -32,13 +32,24 @@
                 height: 100%;
                 touch-action: none;
             }
+
+            #btn {
+                position: fixed;
+                top: 50px;
+                left: 50px;
+                color: #fff;
+                user-select: none;
+                cursor: pointer;
+            }
         </style>
 
-        <script src="./public/math/SimplexNoise.js"></script>
+        <!-- <script src="./public/math/SimplexNoise.js"></script> -->
+        <script src="./public/math/lil-gui@0.16.js"></script>
         <!-- <script src="./public/math/lil-gui.module.min.js"></script> -->
     </head>
     <body>
         <div id="app">
+            <div id="btn">down</div>
             <canvas id="renderCanvas"></canvas>
         </div>
     </body>

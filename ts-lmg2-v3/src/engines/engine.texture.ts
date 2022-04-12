@@ -108,6 +108,11 @@ export class EngineTexture {
                 texture.glInternalFormat = gl.R32F;
                 texture.glPixelType = gl.FLOAT;
                 break;
+            case TextureFormat.PIXELFORMAT_R16F:
+                texture.glFormat = gl.RED;
+                texture.glInternalFormat = gl.R16F;
+                texture.glPixelType = gl.HALF_FLOAT;
+                break;
             case TextureFormat.PIXELFORMAT_DEPTH:
                 if (webgl2) {
                     // native WebGL2

@@ -99,8 +99,6 @@ export class Texture {
 
         this._width = options.width !== undefined ? options.width : 0;
         this._height = options.height !== undefined ? options.height : 0;
-
-        this._source = new Float32Array(this._width * this._height);
     }
 
     get parameterFlags() {
@@ -231,32 +229,10 @@ export class Texture {
     }
 
     set source(v) {
+        this._source = null;
         this._source = v;
         if (v.width !== undefined) this._width = v.width;
         if (v.height !== undefined) this._height = v.height;
-        this.needsUpload = true;
-    }
-
-    getPixelColor(x: number, y: number): IColor4Like {
-        const d = this._source;
-        const w = this._width;
-
-        var color = [];
-        color[0] = d[(y * w + x) * 4];
-        color[1] = d[(y * w + x) * 4 + 1];
-        color[2] = d[(y * w + x) * 4 + 2];
-        color[3] = d[(y * w + x) * 4 + 3];
-        return new Color4(color[0], color[1], color[2], color[3]);
-    }
-
-    setPixel(x: number, y: number, color: IColor4Like) {
-        const d = this._source;
-        const w = this._width;
-
-        d[(y * w + x) * 4 + 0] = color.r;
-        d[(y * w + x) * 4 + 1] = color.g;
-        d[(y * w + x) * 4 + 2] = color.b;
-        d[(y * w + x) * 4 + 3] = color.a;
         this.needsUpload = true;
     }
 }

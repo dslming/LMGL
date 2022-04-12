@@ -10,9 +10,12 @@ export interface iRenderTargetOptions {
     samples?: number;
     width?: number;
     height?: number;
-    format?: TextureFormat;
-    minFilter?: TextureFilter;
-    magFilter?: TextureFilter;
+    colorBufferFormat?: TextureFormat;
+    colorBufferMinFilter?: TextureFilter;
+    colorBufferMagFilter?: TextureFilter;
+    depthBufferFormat?: TextureFormat;
+    depthBufferMinFilter?: TextureFilter;
+    depthBufferMagFilter?: TextureFilter;
 }
 
 export class RenderTarget {
@@ -35,11 +38,11 @@ export class RenderTarget {
         this.colorBuffer = new Texture(engine, {
             width: options.width,
             height: options.height,
-            format: options.format ? options.format : TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
+            format: options.colorBufferFormat ? options.colorBufferFormat : TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
             addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-            minFilter: options.minFilter ? options.minFilter : TextureFilter.FILTER_LINEAR,
-            magFilter: options.magFilter ? options.magFilter : TextureFilter.FILTER_LINEAR,
+            minFilter: options.colorBufferMinFilter ? options.colorBufferMinFilter : TextureFilter.FILTER_LINEAR,
+            magFilter: options.colorBufferMagFilter ? options.colorBufferMagFilter : TextureFilter.FILTER_LINEAR,
         });
         this.colorBuffer.needsUpload = true;
         this.stencil = false;
@@ -49,11 +52,11 @@ export class RenderTarget {
             this.depthBuffer = new Texture(engine, {
                 width: options.width,
                 height: options.height,
-                format: TextureFormat.PIXELFORMAT_DEPTH,
+                format: options.depthBufferFormat ? options.depthBufferFormat : TextureFormat.PIXELFORMAT_DEPTH,
                 addressU: TextureAddress.ADDRESS_REPEAT,
                 addressV: TextureAddress.ADDRESS_REPEAT,
-                minFilter: TextureFilter.FILTER_NEAREST,
-                magFilter: TextureFilter.FILTER_NEAREST,
+                minFilter: options.depthBufferMinFilter ? options.depthBufferMinFilter : TextureFilter.FILTER_NEAREST,
+                magFilter: options.depthBufferMagFilter ? options.depthBufferMagFilter : TextureFilter.FILTER_NEAREST,
             });
             this.depthBuffer.needsUpload = true;
         } else {

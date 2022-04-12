@@ -9,5 +9,10 @@ void main() {
   FragColor = texture(uTexture, vUv);
 		// vec3 random = vec3( texture( uTexture, vUv ).r );
     // FragColor = vec4(random, 1.0);
+    // if(FragColor.r != 1.) {
+    //   FragColor.xyz = vec3(1./255.);
+    // } else {
+    //   FragColor.xyz = vec3(1.);
+    // }
 
 }

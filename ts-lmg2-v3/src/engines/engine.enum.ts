@@ -94,80 +94,85 @@ export enum TextureFormat {
     PIXELFORMAT_R32F = 15,
 
     /**
+     * 16-bit floating point single channel format (WebGL2 only).
+     */
+    PIXELFORMAT_R16F = 16,
+
+    /**
      * A readable depth buffer format.
      */
-    PIXELFORMAT_DEPTH = 16,
+    PIXELFORMAT_DEPTH = 17,
 
     /**
      * A readable depth/stencil buffer format (WebGL2 only).
      */
-    PIXELFORMAT_DEPTHSTENCIL = 17,
+    PIXELFORMAT_DEPTHSTENCIL = 18,
 
     /**
      * A floating-point color-only format with 11 bits for red and green channels and 10 bits for the
      * blue channel (WebGL2 only).
      */
-    PIXELFORMAT_111110F = 18,
+    PIXELFORMAT_111110F = 19,
 
     /**
      * Color-only sRGB format (WebGL2 only).
      */
-    PIXELFORMAT_SRGB = 19,
+    PIXELFORMAT_SRGB = 20,
 
     /**
      * Color sRGB format with additional alpha channel (WebGL2 only).
      */
-    PIXELFORMAT_SRGBA = 20,
+    PIXELFORMAT_SRGBA = 21,
 
     /**
      * ETC1 compressed format.
      */
-    PIXELFORMAT_ETC1 = 21,
+    PIXELFORMAT_ETC1 = 22,
 
     /**
      * ETC2 (RGB) compressed format.
      */
-    PIXELFORMAT_ETC2_RGB = 22,
+    PIXELFORMAT_ETC2_RGB = 23,
 
     /**
      * ETC2 (RGBA) compressed format.
      */
-    PIXELFORMAT_ETC2_RGBA = 23,
+    PIXELFORMAT_ETC2_RGBA = 24,
 
     /**
      * PVRTC (2BPP RGB) compressed format.
      */
-    PIXELFORMAT_PVRTC_2BPP_RGB_1 = 24,
+    PIXELFORMAT_PVRTC_2BPP_RGB_1 = 25,
 
     /**
      * PVRTC (2BPP RGBA) compressed format.
      */
-    PIXELFORMAT_PVRTC_2BPP_RGBA_1 = 25,
+    PIXELFORMAT_PVRTC_2BPP_RGBA_1 = 26,
 
     /**
      * PVRTC (4BPP RGB) compressed format.
      */
-    PIXELFORMAT_PVRTC_4BPP_RGB_1 = 26,
+    PIXELFORMAT_PVRTC_4BPP_RGB_1 = 27,
 
     /**
      * PVRTC (4BPP RGBA) compressed format.
      */
-    PIXELFORMAT_PVRTC_4BPP_RGBA_1 = 27,
+    PIXELFORMAT_PVRTC_4BPP_RGBA_1 = 28,
 
     /**
      * ATC compressed format with alpha channel in blocks of 4x4.
      */
-    PIXELFORMAT_ASTC_4x4 = 28,
+    PIXELFORMAT_ASTC_4x4 = 29,
 
     /**
      * ATC compressed format with no alpha channel.
      */
-    PIXELFORMAT_ATC_RGB = 29,
+    PIXELFORMAT_ATC_RGB = 30,
 
     /**
      * ATC compressed format with alpha channel.
      */
-    PIXELFORMAT_ATC_RGBA = 30,
+    PIXELFORMAT_ATC_RGBA = 31,
 }
 
 export enum TextureFilter {

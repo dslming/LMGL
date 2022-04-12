@@ -9,7 +9,6 @@ export * from "./texture/index";
 export * from "./renderer/index";
 export * from "./postprocessing/index";
 export * from "./maths/index";
-
-export * from "./misc/fileTools";
+export * from "./misc/index";
 
 export * from "./application";

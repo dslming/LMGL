@@ -52,7 +52,7 @@ export class Engine {
     public engineState: EngineState;
     public glComparison: number[];
 
-    constructor(canvas: any) {
+    constructor(canvas: HTMLCanvasElement) {
         if (!canvas) return;
 
         this.renderingCanvas = canvas;
