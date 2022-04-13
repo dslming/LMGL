@@ -1,5 +1,7 @@
+import { Logger } from "../misc/logger";
 import { Nullable } from "../types";
 import { Engine } from "./engine";
+import { BufferStore } from "./engine.enum";
 
 export class EngineVertex {
     private _cachedVertexArrayObject: Nullable<WebGLVertexArrayObject>;
@@ -45,28 +47,42 @@ export class EngineVertex {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, arrayBuffer, gl.STATIC_DRAW);
     }
 
-    setAttribBuffer(program: any, buffer: any, param: any) {
-        const { gl } = this._engine;
-        const { attribureName, attriburData, itemSize } = param;
+    setAttribBuffer(program: WebGLProgram, buffer: any, param: any) {
+        const { gl, webgl2 } = this._engine;
+        const { attribureName, attriburData, itemSize, usage } = param;
 
         // 属性使能数组
         const attribure = gl.getAttribLocation(program, attribureName);
         if (attribure == -1) {
-            // error.catchError({
-            //     info: `"error"`,
-            //     moduleName: moduleName,
-            //     subName: attribureName,
-            // });
-            // console.error("error...");
+            Logger.Warn("attribureName 不存在...");
             return;
         }
 
         // 创建缓冲区
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 
+        let glUsage: any;
+        switch (usage) {
+            case BufferStore.BUFFER_STATIC:
+                glUsage = gl.STATIC_DRAW;
+                break;
+            case BufferStore.BUFFER_DYNAMIC:
+                glUsage = gl.DYNAMIC_DRAW;
+                break;
+            case BufferStore.BUFFER_STREAM:
+                glUsage = gl.STREAM_DRAW;
+                break;
+            case BufferStore.BUFFER_GPUDYNAMIC:
+                if (webgl2) {
+                    glUsage = gl.DYNAMIC_COPY;
+                } else {
+                    glUsage = gl.STATIC_DRAW;
+                }
+                break;
+        }
         const arrayBuffer = ArrayBuffer.isView(attriburData) ? attriburData : new Float32Array(attriburData);
         // 缓冲区指定数据
-        gl.bufferData(gl.ARRAY_BUFFER, arrayBuffer, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, arrayBuffer, glUsage);
 
         const type = gl.FLOAT;
         const normalize = false;
@@ -89,7 +105,5 @@ export class EngineVertex {
         gl.disableVertexAttribArray(attribure);
     }
 
-    setBuffers() {
-
-    }
+    setBuffers() {}
 }

@@ -275,7 +275,7 @@ export interface iProgramUniforms {
 }
 
 export interface iProgrameDefines {
-    [name:string]: number
+    [name: string]: number;
 }
 
 /**
@@ -290,8 +290,6 @@ export interface iProgrameCreateOptions {
     uniforms?: iProgramUniforms;
     defines?: iProgrameDefines;
 }
-
-
 
 export enum BlendMode {
     /**
@@ -416,4 +414,27 @@ export enum ClearFlag {
      * Clear the stencil buffer.
      */
     CLEARFLAG_STENCIL = 4,
+}
+
+export enum BufferStore {
+    /**
+     * The data store contents will be modified once and used many times.
+     */
+    BUFFER_STATIC = 0,
+
+    /**
+     * The data store contents will be modified repeatedly and used many times.
+     */
+    BUFFER_DYNAMIC = 1,
+
+    /**
+     * The data store contents will be modified once and used at most a few times.
+     */
+    BUFFER_STREAM = 2,
+
+    /**
+     * The data store contents will be modified repeatedly on the GPU and used many times. Optimal for
+     * transform feedback usage (WebGL2 only).
+     */
+    BUFFER_GPUDYNAMIC = 3,
 }

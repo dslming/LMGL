@@ -6,12 +6,14 @@
 import { Engine } from "../engines/engine";
 import { PrimitiveType } from "../engines/engine.draw";
 import { Logger } from "../misc/logger";
+import { BufferStore, DataType } from "./vertex-buffer";
 
-export interface iGeometryAttributes {
-    [name: string]: {
-        value: any[];
-        itemSize: number;
-    };
+export interface iGeometryAttribute {
+    value: any[];
+    itemSize: number;
+    dataType?: DataType;
+    usage?: BufferStore;
+    name: string;
 }
 
 /**
@@ -29,40 +31,40 @@ export interface iGeometryAttributes {
       };
  * ```
  */
-export interface iGeometryInfo {
+export interface iGeometryData {
     // 几何体的顶点索引
     indices?: any[];
     // 几何体的顶点属性
-    attributes: iGeometryAttributes;
+    attributes: iGeometryAttribute[];
     // 绘制类型,默认是三角形
-    type?: PrimitiveType;
+    drawType?: PrimitiveType;
     // 数量, 默认是顶点索引的长度
     count?: number;
 }
 
 export class Geometry {
-    private _geometryInfo: iGeometryInfo;
+    private _geometryInfo: iGeometryData;
     private _attributeBuffer = new Map();
     private _engine: Engine;
     private _indicesBuffer: WebGLBuffer | null;
-    private _VAO: any;
+    // private _VAO: any;
 
-    constructor(engine: Engine, geometryInfo: iGeometryInfo) {
+    constructor(engine: Engine, geometryData: iGeometryData) {
         this._engine = engine;
 
-        this._geometryInfo = geometryInfo;
-        if (!this._geometryInfo.attributes) {
-            Logger.Warn("geometry no attributes");
-        }
+        // this._geometryInfo = geometryInfo;
+        // if (!this._geometryInfo.attributes) {
+        //     Logger.Warn("geometry no attributes");
+        // }
 
-        if (!this._geometryInfo.type) {
-            this._geometryInfo.type = PrimitiveType.PRIMITIVE_TRIANGLES;
-        }
+        // if (!this._geometryInfo.type) {
+        //     this._geometryInfo.type = PrimitiveType.PRIMITIVE_TRIANGLES;
+        // }
 
-        // 三角形数量
-        if (this._geometryInfo.indices) {
-            this._geometryInfo.count = this._geometryInfo.indices.length;
-        }
+        // // 三角形数量
+        // if (this._geometryInfo.indices) {
+        //     this._geometryInfo.count = this._geometryInfo.indices.length;
+        // }
         this._createVertexArray();
     }
 
