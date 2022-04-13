@@ -88,16 +88,18 @@
                 const model = lmgl.planeBuilder(2, 2);
                 const geoInfo = {
                     indices: model.indices,
-                    attributes: {
-                        aPosition: {
+                    attributes: [
+                        {
+                            name: "aPosition",
                             value: model.positions,
                             itemSize: 3,
                         },
-                        aUv: {
+                        {
+                            name: "aUv",
                             value: model.uvs,
                             itemSize: 2,
                         },
-                    },
+                    ],
                 };
 
                 const geometry = new lmgl.Geometry(engine, geoInfo);
@@ -116,7 +118,7 @@
                     app.renderer.clear();
                     app.renderer.viewport();
                     app.renderer.renderMesh(mesh1, app.camera);
-                    mesh1.rotation.y += 0.1;
+                    mesh1.rotation.y += 0.05;
 
                     app.renderer.setRenderTarget(null);
                     mesh2.material.uniforms.uTexture.value = target.colorBuffer;

@@ -438,3 +438,40 @@ export enum BufferStore {
      */
     BUFFER_GPUDYNAMIC = 3,
 }
+
+export enum DataType {
+    /**
+     * Signed byte vertex element type.
+     */
+    TYPE_INT8 = 0,
+
+    /**
+     * Unsigned byte vertex element type.
+     */
+    TYPE_UINT8 = 1,
+
+    /**
+     * Signed short vertex element type.
+     */
+    TYPE_INT16 = 2,
+
+    /**
+     * Unsigned short vertex element type.
+     */
+    TYPE_UINT16 = 3,
+
+    /**
+     * Signed integer vertex element type.
+     */
+    TYPE_INT32 = 4,
+
+    /**
+     * Unsigned integer vertex element type.
+     */
+    TYPE_UINT32 = 5,
+
+    /**
+     * Floating point vertex element type.
+     */
+    TYPE_FLOAT32 = 6,
+}

@@ -1,14 +1,32 @@
 import { Logger } from "../misc/logger";
 import { Nullable } from "../types";
 import { Engine } from "./engine";
-import { BufferStore } from "./engine.enum";
+import { BufferStore, DataType } from "./engine.enum";
+
+// map of engine TYPE_*** enums to their corresponding typed array constructors and byte sizes
+export const typedArrayTypes = [Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array];
+export const typedArrayTypesByteSize = [1, 1, 2, 2, 4, 4, 4];
+
+// map of typed array to engine TYPE_***
+export const typedArrayToType = {
+    Int8Array: DataType.TYPE_INT8,
+    Uint8Array: DataType.TYPE_UINT8,
+    Int16Array: DataType.TYPE_INT16,
+    Uint16Array: DataType.TYPE_UINT16,
+    Int32Array: DataType.TYPE_INT32,
+    Uint32Array: DataType.TYPE_UINT32,
+    Float32Array: DataType.TYPE_FLOAT32,
+};
 
 export class EngineVertex {
     private _cachedVertexArrayObject: Nullable<WebGLVertexArrayObject>;
     private _engine: Engine;
+    private _glType: number[];
 
     constructor(engine: Engine) {
         this._engine = engine;
+        const { gl } = engine;
+        this._glType = [gl.BYTE, gl.UNSIGNED_BYTE, gl.SHORT, gl.UNSIGNED_SHORT, gl.INT, gl.UNSIGNED_INT, gl.FLOAT];
     }
 
     private _unbindVertexArrayObject(): void {
@@ -49,7 +67,7 @@ export class EngineVertex {
 
     setAttribBuffer(program: WebGLProgram, buffer: any, param: any) {
         const { gl, webgl2 } = this._engine;
-        const { attribureName, attriburData, itemSize, usage } = param;
+        const { attribureName, attriburData, itemSize, dataType, usage, normalized } = param;
 
         // 属性使能数组
         const attribure = gl.getAttribLocation(program, attribureName);
@@ -80,18 +98,15 @@ export class EngineVertex {
                 }
                 break;
         }
-        const arrayBuffer = ArrayBuffer.isView(attriburData) ? attriburData : new Float32Array(attriburData);
+        const arrayBuffer = ArrayBuffer.isView(attriburData) ? attriburData : new typedArrayTypes[dataType](attriburData);
         // 缓冲区指定数据
         gl.bufferData(gl.ARRAY_BUFFER, arrayBuffer, glUsage);
 
-        const type = gl.FLOAT;
-        const normalize = false;
         const stride = 0;
         const offset = 0;
 
         // 绑定顶点缓冲区对象,传送给GPU
-        gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
-        // error.clear(moduleName, attribureName);
+        gl.vertexAttribPointer(attribure, itemSize, this._glType[dataType], normalized, stride, offset);
         gl.enableVertexAttribArray(attribure);
     }
 

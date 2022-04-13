@@ -71,16 +71,16 @@ export default class Renderer {
         if (mesh.visible == false) return;
 
         const { geometry, material } = mesh;
-        const { geometryInfo } = geometry;
+        const { vertexBuffer } = geometry;
         const program = material.program;
 
         mesh.active();
         this._setMeshUniform(program, mesh, camera);
 
         this._engine.engineDraw.draw({
-            type: geometryInfo.type,
-            indexed: geometryInfo.indices,
-            count: geometryInfo.count,
+            type: vertexBuffer.drawType,
+            indexed: vertexBuffer.indices,
+            count: vertexBuffer.count,
         });
 
         // 多采样帧缓冲区

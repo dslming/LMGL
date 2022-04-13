@@ -385,15 +385,16 @@ class Application {
         this.autoRender = true;
         this.engine = engine;
         scene && (this.scene = scene);
-        this.camera = new _cameras_PerspectiveCamera__WEBPACK_IMPORTED_MODULE_1__["PerspectiveCamera"](45, 1, 1, 20);
+        this.camera = new _cameras_PerspectiveCamera__WEBPACK_IMPORTED_MODULE_1__["PerspectiveCamera"](45, 1, 1, 500);
         this.renderer = new _renderer_renderer__WEBPACK_IMPORTED_MODULE_3__["default"](engine);
         this.loop = this.loop.bind(this);
         this.handleResize(this.engine.renderingCanvas.clientWidth, this.engine.renderingCanvas.clientHeight);
         this.camera.position.set(0, 0, 10);
-        this._control = new _cameras_camera_control__WEBPACK_IMPORTED_MODULE_0__["CameraControl"]({
+        this.control = new _cameras_camera_control__WEBPACK_IMPORTED_MODULE_0__["CameraControl"]({
             distance: this.camera.position.z,
             distRange: {
-                min: 0.01,
+                min: this.camera.near,
+                max: this.camera.far,
             },
         }, this.camera, this.engine.renderingCanvas);
         window.onresize = () => {
@@ -401,11 +402,20 @@ class Application {
             const height = window.innerHeight;
             this.handleResize(width, height);
         };
-        const axis = new _mesh_mesh_axis__WEBPACK_IMPORTED_MODULE_2__["MeshAxis"](engine, 10);
+        const axis = new _mesh_mesh_axis__WEBPACK_IMPORTED_MODULE_2__["MeshAxis"](engine, 20);
+        this._axis = axis;
         this.scene.add(axis.meshX);
         this.scene.add(axis.meshY);
         this.scene.add(axis.meshZ);
         this.loop();
+    }
+    set needAxis(v) {
+        this._axis.meshX.visible = v;
+        this._axis.meshY.visible = v;
+        this._axis.meshZ.visible = v;
+    }
+    get needAxis() {
+        return this._axis.meshX.visible;
     }
     handleResize(width, height) {
         const canvas = this.engine.renderingCanvas;
@@ -423,7 +433,7 @@ class Application {
         };
     }
     loop() {
-        this._control.update();
+        this.control.update();
         if (this.autoRender) {
             this.renderer.renderScene(this.scene, this.camera);
         }
@@ -956,7 +966,7 @@ class EngineDraw {
 /*!************************************!*\
   !*** ./src/engines/engine.enum.ts ***!
   \************************************/
-/*! exports provided: UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag */
+/*! exports provided: UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag, BufferStore, DataType */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -970,6 +980,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BlendEquation", function() { return BlendEquation; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CullFace", function() { return CullFace; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ClearFlag", function() { return ClearFlag; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BufferStore", function() { return BufferStore; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DataType", function() { return DataType; });
 var UniformsType;
 (function (UniformsType) {
     UniformsType[UniformsType["Texture"] = 0] = "Texture";
@@ -1054,66 +1066,70 @@ var TextureFormat;
      */
     TextureFormat[TextureFormat["PIXELFORMAT_R32F"] = 15] = "PIXELFORMAT_R32F";
     /**
+     * 16-bit floating point single channel format (WebGL2 only).
+     */
+    TextureFormat[TextureFormat["PIXELFORMAT_R16F"] = 16] = "PIXELFORMAT_R16F";
+    /**
      * A readable depth buffer format.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_DEPTH"] = 16] = "PIXELFORMAT_DEPTH";
+    TextureFormat[TextureFormat["PIXELFORMAT_DEPTH"] = 17] = "PIXELFORMAT_DEPTH";
     /**
      * A readable depth/stencil buffer format (WebGL2 only).
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_DEPTHSTENCIL"] = 17] = "PIXELFORMAT_DEPTHSTENCIL";
+    TextureFormat[TextureFormat["PIXELFORMAT_DEPTHSTENCIL"] = 18] = "PIXELFORMAT_DEPTHSTENCIL";
     /**
      * A floating-point color-only format with 11 bits for red and green channels and 10 bits for the
      * blue channel (WebGL2 only).
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_111110F"] = 18] = "PIXELFORMAT_111110F";
+    TextureFormat[TextureFormat["PIXELFORMAT_111110F"] = 19] = "PIXELFORMAT_111110F";
     /**
      * Color-only sRGB format (WebGL2 only).
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_SRGB"] = 19] = "PIXELFORMAT_SRGB";
+    TextureFormat[TextureFormat["PIXELFORMAT_SRGB"] = 20] = "PIXELFORMAT_SRGB";
     /**
      * Color sRGB format with additional alpha channel (WebGL2 only).
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_SRGBA"] = 20] = "PIXELFORMAT_SRGBA";
+    TextureFormat[TextureFormat["PIXELFORMAT_SRGBA"] = 21] = "PIXELFORMAT_SRGBA";
     /**
      * ETC1 compressed format.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_ETC1"] = 21] = "PIXELFORMAT_ETC1";
+    TextureFormat[TextureFormat["PIXELFORMAT_ETC1"] = 22] = "PIXELFORMAT_ETC1";
     /**
      * ETC2 (RGB) compressed format.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_ETC2_RGB"] = 22] = "PIXELFORMAT_ETC2_RGB";
+    TextureFormat[TextureFormat["PIXELFORMAT_ETC2_RGB"] = 23] = "PIXELFORMAT_ETC2_RGB";
     /**
      * ETC2 (RGBA) compressed format.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_ETC2_RGBA"] = 23] = "PIXELFORMAT_ETC2_RGBA";
+    TextureFormat[TextureFormat["PIXELFORMAT_ETC2_RGBA"] = 24] = "PIXELFORMAT_ETC2_RGBA";
     /**
      * PVRTC (2BPP RGB) compressed format.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_PVRTC_2BPP_RGB_1"] = 24] = "PIXELFORMAT_PVRTC_2BPP_RGB_1";
+    TextureFormat[TextureFormat["PIXELFORMAT_PVRTC_2BPP_RGB_1"] = 25] = "PIXELFORMAT_PVRTC_2BPP_RGB_1";
     /**
      * PVRTC (2BPP RGBA) compressed format.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_PVRTC_2BPP_RGBA_1"] = 25] = "PIXELFORMAT_PVRTC_2BPP_RGBA_1";
+    TextureFormat[TextureFormat["PIXELFORMAT_PVRTC_2BPP_RGBA_1"] = 26] = "PIXELFORMAT_PVRTC_2BPP_RGBA_1";
     /**
      * PVRTC (4BPP RGB) compressed format.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_PVRTC_4BPP_RGB_1"] = 26] = "PIXELFORMAT_PVRTC_4BPP_RGB_1";
+    TextureFormat[TextureFormat["PIXELFORMAT_PVRTC_4BPP_RGB_1"] = 27] = "PIXELFORMAT_PVRTC_4BPP_RGB_1";
     /**
      * PVRTC (4BPP RGBA) compressed format.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_PVRTC_4BPP_RGBA_1"] = 27] = "PIXELFORMAT_PVRTC_4BPP_RGBA_1";
+    TextureFormat[TextureFormat["PIXELFORMAT_PVRTC_4BPP_RGBA_1"] = 28] = "PIXELFORMAT_PVRTC_4BPP_RGBA_1";
     /**
      * ATC compressed format with alpha channel in blocks of 4x4.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_ASTC_4x4"] = 28] = "PIXELFORMAT_ASTC_4x4";
+    TextureFormat[TextureFormat["PIXELFORMAT_ASTC_4x4"] = 29] = "PIXELFORMAT_ASTC_4x4";
     /**
      * ATC compressed format with no alpha channel.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_ATC_RGB"] = 29] = "PIXELFORMAT_ATC_RGB";
+    TextureFormat[TextureFormat["PIXELFORMAT_ATC_RGB"] = 30] = "PIXELFORMAT_ATC_RGB";
     /**
      * ATC compressed format with alpha channel.
      */
-    TextureFormat[TextureFormat["PIXELFORMAT_ATC_RGBA"] = 30] = "PIXELFORMAT_ATC_RGBA";
+    TextureFormat[TextureFormat["PIXELFORMAT_ATC_RGBA"] = 31] = "PIXELFORMAT_ATC_RGBA";
 })(TextureFormat || (TextureFormat = {}));
 var TextureFilter;
 (function (TextureFilter) {
@@ -1299,6 +1315,57 @@ var ClearFlag;
      */
     ClearFlag[ClearFlag["CLEARFLAG_STENCIL"] = 4] = "CLEARFLAG_STENCIL";
 })(ClearFlag || (ClearFlag = {}));
+var BufferStore;
+(function (BufferStore) {
+    /**
+     * The data store contents will be modified once and used many times.
+     */
+    BufferStore[BufferStore["BUFFER_STATIC"] = 0] = "BUFFER_STATIC";
+    /**
+     * The data store contents will be modified repeatedly and used many times.
+     */
+    BufferStore[BufferStore["BUFFER_DYNAMIC"] = 1] = "BUFFER_DYNAMIC";
+    /**
+     * The data store contents will be modified once and used at most a few times.
+     */
+    BufferStore[BufferStore["BUFFER_STREAM"] = 2] = "BUFFER_STREAM";
+    /**
+     * The data store contents will be modified repeatedly on the GPU and used many times. Optimal for
+     * transform feedback usage (WebGL2 only).
+     */
+    BufferStore[BufferStore["BUFFER_GPUDYNAMIC"] = 3] = "BUFFER_GPUDYNAMIC";
+})(BufferStore || (BufferStore = {}));
+var DataType;
+(function (DataType) {
+    /**
+     * Signed byte vertex element type.
+     */
+    DataType[DataType["TYPE_INT8"] = 0] = "TYPE_INT8";
+    /**
+     * Unsigned byte vertex element type.
+     */
+    DataType[DataType["TYPE_UINT8"] = 1] = "TYPE_UINT8";
+    /**
+     * Signed short vertex element type.
+     */
+    DataType[DataType["TYPE_INT16"] = 2] = "TYPE_INT16";
+    /**
+     * Unsigned short vertex element type.
+     */
+    DataType[DataType["TYPE_UINT16"] = 3] = "TYPE_UINT16";
+    /**
+     * Signed integer vertex element type.
+     */
+    DataType[DataType["TYPE_INT32"] = 4] = "TYPE_INT32";
+    /**
+     * Unsigned integer vertex element type.
+     */
+    DataType[DataType["TYPE_UINT32"] = 5] = "TYPE_UINT32";
+    /**
+     * Floating point vertex element type.
+     */
+    DataType[DataType["TYPE_FLOAT32"] = 6] = "TYPE_FLOAT32";
+})(DataType || (DataType = {}));
 
 
 /***/ }),
@@ -1990,6 +2057,11 @@ class EngineTexture {
                 texture.glInternalFormat = gl.R32F;
                 texture.glPixelType = gl.FLOAT;
                 break;
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_R16F:
+                texture.glFormat = gl.RED;
+                texture.glInternalFormat = gl.R16F;
+                texture.glPixelType = gl.HALF_FLOAT;
+                break;
             case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["TextureFormat"].PIXELFORMAT_DEPTH:
                 if (webgl2) {
                     // native WebGL2
@@ -2392,7 +2464,7 @@ class EngineUniform {
         const { gl } = this._engine;
         return gl.getUniformLocation(program, name);
     }
-    setUniform(program, name, value, type) {
+    setUniform(program, name, value, type, textureId) {
         const { gl } = this._engine;
         if (value == null) {
             return;
@@ -2423,8 +2495,10 @@ class EngineUniform {
                 gl.uniformMatrix4fv(addr, false, new Float32Array(value));
                 break;
             case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Texture:
-                this._engine.engineTexture.setTexture(value, 0);
-                gl.uniform1i(addr, 0);
+                if (textureId === undefined)
+                    textureId = 0;
+                this._engine.engineTexture.setTexture(value, textureId);
+                gl.uniform1i(addr, textureId);
                 break;
             default:
                 console.error("error", type, name);
@@ -2475,7 +2549,7 @@ class EngineUniform {
                 this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, uniformBlock);
             }
             else {
-                this._engine.engineUniform.setUniform(program, name, value, type);
+                this._engine.engineUniform.setUniform(program, name, value, type, textureId);
             }
             if (type == _engine_enum__WEBPACK_IMPORTED_MODULE_1__["UniformsType"].Texture) {
                 textureId += 1;
@@ -2491,15 +2565,37 @@ class EngineUniform {
 /*!**************************************!*\
   !*** ./src/engines/engine.vertex.ts ***!
   \**************************************/
-/*! exports provided: EngineVertex */
+/*! exports provided: typedArrayTypes, typedArrayTypesByteSize, typedArrayToType, EngineVertex */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "typedArrayTypes", function() { return typedArrayTypes; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "typedArrayTypesByteSize", function() { return typedArrayTypesByteSize; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "typedArrayToType", function() { return typedArrayToType; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EngineVertex", function() { return EngineVertex; });
+/* harmony import */ var _misc_logger__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../misc/logger */ "./src/misc/logger.ts");
+/* harmony import */ var _engine_enum__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./engine.enum */ "./src/engines/engine.enum.ts");
+
+
+// map of engine TYPE_*** enums to their corresponding typed array constructors and byte sizes
+const typedArrayTypes = [Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array];
+const typedArrayTypesByteSize = [1, 1, 2, 2, 4, 4, 4];
+// map of typed array to engine TYPE_***
+const typedArrayToType = {
+    Int8Array: _engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"].TYPE_INT8,
+    Uint8Array: _engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"].TYPE_UINT8,
+    Int16Array: _engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"].TYPE_INT16,
+    Uint16Array: _engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"].TYPE_UINT16,
+    Int32Array: _engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"].TYPE_INT32,
+    Uint32Array: _engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"].TYPE_UINT32,
+    Float32Array: _engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"].TYPE_FLOAT32,
+};
 class EngineVertex {
     constructor(engine) {
         this._engine = engine;
+        const { gl } = engine;
+        this._glType = [gl.BYTE, gl.UNSIGNED_BYTE, gl.SHORT, gl.UNSIGNED_SHORT, gl.INT, gl.UNSIGNED_INT, gl.FLOAT];
     }
     _unbindVertexArrayObject() {
         const { gl } = this._engine;
@@ -2532,31 +2628,43 @@ class EngineVertex {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, arrayBuffer, gl.STATIC_DRAW);
     }
     setAttribBuffer(program, buffer, param) {
-        const { gl } = this._engine;
-        const { attribureName, attriburData, itemSize } = param;
+        const { gl, webgl2 } = this._engine;
+        const { attribureName, attriburData, itemSize, dataType, usage, normalized } = param;
         // 属性使能数组
         const attribure = gl.getAttribLocation(program, attribureName);
         if (attribure == -1) {
-            // error.catchError({
-            //     info: `"error"`,
-            //     moduleName: moduleName,
-            //     subName: attribureName,
-            // });
-            // console.error("error...");
+            _misc_logger__WEBPACK_IMPORTED_MODULE_0__["Logger"].Warn("attribureName 不存在...");
             return;
         }
         // 创建缓冲区
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        const arrayBuffer = ArrayBuffer.isView(attriburData) ? attriburData : new Float32Array(attriburData);
+        let glUsage;
+        switch (usage) {
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["BufferStore"].BUFFER_STATIC:
+                glUsage = gl.STATIC_DRAW;
+                break;
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["BufferStore"].BUFFER_DYNAMIC:
+                glUsage = gl.DYNAMIC_DRAW;
+                break;
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["BufferStore"].BUFFER_STREAM:
+                glUsage = gl.STREAM_DRAW;
+                break;
+            case _engine_enum__WEBPACK_IMPORTED_MODULE_1__["BufferStore"].BUFFER_GPUDYNAMIC:
+                if (webgl2) {
+                    glUsage = gl.DYNAMIC_COPY;
+                }
+                else {
+                    glUsage = gl.STATIC_DRAW;
+                }
+                break;
+        }
+        const arrayBuffer = ArrayBuffer.isView(attriburData) ? attriburData : new typedArrayTypes[dataType](attriburData);
         // 缓冲区指定数据
-        gl.bufferData(gl.ARRAY_BUFFER, arrayBuffer, gl.STATIC_DRAW);
-        const type = gl.FLOAT;
-        const normalize = false;
+        gl.bufferData(gl.ARRAY_BUFFER, arrayBuffer, glUsage);
         const stride = 0;
         const offset = 0;
         // 绑定顶点缓冲区对象,传送给GPU
-        gl.vertexAttribPointer(attribure, itemSize, type, normalize, stride, offset);
-        // error.clear(moduleName, attribureName);
+        gl.vertexAttribPointer(attribure, itemSize, this._glType[dataType], normalized, stride, offset);
         gl.enableVertexAttribArray(attribure);
     }
     getAttribLocation(program, name) {
@@ -2567,8 +2675,7 @@ class EngineVertex {
         const { gl } = this._engine;
         gl.disableVertexAttribArray(attribure);
     }
-    setBuffers() {
-    }
+    setBuffers() { }
 }
 
 
@@ -2621,7 +2728,7 @@ class EngineViewPort {
 /*!******************************!*\
   !*** ./src/engines/index.ts ***!
   \******************************/
-/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag */
+/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag, BufferStore, DataType */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2647,6 +2754,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CullFace", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["CullFace"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ClearFlag", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["ClearFlag"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BufferStore", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["BufferStore"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DataType", function() { return _engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"]; });
 
 
 
@@ -2848,70 +2959,15 @@ function planeBuilder(width, height) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Geometry", function() { return Geometry; });
-/* harmony import */ var _engines_engine_draw__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../engines/engine.draw */ "./src/engines/engine.draw.ts");
-/* harmony import */ var _misc_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../misc/logger */ "./src/misc/logger.ts");
-// import { Sphere } from '../math/Sphere.js';
-// import { Box3 } from '../math/Box3.js';
-// import { Vector3 } from '../math/Vector3.js';
-// import Attribute from './Attribute.js'
-
+/* harmony import */ var _vertex_buffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vertex-buffer */ "./src/geometry/vertex-buffer.ts");
 
 class Geometry {
-    constructor(engine, geometryInfo) {
-        this._attributeBuffer = new Map();
+    constructor(engine, geometryData) {
         this._engine = engine;
-        this._geometryInfo = geometryInfo;
-        if (!this._geometryInfo.attributes) {
-            _misc_logger__WEBPACK_IMPORTED_MODULE_1__["Logger"].Warn("geometry no attributes");
-        }
-        if (!this._geometryInfo.type) {
-            this._geometryInfo.type = _engines_engine_draw__WEBPACK_IMPORTED_MODULE_0__["PrimitiveType"].PRIMITIVE_TRIANGLES;
-        }
-        // 三角形数量
-        if (this._geometryInfo.indices) {
-            this._geometryInfo.count = this._geometryInfo.indices.length;
-        }
-        this._createVertexArray();
-    }
-    get geometryInfo() {
-        return this._geometryInfo;
-    }
-    /**
-     * 创建VAO
-     */
-    _createVertexArray() {
-        this._VAO = this._engine.engineVertex.createVertexArray();
-        this._engine.engineVertex.bindVertexArray(this._VAO);
-        for (let name in this._geometryInfo.attributes) {
-            this._attributeBuffer.set(name, this._engine.engineVertex.createBuffer());
-        }
-        // 创建顶点缓冲区
-        this._indicesBuffer = this._engine.engineVertex.createBuffer();
-        this._engine.engineVertex.bindVertexArray(null);
+        this.vertexBuffer = new _vertex_buffer__WEBPACK_IMPORTED_MODULE_0__["VertexBuffer"](engine, geometryData);
     }
     setBuffers(program) {
-        // 绑定VAO
-        this._engine.engineVertex.bindVertexArray(this._VAO);
-        const { _attributeBuffer, _indicesBuffer } = this;
-        for (let name in this._geometryInfo.attributes) {
-            const attribute = this._geometryInfo.attributes[name];
-            const { value, itemSize } = attribute;
-            this._engine.engineVertex.setAttribBuffer(program, _attributeBuffer.get(name), {
-                attribureName: name,
-                attriburData: value,
-                itemSize: itemSize,
-            });
-        }
-        // 绑定顶点索引
-        if (this._geometryInfo.indices) {
-            this._engine.engineVertex.setIndicesBuffer(_indicesBuffer, this._geometryInfo.indices);
-        }
-    }
-    disableVertexAttrib(program) {
-        for (let name in this._geometryInfo.attributes) {
-            const attribure = this._engine.engineVertex.getAttribLocation(program, name);
-            attribure != -1 && this._engine.engineVertex.disableVertexAttribArray(attribure);
-        }
+        this.vertexBuffer.unlock(program);
     }
 }
 
@@ -2943,11 +2999,92 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/geometry/vertex-buffer.ts":
+/*!***************************************!*\
+  !*** ./src/geometry/vertex-buffer.ts ***!
+  \***************************************/
+/*! exports provided: VertexBuffer */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "VertexBuffer", function() { return VertexBuffer; });
+/* harmony import */ var _engines_engine_draw__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../engines/engine.draw */ "./src/engines/engine.draw.ts");
+/* harmony import */ var _engines_engine_enum__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../engines/engine.enum */ "./src/engines/engine.enum.ts");
+
+
+class VertexBuffer {
+    constructor(engine, geometryData) {
+        this._vao = null;
+        this._buffers = new Map();
+        this._engine = engine;
+        this._attributes = [];
+        let count = 0;
+        if (geometryData.indices && geometryData.indices.length > 0) {
+            this.indices = geometryData.indices;
+            count = this.indices.length;
+        }
+        this.count = geometryData.count ? geometryData.count : count;
+        this.drawType = geometryData.drawType !== undefined ? geometryData.drawType : _engines_engine_draw__WEBPACK_IMPORTED_MODULE_0__["PrimitiveType"].PRIMITIVE_TRIANGLES;
+        for (let i = 0; i < geometryData.attributes.length; i++) {
+            const attribute = geometryData.attributes[i];
+            const cloneAttribute = {
+                value: attribute.value !== undefined ? attribute.value : [],
+                itemSize: attribute.itemSize,
+                name: attribute.name,
+                usage: attribute.usage !== undefined ? attribute.usage : _engines_engine_enum__WEBPACK_IMPORTED_MODULE_1__["BufferStore"].BUFFER_STATIC,
+                dataType: attribute.dataType !== undefined ? attribute.dataType : _engines_engine_enum__WEBPACK_IMPORTED_MODULE_1__["DataType"].TYPE_FLOAT32,
+                normalized: attribute.normalized !== undefined ? attribute.normalized : false,
+            };
+            this._attributes.push(cloneAttribute);
+        }
+    }
+    _createVertexArray() {
+        this._vao = this._engine.engineVertex.createVertexArray();
+        this._engine.engineVertex.bindVertexArray(this._vao);
+        for (let i = 0; i < this._attributes.length; i++) {
+            const attribute = this._attributes[i];
+            const { name } = attribute;
+            this._buffers.set(name, this._engine.engineVertex.createBuffer());
+        }
+        // 创建顶点缓冲区
+        if (this.indices) {
+            this._buffers.set("indices", this._engine.engineVertex.createBuffer());
+        }
+        this._engine.engineVertex.bindVertexArray(null);
+    }
+    destroy() { }
+    unlock(program) {
+        if (this._vao === null) {
+            this._createVertexArray();
+        }
+        this._engine.engineVertex.bindVertexArray(this._vao);
+        for (let i = 0; i < this._attributes.length; i++) {
+            const attribute = this._attributes[i];
+            const { value, itemSize, usage, dataType, name } = attribute;
+            this._engine.engineVertex.setAttribBuffer(program, this._buffers.get(name), {
+                attribureName: name,
+                attriburData: value,
+                itemSize: itemSize,
+                usage,
+                dataType,
+            });
+        }
+        // 绑定顶点索引
+        if (this.indices) {
+            this._engine.engineVertex.setIndicesBuffer(this._buffers.get("indices"), this.indices);
+        }
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/index.ts":
 /*!**********************!*\
   !*** ./src/index.ts ***!
   \**********************/
-/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag, PerspectiveCamera, boxBuilder, sphereBuilder, planeBuilder, Geometry, Material, Mesh, Scene, TextureLoader, ShaderLoader, Texture, RenderTarget, Postprocessing, Vec2, Vec3, Mat3, Mat4, Euler, Quat, MathTool, FileTools, Application */
+/*! exports provided: Engine, UniformsType, TextureFormat, TextureFilter, TextureAddress, CompareFunc, BlendMode, BlendEquation, CullFace, ClearFlag, BufferStore, DataType, PerspectiveCamera, boxBuilder, sphereBuilder, planeBuilder, Geometry, Material, Mesh, Scene, TextureLoader, ShaderLoader, Texture, RenderTarget, Postprocessing, Vec2, Vec3, Mat3, Mat4, Euler, Quat, MathTool, Color3, Color4, TmpColors, showImage, FileTools, Application */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2972,6 +3109,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CullFace", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["CullFace"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ClearFlag", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["ClearFlag"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BufferStore", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["BufferStore"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DataType", function() { return _engines_index__WEBPACK_IMPORTED_MODULE_0__["DataType"]; });
 
 /* harmony import */ var _cameras_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cameras/index */ "./src/cameras/index.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "PerspectiveCamera", function() { return _cameras_index__WEBPACK_IMPORTED_MODULE_1__["PerspectiveCamera"]; });
@@ -3023,8 +3164,16 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MathTool", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["MathTool"]; });
 
-/* harmony import */ var _misc_fileTools__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./misc/fileTools */ "./src/misc/fileTools.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FileTools", function() { return _misc_fileTools__WEBPACK_IMPORTED_MODULE_11__["FileTools"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Color3", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["Color3"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Color4", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["Color4"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TmpColors", function() { return _maths_index__WEBPACK_IMPORTED_MODULE_10__["TmpColors"]; });
+
+/* harmony import */ var _misc_index__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./misc/index */ "./src/misc/index.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "showImage", function() { return _misc_index__WEBPACK_IMPORTED_MODULE_11__["showImage"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FileTools", function() { return _misc_index__WEBPACK_IMPORTED_MODULE_11__["FileTools"]; });
 
 /* harmony import */ var _application__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./application */ "./src/application.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Application", function() { return _application__WEBPACK_IMPORTED_MODULE_12__["Application"]; });
@@ -3216,9 +3365,7 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Material", function() { return Material; });
-/* harmony import */ var _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../engines/engine.enum */ "./src/engines/engine.enum.ts");
-/* harmony import */ var _misc_tool__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../misc/tool */ "./src/misc/tool.ts");
-
+/* harmony import */ var _misc_tool__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../misc/tool */ "./src/misc/tool.ts");
 
 class Material {
     constructor(engine, materialInfo) {
@@ -3226,7 +3373,7 @@ class Material {
         // let mat = matInfo;
         this.inputVertexShader = JSON.parse(JSON.stringify(materialInfo.vertexShader));
         this.inputFragmentShader = JSON.parse(JSON.stringify(materialInfo.fragmentShader));
-        this.uniforms = Object(_misc_tool__WEBPACK_IMPORTED_MODULE_1__["cloneUniforms"])(materialInfo.uniforms || {});
+        this.uniforms = Object(_misc_tool__WEBPACK_IMPORTED_MODULE_0__["cloneUniforms"])(materialInfo.uniforms || {});
         this.uniformBlock = {
             blockCatch: new Map(),
             blockIndex: 0,
@@ -3252,27 +3399,6 @@ class Material {
         this.needUpdate = true;
         this.setUniform();
     }
-    _handleUniform(obj) {
-        const { program } = this;
-        let textureId = 0;
-        const keys = Object.keys(obj);
-        for (let i = 0; i < keys.length; i++) {
-            const name = keys[i];
-            const { value, type } = obj[name];
-            if (type == _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Array) {
-                this._engine.engineUniform.handleUniformArray(program, name, value);
-            }
-            else if (type == _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Struct) {
-                this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, this.uniformBlock);
-            }
-            else {
-                this._engine.engineUniform.setUniform(program, name, value, type);
-            }
-            if (type == _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Texture) {
-                textureId += 1;
-            }
-        }
-    }
     setUniform() {
         const { program, uniforms, uniformBlock } = this;
         this._engine.enginePrograms.useProgram(program);
@@ -3294,7 +3420,7 @@ class Material {
 /*!****************************!*\
   !*** ./src/maths/index.ts ***!
   \****************************/
-/*! exports provided: Vec2, Vec3, Mat3, Mat4, Euler, Quat, MathTool */
+/*! exports provided: Vec2, Vec3, Mat3, Mat4, Euler, Quat, MathTool, Color3, Color4, TmpColors */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3319,6 +3445,14 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _math_tool__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./math.tool */ "./src/maths/math.tool.ts");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MathTool", function() { return _math_tool__WEBPACK_IMPORTED_MODULE_6__["MathTool"]; });
+
+/* harmony import */ var _math_color__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./math.color */ "./src/maths/math.color.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Color3", function() { return _math_color__WEBPACK_IMPORTED_MODULE_7__["Color3"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Color4", function() { return _math_color__WEBPACK_IMPORTED_MODULE_7__["Color4"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TmpColors", function() { return _math_color__WEBPACK_IMPORTED_MODULE_7__["TmpColors"]; });
+
 
 
 
@@ -9295,8 +9429,8 @@ class MeshAxis {
         const geoX = this.getGeoX(size);
         const geoY = this.getGeoX(size);
         const geoZ = this.getGeoX(size);
-        geoY.attributes.aPosition.value = [0, 0, 0, 0, 1 * size, 0];
-        geoZ.attributes.aPosition.value = [0, 0, 0, 0, 0, 1 * size];
+        geoY.attributes[0].value = [0, 0, 0, 0, 1 * size, 0];
+        geoZ.attributes[0].value = [0, 0, 0, 0, 0, 1 * size];
         const matX = this.getMat({ x: 1, y: 0, z: 0, w: 1 });
         const matY = this.getMat({ x: 0, y: 1, z: 0, w: 1 });
         const matZ = this.getMat({ x: 0, y: 0, z: 1, w: 1 });
@@ -9335,13 +9469,14 @@ class MeshAxis {
     getGeoX(size) {
         return {
             count: 2,
-            attributes: {
-                aPosition: {
+            drawType: _engines_engine_draw__WEBPACK_IMPORTED_MODULE_1__["PrimitiveType"].PRIMITIVE_LINES,
+            attributes: [
+                {
+                    name: "aPosition",
                     value: [0, 0, 0, 1 * size, 0, 0],
                     itemSize: 3,
                 },
-            },
-            type: _engines_engine_draw__WEBPACK_IMPORTED_MODULE_1__["PrimitiveType"].PRIMITIVE_LINES,
+            ],
         };
     }
 }
@@ -9620,6 +9755,27 @@ class FileTools {
 
 /***/ }),
 
+/***/ "./src/misc/index.ts":
+/*!***************************!*\
+  !*** ./src/misc/index.ts ***!
+  \***************************/
+/*! exports provided: showImage, FileTools */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _showHelper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./showHelper */ "./src/misc/showHelper.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "showImage", function() { return _showHelper__WEBPACK_IMPORTED_MODULE_0__["showImage"]; });
+
+/* harmony import */ var _fileTools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./fileTools */ "./src/misc/fileTools.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FileTools", function() { return _fileTools__WEBPACK_IMPORTED_MODULE_1__["FileTools"]; });
+
+
+
+
+
+/***/ }),
+
 /***/ "./src/misc/logger.ts":
 /*!****************************!*\
   !*** ./src/misc/logger.ts ***!
@@ -9790,11 +9946,58 @@ class ShaderProcess {
     }
     static getHead() {
         const header = `#version 300 es
-precision mediump float;
+precision highp float;
     `;
         return header;
-        ;
     }
+}
+
+
+/***/ }),
+
+/***/ "./src/misc/showHelper.ts":
+/*!********************************!*\
+  !*** ./src/misc/showHelper.ts ***!
+  \********************************/
+/*! exports provided: showImage */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showImage", function() { return showImage; });
+function downLoad(blob) {
+    let url = "";
+    let fileReader = new FileReader();
+    fileReader.readAsDataURL(blob); //读取文件保存在result中
+    fileReader.onload = function (e) {
+        url = e.target.result; //读取的结果在result中
+        if (url.length < 6) {
+            return;
+        }
+        let domA = document.createElement("a");
+        domA.download = new Date().getTime() + ".jpg";
+        domA.href = url;
+        document.body.appendChild(domA);
+        domA.click();
+        domA.remove();
+    };
+}
+function showImage(texture) {
+    var canvas = document.createElement("canvas");
+    canvas.width = texture.width;
+    canvas.height = texture.height;
+    var ctx = canvas.getContext("2d");
+    var imgData = ctx.createImageData(texture.width, texture.height);
+    for (var i = 0; i < texture.source.length; i += 4) {
+        imgData.data[i + 0] = texture.source[i + 0];
+        imgData.data[i + 1] = texture.source[i + 1];
+        imgData.data[i + 2] = texture.source[i + 2];
+        imgData.data[i + 3] = texture.source[i + 3];
+    }
+    ctx.putImageData(imgData, 0, 0);
+    canvas.toBlob((blob) => {
+        downLoad(blob);
+    });
 }
 
 
@@ -10183,12 +10386,13 @@ class Postprocessing {
         const model = Object(_geometry__WEBPACK_IMPORTED_MODULE_1__["planeBuilder"])(2, 2);
         const geoInfo = {
             indices: model.indices,
-            attributes: {
-                aPosition: {
+            attributes: [
+                {
+                    name: "aPosition",
                     value: model.positions,
                     itemSize: 3,
                 },
-            },
+            ],
         };
         this._geometry = new _geometry__WEBPACK_IMPORTED_MODULE_1__["Geometry"](this._engine, geoInfo);
         this._activeProgram = null;
@@ -10280,7 +10484,7 @@ class Postprocessing {
         if (!this._activeProgram)
             return this;
         const { program, uniforms, uniformBlock } = this._activeProgram;
-        const { geometryInfo } = this._geometry;
+        const { vertexBuffer } = this._geometry;
         this._geometry.setBuffers(this._activeProgram.program);
         this._engine.enginePrograms.useProgram(program);
         if (uniforms) {
@@ -10288,15 +10492,18 @@ class Postprocessing {
             this._engine.engineUniform.setSystemUniform(program, this._camera);
         }
         this._engine.engineDraw.draw({
-            type: geometryInfo.type,
-            indexed: geometryInfo.indices,
-            count: geometryInfo.count,
+            type: vertexBuffer.drawType,
+            indexed: vertexBuffer.indices,
+            count: vertexBuffer.count,
         });
         return this;
     }
     setUniform(name, value) {
         if (this._activeProgram && this._activeProgram.uniforms && this._activeProgram.uniforms[name]) {
             this._activeProgram.uniforms[name].value = value;
+        }
+        else {
+            console.error(`不存在,${name}, 需要先定义`);
         }
         return this;
     }
@@ -10347,11 +10554,11 @@ class RenderTarget {
         this.colorBuffer = new _texture__WEBPACK_IMPORTED_MODULE_1__["Texture"](engine, {
             width: options.width,
             height: options.height,
-            format: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R8_G8_B8_A8,
+            format: options.colorBufferFormat ? options.colorBufferFormat : _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_R8_G8_B8_A8,
             addressU: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE,
             addressV: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE,
-            minFilter: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_LINEAR,
-            magFilter: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_LINEAR,
+            minFilter: options.colorBufferMinFilter ? options.colorBufferMinFilter : _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_LINEAR,
+            magFilter: options.colorBufferMagFilter ? options.colorBufferMagFilter : _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_LINEAR,
         });
         this.colorBuffer.needsUpload = true;
         this.stencil = false;
@@ -10360,11 +10567,11 @@ class RenderTarget {
             this.depthBuffer = new _texture__WEBPACK_IMPORTED_MODULE_1__["Texture"](engine, {
                 width: options.width,
                 height: options.height,
-                format: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTH,
-                addressU: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE,
-                addressV: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_CLAMP_TO_EDGE,
-                minFilter: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_NEAREST,
-                magFilter: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_NEAREST,
+                format: options.depthBufferFormat ? options.depthBufferFormat : _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFormat"].PIXELFORMAT_DEPTH,
+                addressU: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_REPEAT,
+                addressV: _engines__WEBPACK_IMPORTED_MODULE_0__["TextureAddress"].ADDRESS_REPEAT,
+                minFilter: options.depthBufferMinFilter ? options.depthBufferMinFilter : _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_NEAREST,
+                magFilter: options.depthBufferMagFilter ? options.depthBufferMagFilter : _engines__WEBPACK_IMPORTED_MODULE_0__["TextureFilter"].FILTER_NEAREST,
             });
             this.depthBuffer.needsUpload = true;
         }
@@ -10439,6 +10646,8 @@ class Renderer {
         mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
         this._engine.engineUniform.setUniform(program, "normalMatrix", mesh.normalMatrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Mat4);
         this._engine.engineUniform.setUniform(program, "modelMatrix", mesh.matrix.data, _engines_engine_enum__WEBPACK_IMPORTED_MODULE_0__["UniformsType"].Mat4);
+        // 与mesh无关的uniform变量
+        this._engine.engineUniform.setSystemUniform(program, camera);
     }
     // 根据材质设置webgl状态
     // _readMaterial(material) {
@@ -10454,15 +10663,14 @@ class Renderer {
         if (mesh.visible == false)
             return;
         const { geometry, material } = mesh;
-        const { geometryInfo } = geometry;
+        const { vertexBuffer } = geometry;
         const program = material.program;
         mesh.active();
         this._setMeshUniform(program, mesh, camera);
-        this._engine.engineUniform.setSystemUniform(program, camera);
         this._engine.engineDraw.draw({
-            type: geometryInfo.type,
-            indexed: geometryInfo.indices,
-            count: geometryInfo.count,
+            type: vertexBuffer.drawType,
+            indexed: vertexBuffer.indices,
+            count: vertexBuffer.count,
         });
         // 多采样帧缓冲区
         // if (this.currentRenderTarget && this.currentRenderTarget.isMultisample) {
@@ -10721,6 +10929,7 @@ class Texture {
         this._height = v;
     }
     set source(v) {
+        this._source = null;
         this._source = v;
         if (v.width !== undefined)
             this._width = v.width;

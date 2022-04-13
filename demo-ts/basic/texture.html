@@ -47,20 +47,23 @@
                     const model = lmgl.planeBuilder(2, 2);
                     const geoInfo = {
                         indices: model.indices,
-                        attributes: {
-                            aPosition: {
+                        attributes: [
+                            {
+                                name: "aPosition",
                                 value: model.positions,
                                 itemSize: 3,
                             },
-                            aUv: {
+                            {
+                                name: "aUv",
                                 value: model.uvs,
                                 itemSize: 2,
                             },
-                            uTexture: {
+                            {
+                                name: "uTexture",
                                 value: null,
                                 type: lmgl.UniformsType.Texture,
                             },
-                        },
+                        ],
                     };
 
                     const matInfo = {

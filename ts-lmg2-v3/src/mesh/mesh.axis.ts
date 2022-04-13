@@ -1,6 +1,6 @@
 import { Engine, UniformsType } from "../engines";
 import { PrimitiveType } from "../engines/engine.draw";
-import { Geometry, iGeometryInfo } from "../geometry";
+import { Geometry, iGeometryData } from "../geometry";
 import { Material } from "../material/material";
 import { Mesh } from "./mesh";
 
@@ -16,9 +16,9 @@ export class MeshAxis {
         const geoY = this.getGeoX(size);
         const geoZ = this.getGeoX(size);
 
-        geoY.attributes.aPosition.value = [0, 0, 0, 0, 1 * size, 0];
+        geoY.attributes[0].value = [0, 0, 0, 0, 1 * size, 0];
 
-        geoZ.attributes.aPosition.value = [0, 0, 0, 0, 0, 1 * size];
+        geoZ.attributes[0].value = [0, 0, 0, 0, 0, 1 * size];
 
         const matX = this.getMat({ x: 1, y: 0, z: 0, w: 1 });
         const matY = this.getMat({ x: 0, y: 1, z: 0, w: 1 });
@@ -60,16 +60,17 @@ export class MeshAxis {
         return mat;
     }
 
-    getGeoX(size: number): iGeometryInfo {
+    getGeoX(size: number): iGeometryData {
         return {
             count: 2,
-            attributes: {
-                aPosition: {
+            drawType: PrimitiveType.PRIMITIVE_LINES,
+            attributes: [
+                {
+                    name: "aPosition",
                     value: [0, 0, 0, 1 * size, 0, 0],
                     itemSize: 3,
                 },
-            },
-            type: PrimitiveType.PRIMITIVE_LINES,
+            ],
         };
     }
 }

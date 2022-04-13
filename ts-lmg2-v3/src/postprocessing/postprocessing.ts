@@ -2,10 +2,9 @@ import { Application } from "../application";
 import { Camera } from "../cameras/camera";
 import { Engine, iProgrameCreateOptions, iProgrameDefines, iProgramUniforms } from "../engines";
 import { iUniformBlock } from "../engines/engine.uniformBuffer";
-import { Geometry, planeBuilder } from "../geometry";
+import { Geometry, iGeometryData, planeBuilder } from "../geometry";
 import { ShaderLoader } from "../loader/shader.loader";
 import { Color4 } from "../maths/math.color";
-import { FileTools } from "../misc/fileTools";
 import { RenderTarget } from "../renderer";
 
 export interface iCreateProgramsFromFiles {
@@ -37,14 +36,15 @@ export class Postprocessing {
         this._rootPath = "/";
 
         const model = planeBuilder(2, 2);
-        const geoInfo = {
+        const geoInfo: iGeometryData = {
             indices: model.indices,
-            attributes: {
-                aPosition: {
+            attributes: [
+                {
+                    name: "aPosition",
                     value: model.positions,
                     itemSize: 3,
                 },
-            },
+            ],
         };
         this._geometry = new Geometry(this._engine, geoInfo);
         this._activeProgram = null;
@@ -146,7 +146,7 @@ export class Postprocessing {
 
         const { program, uniforms, uniformBlock } = this._activeProgram;
 
-        const { geometryInfo } = this._geometry;
+        const { vertexBuffer } = this._geometry;
 
         this._geometry.setBuffers(this._activeProgram.program);
         this._engine.enginePrograms.useProgram(program);
@@ -157,9 +157,9 @@ export class Postprocessing {
         }
 
         this._engine.engineDraw.draw({
-            type: geometryInfo.type,
-            indexed: geometryInfo.indices,
-            count: geometryInfo.count,
+            type: vertexBuffer.drawType,
+            indexed: vertexBuffer.indices,
+            count: vertexBuffer.count,
         });
         return this;
     }

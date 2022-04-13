@@ -21,40 +21,42 @@
             class Triangle {
                 constructor() {
                     const vertexShader = `
-                      in vec3 aPosition;
-                      in vec4 aColor;
-                      out vec4 vColor;
+in vec3 aPosition;
+in vec4 aColor;
+out vec4 vColor;
 
-                      uniform mat4 projectionMatrix;
-                      uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
 
-                      void main() {
-                      gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-                      vColor = aColor;
-                      }
-                    `;
+void main() {
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+    vColor = aColor;
+}
+`;
 
                     const fragmentShader = `
-                      in vec4 vColor;
-                      out vec4 FragColor;
+in vec4 vColor;
+out vec4 FragColor;
 
-                      void main() {
-                        FragColor = vColor;
-                      }
-                      `;
+void main() {
+FragColor = vColor;
+}
+`;
 
-                    const geoInfo = {
+                    const geoData = {
                         indices: [0, 1, 2],
-                        attributes: {
-                            aPosition: {
+                        attributes: [
+                            {
+                                name: "aPosition",
                                 value: [-2, -2, 0, 2, -2, 0, 0, 1.5, 0],
                                 itemSize: 3,
                             },
-                            aColor: {
+                            {
+                                name: "aColor",
                                 value: [1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1],
                                 itemSize: 4,
                             },
-                        },
+                        ],
                     };
 
                     const matInfo = {
@@ -62,7 +64,7 @@
                         fragmentShader,
                     };
 
-                    const geometry = new lmgl.Geometry(engine, geoInfo);
+                    const geometry = new lmgl.Geometry(engine, geoData);
                     const material = new lmgl.Material(engine, matInfo);
                     const mesh = new lmgl.Mesh(engine, geometry, material);
                     scene.add(mesh);
