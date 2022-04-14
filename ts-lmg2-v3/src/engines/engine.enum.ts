@@ -497,3 +497,66 @@ export enum BufferType {
     ARRAY_BUFFER,
     ELEMENT_ARRAY_BUFFER,
 }
+
+export enum BlendType {
+    /**
+     * Subtract the color of the source fragment from the destination fragment and write the result to
+     * the frame buffer.
+     */
+    BLEND_SUBTRACTIVE = 0,
+
+    /**
+     * Add the color of the source fragment to the destination fragment and write the result to the
+     * frame buffer.
+     */
+    BLEND_ADDITIVE = 1,
+
+    /**
+     * Enable simple translucency for materials such as glass. This is equivalent to enabling a source
+     * blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of
+     * {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
+     */
+    BLEND_NORMAL = 2,
+
+    /**
+     * Disable blending.
+     */
+    BLEND_NONE = 3,
+
+    /**
+     * Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been
+     * multiplied by the source alpha value.
+     */
+    BLEND_PREMULTIPLIED = 4,
+
+    /**
+     * Multiply the color of the source fragment by the color of the destination fragment and write the
+     * result to the frame buffer.
+     */
+    BLEND_MULTIPLICATIVE = 5,
+
+    /**
+     * Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
+     */
+    BLEND_ADDITIVEALPHA = 6,
+
+    /**
+     * Multiplies colors and doubles the result.
+     */
+    BLEND_MULTIPLICATIVE2X = 7,
+
+    /**
+     * Softer version of additive.
+     */
+    BLEND_SCREEN = 8,
+
+    /**
+     * Minimum color. Check app.graphicsDevice.extBlendMinmax for support.
+     */
+    BLEND_MIN = 9,
+
+    /**
+     * Maximum color. Check app.graphicsDevice.extBlendMinmax for support.
+     */
+    BLEND_MAX = 10,
+}

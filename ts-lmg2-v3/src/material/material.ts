@@ -1,9 +1,10 @@
 import { Engine } from "../engines/engine";
-import { CompareFunc, iProgrameCreateOptions, UniformsType } from "../engines/engine.enum";
+import { CompareFunc, CullFace, iProgrameCreateOptions, UniformsType } from "../engines/engine.enum";
 import { iUniformBlock } from "../engines/engine.uniformBuffer";
 import { cloneUniforms } from "../misc/tool";
 export interface iMaterialOptions extends iProgrameCreateOptions {
     depthTest?: boolean;
+    depthWrite?: boolean;
     depthFunc?: CompareFunc;
 }
 export class Material {
@@ -28,7 +29,9 @@ export class Material {
     uniformBlock: iUniformBlock;
 
     public depthTest: boolean;
+    public depthWrite: boolean;
     public depthFunc: CompareFunc;
+    public cull: CullFace;
 
     constructor(engine: Engine, materialInfo: iMaterialOptions) {
         this._engine = engine;
@@ -67,6 +70,8 @@ export class Material {
         this.needUpdate = true;
         this.depthTest = materialInfo.depthTest !== undefined ? materialInfo.depthTest : true;
         this.depthFunc = materialInfo.depthFunc !== undefined ? materialInfo.depthFunc : CompareFunc.FUNC_LESSEQUAL;
+        this.depthWrite = materialInfo.depthWrite !== undefined ? materialInfo.depthWrite : true;
+        this.cull = CullFace.CULLFACE_BACK;
     }
 
     setUniform() {

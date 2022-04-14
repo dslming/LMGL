@@ -1,7 +1,7 @@
 import * as lmgl from "../../src/index";
 (window as any).lmgl = lmgl;
 
-export function run(engine: lmgl.Engine, scene: lmgl.Scene) {
+export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     const vertexShader = `
 in vec3 aPosition;
 in vec4 aColor;
@@ -51,6 +51,7 @@ FragColor = vColor;
     const geometry = new lmgl.Geometry(engine, geoData);
     const material = new lmgl.Material(engine, matInfo);
     const mesh = new lmgl.Mesh(engine, geometry, material);
+    mesh.material.cull = lmgl.CullFace.CULLFACE_NONE;
     scene.add(mesh);
     // mesh.rotation.y = -Math.PI;
 }

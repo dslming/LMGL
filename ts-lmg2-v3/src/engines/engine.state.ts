@@ -145,7 +145,7 @@ export class EngineState {
      * var depthWrite = device.getDepthWrite();
      * console.log('Depth writing is ' + depthWrite ? 'enabled' : 'disabled');
      */
-    getDepthWrite() {
+    getDepthWrite(): boolean {
         return this._depthWrite;
     }
 
@@ -171,7 +171,7 @@ export class EngineState {
      *
      * @returns {boolean} True if blending is enabled and false otherwise.
      */
-    getBlending() {
+    getBlending(): boolean {
         return this._blending;
     }
 

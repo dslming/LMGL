@@ -62,6 +62,8 @@ export default class Renderer {
         // WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
         // WebGLInterface.setSide(gl, side);
         // WebGLInterface.cullFace(gl, false);
+        this._engine.engineState.setCullMode(material.cull);
+        this._engine.engineState.setDepthWrite(material.depthWrite);
         this._engine.engineState.setDepthFunc(material.depthFunc);
         this._engine.engineState.setDepthTest(material.depthTest);
     }

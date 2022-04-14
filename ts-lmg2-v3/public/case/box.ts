@@ -1,7 +1,7 @@
 import * as lmgl from "../../src/index";
 (window as any).lmgl = lmgl;
 
-export function run(engine: lmgl.Engine, scene: lmgl.Scene) {
+export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     const vertexShader = `
 in vec3 aPosition;
 in vec4 aColor;
