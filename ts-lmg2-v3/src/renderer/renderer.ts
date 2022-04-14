@@ -3,11 +3,9 @@
 import { Camera } from "../cameras/camera";
 import { Engine } from "../engines/engine";
 import { UniformsType } from "../engines/engine.enum";
+import { Material } from "../material";
 import { Color4 } from "../maths/math.color";
-import { IColor4Like } from "../maths/math.like";
-import { Mat3 } from "../maths/math.mat3";
 import { Mat4 } from "../maths/math.mat4";
-import { Vec3 } from "../maths/math.vec3";
 import { Mesh } from "../mesh/mesh";
 import { Scene } from "../scene/scene";
 import { RenderTarget } from "./render.target";
@@ -57,15 +55,16 @@ export default class Renderer {
     }
 
     // 根据材质设置webgl状态
-    // _readMaterial(material) {
-    //     const gl = dao.getData("gl");
-    //     const { blending, depthTest, side } = material;
-    //     const { blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst } = material;
-    //     WebGLInterface.setDepthTest(gl, depthTest);
-    //     WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
-    //     WebGLInterface.setSide(gl, side);
-    //     WebGLInterface.cullFace(gl, false);
-    // }
+    private _readMaterial(material: Material) {
+        // const { blending, depthTest, side } = material;
+        // const { blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst } = material;
+        // WebGLInterface.setDepthTest(gl, depthTest);
+        // WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
+        // WebGLInterface.setSide(gl, side);
+        // WebGLInterface.cullFace(gl, false);
+        this._engine.engineState.setDepthFunc(material.depthFunc);
+        this._engine.engineState.setDepthTest(material.depthTest);
+    }
 
     renderMesh(mesh: Mesh, camera: Camera) {
         if (mesh.visible == false) return;
@@ -73,9 +72,9 @@ export default class Renderer {
         const { geometry, material } = mesh;
         const program = material.program;
 
-        mesh.active();
+        mesh.setBuffers();
         this._setMeshUniform(program, mesh, camera);
-
+        this._readMaterial(material);
         this._engine.engineDraw.draw(geometry.getDrawInfo());
 
         // 多采样帧缓冲区

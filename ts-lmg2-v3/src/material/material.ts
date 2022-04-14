@@ -1,8 +1,11 @@
 import { Engine } from "../engines/engine";
-import { iProgrameCreateOptions, UniformsType } from "../engines/engine.enum";
+import { CompareFunc, iProgrameCreateOptions, UniformsType } from "../engines/engine.enum";
 import { iUniformBlock } from "../engines/engine.uniformBuffer";
 import { cloneUniforms } from "../misc/tool";
-
+export interface iMaterialOptions extends iProgrameCreateOptions {
+    depthTest?: boolean;
+    depthFunc?: CompareFunc;
+}
 export class Material {
     program: any;
     uniforms: any;
@@ -13,7 +16,6 @@ export class Material {
     blendRGBADst: any;
     blendRGB_ASrc: any;
     blendRGB_ADst: any;
-    depthTest: boolean;
     side: any;
     needUpdate: boolean;
     private _engine: Engine;
@@ -25,7 +27,10 @@ export class Material {
 
     uniformBlock: iUniformBlock;
 
-    constructor(engine: Engine, materialInfo: iProgrameCreateOptions) {
+    public depthTest: boolean;
+    public depthFunc: CompareFunc;
+
+    constructor(engine: Engine, materialInfo: iMaterialOptions) {
         this._engine = engine;
         // let mat = matInfo;
         this.inputVertexShader = JSON.parse(JSON.stringify(materialInfo.vertexShader));
@@ -57,9 +62,11 @@ export class Material {
 
         // this.depthTest = true;
         // this.side = SIDE.FrontSide;
+
         // 是否需要每帧更新uniform变量
         this.needUpdate = true;
-        this.setUniform();
+        this.depthTest = materialInfo.depthTest !== undefined ? materialInfo.depthTest : true;
+        this.depthFunc = materialInfo.depthFunc !== undefined ? materialInfo.depthFunc : CompareFunc.FUNC_LESSEQUAL;
     }
 
     setUniform() {

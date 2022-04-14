@@ -107,7 +107,7 @@ export class EngineVertex {
         // 属性使能数组
         const attribure = gl.getAttribLocation(program, attribureName);
         if (attribure == -1) {
-            Logger.Warn("attribureName 不存在...");
+            Logger.Warn(`attribureName 不存在...,${attribureName}`);
             return;
         }
 

@@ -57,7 +57,7 @@ export class Logger {
   }
   private static _LogEnabled(message: string): void {
     var formattedMessage = Logger._FormatMessage(message);
-    console.log("EasyCG - " + formattedMessage);
+    console.log("lmgl - " + formattedMessage);
 
     // var entry = "<div style='color:white'>" + formattedMessage + "</div><br>";
     // Logger._AddLogEntry(entry);
@@ -68,7 +68,7 @@ export class Logger {
   }
   private static _WarnEnabled(message: string): void {
     var formattedMessage = Logger._FormatMessage(message);
-    console.warn("EasyCG - " + formattedMessage);
+    console.warn("lmgl - " + formattedMessage);
 
     // var entry = "<div style='color:orange'>" + formattedMessage + "</div><br>";
     // Logger._AddLogEntry(entry);
@@ -80,7 +80,7 @@ export class Logger {
   private static _ErrorEnabled(message: string): void {
     Logger.errorsCount++;
     var formattedMessage = Logger._FormatMessage(message);
-    console.error("EasyCG - " + formattedMessage);
+    console.error("lmgl - " + formattedMessage);
 
     // var entry = "<div style='color:red'>" + formattedMessage + "</div><br>";
     // Logger._AddLogEntry(entry);
