@@ -37,7 +37,9 @@ export class Postprocessing {
 
         const model = planeBuilder(2, 2);
         const geoInfo: iGeometryData = {
-            indices: model.indices,
+            indices: {
+                value: model.indices,
+            },
             attributes: [
                 {
                     name: "aPosition",
@@ -146,7 +148,7 @@ export class Postprocessing {
 
         const { program, uniforms, uniformBlock } = this._activeProgram;
 
-        const { vertexBuffer } = this._geometry;
+        // const { vertexBuffer } = this._geometry;
 
         this._geometry.setBuffers(this._activeProgram.program);
         this._engine.enginePrograms.useProgram(program);
@@ -156,11 +158,7 @@ export class Postprocessing {
             this._engine.engineUniform.setSystemUniform(program, this._camera);
         }
 
-        this._engine.engineDraw.draw({
-            type: vertexBuffer.drawType,
-            indexed: vertexBuffer.indices,
-            count: vertexBuffer.count,
-        });
+        this._engine.engineDraw.draw(this._geometry.getDrawInfo());
         return this;
     }
 

@@ -62,7 +62,6 @@ export class MeshAxis {
 
     getGeoX(size: number): iGeometryData {
         return {
-            count: 2,
             drawType: PrimitiveType.PRIMITIVE_LINES,
             attributes: [
                 {

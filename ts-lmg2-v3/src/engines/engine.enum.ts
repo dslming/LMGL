@@ -475,3 +475,25 @@ export enum DataType {
      */
     TYPE_FLOAT32 = 6,
 }
+
+export enum IndexFormat {
+    /**
+     * 8-bit unsigned vertex indices (0 to 255).
+     */
+    INDEXFORMAT_UINT8 = 0,
+
+    /**
+     * 16-bit unsigned vertex indices (0 to 65,535).
+     */
+    INDEXFORMAT_UINT16 = 1,
+
+    /**
+     * 32-bit unsigned vertex indices (0 to 4,294,967,295).
+     */
+    INDEXFORMAT_UINT32 = 2,
+}
+
+export enum BufferType {
+    ARRAY_BUFFER,
+    ELEMENT_ARRAY_BUFFER,
+}

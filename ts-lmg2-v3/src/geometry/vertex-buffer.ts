@@ -1,32 +1,28 @@
 import { Engine } from "../engines/engine";
-import { PrimitiveType } from "../engines/engine.draw";
 import { BufferStore, DataType } from "../engines/engine.enum";
-import { iGeometryAttribute, iGeometryData } from "./geometry";
+
+export interface iGeometryAttribute {
+    value: any[];
+    itemSize: number;
+    dataType?: DataType;
+    usage?: BufferStore;
+    name: string;
+    normalized?: boolean;
+}
 
 export class VertexBuffer {
     private _vao = null;
     private _engine: Engine;
     private _attributes: iGeometryAttribute[];
     private _buffers = new Map();
+    public vertexCount: number;
 
-    public indices: any[];
-    public count: number;
-    public drawType: PrimitiveType;
-
-    constructor(engine: Engine, geometryData: iGeometryData) {
+    constructor(engine: Engine, attributes: iGeometryAttribute[]) {
         this._engine = engine;
         this._attributes = [];
 
-        let count = 0;
-        if (geometryData.indices && geometryData.indices.length > 0) {
-            this.indices = geometryData.indices;
-            count = this.indices.length;
-        }
-        this.count = geometryData.count ? geometryData.count : count;
-        this.drawType = geometryData.drawType !== undefined ? geometryData.drawType : PrimitiveType.PRIMITIVE_TRIANGLES;
-
-        for (let i = 0; i < geometryData.attributes.length; i++) {
-            const attribute: iGeometryAttribute = geometryData.attributes[i];
+        for (let i = 0; i < attributes.length; i++) {
+            const attribute: iGeometryAttribute = attributes[i];
 
             const cloneAttribute: iGeometryAttribute = {
                 value: attribute.value !== undefined ? attribute.value : [],
@@ -38,6 +34,9 @@ export class VertexBuffer {
             };
             this._attributes.push(cloneAttribute);
         }
+
+        // 用第一个属性的长度
+        this.vertexCount = this._attributes[0].value.length / this._attributes[0].itemSize;
     }
 
     private _createVertexArray() {
@@ -48,10 +47,7 @@ export class VertexBuffer {
             const { name } = attribute;
             this._buffers.set(name, this._engine.engineVertex.createBuffer());
         }
-        // 创建顶点缓冲区
-        if (this.indices) {
-            this._buffers.set("indices", this._engine.engineVertex.createBuffer());
-        }
+
         this._engine.engineVertex.bindVertexArray(null);
     }
 
@@ -73,11 +69,6 @@ export class VertexBuffer {
                 usage,
                 dataType,
             });
-        }
-
-        // 绑定顶点索引
-        if (this.indices) {
-            this._engine.engineVertex.setIndicesBuffer(this._buffers.get("indices"), this.indices);
         }
     }
 }

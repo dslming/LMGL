@@ -77,11 +77,7 @@ export default class Renderer {
         mesh.active();
         this._setMeshUniform(program, mesh, camera);
 
-        this._engine.engineDraw.draw({
-            type: vertexBuffer.drawType,
-            indexed: vertexBuffer.indices,
-            count: vertexBuffer.count,
-        });
+        this._engine.engineDraw.draw(geometry.getDrawInfo());
 
         // 多采样帧缓冲区
         // if (this.currentRenderTarget && this.currentRenderTarget.isMultisample) {

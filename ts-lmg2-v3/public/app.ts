@@ -32,7 +32,9 @@ FragColor = vColor;
 `;
 
         const geoData = {
-            indices: [0, 1, 2],
+            indices: {
+                value: [0, 1, 2],
+            },
             attributes: [
                 {
                     name: "aPosition",
