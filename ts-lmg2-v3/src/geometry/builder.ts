@@ -3,7 +3,7 @@ import { Vec3 } from "../maths/math.vec3";
 import { Nullable } from "../types";
 
 /**
- *
+ * 几何体构造器
  */
 
 export interface iGeometryBuilder {

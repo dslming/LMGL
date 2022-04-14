@@ -1,8 +1,8 @@
 import { Engine } from "../engines/engine";
-import { PrimitiveType } from "../engines/engine.draw";
+import { Primitive, PrimitiveType } from "../engines/engine.draw";
 import { BufferStore, DataType, IndexFormat } from "../engines/engine.enum";
 import { iGeometryIndex, IndexBuffer } from "./index-buffer";
-import { iGeometryAttribute, VertexBuffer } from "./vertex-buffer";
+import { iGeometryAttribute, VertexArrayBuffer } from "./vertex-array-buffer";
 
 /**
  * 几何体信息
@@ -10,13 +10,12 @@ import { iGeometryAttribute, VertexBuffer } from "./vertex-buffer";
  * ```js
  *  const geoInfo = {
         indices: {
-            itemSize:3,
-            initialData: []
+            value: []
         },
         attributes: [
             {
                 name: "aPosition"
-                initialData: model.positions,
+                value: model.positions,
                 itemSize: 3,
             },
         },
@@ -31,7 +30,7 @@ export interface iGeometryData {
 
 export class Geometry {
     private _engine: Engine;
-    public vertexBuffer: VertexBuffer;
+    public vertexArrayBuffer: VertexArrayBuffer;
     public indexBuffer: IndexBuffer;
     public drawType: PrimitiveType;
 
@@ -39,20 +38,20 @@ export class Geometry {
         this._engine = engine;
         this.drawType = geometryData.drawType !== undefined ? geometryData.drawType : PrimitiveType.PRIMITIVE_TRIANGLES;
 
-        this.vertexBuffer = new VertexBuffer(engine, geometryData.attributes);
+        this.vertexArrayBuffer = new VertexArrayBuffer(engine, geometryData.attributes);
         this.indexBuffer = new IndexBuffer(engine, geometryData?.indices);
     }
 
-    public setBuffers(program: WebGLProgram) {
-        this.vertexBuffer.unlock(program);
+    public setBuffers(program: WebGLProgram): void {
+        this.vertexArrayBuffer.unlock(program);
         this.indexBuffer.unlock();
     }
 
-    getDrawInfo() {
+    getDrawInfo(): Primitive {
         return {
             type: this.drawType,
             indexed: this.indexBuffer.storage,
-            count: this.indexBuffer.indexCount > 0 ? this.indexBuffer.indexCount : this.vertexBuffer.vertexCount,
+            count: this.indexBuffer.indexCount > 0 ? this.indexBuffer.indexCount : this.vertexArrayBuffer.vertexCount,
         };
     }
 }

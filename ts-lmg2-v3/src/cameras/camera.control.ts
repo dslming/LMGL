@@ -113,7 +113,7 @@ export class CameraControl {
         container.addEventListener(
             "wheel",
             (event: any) => {
-                const t = 0.08;
+                const t = 0.006;
                 this.dolly(event.deltaY * t);
             },
             false

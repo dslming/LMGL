@@ -10,7 +10,7 @@ export interface iGeometryAttribute {
     normalized?: boolean;
 }
 
-export class VertexBuffer {
+export class VertexArrayBuffer {
     private _vao = null;
     private _engine: Engine;
     private _attributes: iGeometryAttribute[];
@@ -21,6 +21,7 @@ export class VertexBuffer {
         this._engine = engine;
         this._attributes = [];
 
+        // 拷贝数据
         for (let i = 0; i < attributes.length; i++) {
             const attribute: iGeometryAttribute = attributes[i];
 
@@ -35,7 +36,7 @@ export class VertexBuffer {
             this._attributes.push(cloneAttribute);
         }
 
-        // 用第一个属性的长度
+        // todo:优化, 现在使用用第一个属性的长度
         this.vertexCount = this._attributes[0].value.length / this._attributes[0].itemSize;
     }
 

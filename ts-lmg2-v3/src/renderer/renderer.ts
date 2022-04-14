@@ -71,7 +71,6 @@ export default class Renderer {
         if (mesh.visible == false) return;
 
         const { geometry, material } = mesh;
-        const { vertexBuffer } = geometry;
         const program = material.program;
 
         mesh.active();
