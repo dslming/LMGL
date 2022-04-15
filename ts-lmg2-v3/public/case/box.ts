@@ -19,7 +19,7 @@ void main() {
 out vec4 FragColor;
 
 void main() {
-FragColor = vec4(vec3(0.5), 1.0);
+FragColor = vec4(vec3(0.5), .5);
 }
 `;
 
@@ -45,6 +45,7 @@ FragColor = vec4(vec3(0.5), 1.0);
     const geometry = new lmgl.Geometry(engine, geoData);
     const material = new lmgl.Material(engine, matInfo);
     const mesh = new lmgl.Mesh(engine, geometry, material);
+    mesh.material.blendType = lmgl.BlendType.BLEND_NORMAL;
     scene.add(mesh);
     // mesh.rotation.y = -Math.PI;
 }

@@ -56,12 +56,16 @@ export default class Renderer {
 
     // 根据材质设置webgl状态
     private _readMaterial(material: Material) {
-        // const { blending, depthTest, side } = material;
-        // const { blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst } = material;
-        // WebGLInterface.setDepthTest(gl, depthTest);
-        // WebGLInterface.setBlend(gl, blending, blendingType, blendRGBASrc, blendRGBADst, blendRGB_ASrc, blendRGB_ADst);
-        // WebGLInterface.setSide(gl, side);
-        // WebGLInterface.cullFace(gl, false);
+        this._engine.engineState.setBlending(material.blend);
+        if (material.blend) {
+            if (material.separateAlphaBlend) {
+                this._engine.engineState.setBlendFunctionSeparate(material.blendSrc, material.blendDst, material.blendSrcAlpha, material.blendDstAlpha);
+                this._engine.engineState.setBlendEquationSeparate(material.blendEquation, material.blendAlphaEquation);
+            } else {
+                this._engine.engineState.setBlendFunction(material.blendSrc, material.blendDst);
+                this._engine.engineState.setBlendEquation(material.blendEquation);
+            }
+        }
         this._engine.engineState.setCullMode(material.cull);
         this._engine.engineState.setDepthWrite(material.depthWrite);
         this._engine.engineState.setDepthFunc(material.depthFunc);

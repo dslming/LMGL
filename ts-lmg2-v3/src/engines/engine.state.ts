@@ -273,6 +273,30 @@ export class EngineState {
     }
 
     /**
+     * Configures the blending equation. The default blend equation is {@link BLENDEQUATION_ADD}.
+     *
+     * @param {number} blendEquation - The blend equation. Can be:
+     *
+     * - {@link BLENDEQUATION_ADD}
+     * - {@link BLENDEQUATION_SUBTRACT}
+     * - {@link BLENDEQUATION_REVERSE_SUBTRACT}
+     * - {@link BLENDEQUATION_MIN}
+     * - {@link BLENDEQUATION_MAX}
+     *
+     * Note that MIN and MAX modes require either EXT_blend_minmax or WebGL2 to work (check
+     * device.extBlendMinmax).
+     */
+    setBlendEquation(blendEquation: BlendEquation) {
+        const { gl } = this._engine;
+
+        if (this._blendEquation !== blendEquation || this._separateAlphaEquation) {
+            gl.blendEquation(this._glBlendEquation[blendEquation]);
+            this._blendEquation = blendEquation;
+            this._separateAlphaEquation = false;
+        }
+    }
+
+    /**
      * Controls how triangles are culled based on their face direction. The default cull mode is
      * {@link CULLFACE_BACK}.
      *

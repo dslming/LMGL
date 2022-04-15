@@ -2,6 +2,7 @@ import { Engine } from "../engines/engine";
 import { BlendEquation, BlendMode, BlendType, CompareFunc, CullFace, iProgrameCreateOptions, UniformsType } from "../engines/engine.enum";
 import { iUniformBlock } from "../engines/engine.uniformBuffer";
 import { cloneUniforms } from "../misc/tool";
+
 export interface iMaterialOptions extends iProgrameCreateOptions {
     depthTest?: boolean;
     depthWrite?: boolean;
@@ -11,15 +12,16 @@ export class Material {
     program: any;
     uniforms: any;
 
-    blending: boolean;
-    blendingType: any;
-    blendRGBASrc: any;
-    blendRGBADst: any;
-    blendRGB_ASrc: any;
-    blendRGB_ADst: any;
-    side: any;
+    // blending: boolean;
+    // blendingType: any;
+    // blendRGBASrc: any;
+    // blendRGBADst: any;
+    // blendRGB_ASrc: any;
+    // blendRGB_ADst: any;
+    // side: any;
     needUpdate: boolean;
     private _engine: Engine;
+    private _blend: boolean;
 
     vertexShader: string;
     fragmentShader: string;
@@ -33,7 +35,6 @@ export class Material {
     public depthFunc: CompareFunc;
     public cull: CullFace;
 
-    public blend: boolean;
     private _blendSrc: BlendMode;
     private _blendDst: BlendMode;
     private _blendEquation: BlendEquation;
@@ -65,16 +66,6 @@ export class Material {
         this.vertexShader = programInfo.vertexShader;
         this.fragmentShader = programInfo.fragmentShader;
 
-        // this.blending = false;
-        // this.blendingType = BLENDING_TYPE.RGBA;
-        // this.blendRGBASrc = BLENDING_FACTOR.ONE;
-        // this.blendRGBADst = BLENDING_FACTOR.ONE;
-        // this.blendRGB_ASrc = BLENDING_FACTOR.SRC_ALPHA;
-        // this.blendRGB_ADst = BLENDING_FACTOR.ONE_MINUS_SRC_ALPHA;
-
-        // this.depthTest = true;
-        // this.side = SIDE.FrontSide;
-
         // 是否需要每帧更新uniform变量
         this.needUpdate = true;
         this.depthTest = true;
@@ -82,7 +73,7 @@ export class Material {
         this.depthWrite = true;
         this.cull = CullFace.CULLFACE_BACK;
 
-        this.blend = false;
+        this._blend = false;
         this._blendSrc = BlendMode.BLENDMODE_ONE;
         this._blendDst = BlendMode.BLENDMODE_ZERO;
         this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
@@ -91,6 +82,35 @@ export class Material {
         this._blendSrcAlpha = BlendMode.BLENDMODE_ONE;
         this._blendDstAlpha = BlendMode.BLENDMODE_ZERO;
         this._blendAlphaEquation = BlendEquation.BLENDEQUATION_ADD;
+    }
+
+    get separateAlphaBlend(): boolean {
+        return this._separateAlphaBlend;
+    }
+    set separateAlphaBlend(v: boolean) {
+        this._separateAlphaBlend = v;
+    }
+
+    get blend(): boolean {
+        return this._blend;
+    }
+    get blendSrc() {
+        return this._blendSrc;
+    }
+    get blendDst() {
+        return this._blendDst;
+    }
+    get blendEquation() {
+        return this._blendEquation;
+    }
+    get blendSrcAlpha() {
+        return this._blendSrcAlpha;
+    }
+    get blendDstAlpha() {
+        return this._blendDstAlpha;
+    }
+    get blendAlphaEquation() {
+        return this._blendAlphaEquation;
     }
 
     // returns boolean depending on material being transparent
@@ -102,61 +122,61 @@ export class Material {
         const prevBlend = this.blend;
         switch (type) {
             case BlendType.BLEND_NONE:
-                this.blend = false;
+                this._blend = false;
                 this._blendSrc = BlendMode.BLENDMODE_ONE;
                 this._blendDst = BlendMode.BLENDMODE_ZERO;
                 this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
                 break;
             case BlendType.BLEND_NORMAL:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_SRC_ALPHA;
                 this._blendDst = BlendMode.BLENDMODE_ONE_MINUS_SRC_ALPHA;
                 this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
                 break;
             case BlendType.BLEND_PREMULTIPLIED:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_ONE;
                 this._blendDst = BlendMode.BLENDMODE_ONE_MINUS_SRC_ALPHA;
                 this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
                 break;
             case BlendType.BLEND_ADDITIVE:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_ONE;
                 this._blendDst = BlendMode.BLENDMODE_ONE;
                 this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
                 break;
             case BlendType.BLEND_ADDITIVEALPHA:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_SRC_ALPHA;
                 this._blendDst = BlendMode.BLENDMODE_ONE;
                 this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
                 break;
             case BlendType.BLEND_MULTIPLICATIVE2X:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_DST_COLOR;
                 this._blendDst = BlendMode.BLENDMODE_SRC_COLOR;
                 this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
                 break;
             case BlendType.BLEND_SCREEN:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_ONE_MINUS_DST_COLOR;
                 this._blendDst = BlendMode.BLENDMODE_ONE;
                 this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
                 break;
             case BlendType.BLEND_MULTIPLICATIVE:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_DST_COLOR;
                 this._blendDst = BlendMode.BLENDMODE_ZERO;
                 this._blendEquation = BlendEquation.BLENDEQUATION_ADD;
                 break;
             case BlendType.BLEND_MIN:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_ONE;
                 this._blendDst = BlendMode.BLENDMODE_ONE;
                 this._blendEquation = BlendEquation.BLENDEQUATION_MIN;
                 break;
             case BlendType.BLEND_MAX:
-                this.blend = true;
+                this._blend = true;
                 this._blendSrc = BlendMode.BLENDMODE_ONE;
                 this._blendDst = BlendMode.BLENDMODE_ONE;
                 this._blendEquation = BlendEquation.BLENDEQUATION_MAX;
