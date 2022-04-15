@@ -2,7 +2,7 @@ import { Engine } from "../engines/engine";
 import { BufferStore, DataType } from "../engines/engine.enum";
 
 export interface iGeometryAttribute {
-    value: any[];
+    value: any[] | Float32Array;
     itemSize: number;
     dataType?: DataType;
     usage?: BufferStore;

@@ -64,6 +64,7 @@ export class Texture {
 
     private _width: number;
     private _height: number;
+    private _isReady: any;
 
     public glTexture: any;
     public glFormat: any;
@@ -83,6 +84,7 @@ export class Texture {
         if (!options) {
             options = {};
         }
+        this._isReady = false;
         this._source = null;
         this._minFilter = options.minFilter !== undefined ? options.minFilter : TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR;
         this._magFilter = options.magFilter !== undefined ? options.magFilter : TextureFilter.FILTER_LINEAR;
@@ -234,5 +236,10 @@ export class Texture {
         if (v.width !== undefined) this._width = v.width;
         if (v.height !== undefined) this._height = v.height;
         this.needsUpload = true;
+        this._isReady = true;
+    }
+
+    isReady() {
+        return this._isReady;
     }
 }
