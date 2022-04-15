@@ -725,6 +725,21 @@ class Vec3 {
     static AXIS_X: Vec3 = Object.freeze(new Vec3(1, 0, 0));
     static AXIS_Y: Vec3 = Object.freeze(new Vec3(0, 1, 0));
     static AXIS_Z: Vec3 = Object.freeze(new Vec3(0, 0, 1));
+
+    /**
+     * Returns a new Vector3 set to (0.0, 0.0, 0.0)
+     * @returns a new empty Vector3
+     */
+    public static Zero(): Vec3 {
+        return new Vec3(0.0, 0.0, 0.0);
+    }
+    /**
+     * Returns a new Vector3 set to (1.0, 1.0, 1.0)
+     * @returns a new unit Vector3
+     */
+    public static One(): Vec3 {
+        return new Vec3(1.0, 1.0, 1.0);
+    }
 }
 
 export { Vec3 };
