@@ -7,6 +7,7 @@ import { Material } from "../material";
 import { Color4 } from "../maths/math.color";
 import { Mat4 } from "../maths/math.mat4";
 import { Mesh } from "../mesh/mesh";
+import { ParticleSystem } from "../particles";
 import { Scene } from "../scene/scene";
 import { RenderTarget } from "./render.target";
 
@@ -74,7 +75,7 @@ export default class Renderer {
 
     renderMesh(mesh: Mesh, camera: Camera) {
         if (mesh.visible == false) return;
-
+        if (!mesh.material.isReady()) return;
         const { geometry, material } = mesh;
         const program = material.program;
 
@@ -82,14 +83,6 @@ export default class Renderer {
         this._setMeshUniform(program, mesh, camera);
         this._readMaterial(material);
         this._engine.engineDraw.draw(geometry.getDrawInfo());
-
-        // 多采样帧缓冲区
-        // if (this.currentRenderTarget && this.currentRenderTarget.isMultisample) {
-        //     const { width, height } = this.currentRenderTarget;
-        //     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.currentRenderTarget.multiSampleFrameBuffer);
-        //     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.currentRenderTarget.normalFrameBuffer);
-        //     gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
-        // }
     }
 
     setRenderTarget(target: RenderTarget | null) {
@@ -123,9 +116,27 @@ export default class Renderer {
     renderScene(scene: Scene, camera: Camera) {
         this.clear();
         this.viewport();
-        for (let i = 0; i < scene.children.length; i++) {
-            const mesh = scene.children[i];
-            this.renderMesh(mesh, camera);
+
+        for (let i = 0; i < scene.childrenMesh.length; i++) {
+            const child: Mesh = scene.childrenMesh[i];
+            this.renderMesh(child, camera);
         }
+
+        for (let i = 0; i < scene.childrenParticleSystem.length; i++) {
+            const child: ParticleSystem = scene.childrenParticleSystem[i];
+            this.renderParticleSystem(child, camera);
+        }
+    }
+
+    renderParticleSystem(particleSystem: ParticleSystem, camera: Camera) {
+        if (particleSystem.visible == false) return;
+
+        // const { geometry, material } = particleSystem;
+        // const program = material.program;
+
+        // particleSystem.setBuffers();
+        // this._setMeshUniform(program, particleSystem, camera);
+        // this._readMaterial(material);
+        // this._engine.engineDraw.draw(geometry.getDrawInfo());
     }
 }

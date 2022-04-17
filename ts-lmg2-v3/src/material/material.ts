@@ -1,24 +1,25 @@
 import { Engine } from "../engines/engine";
-import { BlendEquation, BlendMode, BlendType, CompareFunc, CullFace, iProgrameCreateOptions, UniformsType } from "../engines/engine.enum";
+import { BlendEquation, BlendMode, BlendType, CompareFunc, CullFace, iProgrameCreateOptions, iProgrameDefines, iProgramUniforms, UniformsType } from "../engines/engine.enum";
 import { iUniformBlock } from "../engines/engine.uniformBuffer";
+import { ShaderLoader } from "../loader/shader.loader";
 import { cloneUniforms } from "../misc/tool";
 
-export interface iMaterialOptions extends iProgrameCreateOptions {
+export interface iMaterialOptions {
+    vertexShader?: string | string[];
+    fragmentShader?: string | string[];
+    vertexShaderPaths?: string[];
+    fragmentShaderPaths?: string[];
+    shaderRootPath?: string;
+
     depthTest?: boolean;
     depthWrite?: boolean;
     depthFunc?: CompareFunc;
+    uniforms?: iProgramUniforms;
+    defines?: iProgrameDefines;
 }
 export class Material {
     program: any;
     uniforms: any;
-
-    // blending: boolean;
-    // blendingType: any;
-    // blendRGBASrc: any;
-    // blendRGBADst: any;
-    // blendRGB_ASrc: any;
-    // blendRGB_ADst: any;
-    // side: any;
     needUpdate: boolean;
     private _engine: Engine;
     private _blend: boolean;
@@ -42,29 +43,50 @@ export class Material {
     private _blendSrcAlpha: BlendMode;
     private _blendDstAlpha: BlendMode;
     private _blendAlphaEquation: BlendEquation;
+    private _isReady: boolean;
 
     constructor(engine: Engine, materialInfo: iMaterialOptions) {
         this._engine = engine;
-        // let mat = matInfo;
-        this.inputVertexShader = JSON.parse(JSON.stringify(materialInfo.vertexShader));
-        this.inputFragmentShader = JSON.parse(JSON.stringify(materialInfo.fragmentShader));
+        this._isReady = false;
+
+        const load = () => {
+            this.vertexShader = this.inputVertexShader;
+            this.fragmentShader = this.inputFragmentShader;
+
+            const programInfo: any = engine.enginePrograms.createProgram({
+                vertexShader: this.vertexShader,
+                fragmentShader: this.fragmentShader,
+            });
+            this.program = programInfo.program;
+
+            this.vertexShader = programInfo.vertexShader;
+            this.fragmentShader = programInfo.fragmentShader;
+            this._isReady = true;
+        };
+
+        if (materialInfo.vertexShader && materialInfo.fragmentShader) {
+            this.inputVertexShader = JSON.parse(JSON.stringify(materialInfo.vertexShader));
+            this.inputFragmentShader = JSON.parse(JSON.stringify(materialInfo.fragmentShader));
+            load();
+        }
+
+        if (materialInfo.fragmentShaderPaths && materialInfo.vertexShaderPaths) {
+            const loader = new ShaderLoader(engine).setPath(materialInfo.shaderRootPath).load({
+                vsPaths: materialInfo.vertexShaderPaths,
+                fsPaths: materialInfo.fragmentShaderPaths,
+                onLoad: (ret: { vertexShader: string; fragmentShader: string }) => {
+                    this.inputVertexShader = ret.vertexShader;
+                    this.inputFragmentShader = ret.fragmentShader;
+                    load();
+                },
+            });
+        }
         this.uniforms = cloneUniforms(materialInfo.uniforms || {});
 
         this.uniformBlock = {
             blockCatch: new Map(),
             blockIndex: 0,
         };
-        this.vertexShader = this.inputVertexShader;
-        this.fragmentShader = this.inputFragmentShader;
-
-        const programInfo: any = engine.enginePrograms.createProgram({
-            vertexShader: this.vertexShader,
-            fragmentShader: this.fragmentShader,
-        });
-        this.program = programInfo.program;
-
-        this.vertexShader = programInfo.vertexShader;
-        this.fragmentShader = programInfo.fragmentShader;
 
         // 是否需要每帧更新uniform变量
         this.needUpdate = true;
@@ -82,6 +104,10 @@ export class Material {
         this._blendSrcAlpha = BlendMode.BLENDMODE_ONE;
         this._blendDstAlpha = BlendMode.BLENDMODE_ZERO;
         this._blendAlphaEquation = BlendEquation.BLENDEQUATION_ADD;
+    }
+
+    isReady() {
+        return this._isReady;
     }
 
     get separateAlphaBlend(): boolean {

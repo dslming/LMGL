@@ -2,19 +2,22 @@
  * @hidden
  */
 export class FileTools {
-    static LoadImage(src: string, rootPath?: string) {
-        if (rootPath === undefined) rootPath = ""
-            return new Promise(function (resolve, reject) {
-                let img = new Image();
-                img.crossOrigin = "anonymous";
-                img.onload = function () {
-                    resolve(img);
-                };
-                img.onerror = function () {
-                    reject("ERROR WHILE TRYING TO LOAD SKYBOX TEXTURE");
-                };
-                img.src = rootPath+src;
-            });
+    static LoadImage(options: { url: string; rootPath?: string; onLoad?: Function; onError?: Function }) {
+        if (options.rootPath === undefined) options.rootPath = "";
+        return new Promise(function (resolve, reject) {
+            let img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = function () {
+                options.onLoad && options.onLoad(img);
+                resolve(img);
+            };
+            img.onerror = function () {
+                const msg = "error load image," + options.url;
+                options.onError && options.onError(msg);
+                reject(msg);
+            };
+            img.src = options.rootPath + options.url;
+        });
     }
 
     static LoadCubeImages(urls: string[]) {

@@ -2,6 +2,7 @@
 
 import { Camera } from "../cameras/camera";
 import { Mat3, Vec3 } from "../maths";
+import { Texture } from "../texture/texture";
 import { Engine } from "./engine";
 import { iProgramUniforms, UniformsType } from "./engine.enum";
 import { iUniformBlock } from "./engine.uniformBuffer";
@@ -114,12 +115,14 @@ export class EngineUniform {
                 this._engine.engineUniform.handleUniformArray(program, name, value);
             } else if (type == UniformsType.Struct) {
                 this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, uniformBlock);
+            } else if (type == UniformsType.Texture) {
+                const texture = <Texture>value;
+                if (texture.isReady()) {
+                    this._engine.engineUniform.setUniform(program, name, value, type, textureId);
+                    textureId += 1;
+                }
             } else {
                 this._engine.engineUniform.setUniform(program, name, value, type, textureId);
-            }
-
-            if (type == UniformsType.Texture) {
-                textureId += 1;
             }
         }
     }

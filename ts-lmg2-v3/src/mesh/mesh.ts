@@ -62,4 +62,8 @@ export class Mesh {
     public updateMatrix() {
         this.matrix.compose(this.position, this.quaternion, this.scale);
     }
+
+    public getClassName(): string {
+        return "Mesh";
+    }
 }

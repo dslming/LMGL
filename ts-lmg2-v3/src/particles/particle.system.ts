@@ -34,17 +34,23 @@ export class ParticleSystem {
      * The texture used to render each particle. (this can be a spritesheet)
      */
     public particleTexture: Nullable<Texture>;
+    public visible: boolean;
 
     private _particles = new Array<Particle>();
     private _capacity: number;
     private _engine: Engine;
     private _vertexBufferSize: number;
+    public emitRate: number;
+    private _stockParticles = new Array<Particle>();
 
     constructor(name: string, capacity: number, engine: Engine) {
         this.name = name;
         this._capacity = capacity;
         this._engine = engine;
         this._vertexBufferSize = 10;
+        this.visible = true;
+
+        this.emitRate = 1;
     }
 
     _createGeometry() {
@@ -60,11 +66,79 @@ export class ParticleSystem {
         });
     }
 
+    public getClassName(): string {
+        return "ParticleSystem";
+    }
+
     public isReady(): boolean {
         if (!this.particleTexture || !this.particleTexture.isReady()) {
             return false;
         }
 
         return true;
+    }
+
+    updateFunction(particles: Particle[]) {
+        let scaledUpdateSpeed = 0.1;
+
+        for (var index = 0; index < particles.length; index++) {
+            var particle = particles[index];
+            particle.age += scaledUpdateSpeed;
+
+            // Evaluate step to death
+            if (particle.age > particle.lifeTime) {
+                particle.age = particle.lifeTime;
+                this.recycleParticle(particle);
+            }
+        }
+    }
+
+    /**
+     * "Recycles" one of the particle by copying it back to the "stock" of particles and removing it from the active list.
+     * Its lifetime will start back at 0.
+     */
+    public recycleParticle: (particle: Particle) => void = particle => {
+        // move particle from activeParticle list to stock particles
+        // var lastParticle = <Particle>this._particles.pop();
+        // if (lastParticle !== particle) {
+        //     lastParticle.copyTo(particle);
+        // }
+        this._stockParticles.push(particle);
+    };
+
+    private _createParticle: () => Particle = () => {
+        var particle: Particle;
+        // if (this._stockParticles.length !== 0) {
+        //     particle = <Particle>this._stockParticles.pop();
+        //     particle.reset();
+        // } else {
+        // }
+        particle = new Particle(this);
+        return particle;
+    };
+
+    private _update(newParticles: number) {
+        this.updateFunction(this._particles);
+
+        var particle: Particle;
+        for (var index = 0; index < newParticles; index++) {
+            if (this._particles.length === this._capacity) {
+                break;
+            }
+
+            particle = this._createParticle();
+
+            this._particles.push(particle);
+        }
+    }
+
+    public animate() {
+        if (!this.isReady()) {
+            return;
+        }
+
+        let rate = this.emitRate;
+        let newParticles = 1;
+        this._update(newParticles);
     }
 }

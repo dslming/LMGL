@@ -1,7 +1,9 @@
 import * as lmgl from "../src/index";
-// import { run } from "./case/triangle";
-import { run } from "./case/box";
+import { run } from "./case/triangle";
+// import { run } from "./case/box";
 // import { run } from "./case/sprite";
+// import { run } from "./case/particle";
+// import { run } from "./case/texture";
 
 let canvas: any;
 let engine: lmgl.Engine;

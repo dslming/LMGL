@@ -3,6 +3,8 @@ import { CompareFunc, TextureAddress, TextureFilter, TextureFormat } from "../en
 import { Color4 } from "../maths";
 import { IColor4Like } from "../maths/math.like";
 import { MathTool } from "../maths/math.tool";
+import { FileTools } from "../misc/fileTools";
+import { Nullable } from "../types";
 
 export interface iTextureOptions {
     /**
@@ -41,6 +43,10 @@ export interface iTextureOptions {
 
     width?: number;
     height?: number;
+
+    url?: string;
+    onLoad?: Nullable<() => void>;
+    onError?: Nullable<() => void>;
 }
 
 let id = 0;
@@ -101,6 +107,19 @@ export class Texture {
 
         this._width = options.width !== undefined ? options.width : 0;
         this._height = options.height !== undefined ? options.height : 0;
+
+        if (options.url) {
+            FileTools.LoadImage({
+                url: options.url,
+                onLoad: (img: MediaImage) => {
+                    this.source = img;
+                    options?.onLoad && options.onLoad();
+                },
+                onError: (msg: string) => {
+                    options?.onError && options.onError();
+                },
+            });
+        }
     }
 
     get parameterFlags() {

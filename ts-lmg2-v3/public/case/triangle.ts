@@ -2,29 +2,6 @@ import * as lmgl from "../../src/index";
 (window as any).lmgl = lmgl;
 
 export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
-    const vertexShader = `
-in vec3 aPosition;
-in vec4 aColor;
-out vec4 vColor;
-
-uniform mat4 projectionMatrix;
-uniform mat4 modelViewMatrix;
-
-void main() {
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
-    vColor = aColor;
-}
-`;
-
-    const fragmentShader = `
-in vec4 vColor;
-out vec4 FragColor;
-
-void main() {
-FragColor = vColor;
-}
-`;
-
     const geoData = {
         indices: {
             value: [0, 1, 2],
@@ -44,8 +21,9 @@ FragColor = vColor;
     };
 
     const matInfo = {
-        vertexShader,
-        fragmentShader,
+        shaderRootPath: "./public/case/shaders/",
+        vertexShaderPaths: ["triangle.vs"],
+        fragmentShaderPaths: ["triangle.fs"],
     };
 
     const geometry = new lmgl.Geometry(engine, geoData);
@@ -53,5 +31,4 @@ FragColor = vColor;
     const mesh = new lmgl.Mesh(engine, geometry, material);
     mesh.material.cull = lmgl.CullFace.CULLFACE_NONE;
     scene.add(mesh);
-    // mesh.rotation.y = -Math.PI;
 }

@@ -2,6 +2,7 @@ import { CameraControl } from "./cameras/camera.control";
 import { PerspectiveCamera } from "./cameras/PerspectiveCamera";
 import { Engine } from "./engines/engine";
 import { MeshAxis } from "./mesh/mesh.axis";
+import { ParticleSystem } from "./particles";
 import Renderer from "./renderer/renderer";
 import { Scene } from "./scene";
 
@@ -82,6 +83,11 @@ export class Application {
 
     loop() {
         this.control.update();
+
+        for (let i = 0; i < this.scene.childrenParticleSystem.length; i++) {
+            const child: ParticleSystem = this.scene.childrenParticleSystem[i];
+            child.animate();
+        }
 
         if (this.autoRender) {
             this.renderer.renderScene(this.scene, this.camera);

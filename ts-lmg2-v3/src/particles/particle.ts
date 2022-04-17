@@ -18,4 +18,8 @@ export class Particle {
     constructor(particleSystem: ParticleSystem) {
         this.particleSystem = particleSystem;
     }
+
+    reset() {
+        this.age = 0;
+    }
 }

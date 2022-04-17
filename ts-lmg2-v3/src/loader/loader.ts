@@ -9,8 +9,8 @@ export class Loader {
         this.rootPath = "";
     }
 
-    setPath(path: string) {
-        this.rootPath = path;
+    setPath(path?: string) {
+        this.rootPath = path || "";
         return this;
     }
 }
