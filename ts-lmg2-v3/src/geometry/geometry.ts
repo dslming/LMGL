@@ -26,10 +26,13 @@ export interface iGeometryData {
     attributes: iGeometryAttribute[];
     indices?: iGeometryIndex;
     drawType?: PrimitiveType;
+    instancing?: boolean;
 }
 
 export class Geometry {
     private _engine: Engine;
+    public instancing: boolean;
+
     public vertexArrayBuffer: VertexArrayBuffer;
     public indexBuffer: IndexBuffer;
     public drawType: PrimitiveType;
@@ -38,20 +41,33 @@ export class Geometry {
         this._engine = engine;
         this.drawType = geometryData.drawType !== undefined ? geometryData.drawType : PrimitiveType.PRIMITIVE_TRIANGLES;
 
-        this.vertexArrayBuffer = new VertexArrayBuffer(engine, geometryData.attributes);
-        this.indexBuffer = new IndexBuffer(engine, geometryData?.indices);
+        this.instancing = geometryData.instancing !== undefined ? geometryData.instancing : false;
+
+        this.vertexArrayBuffer = new VertexArrayBuffer(engine, geometryData.attributes, this.instancing);
+        if (geometryData?.indices) {
+            this.indexBuffer = new IndexBuffer(engine, geometryData?.indices);
+        }
     }
 
     public setBuffers(program: WebGLProgram): void {
         this.vertexArrayBuffer.unlock(program);
-        this.indexBuffer.unlock();
+        if (this.indexBuffer) {
+            this.indexBuffer.unlock();
+        }
     }
 
     getDrawInfo(): Primitive {
+        let count = 0;
+        if (this.indexBuffer) {
+            count = this.indexBuffer.indexCount;
+        } else {
+            count = this.vertexArrayBuffer.vertexCount;
+        }
+
         return {
             type: this.drawType,
-            indexed: this.indexBuffer.storage,
-            count: this.indexBuffer.indexCount > 0 ? this.indexBuffer.indexCount : this.vertexArrayBuffer.vertexCount,
+            indexed: this.indexBuffer?.storage,
+            count: count,
         };
     }
 }

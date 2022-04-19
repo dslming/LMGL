@@ -58,8 +58,14 @@ export class EngineDraw {
         const mode = this._glPrimitive[primitive.type];
         const count = primitive.count;
         const { gl } = this._engine;
-        if (primitive.indexed && primitive.type === PrimitiveType.PRIMITIVE_TRIANGLES) {
-            gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
+        let numInstances = 1;
+        if (primitive.indexed) {
+            if (numInstances > 0) {
+                gl.drawElementsInstanced(mode, count, gl.UNSIGNED_SHORT, 0, numInstances);
+            } else {
+                gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
+            }
+            // gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
         } else if (primitive.type === PrimitiveType.PRIMITIVE_LINES) {
             gl.lineWidth(1);
             gl.drawArrays(gl.LINES, 0, count);

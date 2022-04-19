@@ -5,6 +5,13 @@ import { Texture } from "../texture/texture";
 import { Nullable } from "../types";
 import { Particle } from "./particle";
 
+import vs from "../shaders/particles.vs";
+import fs from "../shaders/particles.fs";
+import { Material } from "../material";
+
+// console.error(vs);
+// console.error(fs);
+
 /**
    // Create a particle system
     const particleSystem = new BABYLON.ParticleSystem("particles", 2000);
@@ -35,6 +42,7 @@ export class ParticleSystem {
      */
     public particleTexture: Nullable<Texture>;
     public visible: boolean;
+    public material: Nullable<Material>;
 
     private _particles = new Array<Particle>();
     private _capacity: number;
@@ -49,21 +57,8 @@ export class ParticleSystem {
         this._engine = engine;
         this._vertexBufferSize = 10;
         this.visible = true;
-
+        this.material = null;
         this.emitRate = 1;
-    }
-
-    _createGeometry() {
-        this.geometry = new Geometry(this._engine, {
-            attributes: [
-                {
-                    name: "aPosition",
-                    value: new Float32Array(this._vertexBufferSize * this._capacity),
-                    itemSize: 3,
-                    usage: BufferStore.BUFFER_DYNAMIC,
-                },
-            ],
-        });
     }
 
     public getClassName(): string {
@@ -75,6 +70,26 @@ export class ParticleSystem {
             return false;
         }
 
+        if (!this.material) {
+            this.material = new Material(this._engine, {
+                fragmentShader: fs,
+                vertexShader: vs,
+            });
+        }
+
+        if (!this.geometry) {
+            this.geometry = new Geometry(this._engine, {
+                instancing: true,
+                attributes: [
+                    {
+                        name: "aPosition",
+                        value: new Float32Array(this._vertexBufferSize * this._capacity),
+                        itemSize: 3,
+                        usage: BufferStore.BUFFER_DYNAMIC,
+                    },
+                ],
+            });
+        }
         return true;
     }
 
@@ -141,4 +156,14 @@ export class ParticleSystem {
         let newParticles = 1;
         this._update(newParticles);
     }
+
+    render(): number {
+        // Check
+        if (!this.isReady() || !this._particles.length) {
+            return 0;
+        }
+        return 0;
+    }
+
+    start() {}
 }

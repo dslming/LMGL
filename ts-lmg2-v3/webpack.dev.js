@@ -37,6 +37,9 @@ module.exports = {
           transpileOnly: true
         }
       }]
+    }, {
+      test: /\.[glsl|vs|fs]{2,4}$/,
+      loader: 'raw-loader'
     }]
   },
   resolve: {

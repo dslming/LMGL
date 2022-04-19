@@ -16,10 +16,12 @@ export class VertexArrayBuffer {
     private _attributes: iGeometryAttribute[];
     private _buffers = new Map();
     public vertexCount: number;
+    instancing: boolean;
 
-    constructor(engine: Engine, attributes: iGeometryAttribute[]) {
+    constructor(engine: Engine, attributes: iGeometryAttribute[], instancing: boolean) {
         this._engine = engine;
         this._attributes = [];
+        this.instancing = instancing;
 
         // 拷贝数据
         for (let i = 0; i < attributes.length; i++) {

@@ -117,6 +117,7 @@ export class EngineVertex {
 
         // 绑定顶点缓冲区对象,传送给GPU
         gl.vertexAttribPointer(attribure, itemSize, this._glType[dataType], normalized, stride, offset);
+        // 启用顶点数组
         gl.enableVertexAttribArray(attribure);
     }
 

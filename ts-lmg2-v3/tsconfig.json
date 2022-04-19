@@ -1,30 +1,24 @@
 {
-  "compilerOptions": {
-    "noUnusedLocals": false,
-    "importHelpers": true,
-    "moduleResolution": "node",
-    "module": "esNext",
-    "target": "es6",
-    "declaration": false,
-    "sourceMap": false,
-    "experimentalDecorators": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "skipLibCheck": true,
-    "isolatedModules":true,
-    "lib": [
-      "es5",
-      "dom",
-      "es2015.promise",
-      "es2015.collection",
-      "es2015.iterable",
-      "es2015"
-    ],
-    "outDir": "build",
-    // "baseUrl": "./",
-    // "rootDir": "./src-ts/"
-  }
+    "compilerOptions": {
+        "noUnusedLocals": false,
+        "importHelpers": true,
+        "moduleResolution": "node",
+        "module": "esNext",
+        "target": "es6",
+        "declaration": false,
+        "sourceMap": false,
+        "experimentalDecorators": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "skipLibCheck": true,
+        "isolatedModules": true,
+        "types": ["glslify"],
+        "lib": ["es5", "dom", "es2015.promise", "es2015.collection", "es2015.iterable", "es2015"],
+        "outDir": "build"
+        // "baseUrl": "./",
+        // "rootDir": "./src-ts/"
+    }
 }
