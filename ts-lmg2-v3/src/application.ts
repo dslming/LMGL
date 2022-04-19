@@ -44,11 +44,11 @@ export class Application {
             this.handleResize(width, height);
         };
 
-        const axis = new MeshAxis(engine, 20);
-        this._axis = axis;
-        this.scene.add(axis.meshX);
-        this.scene.add(axis.meshY);
-        this.scene.add(axis.meshZ);
+        // const axis = new MeshAxis(engine, 20);
+        // this._axis = axis;
+        // this.scene.add(axis.meshX);
+        // this.scene.add(axis.meshY);
+        // this.scene.add(axis.meshZ);
 
         this.loop();
     }

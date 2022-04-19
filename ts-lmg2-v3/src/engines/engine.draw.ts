@@ -1,22 +1,14 @@
 import { IColor4Like } from "../maths/math.like";
 import { Nullable } from "../types";
 import { Engine } from "./engine";
-
-export enum PrimitiveType {
-    PRIMITIVE_POINTS = 0,
-    PRIMITIVE_LINES = 1,
-    PRIMITIVE_LINELOOP = 2,
-    PRIMITIVE_LINESTRIP = 3,
-    PRIMITIVE_TRIANGLES = 4,
-    PRIMITIVE_TRISTRIP = 5,
-    PRIMITIVE_TRIFAN = 6,
-}
+import { PrimitiveType } from "./engine.enum";
 
 export interface Primitive {
     type?: PrimitiveType;
     indexed?: boolean | undefined | any[];
     count?: number;
     base?: number;
+    instanceCount?: number;
 }
 
 export class EngineDraw {
@@ -47,6 +39,8 @@ export class EngineDraw {
     }
 
     public draw(primitive: Primitive) {
+        const instanceCount = primitive.instanceCount !== undefined ? primitive.instanceCount : 1;
+
         if (!primitive.type) {
             throw new Error("error primitive type");
         }
@@ -58,17 +52,21 @@ export class EngineDraw {
         const mode = this._glPrimitive[primitive.type];
         const count = primitive.count;
         const { gl } = this._engine;
-        let numInstances = 1;
         if (primitive.indexed) {
-            if (numInstances > 0) {
-                gl.drawElementsInstanced(mode, count, gl.UNSIGNED_SHORT, 0, numInstances);
+            if (instanceCount > 0) {
+                gl.drawElementsInstanced(mode, count, gl.UNSIGNED_SHORT, 0, instanceCount);
             } else {
                 gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
             }
-            // gl.drawElements(mode, count, gl.UNSIGNED_SHORT, 0);
         } else if (primitive.type === PrimitiveType.PRIMITIVE_LINES) {
             gl.lineWidth(1);
             gl.drawArrays(gl.LINES, 0, count);
+        } else {
+            if (instanceCount > 0) {
+                gl.drawArraysInstanced(mode, 0, count, instanceCount);
+            } else {
+                gl.drawArrays(mode, 0, count);
+            }
         }
     }
 }

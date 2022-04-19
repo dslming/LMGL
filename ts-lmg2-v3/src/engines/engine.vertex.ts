@@ -102,7 +102,7 @@ export class EngineVertex {
 
     setAttribBuffer(program: WebGLProgram, buffer: any, param: any) {
         const { gl } = this._engine;
-        const { attribureName, attriburData, itemSize, dataType, usage, normalized } = param;
+        const { attribureName, attriburData, itemSize, dataType, usage, normalized, instancing, divisor } = param;
 
         // 属性使能数组
         const attribure = gl.getAttribLocation(program, attribureName);
@@ -117,8 +117,13 @@ export class EngineVertex {
 
         // 绑定顶点缓冲区对象,传送给GPU
         gl.vertexAttribPointer(attribure, itemSize, this._glType[dataType], normalized, stride, offset);
+
         // 启用顶点数组
         gl.enableVertexAttribArray(attribure);
+
+        if (instancing && divisor>0) {
+            gl.vertexAttribDivisor(attribure, divisor);
+        }
     }
 
     getAttribLocation(program: any, name: string) {

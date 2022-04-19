@@ -560,3 +560,13 @@ export enum BlendType {
      */
     BLEND_MAX = 10,
 }
+
+export enum PrimitiveType {
+    PRIMITIVE_POINTS = 0,
+    PRIMITIVE_LINES = 1,
+    PRIMITIVE_LINELOOP = 2,
+    PRIMITIVE_LINESTRIP = 3,
+    PRIMITIVE_TRIANGLES = 4,
+    PRIMITIVE_TRISTRIP = 5,
+    PRIMITIVE_TRIFAN = 6,
+}

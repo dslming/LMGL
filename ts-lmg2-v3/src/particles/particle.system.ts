@@ -79,7 +79,7 @@ export class ParticleSystem {
 
         if (!this.geometry) {
             this.geometry = new Geometry(this._engine, {
-                instancing: true,
+                // instancing: true,
                 attributes: [
                     {
                         name: "aPosition",

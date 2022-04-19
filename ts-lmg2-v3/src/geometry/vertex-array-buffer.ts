@@ -8,6 +8,7 @@ export interface iGeometryAttribute {
     usage?: BufferStore;
     name: string;
     normalized?: boolean;
+    divisor?: number;
 }
 
 export class VertexArrayBuffer {
@@ -34,6 +35,7 @@ export class VertexArrayBuffer {
                 usage: attribute.usage !== undefined ? attribute.usage : BufferStore.BUFFER_STATIC,
                 dataType: attribute.dataType !== undefined ? attribute.dataType : DataType.TYPE_FLOAT32,
                 normalized: attribute.normalized !== undefined ? attribute.normalized : false,
+                divisor: attribute.divisor !== undefined ? attribute.divisor : 0,
             };
             this._attributes.push(cloneAttribute);
         }
@@ -50,28 +52,31 @@ export class VertexArrayBuffer {
             const { name } = attribute;
             this._buffers.set(name, this._engine.engineVertex.createBuffer());
         }
-
-        this._engine.engineVertex.bindVertexArray(null);
     }
 
-    destroy() {}
-
-    unlock(program: WebGLProgram) {
-        if (this._vao === null) {
-            this._createVertexArray();
-        }
-        this._engine.engineVertex.bindVertexArray(this._vao);
-
+    private init(program: WebGLProgram) {
         for (let i = 0; i < this._attributes.length; i++) {
             const attribute: iGeometryAttribute = this._attributes[i];
-            const { value, itemSize, usage, dataType, name } = attribute;
+            const { value, itemSize, usage, dataType, name, divisor } = attribute;
             this._engine.engineVertex.setAttribBuffer(program, this._buffers.get(name), {
                 attribureName: name,
                 attriburData: value,
                 itemSize: itemSize,
                 usage,
                 dataType,
+                divisor,
+                instancing: this.instancing,
             });
         }
     }
+
+    unlock(program: WebGLProgram) {
+        if (this._vao === null) {
+            this._createVertexArray();
+        }
+        this._engine.engineVertex.bindVertexArray(this._vao);
+        this.init(program);
+    }
+
+    destroy() {}
 }

@@ -1,5 +1,4 @@
-import { Engine, UniformsType } from "../engines";
-import { PrimitiveType } from "../engines/engine.draw";
+import { Engine, PrimitiveType, UniformsType } from "../engines";
 import { Geometry, iGeometryData } from "../geometry";
 import { Material } from "../material/material";
 import { Mesh } from "./mesh";
