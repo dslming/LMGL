@@ -15,7 +15,6 @@
         "strictFunctionTypes": true,
         "skipLibCheck": true,
         "isolatedModules": true,
-        "types": ["glslify"],
         "lib": ["es5", "dom", "es2015.promise", "es2015.collection", "es2015.iterable", "es2015"],
         "outDir": "build"
         // "baseUrl": "./",
