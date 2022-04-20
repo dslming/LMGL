@@ -30,6 +30,7 @@
     "webpackbar": "^5.0.0-3"
   },
   "dependencies": {
+    "glslify": "^7.1.1",
     "raw-loader": "^4.0.2"
   }
 }

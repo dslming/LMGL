@@ -11,6 +11,7 @@ export * from "./postprocessing/index";
 export * from "./maths/index";
 export * from "./particles/index";
 
+export * from "./object3D";
 export * from "./misc/index";
 
 export * from "./application";

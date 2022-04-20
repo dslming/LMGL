@@ -186,7 +186,8 @@ export class EngineVertex {
             return;
         }
 
-        if (dataType === DataType.TYPE_ARRAY32) {
+        // 单独处理矩阵属性
+        if (dataType === DataType.TYPE_MAT4) {
             this.setAttributeMat4(buffer, attriburData, attribure, instancing, divisor);
             return;
         }

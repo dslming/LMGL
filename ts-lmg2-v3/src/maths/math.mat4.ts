@@ -740,18 +740,16 @@ class Mat4 {
 
     /**
      * Sets the specified matrix to a rotation matrix equivalent to a rotation around an axis. The
-     * axis must be normalized (unit length) and the angle must be specified in degrees.
+     * axis must be normalized (unit length) and the angle must be specified in 弧度.
      *
      * @param {Vec3} axis - The normalized axis vector around which to rotate.
-     * @param {number} angle - The angle of rotation in degrees.
+     * @param {number} angle - The angle of rotation in 弧度.
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 rotation matrix
-     * var rm = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 90);
+     * var rm = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, Math.PI/4);
      */
     setFromAxisAngle(axis: { x: any; y: any; z: any }, angle: number) {
-        angle *= MathTool.DEG_TO_RAD;
-
         const x = axis.x;
         const y = axis.y;
         const z = axis.z;
@@ -1660,6 +1658,15 @@ class Mat4 {
         return this;
     }
 
+    setPosition(x: number, y: number, z: number) {
+        const te = this.data;
+         te[12] = x;
+         te[13] = y;
+         te[14] = z;
+
+        return this;
+    }
+
     /**
      * A constant matrix set to the identity.
      *
@@ -1667,6 +1674,12 @@ class Mat4 {
      * @readonly
      */
     static IDENTITY = Object.freeze(new Mat4());
+
+    static copyToArrayData(src: Mat4, dist: any) {
+        src.data.forEach((item, index) => {
+            dist[index] = item;
+        });
+    }
 
     /**
      * A constant matrix with all elements set to 0.

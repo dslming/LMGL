@@ -476,9 +476,9 @@ export enum DataType {
     TYPE_FLOAT32 = 6,
 
     /**
-     * 矩阵类型
+     * 矩阵类型 mat4
      */
-    TYPE_ARRAY32 = 7,
+    TYPE_MAT4 = 7,
 }
 
 export enum IndexFormat {

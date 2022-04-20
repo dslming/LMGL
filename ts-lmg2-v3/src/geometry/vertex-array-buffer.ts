@@ -3,7 +3,8 @@ import { BufferStore, DataType } from "../engines/engine.enum";
 
 export interface iGeometryAttribute {
     value: any[] | Float32Array;
-    itemSize: number;
+    // 设置为矩阵时不需要设置itemSize
+    itemSize?: number;
     dataType?: DataType;
     usage?: BufferStore;
     name: string;
@@ -46,7 +47,7 @@ export class VertexArrayBuffer {
         }
 
         // todo:优化, 现在使用用第一个属性的长度
-        this.vertexCount = this._attributes[0].value.length / this._attributes[0].itemSize;
+        this.vertexCount = this._attributes[0].value.length / (this._attributes[0]?.itemSize || 1);
     }
 
     private _createVertexArray() {
@@ -58,7 +59,7 @@ export class VertexArrayBuffer {
             this._buffers.set(name, this._engine.engineVertex.createBuffer());
 
             // 处理矩阵属性
-            if (attribute.dataType === DataType.TYPE_ARRAY32) {
+            if (attribute.dataType === DataType.TYPE_MAT4) {
                 const matrixData = new Float32Array(this._instanceCount * 16);
                 const matrices = [];
                 for (let i = 0; i < this._instanceCount; ++i) {
@@ -100,7 +101,7 @@ export class VertexArrayBuffer {
      * 更新所有属性
      * @param program
      */
-    private init(program: WebGLProgram) {
+    private _updateAllAttribute(program: WebGLProgram) {
         for (let i = 0; i < this._attributes.length; i++) {
             const attribute: iGeometryAttribute = this._attributes[i];
             const { value, itemSize, usage, dataType, name, divisor } = attribute;
@@ -119,6 +120,7 @@ export class VertexArrayBuffer {
     unlock(program: WebGLProgram) {
         if (this._vao === null) {
             this._createVertexArray();
+            this._updateAllAttribute(program);
         }
 
         if (!this._program) {
@@ -126,7 +128,6 @@ export class VertexArrayBuffer {
         }
 
         this._engine.engineVertex.bindVertexArray(this._vao);
-        this.init(program);
     }
 
     getAttribute(name: string) {
@@ -134,5 +135,6 @@ export class VertexArrayBuffer {
             return item.name === name;
         })[0];
     }
+
     destroy() {}
 }

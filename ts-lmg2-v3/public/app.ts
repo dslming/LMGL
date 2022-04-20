@@ -6,7 +6,7 @@ import * as lmgl from "../src/index";
 // import { run } from "./case/texture";
 // import { run } from "./case/instance";
 // import { run } from "./case/instance_base";
-import { run } from "./case/instance_rotation";
+// import { run } from "./case/instance_rotation";
 
 let canvas: any;
 let engine: lmgl.Engine;
