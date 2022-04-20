@@ -78,7 +78,7 @@ export class Geometry {
         return this.vertexArrayBuffer.updateAttribure(name);
     }
 
-    getAttribute(name: string) {
+    getAttribute(name: string): iGeometryAttribute {
         return this.vertexArrayBuffer.getAttribute(name);
     }
 }

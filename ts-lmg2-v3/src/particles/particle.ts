@@ -14,6 +14,7 @@ export class Particle {
     public age = 0;
     public size = 0;
     public scale = new Vec2(1, 1);
+    public speed = new Vec3(0, 0, 0);
 
     constructor(particleSystem: ParticleSystem) {
         this.particleSystem = particleSystem;

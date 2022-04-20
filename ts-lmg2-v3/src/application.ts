@@ -17,7 +17,7 @@ export class Application {
     autoRender: boolean;
     private _axis: MeshAxis;
 
-    constructor(engine: Engine, scene?: Scene) {
+    constructor(engine: Engine, scene?: Scene, options?: { needAxis: boolean }) {
         this.autoRender = true;
         this.engine = engine;
         scene && (this.scene = scene);
@@ -45,16 +45,20 @@ export class Application {
             this.handleResize(width, height);
         };
 
-        const axis = new MeshAxis(engine, 20);
-        this._axis = axis;
-        this.scene.add(axis.meshX);
-        this.scene.add(axis.meshY);
-        this.scene.add(axis.meshZ);
+        if (options && options.needAxis) {
+            const axis = new MeshAxis(engine, 20);
+            this._axis = axis;
+            this.scene.add(axis.meshX);
+            this.scene.add(axis.meshY);
+            this.scene.add(axis.meshZ);
+        }
 
         this.loop();
     }
 
     set needAxis(v: boolean) {
+        if (!this._axis) return;
+
         this._axis.meshX.visible = v;
         this._axis.meshY.visible = v;
         this._axis.meshZ.visible = v;

@@ -130,13 +130,14 @@ export default class Renderer {
 
     renderParticleSystem(particleSystem: ParticleSystem, camera: Camera) {
         if (particleSystem.visible == false) return;
+        if (!particleSystem.isReady()) return;
 
-        // const { geometry, material } = particleSystem;
-        // const program = material.program;
+        const { geometry, material } = particleSystem.mesh;
+        const program = material.program;
 
-        // particleSystem.setBuffers();
-        // this._setMeshUniform(program, particleSystem, camera);
-        // this._readMaterial(material);
-        // this._engine.engineDraw.draw(geometry.getDrawInfo());
+        particleSystem.mesh.setBuffers();
+        this._setMeshUniform(program, particleSystem.mesh, camera);
+        this._readMaterial(material);
+        this._engine.engineDraw.draw(geometry.getDrawInfo());
     }
 }

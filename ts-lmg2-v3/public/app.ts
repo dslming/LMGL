@@ -1,8 +1,8 @@
 import * as lmgl from "../src/index";
 // import { run } from "./case/triangle";
-import { run } from "./case/box";
+// import { run } from "./case/box";
 // import { run } from "./case/sprite";
-// import { run } from "./case/particle";
+import { run } from "./case/particle";
 // import { run } from "./case/texture";
 // import { run } from "./case/instance_base";
 // import { run } from "./case/instance_rotation";
@@ -20,11 +20,14 @@ window.onload = () => {
     canvas = document.getElementById("renderCanvas");
     engine = new lmgl.Engine(canvas);
     scene = new lmgl.Scene(engine);
-    const app = new lmgl.Application(engine, scene);
+    const app = new lmgl.Application(engine, scene, {
+        needAxis: false,
+    });
     (window as any).app = app;
 
     run(engine, scene, app);
 
+    app.needAxis = false;
     app.addUpdate("stats", () => {
         stats.update();
     });

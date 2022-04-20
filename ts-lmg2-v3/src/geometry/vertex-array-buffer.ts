@@ -130,7 +130,7 @@ export class VertexArrayBuffer {
         this._engine.engineVertex.bindVertexArray(this._vao);
     }
 
-    getAttribute(name: string) {
+    getAttribute(name: string): iGeometryAttribute {
         return this._attributes.filter(item => {
             return item.name === name;
         })[0];
