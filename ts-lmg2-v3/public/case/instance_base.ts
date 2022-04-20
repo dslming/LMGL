@@ -28,8 +28,8 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
 
     const matInfo = {
         shaderRootPath: "./public/case/shaders/",
-        vertexShaderPaths: ["instance.vs"],
-        fragmentShaderPaths: ["instance.fs"],
+        vertexShaderPaths: ["instance_base.vs"],
+        fragmentShaderPaths: ["instance_base.fs"],
     };
 
     const geometry = new lmgl.Geometry(engine, geoData);

@@ -4,9 +4,9 @@ import * as lmgl from "../src/index";
 // import { run } from "./case/sprite";
 // import { run } from "./case/particle";
 // import { run } from "./case/texture";
-// import { run } from "./case/instance";
 // import { run } from "./case/instance_base";
 // import { run } from "./case/instance_rotation";
+import { run } from "./case/instance_multilTriangle";
 
 let canvas: any;
 let engine: lmgl.Engine;
@@ -17,6 +17,7 @@ window.onload = () => {
     engine = new lmgl.Engine(canvas);
     scene = new lmgl.Scene(engine);
     const app = new lmgl.Application(engine, scene);
+    (window as any).app = app;
 
     run(engine, scene, app);
 

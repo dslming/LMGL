@@ -1,5 +1,6 @@
 export * from "./math.vec2";
 export * from "./math.vec3";
+export * from "./math.vec4";
 export * from "./math.mat3";
 export * from "./math.mat4";
 export * from "./math.euler";
