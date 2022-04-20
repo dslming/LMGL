@@ -2,12 +2,10 @@ import * as lmgl from "../../src/index";
 (window as any).lmgl = lmgl;
 
 export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
-
     const instances = 100;
     const positions = [];
     const offsets = [];
     const colors = [];
-    const aInstanceMatrix = new Array(instances);
 
     positions.push(0.25, -0.25, 0);
     positions.push(-0.25, 0.25, 0);
@@ -15,7 +13,7 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
 
     const size = 50;
     for (let i = 0; i < instances; i++) {
-        offsets.push(Math.random() * size - size / 2, Math.random() * size - size / 2, Math.random() * size - size/2);
+        offsets.push(Math.random() * size - size / 2, Math.random() * size - size / 2, Math.random() * size - size / 2);
         colors.push(Math.random(), Math.random(), Math.random(), Math.random());
     }
 
@@ -38,12 +36,12 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
             //     itemSize: 3,
             //     divisor: 1,
             // },
-            {
-                name: "aInstanceMatrix",
-                value: aInstanceMatrix,
-                itemSize: 16,
-                divisor: 1,
-            },
+            // {
+            //     name: "aInstanceMatrix",
+            //     value: aInstanceMatrix,
+            //     itemSize: 16,
+            //     divisor: 1,
+            // },
         ],
         instanceCount: instances,
     };

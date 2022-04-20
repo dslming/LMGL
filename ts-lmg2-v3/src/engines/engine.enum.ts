@@ -474,6 +474,11 @@ export enum DataType {
      * Floating point vertex element type.
      */
     TYPE_FLOAT32 = 6,
+
+    /**
+     * 矩阵类型
+     */
+    TYPE_ARRAY32 = 7,
 }
 
 export enum IndexFormat {

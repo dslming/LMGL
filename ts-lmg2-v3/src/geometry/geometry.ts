@@ -45,7 +45,7 @@ export class Geometry {
         this.instancing = geometryData.instanceCount !== undefined ? geometryData.instanceCount > 0 : false;
         this.instanceCount = geometryData.instanceCount !== undefined ? geometryData.instanceCount : 0;
 
-        this.vertexArrayBuffer = new VertexArrayBuffer(engine, geometryData.attributes, this.instancing);
+        this.vertexArrayBuffer = new VertexArrayBuffer(engine, geometryData.attributes, this.instanceCount);
         if (geometryData?.indices) {
             this.indexBuffer = new IndexBuffer(engine, geometryData?.indices);
         }
@@ -72,5 +72,13 @@ export class Geometry {
             count: count,
             instanceCount: this.instanceCount,
         };
+    }
+
+    updateAttribure(name: string) {
+        return this.vertexArrayBuffer.updateAttribure(name);
+    }
+
+    getAttribute(name: string) {
+        return this.vertexArrayBuffer.getAttribute(name);
     }
 }

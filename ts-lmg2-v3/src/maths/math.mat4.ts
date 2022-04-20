@@ -1,5 +1,3 @@
-
-
 /** @typedef {import('./quat.js').Quat} Quat */
 
 import { Quat } from "./math.quat";
@@ -14,6 +12,8 @@ const y = new Vec3();
 const z = new Vec3();
 const scale = new Vec3();
 const _v1 = /*@__PURE__*/ new Vec3();
+let MatType = Float32Array;
+
 /**
  * A 4x4 matrix.
  */
@@ -60,32 +60,32 @@ class Mat4 {
         }
 
         var te = this.data;
-        	const x = (2 * near) / (right - left);
-            const y = (2 * near) / (top - bottom);
+        const x = (2 * near) / (right - left);
+        const y = (2 * near) / (top - bottom);
 
-            const a = (right + left) / (right - left);
-            const b = (top + bottom) / (top - bottom);
-            const c = -(far + near) / (far - near);
-            const d = (-2 * far * near) / (far - near);
+        const a = (right + left) / (right - left);
+        const b = (top + bottom) / (top - bottom);
+        const c = -(far + near) / (far - near);
+        const d = (-2 * far * near) / (far - near);
 
-            te[0] = x;
-            te[4] = 0;
-            te[8] = a;
-            te[12] = 0;
-            te[1] = 0;
-            te[5] = y;
-            te[9] = b;
-            te[13] = 0;
-            te[2] = 0;
-            te[6] = 0;
-            te[10] = c;
-            te[14] = d;
-            te[3] = 0;
-            te[7] = 0;
-            te[11] = -1;
-            te[15] = 0;
+        te[0] = x;
+        te[4] = 0;
+        te[8] = a;
+        te[12] = 0;
+        te[1] = 0;
+        te[5] = y;
+        te[9] = b;
+        te[13] = 0;
+        te[2] = 0;
+        te[6] = 0;
+        te[10] = c;
+        te[14] = d;
+        te[3] = 0;
+        te[7] = 0;
+        te[11] = -1;
+        te[15] = 0;
 
-            return this;
+        return this;
     }
     // makePerspectiveRH(left: number, arg1: number, top: number, arg3: number, near: any, far: any) {
     //   throw new Error('Method not implemented.');
@@ -815,6 +815,168 @@ class Mat4 {
         m[15] = 1;
 
         return this;
+    }
+
+    static SetTranslate(x: number, y: number, z: number, dist: []) {
+        const m: any = dist;
+
+        m[0] = 1;
+        m[1] = 0;
+        m[2] = 0;
+        m[3] = 0;
+        m[4] = 0;
+        m[5] = 1;
+        m[6] = 0;
+        m[7] = 0;
+        m[8] = 0;
+        m[9] = 0;
+        m[10] = 1;
+        m[11] = 0;
+        m[12] = x;
+        m[13] = y;
+        m[14] = z;
+        m[15] = 1;
+    }
+
+    /**
+     * Multiply by an x rotation matrix
+     * @param {Matrix4} m matrix to multiply
+     * @param {number} angleInRadians amount to rotate
+     * @param {Matrix4} [dst] optional matrix to store result
+     * @return {Matrix4} dst or a new matrix if none provided
+     * @memberOf module:webgl-3d-math
+     */
+    static XRotate(m: any, angleInRadians: number, dst: any) {
+        // this is the optimized version of
+        // return multiply(m, xRotation(angleInRadians), dst);
+        dst = dst || new MatType(16);
+
+        var m10 = m[4];
+        var m11 = m[5];
+        var m12 = m[6];
+        var m13 = m[7];
+        var m20 = m[8];
+        var m21 = m[9];
+        var m22 = m[10];
+        var m23 = m[11];
+        var c = Math.cos(angleInRadians);
+        var s = Math.sin(angleInRadians);
+
+        dst[4] = c * m10 + s * m20;
+        dst[5] = c * m11 + s * m21;
+        dst[6] = c * m12 + s * m22;
+        dst[7] = c * m13 + s * m23;
+        dst[8] = c * m20 - s * m10;
+        dst[9] = c * m21 - s * m11;
+        dst[10] = c * m22 - s * m12;
+        dst[11] = c * m23 - s * m13;
+
+        if (m !== dst) {
+            dst[0] = m[0];
+            dst[1] = m[1];
+            dst[2] = m[2];
+            dst[3] = m[3];
+            dst[12] = m[12];
+            dst[13] = m[13];
+            dst[14] = m[14];
+            dst[15] = m[15];
+        }
+
+        return dst;
+    }
+
+    /**
+     * Multiply by an y rotation matrix
+     * @param {Matrix4} m matrix to multiply
+     * @param {number} angleInRadians amount to rotate
+     * @param {Matrix4} [dst] optional matrix to store result
+     * @return {Matrix4} dst or a new matrix if none provided
+     * @memberOf module:webgl-3d-math
+     */
+    static YRotate(m: any, angleInRadians: number, dst: any) {
+        // this is the optimized version of
+        // return multiply(m, yRotation(angleInRadians), dst);
+        dst = dst || new MatType(16);
+
+        var m00 = m[0 * 4 + 0];
+        var m01 = m[0 * 4 + 1];
+        var m02 = m[0 * 4 + 2];
+        var m03 = m[0 * 4 + 3];
+        var m20 = m[2 * 4 + 0];
+        var m21 = m[2 * 4 + 1];
+        var m22 = m[2 * 4 + 2];
+        var m23 = m[2 * 4 + 3];
+        var c = Math.cos(angleInRadians);
+        var s = Math.sin(angleInRadians);
+
+        dst[0] = c * m00 - s * m20;
+        dst[1] = c * m01 - s * m21;
+        dst[2] = c * m02 - s * m22;
+        dst[3] = c * m03 - s * m23;
+        dst[8] = c * m20 + s * m00;
+        dst[9] = c * m21 + s * m01;
+        dst[10] = c * m22 + s * m02;
+        dst[11] = c * m23 + s * m03;
+
+        if (m !== dst) {
+            dst[4] = m[4];
+            dst[5] = m[5];
+            dst[6] = m[6];
+            dst[7] = m[7];
+            dst[12] = m[12];
+            dst[13] = m[13];
+            dst[14] = m[14];
+            dst[15] = m[15];
+        }
+
+        return dst;
+    }
+
+    /**
+     * Multiply by an z rotation matrix
+     * @param {Matrix4} m matrix to multiply
+     * @param {number} angleInRadians amount to rotate
+     * @param {Matrix4} [dst] optional matrix to store result
+     * @return {Matrix4} dst or a new matrix if none provided
+     * @memberOf module:webgl-3d-math
+     */
+    static ZRotate(m: any, angleInRadians: number, dst: any) {
+        // This is the optimized version of
+        // return multiply(m, zRotation(angleInRadians), dst);
+        dst = dst || new MatType(16);
+
+        var m00 = m[0 * 4 + 0];
+        var m01 = m[0 * 4 + 1];
+        var m02 = m[0 * 4 + 2];
+        var m03 = m[0 * 4 + 3];
+        var m10 = m[1 * 4 + 0];
+        var m11 = m[1 * 4 + 1];
+        var m12 = m[1 * 4 + 2];
+        var m13 = m[1 * 4 + 3];
+        var c = Math.cos(angleInRadians);
+        var s = Math.sin(angleInRadians);
+
+        dst[0] = c * m00 + s * m10;
+        dst[1] = c * m01 + s * m11;
+        dst[2] = c * m02 + s * m12;
+        dst[3] = c * m03 + s * m13;
+        dst[4] = c * m10 - s * m00;
+        dst[5] = c * m11 - s * m01;
+        dst[6] = c * m12 - s * m02;
+        dst[7] = c * m13 - s * m03;
+
+        if (m !== dst) {
+            dst[8] = m[8];
+            dst[9] = m[9];
+            dst[10] = m[10];
+            dst[11] = m[11];
+            dst[12] = m[12];
+            dst[13] = m[13];
+            dst[14] = m[14];
+            dst[15] = m[15];
+        }
+
+        return dst;
     }
 
     /**

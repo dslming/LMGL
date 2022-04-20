@@ -100,6 +100,81 @@ export class EngineVertex {
         gl.bufferData(this._glBufferType[target], arrayBuffer, glUsage);
     }
 
+    /**
+     * 初始化矩阵属性
+     * @param buffer
+     * @param usage
+     * @param length
+     */
+    initAttributeMat4(buffer: any, usage: BufferStore, length: number) {
+        const { gl, webgl2 } = this._engine;
+
+        // 绑定缓冲区
+        gl.bindBuffer(this._glBufferType[BufferType.ARRAY_BUFFER], buffer);
+
+        let glUsage: any;
+        switch (usage) {
+            case BufferStore.BUFFER_STATIC:
+                glUsage = gl.STATIC_DRAW;
+                break;
+            case BufferStore.BUFFER_DYNAMIC:
+                glUsage = gl.DYNAMIC_DRAW;
+                break;
+            case BufferStore.BUFFER_STREAM:
+                glUsage = gl.STREAM_DRAW;
+                break;
+            case BufferStore.BUFFER_GPUDYNAMIC:
+                if (webgl2) {
+                    glUsage = gl.DYNAMIC_COPY;
+                } else {
+                    glUsage = gl.STATIC_DRAW;
+                }
+                break;
+        }
+
+        // 缓冲区指定数据
+        gl.bufferData(this._glBufferType[BufferType.ARRAY_BUFFER], length, glUsage);
+    }
+
+    /**
+     * 更新矩阵类型的属性,只支持mat4
+     * https://webglfundamentals.org/webgl/webgl-instanced-drawing-projection-view.html
+     * https://webglfundamentals.org/webgl/lessons/webgl-instanced-drawing.html
+     * @param buffer
+     * @param value
+     * @param location
+     * @param instancing
+     * @param divisor
+     */
+    setAttributeMat4(buffer: any, value: any, location: number, instancing: boolean, divisor: number) {
+        const { gl } = this._engine;
+
+        // upload the new matrix data
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, value);
+
+        // set all 4 attributes for matrix
+        const bytesPerMatrix = 4 * 16;
+        for (let i = 0; i < 4; ++i) {
+            const loc = location + i;
+            gl.enableVertexAttribArray(loc);
+            // note the stride and offset
+            const offset = i * 16; // 4 floats per row, 4 bytes per float
+            gl.vertexAttribPointer(
+                loc, // location
+                4, // size (num values to pull from buffer per iteration)
+                gl.FLOAT, // type of data in buffer
+                false, // normalize
+                bytesPerMatrix, // stride, num bytes to advance to get to next set of values
+                offset // offset in buffer
+            );
+            // this line says this attribute only changes for each 1 instance
+            if (instancing && divisor > 0) {
+                gl.vertexAttribDivisor(loc, divisor);
+            }
+        }
+    }
+
     setAttribBuffer(program: WebGLProgram, buffer: any, param: any) {
         const { gl } = this._engine;
         const { attribureName, attriburData, itemSize, dataType, usage, normalized, instancing, divisor } = param;
@@ -108,6 +183,11 @@ export class EngineVertex {
         const attribure = gl.getAttribLocation(program, attribureName);
         if (attribure == -1) {
             Logger.Warn(`attribureName 不存在...,${attribureName}`);
+            return;
+        }
+
+        if (dataType === DataType.TYPE_ARRAY32) {
+            this.setAttributeMat4(buffer, attriburData, attribure, instancing, divisor);
             return;
         }
 
@@ -121,7 +201,7 @@ export class EngineVertex {
         // 启用顶点数组
         gl.enableVertexAttribArray(attribure);
 
-        if (instancing && divisor>0) {
+        if (instancing && divisor > 0) {
             gl.vertexAttribDivisor(attribure, divisor);
         }
     }

@@ -12,6 +12,7 @@ export class Application {
     public camera: PerspectiveCamera;
     public renderer: Renderer;
     public control: CameraControl;
+    private _loopFunc = new Map();
 
     autoRender: boolean;
     private _axis: MeshAxis;
@@ -44,11 +45,11 @@ export class Application {
             this.handleResize(width, height);
         };
 
-        // const axis = new MeshAxis(engine, 20);
-        // this._axis = axis;
-        // this.scene.add(axis.meshX);
-        // this.scene.add(axis.meshY);
-        // this.scene.add(axis.meshZ);
+        const axis = new MeshAxis(engine, 20);
+        this._axis = axis;
+        this.scene.add(axis.meshX);
+        this.scene.add(axis.meshY);
+        this.scene.add(axis.meshZ);
 
         this.loop();
     }
@@ -81,8 +82,19 @@ export class Application {
         };
     }
 
+    addUpdate(name: string, callback: Function) {
+        this._loopFunc.set(name, callback);
+    }
+
+    removeUpdate(name: string) {
+        this._loopFunc.delete(name);
+    }
+
     loop() {
         this.control.update();
+        this._loopFunc.forEach(callback => {
+            callback();
+        });
 
         for (let i = 0; i < this.scene.childrenParticleSystem.length; i++) {
             const child: ParticleSystem = this.scene.childrenParticleSystem[i];
