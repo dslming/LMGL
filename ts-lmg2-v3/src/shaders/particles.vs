@@ -22,6 +22,6 @@ void main() {
     rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;
 
     mvPosition.xy += rotatedPosition;
-
+    vUv = aUv;
     gl_Position = projectionMatrix * mvPosition;
 }

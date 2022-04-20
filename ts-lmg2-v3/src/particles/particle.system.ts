@@ -1,4 +1,4 @@
-import { BufferStore, Engine, PrimitiveType, UniformsType } from "../engines";
+import { BlendType, BufferStore, Engine, PrimitiveType, UniformsType } from "../engines";
 import { Geometry } from "../geometry";
 import { Vec3 } from "../maths/math.vec3";
 import { Texture } from "../texture/texture";
@@ -11,26 +11,6 @@ import { Material } from "../material";
 import { Mesh } from "../mesh";
 import { Vec2 } from "../maths";
 import { iGeometryAttribute } from "../geometry/vertex-array-buffer";
-
-// console.error(vs);
-// console.error(fs);
-
-/**
-   // Create a particle system
-    const particleSystem = new BABYLON.ParticleSystem("particles", 2000);
-
-    //Texture of each particle
-    particleSystem.particleTexture = new BABYLON.Texture("textures/flare.png");
-
-    // Position where the particles are emitted from
-    particleSystem.emitter = new BABYLON.Vector3(0, 0.5, 0);
-    particleSystem.start();
-
-    particleSystem.minSize = 0.25;
-    particleSystem.maxSize = 0.25
-
-    particleSystem.emitRate = 5;
- */
 
 export interface iParticleOptions {
     name?: string;
@@ -63,10 +43,10 @@ export class ParticleSystem {
 
     constructor(engine: Engine, options: iParticleOptions) {
         this.name = options.name !== undefined ? options.name : "default";
-        this._capacity = options.capacity !== undefined ? options.capacity : 10;
+        this._capacity = options.capacity !== undefined ? options.capacity : 200;
         this.size = options.size !== undefined ? options.size : new Vec2(1, 1);
         this._engine = engine;
-        this._vertexBufferSize = 10;
+        // this._vertexBufferSize = 10;
         this.visible = true;
         this.material = null;
         this.emitRate = 1;
@@ -87,8 +67,10 @@ export class ParticleSystem {
                 vertexShader: vs,
                 uniforms: {
                     uSize: { type: UniformsType.Vec2, value: this.size },
+                    uTexture: { type: UniformsType.Texture, value: this.particleTexture },
                 },
             });
+            this.material.blendType = BlendType.BLEND_ADDITIVEALPHA;
         }
 
         if (!this.geometry) {
@@ -100,6 +82,11 @@ export class ParticleSystem {
                         value: [-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0],
                         itemSize: 3,
                         usage: BufferStore.BUFFER_DYNAMIC,
+                    },
+                    {
+                        name: "aUv",
+                        value: [0, 0, 0, 1, 1, 1, 0, 1],
+                        itemSize: 2,
                     },
                     {
                         name: "offsets",
@@ -139,6 +126,10 @@ export class ParticleSystem {
             particle.age += scaledUpdateSpeed;
             particle.position.y += 0.01;
 
+            if (particle.position.y > 10) {
+                particle.position.y = -5;
+            }
+
             // Evaluate step to death
             // if (particle.age > particle.lifeTime) {
             //     particle.age = particle.lifeTime;
@@ -168,6 +159,8 @@ export class ParticleSystem {
         // } else {
         // }
         particle = new Particle(this);
+        particle.position.x = Math.random() * 20 - 10;
+        particle.position.y = -Math.random() * 10;
         return particle;
     };
 

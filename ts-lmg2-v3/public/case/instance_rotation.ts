@@ -59,14 +59,14 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
         const translation = new lmgl.Mat4();
         const rotation = new lmgl.Mat4();
         const parent = new lmgl.Mat4();
-        const final = new lmgl.Mat4()
+        const final = new lmgl.Mat4();
 
         // update all the matrices
         attribute.matrices.forEach((mat: any, ndx: number) => {
             const x = ndx === 0 ? -2 : 2;
 
             // 绕自身的旋转
-            translation.setTranslate(0, -1.73/3, 0);
+            translation.setTranslate(0, -1.73 / 3, 0);
             rotation.setFromAxisAngle(lmgl.Vec3.AXIS_Z, time + 4 * time * ndx);
             // 先平移,然后旋转
             final.mul2(rotation, translation);
