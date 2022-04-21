@@ -25,7 +25,8 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
     const geometry = new lmgl.Geometry(engine, geoData);
     const material = new lmgl.Material(engine, matInfo);
     const mesh = new lmgl.Mesh(engine, geometry, material);
-    mesh.material.blendType = lmgl.BlendType.BLEND_NORMAL;
+    // mesh.material.blendType = lmgl.BlendType.BLEND_NORMAL;
+    mesh.material.cull = lmgl.CullFace.CULLFACE_FRONT;
     scene.add(mesh);
     // mesh.rotation.y = -Math.PI;
 }

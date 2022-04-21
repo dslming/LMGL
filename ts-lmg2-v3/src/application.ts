@@ -31,10 +31,10 @@ export class Application {
         this.control = new CameraControl(
             {
                 distance: this.camera.position.z,
-                distRange: {
-                    min: this.camera.near,
-                    max: this.camera.far,
-                },
+                // distRange: {
+                //     min: this.camera.near,
+                //     max: this.camera.far,
+                // },
             },
             this.camera,
             this.engine.renderingCanvas

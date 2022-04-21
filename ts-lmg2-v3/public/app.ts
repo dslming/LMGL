@@ -2,11 +2,12 @@ import * as lmgl from "../src/index";
 // import { run } from "./case/triangle";
 // import { run } from "./case/box";
 // import { run } from "./case/sprite";
-import { run } from "./case/particle";
+// import { run } from "./case/particle";
 // import { run } from "./case/texture";
 // import { run } from "./case/instance_base";
 // import { run } from "./case/instance_rotation";
 // import { run } from "./case/instance_multilTriangle";
+import { run } from "./case/skybox";
 
 let canvas: any;
 let engine: lmgl.Engine;

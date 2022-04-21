@@ -20,7 +20,7 @@ export class FileTools {
         });
     }
 
-    static LoadCubeImages(urls: string[]) {
+    static LoadCubeImages(options: { urls: string[]; onLoad?: Function; onError?: Function }) {
         return new Promise(function (resolve, reject) {
             let ct = 0;
             let img = new Array(6);
@@ -30,13 +30,16 @@ export class FileTools {
                 img[i].onload = function () {
                     ct++;
                     if (ct == 6) {
+                        options.onLoad && options.onLoad(img);
                         resolve(img);
                     }
                 };
                 img[i].onerror = function () {
-                    reject("ERROR WHILE TRYING TO LOAD SKYBOX TEXTURE");
+                    const msg = "ERROR WHILE TRYING TO LOAD SKYBOX TEXTURE" + options.urls[i];
+                    options.onError && options.onError(msg);
+                    reject(msg);
                 };
-                img[i].src = urls[i];
+                img[i].src = options.urls[i];
             }
         });
     }

@@ -301,7 +301,7 @@ export class EngineTexture {
         }
     }
 
-    uploadTexture(texture: Texture) {
+    private _uploadTexture2d(texture: Texture) {
         const { gl } = this._engine;
         let mipLevel = 0;
 
@@ -319,6 +319,29 @@ export class EngineTexture {
             gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, texture.source);
         }
     }
+
+    private _uploadTextureCube(texture: Texture) {
+        const { gl } = this._engine;
+
+        // Upload the byte array
+        const mipLevel = 0;
+        for (let face = 0; face < 6; face++) {
+            const texImage = texture.source[face];
+
+            this.setUnpackFlipY(false);
+            this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texImage);
+        }
+    }
+
+    uploadTexture(texture: Texture) {
+        if (texture.cubemap) {
+            this._uploadTextureCube(texture);
+        } else {
+            this._uploadTexture2d(texture);
+        }
+    }
+
     /**
      * If the texture is not bound on the specified texture unit, active the texture unit and bind
      * the texture to it.

@@ -117,7 +117,7 @@ export class EngineUniform {
                 this._engine.engineUniformBuffer.handleUniformBlock(program, name, value, uniformBlock);
             } else if (type == UniformsType.Texture) {
                 const texture = <Texture>value;
-                if (texture.isReady()) {
+                if (texture && texture.isReady()) {
                     this._engine.engineUniform.setUniform(program, name, value, type, textureId);
                     textureId += 1;
                 }

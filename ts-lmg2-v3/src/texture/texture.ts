@@ -45,6 +45,7 @@ export interface iTextureOptions {
     height?: number;
 
     url?: string;
+    urls?: string[];
     onLoad?: Nullable<() => void>;
     onError?: Nullable<() => void>;
 }
@@ -111,6 +112,19 @@ export class Texture {
         if (options.url) {
             FileTools.LoadImage({
                 url: options.url,
+                onLoad: (img: MediaImage) => {
+                    this.source = img;
+                    options?.onLoad && options.onLoad();
+                },
+                onError: (msg: string) => {
+                    options?.onError && options.onError();
+                },
+            });
+            this._cubemap = false;
+        } else if (options.urls) {
+            this._cubemap = true;
+            FileTools.LoadCubeImages({
+                urls: options.urls,
                 onLoad: (img: MediaImage) => {
                     this.source = img;
                     options?.onLoad && options.onLoad();
@@ -252,8 +266,15 @@ export class Texture {
     set source(v) {
         this._source = null;
         this._source = v;
-        if (v.width !== undefined) this._width = v.width;
-        if (v.height !== undefined) this._height = v.height;
+
+        if (Array.isArray(v)) {
+            this._width = v[0].width / 4;
+            this._height = v[0].height / 4;
+        } else {
+            this._width = v.width;
+            this._height = v.height;
+        }
+
         this.needsUpload = true;
         this._isReady = true;
     }
