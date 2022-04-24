@@ -54,7 +54,14 @@ export class EngineRenderTarget {
                 this._engine.engineTexture.setTexture(colorBuffer, 0);
             }
             // Attach the color buffer
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorBuffer.glTexture, 0);
+            // prettier-ignore
+            gl.framebufferTexture2D(
+                gl.FRAMEBUFFER,
+                gl.COLOR_ATTACHMENT0,
+                colorBuffer.cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target.face : gl.TEXTURE_2D,
+                colorBuffer.glTexture,
+                0
+            );
         }
 
         const depthBuffer = target.depthBuffer;

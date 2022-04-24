@@ -38,7 +38,7 @@ module.exports = {
         }
       }]
     }, {
-      test: /\.[glsl|vs|fs]{2,4}$/,
+      test: /\.[frag|vert]{2,4}$/,
       loader: 'raw-loader'
     }]
   },

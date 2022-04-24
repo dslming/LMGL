@@ -1,3 +1,2 @@
-declare module "*.glsl";
-declare module "*.vs";
-declare module "*.fs";
+declare module "*.frag";
+declare module "*.vert";

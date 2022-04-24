@@ -5,6 +5,7 @@ import { iUniformBlock } from "../engines/engine.uniformBuffer";
 import { Geometry, iGeometryData, planeBuilder } from "../geometry";
 import { ShaderLoader } from "../loader/shader.loader";
 import { Color4 } from "../maths/math.color";
+import { IViewportLike } from "../maths/math.like";
 import { RenderTarget } from "../renderer";
 
 export interface iCreateProgramsFromFiles {
@@ -62,6 +63,26 @@ export class Postprocessing {
         return this;
     }
 
+    public createProgram(options: { programName: string; vertexShader: string; fragmentShader: string; defines?: iProgrameDefines; uniforms?: iProgramUniforms }) {
+        // const { program, vertexShader, fragmentShader } =
+        const programInfo = this._engine.enginePrograms.createProgram({
+            vertexShader: options.vertexShader,
+            fragmentShader: options.fragmentShader,
+            defines: options.defines,
+        });
+
+        const uniformBlock = {
+            blockCatch: new Map(),
+            blockIndex: 0,
+        };
+        this._programs.set(options.programName, {
+            vertexShader: programInfo.vertexShader,
+            fragmentShader: programInfo.fragmentShader,
+            program: programInfo.program,
+            uniforms: options.uniforms,
+            uniformBlock,
+        });
+    }
     private async _createProgramFromFiles(programName: string, vertexShaderPath: string | string[], fragmentShaderPath: string | string[], uniforms?: iProgramUniforms, defines?: iProgrameDefines) {
         return new Promise((resolve, reject) => {
             const vsPaths: string[] = Array.isArray(vertexShaderPath) ? vertexShaderPath : [vertexShaderPath];
@@ -74,24 +95,31 @@ export class Postprocessing {
                     fsPaths: fsPaths,
                 })
                 .then((shader: any) => {
-                    const { program, vertexShader, fragmentShader } = this._engine.enginePrograms.createProgram({
+                    // const { program, vertexShader, fragmentShader } = this._engine.enginePrograms.createProgram({
+                    //     vertexShader: shader.vertexShader,
+                    //     fragmentShader: shader.fragmentShader,
+                    //     defines: defines,
+                    // });
+
+                    // const uniformBlock = {
+                    //     blockCatch: new Map(),
+                    //     blockIndex: 0,
+                    // };
+                    // this._programs.set(programName, {
+                    //     vertexShader,
+                    //     fragmentShader,
+                    //     program,
+                    //     uniforms,
+                    //     uniformBlock,
+                    // });
+                    this.createProgram({
                         vertexShader: shader.vertexShader,
                         fragmentShader: shader.fragmentShader,
                         defines: defines,
+                        uniforms: uniforms,
+                        programName,
                     });
-
-                    const uniformBlock = {
-                        blockCatch: new Map(),
-                        blockIndex: 0,
-                    };
-                    this._programs.set(programName, {
-                        vertexShader,
-                        fragmentShader,
-                        program,
-                        uniforms,
-                        uniformBlock,
-                    });
-                    resolve(program);
+                    resolve({});
                 });
         });
     }
@@ -111,6 +139,8 @@ export class Postprocessing {
         });
     }
 
+    // createPrograms() {}
+
     bindFramebuffer(target: RenderTarget | null): Postprocessing {
         this._engine.engineRenderTarget.setRenderTarget(target);
         return this;
@@ -123,15 +153,18 @@ export class Postprocessing {
         return this;
     }
 
-    viewport(): Postprocessing {
+    viewport(viewport?: IViewportLike): Postprocessing {
         const width = this._engine.renderingCanvas.clientWidth;
         const height = this._engine.renderingCanvas.clientHeight;
-        this._engine.engineViewPort.setViewport({
-            x: 0,
-            y: 0,
-            width,
-            height,
-        });
+
+        this._engine.engineViewPort.setViewport(
+            viewport || {
+                x: 0,
+                y: 0,
+                width,
+                height,
+            }
+        );
         return this;
     }
 
@@ -139,6 +172,8 @@ export class Postprocessing {
         this._activeProgram = this._programs.get(programName);
         if (this._activeProgram) {
             this._engine.enginePrograms.useProgram(this._activeProgram.program);
+        } else {
+            console.error("fail...," + `${programName}`)
         }
         return this;
     }
@@ -150,14 +185,17 @@ export class Postprocessing {
 
         // const { vertexBuffer } = this._geometry;
 
+        // this._engine.enginePrograms.useProgram(program);
         this._geometry.setBuffers(this._activeProgram.program);
-        this._engine.enginePrograms.useProgram(program);
 
         if (uniforms) {
             this._engine.engineUniform.handleUniform(program, uniforms, uniformBlock);
-            this._engine.engineUniform.setSystemUniform(program, this._camera);
         }
 
+        this._camera.updateMatrix();
+        this._camera.updateMatrixWorld();
+        this._camera.updateProjectionMatrix();
+        this._engine.engineUniform.setSystemUniform(program, this._camera);
         this._engine.engineDraw.draw(this._geometry.getDrawInfo());
         return this;
     }

@@ -15,3 +15,5 @@ export * from "./object3D";
 export * from "./misc/index";
 
 export * from "./application";
+
+export * from "./pbr/index";

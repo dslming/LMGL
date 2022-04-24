@@ -9,6 +9,16 @@ import { iUniformBlock } from "./engine.uniformBuffer";
 
 export class EngineUniform {
     private _engine: Engine;
+    private _innerUniformName = [
+        "projectionMatrix",
+        "modelViewMatrix",
+        "world",
+        "normalMatrix",
+        "modelMatrix",
+        "vEyePosition",
+        "viewMatrix",
+        "inverseViewTransform",
+    ];
 
     constructor(engine: Engine) {
         this._engine = engine;
@@ -29,8 +39,9 @@ export class EngineUniform {
         // const subName = `${name}_${meshName}`
         // 变量地址
         const addr = gl.getUniformLocation(program, name);
-        if (addr == null) {
-            return;
+        if (addr == null && !this._innerUniformName.includes(name)) {
+            console.warn("fail", name)
+            return
         }
 
         switch (type) {

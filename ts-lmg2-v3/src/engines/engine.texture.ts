@@ -332,6 +332,8 @@ export class EngineTexture {
             this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
             gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texImage);
         }
+
+        gl.generateMipmap(texture.glTarget)
     }
 
     uploadTexture(texture: Texture) {

@@ -6,12 +6,14 @@ import { Material } from "../material/material";
 import { IColor4Like } from "../maths/math.like";
 import { Mesh } from "./mesh";
 
-import vs from "../shaders/skybox.vs";
-import fs from "../shaders/skybox.fs";
+import vs from "../shaders/skybox.vert";
+import fs from "../shaders/skybox.frag";
+import gles3 from '../shaders/gles3.frag'
+
 import { Texture } from "../texture/texture";
 
 export interface iMeshSkyboxOptions {
-    urls: string[];
+    cubeMap: Texture
 }
 
 export class MeshSkybox {
@@ -44,22 +46,22 @@ export class MeshSkybox {
     }
 
     private _getMat(): Material {
-        const { urls } = this._options;
+        // const { urls } = this._options;
 
-        const skyboxTexture = new Texture(this._engine, {
-            urls,
-            minFilter: TextureFilter.FILTER_LINEAR,
-            magFilter: TextureFilter.FILTER_LINEAR,
-            addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-            addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-        });
+        // const skyboxTexture = new Texture(this._engine, {
+        //     urls,
+        //     minFilter: TextureFilter.FILTER_LINEAR,
+        //     magFilter: TextureFilter.FILTER_LINEAR,
+        //     addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+        //     addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+        // });
         return new Material(this._engine, {
             vertexShader: vs,
-            fragmentShader: fs,
+            fragmentShader: `${gles3}\n${fs}`,
             uniforms: {
-                skyboxTexture: { type: UniformsType.Texture, value: skyboxTexture },
-                exposure: { type: UniformsType.Float, value: 1 },
-            },
-        });
+                texture_envAtlas: {type: UniformsType.Texture, value: this._options.cubeMap},
+                exposure: {type: UniformsType.Float, value: 1}
+            }
+        })
     }
 }

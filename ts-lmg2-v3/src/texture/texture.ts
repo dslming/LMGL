@@ -1,5 +1,5 @@
 import { Engine } from "../engines/engine";
-import { CompareFunc, TextureAddress, TextureFilter, TextureFormat } from "../engines/engine.enum";
+import { CompareFunc, TextureAddress, TextureFilter, TextureFormat, TextureProjection, TextureType } from "../engines/engine.enum";
 import { Color4 } from "../maths";
 import { IColor4Like } from "../maths/math.like";
 import { MathTool } from "../maths/math.tool";
@@ -48,6 +48,11 @@ export interface iTextureOptions {
     urls?: string[];
     onLoad?: Nullable<() => void>;
     onError?: Nullable<() => void>;
+
+    type?: TextureType;
+    projection?: TextureProjection;
+    // Specifies whether this cubemap texture requires special seam fixing shader code to look right. Defaults to false.
+    fixCubemapSeams?: boolean;
 }
 
 let id = 0;
@@ -64,6 +69,7 @@ export class Texture {
     private _addressU: TextureAddress;
     private _addressV: TextureAddress;
     private _flipY: boolean;
+    private _fixCubemapSeams: boolean;
 
     private _source: any;
     private _cubemap = false;
@@ -84,6 +90,8 @@ export class Texture {
     private _premultiplyAlpha: any;
 
     public textureUnit: number;
+    private _type: TextureType;
+    private _projection: TextureProjection;
 
     constructor(engine: Engine, options?: iTextureOptions) {
         this._engine = engine;
@@ -101,8 +109,10 @@ export class Texture {
         this._format = options.format !== undefined ? options.format : TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
         this._compareOnRead = options.compareOnRead !== undefined ? options.compareOnRead : false;
         this._compareFunc = options.compareFunc !== undefined ? options.compareFunc : CompareFunc.FUNC_LESS;
-
+        this._type = options.type !== undefined ? options.type : TextureType.TEXTURETYPE_DEFAULT;
         this._premultiplyAlpha = options.premultiplyAlpha !== undefined ? options.premultiplyAlpha : false;
+        this._fixCubemapSeams = options.fixCubemapSeams !== undefined ? options.fixCubemapSeams : false;
+        this._projection = options.projection !== undefined ? options.projection : TextureProjection.TEXTUREPROJECTION_NONE;
 
         this._parameterFlags = 255; // 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128
 
@@ -134,6 +144,18 @@ export class Texture {
                 },
             });
         }
+    }
+
+    get projection() {
+        return this._projection;
+    }
+
+    get fixCubemapSeams() {
+        return this._fixCubemapSeams;
+    }
+
+    get type() {
+        return this._type;
     }
 
     get parameterFlags() {

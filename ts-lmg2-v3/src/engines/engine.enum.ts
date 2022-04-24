@@ -10,6 +10,52 @@ export enum UniformsType {
     "Array",
 }
 
+export enum TextureProjection {
+    /**
+     * Texture data is not stored a specific projection format.
+     */
+    TEXTUREPROJECTION_NONE = "none",
+
+    /**
+     * Texture data is stored in cubemap projection format.
+     */
+    TEXTUREPROJECTION_CUBE = "cube",
+
+    /**
+     * Texture data is stored in equirectangular projection format.
+     */
+    TEXTUREPROJECTION_EQUIRECT = "equirect",
+
+    /**
+     * Texture data is stored in octahedral projection format.
+     */
+    TEXTUREPROJECTION_OCTAHEDRAL = "octahedral",
+}
+
+export enum TextureType {
+    /**
+     * Texture is a default type.
+     */
+    TEXTURETYPE_DEFAULT = "default",
+
+    /**
+     * Texture stores high dynamic range data in RGBM format.
+     */
+    TEXTURETYPE_RGBM = "rgbm",
+
+    /**
+     * Texture stores high dynamic range data in RGBE format.
+     */
+    TEXTURETYPE_RGBE = "rgbe",
+
+    /**
+     * Texture stores normalmap data swizzled in GGGR format. This is used for tangent space normal
+     * maps. The R component is stored in alpha and G is stored in RGB. This packing can result in
+     * higher quality when the texture data is compressed.
+     */
+    TEXTURETYPE_SWIZZLEGGGR = "swizzleGGGR",
+}
+
 export enum TextureFormat {
     /**
      * 8-bit alpha.
@@ -267,6 +313,37 @@ export enum CompareFunc {
     FUNC_ALWAYS = 7,
 }
 
+export enum CubeFace {
+    /**
+     * The positive X face of a cubemap.
+     */
+    CUBEFACE_POSX = 0,
+
+    /**
+     * The negative X face of a cubemap.
+     */
+    CUBEFACE_NEGX = 1,
+
+    /**
+     * The positive Y face of a cubemap.
+     */
+    CUBEFACE_POSY = 2,
+
+    /**
+     * The negative Y face of a cubemap.
+     */
+    CUBEFACE_NEGY = 3,
+
+    /**
+     * The positive Z face of a cubemap.
+     */
+    CUBEFACE_POSZ = 4,
+
+    /**
+     * The negative Z face of a cubemap.
+     */
+    CUBEFACE_NEGZ = 5,
+}
 export interface iProgramUniforms {
     [name: string]: {
         value: any | iProgramUniforms;

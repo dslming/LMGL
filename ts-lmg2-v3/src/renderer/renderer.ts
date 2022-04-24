@@ -55,24 +55,6 @@ export default class Renderer {
         this._engine.engineUniform.setSystemUniform(program, camera);
     }
 
-    // 根据材质设置webgl状态
-    private _readMaterial(material: Material) {
-        this._engine.engineState.setBlending(material.blend);
-        if (material.blend) {
-            if (material.separateAlphaBlend) {
-                this._engine.engineState.setBlendFunctionSeparate(material.blendSrc, material.blendDst, material.blendSrcAlpha, material.blendDstAlpha);
-                this._engine.engineState.setBlendEquationSeparate(material.blendEquation, material.blendAlphaEquation);
-            } else {
-                this._engine.engineState.setBlendFunction(material.blendSrc, material.blendDst);
-                this._engine.engineState.setBlendEquation(material.blendEquation);
-            }
-        }
-        this._engine.engineState.setCullMode(material.cull);
-        this._engine.engineState.setDepthWrite(material.depthWrite);
-        this._engine.engineState.setDepthFunc(material.depthFunc);
-        this._engine.engineState.setDepthTest(material.depthTest);
-    }
-
     renderMesh(mesh: Mesh, camera: Camera) {
         if (mesh.visible == false) return;
         if (!mesh.material.isReady()) return;
@@ -81,7 +63,7 @@ export default class Renderer {
 
         mesh.setBuffers();
         this._setMeshUniform(program, mesh, camera);
-        this._readMaterial(material);
+        this._engine.engineDraw.readMaterial(material);
         this._engine.engineDraw.draw(geometry.getDrawInfo());
     }
 
@@ -137,7 +119,7 @@ export default class Renderer {
 
         particleSystem.mesh.setBuffers();
         this._setMeshUniform(program, particleSystem.mesh, camera);
-        this._readMaterial(material);
+        this._engine.engineDraw.readMaterial(material);
         this._engine.engineDraw.draw(geometry.getDrawInfo());
     }
 }
