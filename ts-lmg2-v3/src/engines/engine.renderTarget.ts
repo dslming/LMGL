@@ -1,5 +1,5 @@
-import { RenderTarget } from "../renderer";
-import { Engine } from "./engine";
+import {RenderTarget} from "../renderer";
+import {Engine} from "./engine";
 
 export class EngineRenderTarget {
     private _engine: Engine;
@@ -18,7 +18,7 @@ export class EngineRenderTarget {
      * @ignore
      */
     setFramebuffer(fb: any) {
-        const { gl } = this._engine;
+        const {gl} = this._engine;
 
         if (this.activeFramebuffer !== fb) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
@@ -38,7 +38,7 @@ export class EngineRenderTarget {
      */
     initRenderTarget(target: RenderTarget) {
         if (target.glFrameBuffer) return;
-        const { gl, webgl2 } = this._engine;
+        const {gl, webgl2} = this._engine;
 
         // ##### Create main FBO #####
         target.glFrameBuffer = gl.createFramebuffer();
@@ -75,12 +75,24 @@ export class EngineRenderTarget {
             }
             // Attach
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, target.depthBuffer.glTexture, 0);
+        } else if (target.depth) {
+            if (!target.glDepthBuffer) {
+                target.glDepthBuffer = gl.createRenderbuffer();
+            }
+            gl.bindRenderbuffer(gl.RENDERBUFFER, target.glDepthBuffer);
+            if (target.stencil) {
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, target.width, target.height);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, target.glDepthBuffer);
+            } else {
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, target.width, target.height);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, target.glDepthBuffer);
+            }
+            gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
-        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     setRenderTarget(target: RenderTarget | null) {
-        const { gl } = this._engine;
+        const {gl} = this._engine;
 
         if (target !== null) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, target.glFrameBuffer);

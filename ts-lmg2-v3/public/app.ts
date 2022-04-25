@@ -8,7 +8,8 @@ import * as lmgl from "../src/index";
 // import { run } from "./case/instance_rotation";
 // import { run } from "./case/instance_multilTriangle";
 // import { run } from "./case/skybox";
-import { run } from "./case/pre_filtered_environment_map";
+// import { run } from "./case/pre_filtered_environment_map";
+import { run } from "./case/post_blackAndWhite";
 
 let canvas: any;
 let engine: lmgl.Engine;

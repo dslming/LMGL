@@ -1,15 +1,15 @@
 // WebGLIndexedBufferRenderer.js
 
-import { Camera } from "../cameras/camera";
-import { Engine } from "../engines/engine";
-import { UniformsType } from "../engines/engine.enum";
-import { Material } from "../material";
-import { Color4 } from "../maths/math.color";
-import { Mat4 } from "../maths/math.mat4";
-import { Mesh } from "../mesh/mesh";
-import { ParticleSystem } from "../particles";
-import { Scene } from "../scene/scene";
-import { RenderTarget } from "./render.target";
+import {Camera} from "../cameras/camera";
+import {Engine} from "../engines/engine";
+import {UniformsType} from "../engines/engine.enum";
+import {Material} from "../material";
+import {Color4} from "../maths/math.color";
+import {Mat4} from "../maths/math.mat4";
+import {Mesh} from "../mesh/mesh";
+import {ParticleSystem} from "../particles";
+import {Scene} from "../scene/scene";
+import {RenderTarget} from "./render.target";
 
 export default class Renderer {
     private _engine: Engine;
@@ -53,25 +53,21 @@ export default class Renderer {
 
         // 与mesh无关的uniform变量
         this._engine.engineUniform.setSystemUniform(program, camera);
-
-
     }
 
     renderMesh(mesh: Mesh, camera: Camera) {
-        if (mesh.visible == false) return
-        if (!mesh.material.isReady()) return
-        const {geometry, material} = mesh
-        const program = material.program
+        if (mesh.visible == false) return;
+        if (!mesh.material.isReady()) return;
+        const {geometry, material} = mesh;
+        const program = material.program;
 
-        mesh.setBuffers()
+        mesh.setBuffers();
 
-        this._engine.enginePrograms.useProgram(program)
+        this._engine.enginePrograms.useProgram(program);
         this._setMeshUniform(program, mesh, camera);
-        material.setUniform()
-        this._engine.engineDraw.readMaterial(material)
-        this._engine.engineDraw.draw(geometry.getDrawInfo())
-
-
+        material.setUniform();
+        this._engine.engineDraw.readMaterial(material);
+        this._engine.engineDraw.draw(geometry.getDrawInfo());
     }
 
     setRenderTarget(target: RenderTarget | null) {
@@ -81,7 +77,7 @@ export default class Renderer {
 
     clear() {
         this._engine.engineState.clear({
-            color: this.clearColor,
+            color: this.clearColor
         });
     }
 
@@ -98,7 +94,7 @@ export default class Renderer {
             x: 0,
             y: 0,
             width,
-            height: height,
+            height: height
         });
     }
 
@@ -121,7 +117,7 @@ export default class Renderer {
         if (particleSystem.visible == false) return;
         if (!particleSystem.isReady()) return;
 
-        const { geometry, material } = particleSystem.mesh;
+        const {geometry, material} = particleSystem.mesh;
         const program = material.program;
 
         particleSystem.mesh.setBuffers();

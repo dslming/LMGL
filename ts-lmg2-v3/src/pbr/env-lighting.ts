@@ -1,16 +1,16 @@
-import { Engine } from "../engines/engine";
-import { TextureAddress, TextureFilter, TextureFormat, TextureProjection, TextureType, UniformsType } from "../engines/engine.enum";
-import { Vec4 } from "../maths/math.vec4";
-import { Texture } from "../texture/texture";
+import {Engine} from "../engines/engine";
+import {TextureAddress, TextureFilter, TextureFormat, TextureProjection, TextureType, UniformsType} from "../engines/engine.enum";
+import {Vec4} from "../maths/math.vec4";
+import {Texture} from "../texture/texture";
 import reprojectFrag from "../shaders/reproject.frag";
 import reprojectVert from "../shaders/reproject.vert";
 import gles3Frag from "../shaders/gles3.frag";
 import fullscreenVert from "../shaders/fullscreen.vert";
 import fullscreenFrag from "../shaders/fullscreen.frag";
 
-import { Postprocessing } from "../postprocessing/postprocessing";
-import { Application } from "../application";
-import { RenderTarget } from "../renderer/render.target";
+import {Postprocessing} from "../postprocessing/postprocessing";
+import {Application} from "../application";
+import {RenderTarget, RenderTargetBufferType} from "../renderer/render.target";
 
 // calculate the number of mipmap levels given texture dimensions
 const calcLevels = (width: number, height: number) => {
@@ -102,11 +102,11 @@ export class EnvLighting {
         }
     ) {
         // table of distribution -> function name
-        const funcNames: { [key: string]: string } = {
+        const funcNames: {[key: string]: string} = {
             none: "reproject",
             lambert: "prefilterSamplesUnweighted",
             phong: "prefilterSamplesUnweighted",
-            ggx: "prefilterSamples",
+            ggx: "prefilterSamples"
         };
 
         const specularPower = options.hasOwnProperty("specularPower") ? options.specularPower : 1;
@@ -153,7 +153,7 @@ export class EnvLighting {
                     value: this.cubeMapTexture
                 }
             }
-        })
+        });
 
         post.useProgram("envPre");
         if (options?.seamPixels) {
@@ -168,17 +168,17 @@ export class EnvLighting {
                 x: (innerWidth + p * 2) / innerWidth,
                 y: (innerHeight + p * 2) / innerHeight,
                 z: -p / innerWidth,
-                w: -p / innerHeight,
+                w: -p / innerHeight
             });
         } else {
-            post.setUniform("uvMod", { x: 1, y: 1, z: 0, w: 0 });
+            post.setUniform("uvMod", {x: 1, y: 1, z: 0, w: 0});
         }
 
         const params = [
             0,
             specularPower,
             source.fixCubemapSeams ? 1.0 / source.width : 0.0, // source seam scale
-            target.fixCubemapSeams ? 1.0 / target.width : 0.0, // target seam scale
+            target.fixCubemapSeams ? 1.0 / target.width : 0.0 // target seam scale
         ];
 
         const params2 = [target.width * target.height * (target.cubemap ? 6 : 1), source.width * source.height * (source.cubemap ? 6 : 1)];
@@ -188,22 +188,23 @@ export class EnvLighting {
         for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
             if (face === null || f === face) {
                 const renderTarget = new RenderTarget(this._engine, {
+                    bufferType: RenderTargetBufferType.colorBuffer,
                     colorBuffer: target,
                     face: f,
-                    depth: false,
+                    depth: false
                 });
                 params[0] = f;
-                post.bindFramebuffer(renderTarget)
-                    .setUniform("params", { x: params[0], y: params[1], z: params[2], w: params[3] })
-                    .setUniform("params2", { x: params2[0], y: params2[1] })
-                    .viewport({ x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w })
+                post.setRenderTarget(renderTarget)
+                    .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
+                    .setUniform("params2", {x: params2[0], y: params2[1]})
+                    .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
                     .render();
             }
         }
         this._isReady = true;
     }
 
-    async gen(options: { urls: string[] }) {
+    async gen(options: {urls: string[]}) {
         const result = new Texture(this._engine, {
             width: 512,
             height: 512,
@@ -213,7 +214,7 @@ export class EnvLighting {
             addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             minFilter: TextureFilter.FILTER_LINEAR,
-            magFilter: TextureFilter.FILTER_LINEAR,
+            magFilter: TextureFilter.FILTER_LINEAR
             // mipmaps: false,
         });
         this.result = result;
@@ -228,7 +229,7 @@ export class EnvLighting {
             this.reprojectTexture(lightingTexture, result, {
                 numSamples: 1,
                 rect: rect,
-                seamPixels: 1,
+                seamPixels: 1
             });
 
             rect.x += rect.w;

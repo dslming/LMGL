@@ -1,12 +1,12 @@
-import { Application } from "../application";
-import { Camera } from "../cameras/camera";
-import { Engine, iProgrameCreateOptions, iProgrameDefines, iProgramUniforms } from "../engines";
-import { iUniformBlock } from "../engines/engine.uniformBuffer";
-import { Geometry, iGeometryData, planeBuilder } from "../geometry";
-import { ShaderLoader } from "../loader/shader.loader";
-import { Color4 } from "../maths/math.color";
-import { IViewportLike } from "../maths/math.like";
-import { RenderTarget } from "../renderer";
+import {Application} from "../application";
+import {Camera} from "../cameras/camera";
+import {CullFace, Engine, iProgrameCreateOptions, iProgrameDefines, iProgramUniforms} from "../engines";
+import {iUniformBlock} from "../engines/engine.uniformBuffer";
+import {Geometry, iGeometryData, planeBuilder} from "../geometry";
+import {ShaderLoader} from "../loader/shader.loader";
+import {Color4} from "../maths/math.color";
+import {IViewportLike} from "../maths/math.like";
+import {RenderTarget} from "../renderer";
 
 export interface iCreateProgramsFromFiles {
     [name: string]: iProgrameCreateOptions;
@@ -39,15 +39,15 @@ export class Postprocessing {
         const model = planeBuilder(2, 2);
         const geoInfo: iGeometryData = {
             indices: {
-                value: model.indices,
+                value: model.indices
             },
             attributes: [
                 {
                     name: "aPosition",
                     value: model.positions,
-                    itemSize: 3,
-                },
-            ],
+                    itemSize: 3
+                }
+            ]
         };
         this._geometry = new Geometry(this._engine, geoInfo);
         this._activeProgram = null;
@@ -63,24 +63,24 @@ export class Postprocessing {
         return this;
     }
 
-    public createProgram(options: { programName: string; vertexShader: string; fragmentShader: string; defines?: iProgrameDefines; uniforms?: iProgramUniforms }) {
+    public createProgram(options: {programName: string; vertexShader: string; fragmentShader: string; defines?: iProgrameDefines; uniforms?: iProgramUniforms}) {
         // const { program, vertexShader, fragmentShader } =
         const programInfo = this._engine.enginePrograms.createProgram({
             vertexShader: options.vertexShader,
             fragmentShader: options.fragmentShader,
-            defines: options.defines,
+            defines: options.defines
         });
 
         const uniformBlock = {
             blockCatch: new Map(),
-            blockIndex: 0,
+            blockIndex: 0
         };
         this._programs.set(options.programName, {
             vertexShader: programInfo.vertexShader,
             fragmentShader: programInfo.fragmentShader,
             program: programInfo.program,
             uniforms: options.uniforms,
-            uniformBlock,
+            uniformBlock
         });
     }
     private async _createProgramFromFiles(programName: string, vertexShaderPath: string | string[], fragmentShaderPath: string | string[], uniforms?: iProgramUniforms, defines?: iProgrameDefines) {
@@ -92,7 +92,7 @@ export class Postprocessing {
                 .setPath(this._rootPath)
                 .load({
                     vsPaths: vsPaths,
-                    fsPaths: fsPaths,
+                    fsPaths: fsPaths
                 })
                 .then((shader: any) => {
                     // const { program, vertexShader, fragmentShader } = this._engine.enginePrograms.createProgram({
@@ -117,7 +117,7 @@ export class Postprocessing {
                         fragmentShader: shader.fragmentShader,
                         defines: defines,
                         uniforms: uniforms,
-                        programName,
+                        programName
                     });
                     resolve({});
                 });
@@ -141,14 +141,14 @@ export class Postprocessing {
 
     // createPrograms() {}
 
-    bindFramebuffer(target: RenderTarget | null): Postprocessing {
+    setRenderTarget(target: RenderTarget | null): Postprocessing {
         this._engine.engineRenderTarget.setRenderTarget(target);
         return this;
     }
 
     clear(): Postprocessing {
         this._engine.engineState.clear({
-            color: this.clearColor,
+            color: this.clearColor
         });
         return this;
     }
@@ -162,7 +162,7 @@ export class Postprocessing {
                 x: 0,
                 y: 0,
                 width,
-                height,
+                height
             }
         );
         return this;
@@ -173,7 +173,7 @@ export class Postprocessing {
         if (this._activeProgram) {
             this._engine.enginePrograms.useProgram(this._activeProgram.program);
         } else {
-            console.error("fail...," + `${programName}`)
+            console.error("fail...," + `${programName}`);
         }
         return this;
     }
@@ -181,11 +181,9 @@ export class Postprocessing {
     render(): Postprocessing {
         if (!this._activeProgram) return this;
 
-        const { program, uniforms, uniformBlock } = this._activeProgram;
+        const {program, uniforms, uniformBlock} = this._activeProgram;
 
-        // const { vertexBuffer } = this._geometry;
-
-        // this._engine.enginePrograms.useProgram(program);
+        this._engine.enginePrograms.useProgram(program);
         this._geometry.setBuffers(this._activeProgram.program);
 
         if (uniforms) {
@@ -196,7 +194,24 @@ export class Postprocessing {
         this._camera.updateMatrixWorld();
         this._camera.updateProjectionMatrix();
         this._engine.engineUniform.setSystemUniform(program, this._camera);
+
+        const oldBlending = this._engine.engineState.getBlending();
+        const oldDepthTest = this._engine.engineState.getDepthTest();
+        const oldDepthWrite = this._engine.engineState.getDepthWrite();
+        const oldCullMode = this._engine.engineState.getCullMode();
+
+        this._engine.engineState.setBlending(false);
+        this._engine.engineState.setDepthTest(false);
+        this._engine.engineState.setDepthWrite(false);
+        this._engine.engineState.setCullMode(CullFace.CULLFACE_NONE);
+
         this._engine.engineDraw.draw(this._geometry.getDrawInfo());
+
+        this._engine.engineState.setBlending(oldBlending);
+        this._engine.engineState.setDepthTest(oldDepthTest);
+        this._engine.engineState.setDepthWrite(oldDepthWrite);
+        this._engine.engineState.setCullMode(oldCullMode);
+
         return this;
     }
 
