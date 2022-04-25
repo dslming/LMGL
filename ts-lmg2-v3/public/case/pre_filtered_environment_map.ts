@@ -14,15 +14,18 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
             "public/images/sky/TEXTURE_CUBE_MAP_POSITIVE_Y.png",
             "public/images/sky/TEXTURE_CUBE_MAP_NEGATIVE_Y.png",
             "public/images/sky/TEXTURE_CUBE_MAP_POSITIVE_Z.png",
-            "public/images/sky/TEXTURE_CUBE_MAP_NEGATIVE_Z.png",
-        ],
+            "public/images/sky/TEXTURE_CUBE_MAP_NEGATIVE_Z.png"
+        ]
     });
 
     const mesh = new lmgl.MeshSkybox(engine, {
         cubeMap: envLighting.result
-    }).mesh
+    }).mesh;
+    scene.add(mesh);
 
     app.addUpdate("loop", () => {
-        if (envLighting.isReady) app.renderer.renderMesh(mesh, app.camera)
+        if (envLighting.isReady) {
+            app.renderer.renderScene(scene, app.camera);
+        }
     });
 }

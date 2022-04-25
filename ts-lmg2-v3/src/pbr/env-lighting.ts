@@ -201,11 +201,11 @@ export class EnvLighting {
                     .render();
             }
         }
-        this._isReady = true;
     }
 
     async gen(options: {urls: string[]}) {
         const result = new Texture(this._engine, {
+            name: "result",
             width: 512,
             height: 512,
             format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
@@ -238,6 +238,9 @@ export class EnvLighting {
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
 
+        result.source = null;
+        this._isReady = true;
+        this._engine.engineRenderTarget.setRenderTarget(null);
         this._engine.engineTexture.unbindTexture(result.glTarget);
     }
 }

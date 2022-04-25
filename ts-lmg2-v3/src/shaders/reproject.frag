@@ -343,5 +343,6 @@ vec4 prefilterSamplesUnweighted() {
 }
 
 void main(void) {
-    FragColor = PROCESS_FUNC();
+    // FragColor = PROCESS_FUNC();
+    FragColor = vec4(1.,0.,0.,1.);
 }

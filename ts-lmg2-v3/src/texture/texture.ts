@@ -1,12 +1,13 @@
-import { Engine } from "../engines/engine";
-import { CompareFunc, TextureAddress, TextureFilter, TextureFormat, TextureProjection, TextureType } from "../engines/engine.enum";
-import { Color4 } from "../maths";
-import { IColor4Like } from "../maths/math.like";
-import { MathTool } from "../maths/math.tool";
-import { FileTools } from "../misc/fileTools";
-import { Nullable } from "../types";
+import {Engine} from "../engines/engine";
+import {CompareFunc, TextureAddress, TextureFilter, TextureFormat, TextureProjection, TextureType} from "../engines/engine.enum";
+import {Color4} from "../maths";
+import {IColor4Like} from "../maths/math.like";
+import {MathTool} from "../maths/math.tool";
+import {FileTools} from "../misc/fileTools";
+import {Nullable} from "../types";
 
 export interface iTextureOptions {
+    name?: string;
     /**
      * Defaults to PIXELFORMAT_R8_G8_B8_A8
      */
@@ -93,6 +94,8 @@ export class Texture {
     private _type: TextureType;
     private _projection: TextureProjection;
 
+    public name: string;
+
     constructor(engine: Engine, options?: iTextureOptions) {
         this._engine = engine;
         this.needsUpload = false;
@@ -128,7 +131,7 @@ export class Texture {
                 },
                 onError: (msg: string) => {
                     options?.onError && options.onError();
-                },
+                }
             });
             this._cubemap = false;
         } else if (options.urls) {
@@ -141,9 +144,11 @@ export class Texture {
                 },
                 onError: (msg: string) => {
                     options?.onError && options.onError();
-                },
+                }
             });
         }
+
+        this.name = options.name !== undefined ? options.name : "default";
     }
 
     get projection() {
@@ -292,7 +297,7 @@ export class Texture {
         if (Array.isArray(v)) {
             this._width = v[0].width / 4;
             this._height = v[0].height / 4;
-        } else {
+        } else if (v) {
             this._width = v.width;
             this._height = v.height;
         }
