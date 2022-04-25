@@ -55,8 +55,6 @@ export class Mesh {
 
     public setBuffers() {
         this.geometry.setBuffers(this.material.program);
-
-        this.material.setUniform();
     }
 
     public updateMatrix() {

@@ -53,18 +53,25 @@ export default class Renderer {
 
         // 与mesh无关的uniform变量
         this._engine.engineUniform.setSystemUniform(program, camera);
+
+
     }
 
     renderMesh(mesh: Mesh, camera: Camera) {
-        if (mesh.visible == false) return;
-        if (!mesh.material.isReady()) return;
-        const { geometry, material } = mesh;
-        const program = material.program;
+        if (mesh.visible == false) return
+        if (!mesh.material.isReady()) return
+        const {geometry, material} = mesh
+        const program = material.program
 
-        mesh.setBuffers();
+        mesh.setBuffers()
+
+        this._engine.enginePrograms.useProgram(program)
         this._setMeshUniform(program, mesh, camera);
-        this._engine.engineDraw.readMaterial(material);
-        this._engine.engineDraw.draw(geometry.getDrawInfo());
+        material.setUniform()
+        this._engine.engineDraw.readMaterial(material)
+        this._engine.engineDraw.draw(geometry.getDrawInfo())
+
+
     }
 
     setRenderTarget(target: RenderTarget | null) {

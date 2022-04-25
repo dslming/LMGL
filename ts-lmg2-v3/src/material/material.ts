@@ -272,7 +272,6 @@ export class Material {
 
     setUniform() {
         const { program, uniforms, uniformBlock } = this;
-        this._engine.enginePrograms.useProgram(program);
         this._engine.engineUniform.handleUniform(program, uniforms, uniformBlock);
     }
 

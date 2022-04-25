@@ -23,6 +23,6 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
     }).mesh
 
     app.addUpdate("loop", () => {
-        app.renderer.renderMesh(mesh, app.camera)
+        if (envLighting.isReady) app.renderer.renderMesh(mesh, app.camera)
     });
 }

@@ -54,7 +54,7 @@ const getProjectionName = (projection: TextureProjection): string => {
 
 export class EnvLighting {
     private _app: Application;
-    private _engine: any;
+    private _engine: Engine;
     private _isReady: boolean;
     result: Texture;
     cubeMapTexture: Texture;
@@ -63,8 +63,12 @@ export class EnvLighting {
         this._app = app;
         this._engine = app.engine;
         this._isReady = false;
+        this._engine = app.engine;
     }
 
+    get isReady() {
+        return this._isReady;
+    }
     getCubeTexture(urls: string[]) {
         return new Promise((resolve, reject) => {
             const lightingTexture = new Texture(this._engine, {
@@ -215,7 +219,7 @@ export class EnvLighting {
         this.result = result;
 
         const rect = new Vec4(0, 0, 512, 256);
-        const levels = 1; //calcLevels(result.width, result.height);
+        const levels = 4; //calcLevels(result.width, result.height);
 
         const lightingTexture: Texture = (await this.getCubeTexture(options.urls)) as any;
         this.cubeMapTexture = lightingTexture;
@@ -232,5 +236,7 @@ export class EnvLighting {
             rect.z = Math.max(1, Math.floor(rect.z * 0.5));
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
+
+        this._engine.engineTexture.unbindTexture(result.glTarget);
     }
 }
