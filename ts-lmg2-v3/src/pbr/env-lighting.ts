@@ -4,9 +4,6 @@ import {Vec4} from "../maths/math.vec4";
 import {Texture} from "../texture/texture";
 import reprojectFrag from "../shaders/reproject.frag";
 import reprojectVert from "../shaders/reproject.vert";
-import gles3Frag from "../shaders/gles3.frag";
-import fullscreenVert from "../shaders/fullscreen.vert";
-import fullscreenFrag from "../shaders/fullscreen.frag";
 
 import {Postprocessing} from "../postprocessing/postprocessing";
 import {Application} from "../application";
@@ -190,14 +187,14 @@ export class EnvLighting {
                 const renderTarget = new RenderTarget(this._engine, {
                     bufferType: RenderTargetBufferType.colorBuffer,
                     colorBuffer: target,
-                    face: f,
-                    depth: false
+                    // face: f,
+                    depth: true
                 });
                 params[0] = f;
                 post.setRenderTarget(renderTarget)
                     .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
                     .setUniform("params2", {x: params2[0], y: params2[1]})
-                    .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
+                    // .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
                     .render();
             }
         }
@@ -206,21 +203,20 @@ export class EnvLighting {
     async gen(options: {urls: string[]}) {
         const result = new Texture(this._engine, {
             name: "result",
-            width: 512,
-            height: 512,
+            width: window.innerWidth,
+            height: window.innerHeight,
             format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
             type: TextureType.TEXTURETYPE_RGBM,
             projection: TextureProjection.TEXTUREPROJECTION_EQUIRECT,
             addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             minFilter: TextureFilter.FILTER_LINEAR,
-            magFilter: TextureFilter.FILTER_LINEAR
-            // mipmaps: false,
+            magFilter: TextureFilter.FILTER_LINEAR,
         });
         this.result = result;
 
         const rect = new Vec4(0, 0, 512, 256);
-        const levels = 4; //calcLevels(result.width, result.height);
+        const levels = 1; //calcLevels(result.width, result.height);
 
         const lightingTexture: Texture = (await this.getCubeTexture(options.urls)) as any;
         this.cubeMapTexture = lightingTexture;
@@ -238,6 +234,7 @@ export class EnvLighting {
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
 
+        result.needsUpload = true;
         result.source = null;
         this._isReady = true;
         this._engine.engineRenderTarget.setRenderTarget(null);

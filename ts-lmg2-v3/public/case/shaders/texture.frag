@@ -4,4 +4,5 @@
 
   void main() {
     FragColor = texture(uTexture, vUv);
+    // FragColor = vec4(vUv,0.,1.);
   }

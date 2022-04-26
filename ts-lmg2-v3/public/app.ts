@@ -10,6 +10,7 @@ import * as lmgl from "../src/index";
 // import { run } from "./case/skybox";
 import {run} from "./case/pre_filtered_environment_map";
 // import { run } from "./case/post_blackAndWhite";
+// import { run } from "./case/post_blackAndWhite_colorbuffer";
 
 let canvas: any;
 let engine: lmgl.Engine;

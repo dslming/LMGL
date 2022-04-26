@@ -31,7 +31,7 @@ export class EngineUniform {
         // 变量地址
         const addr = gl.getUniformLocation(program, name)
         if (addr == null && !this._innerUniformName.includes(name)) {
-            console.warn("fail", name)
+            // console.warn("fail", name)
             return
         }
 
