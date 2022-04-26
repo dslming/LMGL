@@ -57,7 +57,7 @@ export default class Renderer {
 
     renderMesh(mesh: Mesh, camera: Camera) {
         if (mesh.visible == false) return;
-        if (!mesh.material.isReady()) return;
+        if (!mesh.material.program) return;
         const {geometry, material} = mesh;
         const program = material.program;
 

@@ -43,11 +43,9 @@ export class Material {
     private _blendSrcAlpha: BlendMode;
     private _blendDstAlpha: BlendMode;
     private _blendAlphaEquation: BlendEquation;
-    private _isReady: boolean;
 
     constructor(engine: Engine, materialInfo: iMaterialOptions) {
         this._engine = engine;
-        this._isReady = false;
 
         const load = () => {
             this.vertexShader = this.inputVertexShader;
@@ -61,7 +59,6 @@ export class Material {
 
             this.vertexShader = programInfo.vertexShader;
             this.fragmentShader = programInfo.fragmentShader;
-            this._isReady = true;
         };
 
         if (materialInfo.vertexShader && materialInfo.fragmentShader) {
@@ -104,10 +101,6 @@ export class Material {
         this._blendSrcAlpha = BlendMode.BLENDMODE_ONE;
         this._blendDstAlpha = BlendMode.BLENDMODE_ZERO;
         this._blendAlphaEquation = BlendEquation.BLENDEQUATION_ADD;
-    }
-
-    isReady() {
-        return this._isReady;
     }
 
     get separateAlphaBlend(): boolean {

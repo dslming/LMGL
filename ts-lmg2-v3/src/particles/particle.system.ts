@@ -57,7 +57,7 @@ export class ParticleSystem {
     }
 
     public isReady(): boolean {
-        if (!this.particleTexture || !this.particleTexture.isReady()) {
+        if (!this.particleTexture || !this.particleTexture.needsUpload) {
             return false;
         }
 

@@ -2,6 +2,9 @@ import * as lmgl from "../../src/index";
 import {BlendType} from "../../src/index";
 (window as any).lmgl = lmgl;
 
+// 后处理-黑白
+
+
 function addBox(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     const model = lmgl.boxBuilder();
     const geoData = {

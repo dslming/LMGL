@@ -9,7 +9,11 @@ import * as lmgl from "../src/index";
 // import { run } from "./case/instance_multilTriangle";
 // import { run } from "./case/skybox";
 import {run} from "./case/pre_filtered_environment_map";
-// import { run } from "./case/post_blackAndWhite";
+
+// ----------------------------------- postprocessing------------------------
+// import {run} from "./case/postprocessing_blackAndWhite";
+// import { run } from "./case/postprocessing_post_render";
+// import { run } from "./case/postprocessing_render_post";
 // import { run } from "./case/post_blackAndWhite_colorbuffer";
 
 let canvas: any;

@@ -54,6 +54,7 @@ export interface iTextureOptions {
     projection?: TextureProjection;
     // Specifies whether this cubemap texture requires special seam fixing shader code to look right. Defaults to false.
     fixCubemapSeams?: boolean;
+    mipmaps?: boolean;
 }
 
 let id = 0;
@@ -66,6 +67,7 @@ export class Texture {
     private _format: TextureFormat;
     private _compareFunc: CompareFunc;
     private _compareOnRead = false;
+    private _mipmaps: boolean;
 
     private _addressU: TextureAddress;
     private _addressV: TextureAddress;
@@ -78,14 +80,12 @@ export class Texture {
 
     private _width: number;
     private _height: number;
-    private _isReady: any;
 
     public glTexture: any;
     public glFormat: any;
     public glPixelType: any;
     public glInternalFormat: any;
     public glTarget: any;
-    public mipmaps: true;
     public needsUpload: boolean;
     private _parameterFlags: number;
     private _premultiplyAlpha: any;
@@ -93,8 +93,9 @@ export class Texture {
     public textureUnit: number;
     private _type: TextureType;
     private _projection: TextureProjection;
-
+    private _needsMipmapsUpload: boolean;
     public name: string;
+    private _mipmapsUploaded: boolean;
 
     constructor(engine: Engine, options?: iTextureOptions) {
         this._engine = engine;
@@ -102,7 +103,7 @@ export class Texture {
         if (!options) {
             options = {};
         }
-        this._isReady = false;
+        this._mipmaps = true;
         this._source = null;
         this._minFilter = options.minFilter !== undefined ? options.minFilter : TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR;
         this._magFilter = options.magFilter !== undefined ? options.magFilter : TextureFilter.FILTER_LINEAR;
@@ -116,8 +117,6 @@ export class Texture {
         this._premultiplyAlpha = options.premultiplyAlpha !== undefined ? options.premultiplyAlpha : false;
         this._fixCubemapSeams = options.fixCubemapSeams !== undefined ? options.fixCubemapSeams : false;
         this._projection = options.projection !== undefined ? options.projection : TextureProjection.TEXTUREPROJECTION_NONE;
-
-        this._parameterFlags = 255; // 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128
 
         this._width = options.width !== undefined ? options.width : 0;
         this._height = options.height !== undefined ? options.height : 0;
@@ -149,6 +148,18 @@ export class Texture {
         }
 
         this.name = options.name !== undefined ? options.name : "default";
+        this._mipmaps = options.mipmaps !== undefined ? options.mipmaps : true;
+    }
+
+    set mipmaps(v) {
+        if (this._mipmaps !== v) {
+            this._mipmaps = v;
+            if (v) this._needsMipmapsUpload = true;
+        }
+    }
+
+    get mipmaps() {
+        return this._mipmaps;
     }
 
     get projection() {
@@ -289,6 +300,13 @@ export class Texture {
     set height(v) {
         this._height = v;
     }
+    get needsMipmapsUpload() {
+        return this._needsMipmapsUpload;
+    }
+
+    get mipmapsUploaded() {
+        return this._mipmapsUploaded;
+    }
 
     set source(v) {
         this._source = null;
@@ -302,11 +320,45 @@ export class Texture {
             this._height = v.height;
         }
 
-        this.needsUpload = true;
-        this._isReady = true;
+        this.upload();
     }
 
-    isReady() {
-        return this._isReady;
+    // Force a full resubmission of the texture to WebGL (used on a context restore event)
+    dirtyAll() {
+        // this._levelsUpdated = this._cubemap ? [[true, true, true, true, true, true]] : [true];
+
+        this.needsUpload = false;
+        this._needsMipmapsUpload = this._mipmaps;
+        this._mipmapsUploaded = false;
+        this._parameterFlags = 255; // 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128
+    }
+
+    /**
+     * Forces a reupload of the textures pixel data to graphics memory. Ordinarily, this function
+     * is called by internally by {@link Texture#setSource} and {@link Texture#unlock}. However, it
+     * still needs to be called explicitly in the case where an HTMLVideoElement is set as the
+     * source of the texture.  Normally, this is done once every frame before video textured
+     * geometry is rendered.
+     */
+    upload() {
+        this.needsUpload = true;
+        this._needsMipmapsUpload = this._mipmaps;
+    }
+
+    // get the texture's encoding type
+    get encoding() {
+        if (this.type === TextureType.TEXTURETYPE_RGBM) {
+            return "rgbm";
+        }
+
+        if (this.type === TextureType.TEXTURETYPE_RGBE) {
+            return "rgbe";
+        }
+
+        if (this.format === TextureFormat.PIXELFORMAT_RGBA16F || this.format === TextureFormat.PIXELFORMAT_RGBA32F) {
+            return "linear";
+        }
+
+        return "srgb";
     }
 }

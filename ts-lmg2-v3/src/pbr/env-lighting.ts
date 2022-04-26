@@ -4,6 +4,8 @@ import {Vec4} from "../maths/math.vec4";
 import {Texture} from "../texture/texture";
 import reprojectFrag from "../shaders/reproject.frag";
 import reprojectVert from "../shaders/reproject.vert";
+// import reprojectFrag from "../../public/case/shaders/test.frag";
+// import reprojectVert from "../../public/case/shaders/test.vert";
 
 import {Postprocessing} from "../postprocessing/postprocessing";
 import {Application} from "../application";
@@ -52,20 +54,17 @@ const getProjectionName = (projection: TextureProjection): string => {
 export class EnvLighting {
     private _app: Application;
     private _engine: Engine;
-    private _isReady: boolean;
+    public isReady: boolean;
     result: Texture;
     cubeMapTexture: Texture;
 
     constructor(app: Application) {
         this._app = app;
         this._engine = app.engine;
-        this._isReady = false;
         this._engine = app.engine;
+        this.isReady = false;
     }
 
-    get isReady() {
-        return this._isReady;
-    }
     getCubeTexture(urls: string[]) {
         return new Promise((resolve, reject) => {
             const lightingTexture = new Texture(this._engine, {
@@ -127,7 +126,6 @@ export class EnvLighting {
             `#define SUPPORTS_TEXLOD\n`;
 
         const post = new Postprocessing(this._app);
-        (window as any).post = post;
         post.createProgram({
             programName: "envPre",
             vertexShader: reprojectVert,
@@ -151,8 +149,8 @@ export class EnvLighting {
                 }
             }
         });
-
         post.useProgram("envPre");
+
         if (options?.seamPixels) {
             const p = options.seamPixels;
             const w = options.rect ? options.rect.z : target.width;
@@ -181,21 +179,28 @@ export class EnvLighting {
         const params2 = [target.width * target.height * (target.cubemap ? 6 : 1), source.width * source.height * (source.cubemap ? 6 : 1)];
 
         const viewport = options?.rect;
-
-        for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
+        // for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
+        for (let f = 0; f < 2; f++) {
             if (face === null || f === face) {
+                console.error(456);
+
                 const renderTarget = new RenderTarget(this._engine, {
                     bufferType: RenderTargetBufferType.colorBuffer,
-                    colorBuffer: target,
-                    // face: f,
-                    depth: true
+                    width: 512,
+                    height: 512,
+                    name: "renderTarget",
+                    depth: false,
+                    colorBuffer: target
                 });
                 params[0] = f;
                 post.setRenderTarget(renderTarget)
                     .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
                     .setUniform("params2", {x: params2[0], y: params2[1]})
-                    // .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
+                    .viewport()
+                    .clear()
+                    .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
                     .render();
+                renderTarget.destroy();
             }
         }
     }
@@ -203,15 +208,15 @@ export class EnvLighting {
     async gen(options: {urls: string[]}) {
         const result = new Texture(this._engine, {
             name: "result",
-            width: window.innerWidth,
-            height: window.innerHeight,
+            width: 512,
+            height: 512,
             format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
             type: TextureType.TEXTURETYPE_RGBM,
             projection: TextureProjection.TEXTUREPROJECTION_EQUIRECT,
             addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             minFilter: TextureFilter.FILTER_LINEAR,
-            magFilter: TextureFilter.FILTER_LINEAR,
+            magFilter: TextureFilter.FILTER_LINEAR
         });
         this.result = result;
 
@@ -220,7 +225,6 @@ export class EnvLighting {
 
         const lightingTexture: Texture = (await this.getCubeTexture(options.urls)) as any;
         this.cubeMapTexture = lightingTexture;
-
         for (let i = 0; i < levels; ++i) {
             this.reprojectTexture(lightingTexture, result, {
                 numSamples: 1,
@@ -233,11 +237,6 @@ export class EnvLighting {
             rect.z = Math.max(1, Math.floor(rect.z * 0.5));
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
-
-        result.needsUpload = true;
-        result.source = null;
-        this._isReady = true;
-        this._engine.engineRenderTarget.setRenderTarget(null);
-        this._engine.engineTexture.unbindTexture(result.glTarget);
+        this.isReady = true;
     }
 }

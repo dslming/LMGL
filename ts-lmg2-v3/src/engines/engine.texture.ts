@@ -342,6 +342,8 @@ export class EngineTexture {
     }
 
     uploadTexture(texture: Texture) {
+        if (!texture.needsUpload && ((texture.needsMipmapsUpload && texture.mipmapsUploaded) || !texture.pot)) return;
+
         if (texture.cubemap) {
             this._uploadTextureCube(texture)
         } else {

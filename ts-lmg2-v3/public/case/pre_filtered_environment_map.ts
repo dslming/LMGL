@@ -1,7 +1,7 @@
 import * as lmgl from "../../src/index";
 (window as any).lmgl = lmgl;
 
- function getPlane(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
+function getPlane(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
         const model = lmgl.planeBuilder(2, 2);
         const geoInfo = {
             indices: {
@@ -35,7 +35,8 @@ import * as lmgl from "../../src/index";
 
         const geometry = new lmgl.Geometry(engine, geoInfo);
         const material = new lmgl.Material(engine, matInfo);
-        const mesh = new lmgl.Mesh(engine, geometry, material);
+    const mesh = new lmgl.Mesh(engine, geometry, material);
+    mesh.name = "plane"
         material.uniforms.uTexture.value = new lmgl.Texture(engine, {
             url: "./public/images/test.png"
         });
@@ -51,21 +52,23 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
 
     envLighting.gen({
         urls: [
-            "public/images/sky/TEXTURE_CUBE_MAP_POSITIVE_X.png",
-            "public/images/sky/TEXTURE_CUBE_MAP_NEGATIVE_X.png",
-            "public/images/sky/TEXTURE_CUBE_MAP_POSITIVE_Y.png",
-            "public/images/sky/TEXTURE_CUBE_MAP_NEGATIVE_Y.png",
-            "public/images/sky/TEXTURE_CUBE_MAP_POSITIVE_Z.png",
-            "public/images/sky/TEXTURE_CUBE_MAP_NEGATIVE_Z.png"
+            "public/images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_X.png",
+            "public/images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_X.png",
+            "public/images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Y.png",
+            "public/images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Y.png",
+            "public/images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Z.png",
+            "public/images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Z.png"
         ]
     });
 
     // const mesh = new lmgl.MeshSkybox(engine, {
     //     cubeMap: envLighting.result
     // }).mesh;
+    // mesh.name = "skyBox"
     // scene.add(mesh);
 
-    const plane = getPlane(engine,scene,app)
+    const plane = getPlane(engine, scene, app);
+
     app.addUpdate("loop", () => {
         if (envLighting.isReady) {
             plane.material.uniforms.uTexture.value = envLighting.result;

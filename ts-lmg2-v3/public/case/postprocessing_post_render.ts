@@ -1,9 +1,11 @@
 import * as lmgl from "../../src/index";
 (window as any).lmgl = lmgl;
 
-function addBox(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
-    const model = lmgl.boxBuilder();
-    const geoData = {
+// 先后处理,然后进行render
+
+function getPlane(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
+    const model = lmgl.planeBuilder(2, 2);
+    const geoInfo = {
         indices: {
             value: model.indices
         },
@@ -12,45 +14,50 @@ function addBox(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
                 name: "aPosition",
                 value: model.positions,
                 itemSize: 3
+            },
+            {
+                name: "aUv",
+                value: model.uvs,
+                itemSize: 2
             }
         ]
     };
 
-    const matInfo = {
+    const matInfo: lmgl.iMaterialOptions = {
         shaderRootPath: "./public/case/shaders/",
-        vertexShaderPaths: ["box.vs"],
-        fragmentShaderPaths: ["box.fs"]
+        vertexShaderPaths: ["texture.vert"],
+        fragmentShaderPaths: ["texture.frag"],
+        uniforms: {
+            uTexture: {
+                value: null,
+                type: lmgl.UniformsType.Texture
+            }
+        }
     };
 
-    const geometry = new lmgl.Geometry(engine, geoData);
+    const geometry = new lmgl.Geometry(engine, geoInfo);
     const material = new lmgl.Material(engine, matInfo);
     const mesh = new lmgl.Mesh(engine, geometry, material);
-    mesh.material.cull = lmgl.CullFace.CULLFACE_FRONT;
+    material.uniforms.uTexture.value = new lmgl.Texture(engine, {
+        url: "./public/images/test.png"
+    });
     scene.add(mesh);
     return mesh;
 }
 
 export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     app.autoRender = false;
-    const box = addBox(engine, scene, app);
+    const plane = getPlane(engine, scene, app);
 
     const post = new lmgl.Postprocessing(app);
     post.setRootPath("./public/case/shaders/");
 
     await post.createProgramsFromFiles({
-        blackAndWhite: {
-            vertexShader: ["blackAndWhite.vert"],
-            fragmentShader: ["blackAndWhite.frag"],
-            uniforms: {
-                textureSampler: {
-                    type: lmgl.UniformsType.Texture,
-                    value: null
-                }
-            }
+        test: {
+            vertexShader: ["test.vert"],
+            fragmentShader: ["test.frag"],
         }
     });
-
-    const size = app.getRenderSize();
 
     const result = new lmgl.Texture(engine, {
         name: "result",
@@ -64,8 +71,8 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         minFilter: lmgl.TextureFilter.FILTER_LINEAR,
         magFilter: lmgl.TextureFilter.FILTER_LINEAR,
     });
-    console.error(result);
 
+    const size = app.getRenderSize();
     const renderTarget = new lmgl.RenderTarget(engine, {
         bufferType: lmgl.RenderTargetBufferType.colorBuffer,
         width: size.width,
@@ -75,16 +82,10 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         colorBuffer: result,
     });
 
+    post.useProgram("test").setRenderTarget(renderTarget).viewport().clear().render();
+
     app.addUpdate("loop", () => {
-        box.rotation.y += 0.02;
-
-        // 渲染当前场景
-        app.renderer.setRenderTarget(renderTarget);
-        app.renderer.clear();
-        app.renderer.viewport();
-        app.renderer.renderScene(app.scene, app.camera);
-
-        // prettier-ignore
-        post.useProgram("blackAndWhite").setRenderTarget(null).viewport().clear().setUniform("textureSampler", result).render();
+        plane.material.uniforms.uTexture.value = result;
+        app.renderer.renderScene(scene, app.camera);
     });
 }
