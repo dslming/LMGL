@@ -180,7 +180,7 @@ export class EnvLighting {
 
         const viewport = options?.rect;
         // for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
-        for (let f = 0; f < 2; f++) {
+        for (let f = 0; f < 1; f++) {
             if (face === null || f === face) {
                 console.error(456);
 
@@ -225,14 +225,28 @@ export class EnvLighting {
 
         const lightingTexture: Texture = (await this.getCubeTexture(options.urls)) as any;
         this.cubeMapTexture = lightingTexture;
-        for (let i = 0; i < levels; ++i) {
+        // for (let i = 0; i < levels; ++i) {
+        //     this.reprojectTexture(lightingTexture, result, {
+        //         numSamples: 1,
+        //         rect: rect,
+        //         seamPixels: 1
+        //     });
+
+        //     rect.x += rect.w;
+        //     rect.y += rect.w;
+        //     rect.z = Math.max(1, Math.floor(rect.z * 0.5));
+        //     rect.w = Math.max(1, Math.floor(rect.w * 0.5));
+        // }
+
+        rect.set(0, 256, 256, 128);
+        for (let i = 1; i < 2; ++i) {
             this.reprojectTexture(lightingTexture, result, {
-                numSamples: 1,
+                numSamples: 1024,
+                distribution: "ggx",
+                specularPower: Math.max(1, 2048 >> (i * 2)),
                 rect: rect,
                 seamPixels: 1
             });
-
-            rect.x += rect.w;
             rect.y += rect.w;
             rect.z = Math.max(1, Math.floor(rect.z * 0.5));
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));

@@ -1,3 +1,8 @@
+precision highp float;
+#ifdef GL2
+    precision highp sampler2DShadow;
+#endif
+
 vec3 processEnvironment(vec3 color) {
     return color;
 }
@@ -11,17 +16,17 @@ vec4 gammaCorrectInput(vec4 color) {
     return vec4(pow(color.rgb, vec3(2.2)), color.a);
 }
 vec4 texture2DSRGB(sampler2D tex, vec2 uv) {
-    vec4 rgba = texture(tex, uv);
+    vec4 rgba = texture2D(tex, uv);
     rgba.rgb = gammaCorrectInput(rgba.rgb);
     return rgba;
 }
 vec4 texture2DSRGB(sampler2D tex, vec2 uv, float bias) {
-    vec4 rgba = texture(tex, uv, bias);
+    vec4 rgba = texture2D(tex, uv, bias);
     rgba.rgb = gammaCorrectInput(rgba.rgb);
     return rgba;
 }
 vec4 textureCubeSRGB(samplerCube tex, vec3 uvw) {
-    vec4 rgba = texture(tex, uvw);
+    vec4 rgba = textureCube(tex, uvw);
     rgba.rgb = gammaCorrectInput(rgba.rgb);
     return rgba;
 }
@@ -91,6 +96,6 @@ uniform float mipLevel;
 void main(void) {
     vec3 dir = vViewDir * vec3(-1.0, 1.0, 1.0);
     vec2 uv = toSphericalUv(normalize(dir));
-    vec3 linear = decodeRGBM(texture(texture_envAtlas, mapRoughnessUv(uv, mipLevel)));
+    vec3 linear = decodeRGBM(texture2D(texture_envAtlas, mapRoughnessUv(uv, mipLevel)));
     gl_FragColor = vec4(gammaCorrectOutput(toneMap(processEnvironment(linear))), 1.0);
 }

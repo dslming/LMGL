@@ -35,8 +35,8 @@ function getPlane(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application)
 
         const geometry = new lmgl.Geometry(engine, geoInfo);
         const material = new lmgl.Material(engine, matInfo);
-    const mesh = new lmgl.Mesh(engine, geometry, material);
-    mesh.name = "plane"
+        const mesh = new lmgl.Mesh(engine, geometry, material);
+        mesh.name = "plane"
         material.uniforms.uTexture.value = new lmgl.Texture(engine, {
             url: "./public/images/test.png"
         });
@@ -61,17 +61,17 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
         ]
     });
 
-    // const mesh = new lmgl.MeshSkybox(engine, {
-    //     cubeMap: envLighting.result
-    // }).mesh;
-    // mesh.name = "skyBox"
-    // scene.add(mesh);
+    const mesh = new lmgl.MeshSkybox(engine, {
+        cubeMap: envLighting.result
+    }).mesh;
+    mesh.name = "skyBox"
+    scene.add(mesh);
 
-    const plane = getPlane(engine, scene, app);
+    // const plane = getPlane(engine, scene, app);
 
     app.addUpdate("loop", () => {
         if (envLighting.isReady) {
-            plane.material.uniforms.uTexture.value = envLighting.result;
+            // plane.material.uniforms.uTexture.value = envLighting.result;
             app.renderer.renderScene(scene, app.camera);
         }
     });

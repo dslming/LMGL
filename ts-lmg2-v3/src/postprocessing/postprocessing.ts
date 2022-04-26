@@ -95,23 +95,6 @@ export class Postprocessing {
                     fsPaths: fsPaths
                 })
                 .then((shader: any) => {
-                    // const { program, vertexShader, fragmentShader } = this._engine.enginePrograms.createProgram({
-                    //     vertexShader: shader.vertexShader,
-                    //     fragmentShader: shader.fragmentShader,
-                    //     defines: defines,
-                    // });
-
-                    // const uniformBlock = {
-                    //     blockCatch: new Map(),
-                    //     blockIndex: 0,
-                    // };
-                    // this._programs.set(programName, {
-                    //     vertexShader,
-                    //     fragmentShader,
-                    //     program,
-                    //     uniforms,
-                    //     uniformBlock,
-                    // });
                     this.createProgram({
                         vertexShader: shader.vertexShader,
                         fragmentShader: shader.fragmentShader,
@@ -212,7 +195,7 @@ export class Postprocessing {
         this._engine.engineState.setDepthWrite(oldDepthWrite);
         this._engine.engineState.setCullMode(oldCullMode);
 
-        // this._engine.engineRenderTarget.setRenderTarget(null);
+        this._engine.engineRenderTarget.setRenderTarget(null);
         return this;
     }
 
