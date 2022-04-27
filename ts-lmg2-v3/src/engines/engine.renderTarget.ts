@@ -26,7 +26,7 @@ export class EngineRenderTarget {
         }
 
         if (gl.getError() != gl.NO_ERROR) {
-            throw "Some WebGL error occurred while trying to create framebuffer.";
+            console.error( "Some WebGL error occurred while trying to create framebuffer.");
         }
     }
 

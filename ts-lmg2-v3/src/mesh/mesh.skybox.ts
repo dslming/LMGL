@@ -60,8 +60,9 @@ export class MeshSkybox {
             fragmentShader: `${gles3}\n${fs}`,
             uniforms: {
                 texture_envAtlas: {type: UniformsType.Texture, value: this._options.cubeMap},
-                exposure: {type: UniformsType.Float, value: 1}
+                exposure: {type: UniformsType.Float, value: 1},
+                mipLevel: {type: UniformsType.Float, value: 0}
             }
-        })
+        });
     }
 }

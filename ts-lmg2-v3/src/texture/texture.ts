@@ -149,6 +149,7 @@ export class Texture {
 
         this.name = options.name !== undefined ? options.name : "default";
         this._mipmaps = options.mipmaps !== undefined ? options.mipmaps : true;
+        this.dirtyAll();
     }
 
     set mipmaps(v) {
@@ -327,7 +328,7 @@ export class Texture {
     dirtyAll() {
         // this._levelsUpdated = this._cubemap ? [[true, true, true, true, true, true]] : [true];
 
-        this.needsUpload = false;
+        this.needsUpload = true;
         this._needsMipmapsUpload = this._mipmaps;
         this._mipmapsUploaded = false;
         this._parameterFlags = 255; // 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128

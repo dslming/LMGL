@@ -75,7 +75,6 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         minFilter: lmgl.TextureFilter.FILTER_LINEAR,
         magFilter: lmgl.TextureFilter.FILTER_LINEAR,
     });
-
     const size = app.getRenderSize();
     const renderTarget = new lmgl.RenderTarget(engine, {
         bufferType: lmgl.RenderTargetBufferType.colorBuffer,
@@ -87,6 +86,7 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     });
 
     post.useProgram("test").setRenderTarget(renderTarget).viewport().clear().render();
+    post.useProgram("test2").setRenderTarget(renderTarget).viewport().clear().render();
 
     app.addUpdate("loop", () => {
         plane.material.uniforms.uTexture.value = result;
