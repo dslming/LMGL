@@ -1,8 +1,10 @@
 import {RenderTarget} from "../renderer";
+import { Nullable } from "../types";
 import {Engine} from "./engine";
 
 export class EngineRenderTarget {
     private _engine: Engine;
+    private _renderTarget: Nullable<RenderTarget>;
     activeFramebuffer: any;
     maxRenderBufferSize: number;
 
@@ -17,7 +19,7 @@ export class EngineRenderTarget {
      * @param {WebGLFramebuffer} fb - The framebuffer to bind.
      * @ignore
      */
-    setFramebuffer(fb: any) {
+    private _setFramebuffer(fb: any) {
         const {gl} = this._engine;
 
         if (this.activeFramebuffer !== fb) {
@@ -26,7 +28,7 @@ export class EngineRenderTarget {
         }
 
         if (gl.getError() != gl.NO_ERROR) {
-            console.error( "Some WebGL error occurred while trying to create framebuffer.");
+            console.error("Some WebGL error occurred while trying to create framebuffer.");
         }
     }
 
@@ -36,13 +38,13 @@ export class EngineRenderTarget {
      * @param {RenderTarget} target - The render target to be initialized.
      * @ignore
      */
-    initRenderTarget(target: RenderTarget) {
+    private _initRenderTarget(target: RenderTarget) {
         if (target.glFrameBuffer) return;
         const {gl, webgl2} = this._engine;
 
         // ##### Create main FBO #####
         target.glFrameBuffer = gl.createFramebuffer();
-        this.setFramebuffer(target.glFrameBuffer);
+        this._setFramebuffer(target.glFrameBuffer);
 
         // --- Init the provided color buffer (optional) ---
         const colorBuffer = target.colorBuffer;
@@ -93,17 +95,20 @@ export class EngineRenderTarget {
         this._checkFbo();
     }
 
-    setRenderTarget(target: RenderTarget | null) {
-        const {gl} = this._engine;
-
-        if (target !== null) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, target.glFrameBuffer);
-            if (target.depth) {
-                gl.bindRenderbuffer(gl.RENDERBUFFER, target.glDepthBuffer);
-            }
-        } else {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        }
+    /**
+     * Sets the specified render target on the device. If null is passed as a parameter, the back
+     * buffer becomes the current target for all rendering operations.
+     *
+     * @param {RenderTarget} renderTarget - The render target to activate.
+     * @example
+     * // Set a render target to receive all rendering output
+     * device.setRenderTarget(renderTarget);
+     *
+     * // Set the back buffer to receive all rendering output
+     * device.setRenderTarget(null);
+     */
+    setRenderTarget(renderTarget: RenderTarget | null) {
+        this._renderTarget = renderTarget;
     }
 
     /**
@@ -131,6 +136,61 @@ export class EngineRenderTarget {
                 break;
             default:
                 break;
+        }
+    }
+
+    /**
+     * Marks the beginning of a block of rendering. Internally, this function binds the render
+     * target currently set on the device. This function should be matched with a call to
+     * {@link GraphicsDevice#updateEnd}. Calls to {@link GraphicsDevice#updateBegin} and
+     * {@link GraphicsDevice#updateEnd} must not be nested.
+     */
+    updateBegin() {
+        // Set the render target
+        const target = this._renderTarget;
+        if (target) {
+            // Create a new WebGL frame buffer object
+            if (!target.glFrameBuffer) {
+                this._initRenderTarget(target);
+            } else {
+                this._setFramebuffer(target.glFrameBuffer);
+            }
+        } else {
+            this._setFramebuffer(null);
+        }
+    }
+
+    /**
+     * Marks the end of a block of rendering. This function should be called after a matching call
+     * to {@link GraphicsDevice#updateBegin}. Calls to {@link GraphicsDevice#updateBegin} and
+     * {@link GraphicsDevice#updateEnd} must not be nested.
+     */
+    updateEnd() {
+        const {gl, webgl2} = this._engine;
+
+        // unbind VAO from device to protect it from being changed
+        // if (this.boundVao) {
+        //     this.boundVao = null;
+        //     this.gl.bindVertexArray(null);
+        // }
+
+        // Unset the render target
+        const target = this._renderTarget;
+        if (target) {
+            // If the active render target is auto-mipmapped, generate its mip chain
+            const colorBuffer = target.colorBuffer;
+            if (colorBuffer && colorBuffer.glTexture && colorBuffer.mipmaps && (colorBuffer.pot || webgl2)) {
+                // FIXME: if colorBuffer is a cubemap currently we're re-generating mipmaps after
+                // updating each face!
+                // this.activeTexture(this.maxCombinedTextures - 1);
+                // this.bindTexture(colorBuffer);
+                // gl.generateMipmap(colorBuffer._glTarget);
+            }
+
+            // Resolve MSAA if needed
+            // if (this.webgl2 && target._samples > 1 && target.autoResolve) {
+            //     target.resolve();
+            // }
         }
     }
 }

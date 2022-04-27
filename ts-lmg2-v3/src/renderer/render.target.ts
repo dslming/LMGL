@@ -86,7 +86,6 @@ export class RenderTarget {
         this.samples = options.samples !== undefined ? Math.min(options.samples, this._engine.capabilities.maxSamples) : 1;
 
         this._face = options.face !== undefined ? options.face : CubeFace.CUBEFACE_POSX;
-        this._engine.engineRenderTarget.initRenderTarget(this);
     }
 
     /**

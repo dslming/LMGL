@@ -53,13 +53,13 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     post.setRootPath("./public/case/shaders/");
 
     await post.createProgramsFromFiles({
-        test: {
-            vertexShader: ["test.vert"],
-            fragmentShader: ["test.frag"]
+        red: {
+            vertexShader: ["fullscreen.vert"],
+            fragmentShader: ["red.frag"]
         },
-        test2: {
-            vertexShader: ["test.vert"],
-            fragmentShader: ["test2.frag"]
+        green: {
+            vertexShader: ["fullscreen.vert"],
+            fragmentShader: ["green.frag"]
         }
     });
 
@@ -73,20 +73,30 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         addressU: lmgl.TextureAddress.ADDRESS_CLAMP_TO_EDGE,
         addressV: lmgl.TextureAddress.ADDRESS_CLAMP_TO_EDGE,
         minFilter: lmgl.TextureFilter.FILTER_LINEAR,
-        magFilter: lmgl.TextureFilter.FILTER_LINEAR,
+        magFilter: lmgl.TextureFilter.FILTER_LINEAR
     });
     const size = app.getRenderSize();
-    const renderTarget = new lmgl.RenderTarget(engine, {
+    const targetRed = new lmgl.RenderTarget(engine, {
         bufferType: lmgl.RenderTargetBufferType.colorBuffer,
         width: size.width,
         height: size.height,
         name: "renderTarget",
         depth: true,
-        colorBuffer: result,
+        colorBuffer: result
+    });
+    const targetGreen = new lmgl.RenderTarget(engine, {
+        bufferType: lmgl.RenderTargetBufferType.colorBuffer,
+        width: size.width,
+        height: size.height,
+        name: "renderTarget",
+        depth: true,
+        colorBuffer: result
     });
 
-    post.useProgram("test").setRenderTarget(renderTarget).viewport().clear().render();
-    post.useProgram("test2").setRenderTarget(renderTarget).viewport().clear().render();
+    post.useProgram("green").setRenderTarget(targetGreen).viewport().clear().render();
+    post.useProgram("red").setRenderTarget(targetRed).viewport().clear().render();
+    targetRed.destroy();
+    targetGreen.destroy();
 
     app.addUpdate("loop", () => {
         plane.material.uniforms.uTexture.value = result;

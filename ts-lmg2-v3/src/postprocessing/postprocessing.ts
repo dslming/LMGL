@@ -126,6 +126,7 @@ export class Postprocessing {
 
     setRenderTarget(target: RenderTarget | null): Postprocessing {
         this._engine.engineRenderTarget.setRenderTarget(target);
+        this._engine.engineRenderTarget.updateBegin();
         return this;
     }
 
