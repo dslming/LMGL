@@ -55,7 +55,11 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     await post.createProgramsFromFiles({
         test: {
             vertexShader: ["test.vert"],
-            fragmentShader: ["test.frag"],
+            fragmentShader: ["test.frag"]
+        },
+        test2: {
+            vertexShader: ["test.vert"],
+            fragmentShader: ["test2.frag"]
         }
     });
 

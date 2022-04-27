@@ -89,6 +89,8 @@ export class EngineRenderTarget {
             }
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
+
+        this._checkFbo();
     }
 
     setRenderTarget(target: RenderTarget | null) {
@@ -101,6 +103,34 @@ export class EngineRenderTarget {
             }
         } else {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+    }
+
+    /**
+     * Checks the completeness status of the currently bound WebGLFramebuffer object.
+     *
+     * @private
+     */
+    private _checkFbo() {
+        const {gl} = this._engine;
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        switch (status) {
+            case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                console.error("ERROR: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                console.error("ERROR: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+                break;
+            case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                console.error("ERROR: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+                break;
+            case gl.FRAMEBUFFER_UNSUPPORTED:
+                console.error("ERROR: FRAMEBUFFER_UNSUPPORTED");
+                break;
+            case gl.FRAMEBUFFER_COMPLETE:
+                break;
+            default:
+                break;
         }
     }
 }
