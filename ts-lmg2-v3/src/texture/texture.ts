@@ -52,7 +52,7 @@ export interface iTextureOptions {
 
     type?: TextureType;
     projection?: TextureProjection;
-    // Specifies whether this cubemap texture requires special seam fixing shader code to look right. Defaults to false.
+    // 指定此立方体贴图纹理是否需要特殊的接缝修复着色器代码，使其看起来正确。默认为false。
     fixCubemapSeams?: boolean;
     mipmaps?: boolean;
 }
@@ -314,8 +314,8 @@ export class Texture {
         this._source = v;
 
         if (Array.isArray(v)) {
-            this._width = v[0].width / 4;
-            this._height = v[0].height / 4;
+            this._width = v[0].width;
+            this._height = v[0].height;
         } else if (v) {
             this._width = v.width;
             this._height = v.height;

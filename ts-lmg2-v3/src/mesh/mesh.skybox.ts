@@ -11,6 +11,7 @@ import fs from "../shaders/skybox.frag";
 import gles3 from '../shaders/gles3.frag'
 
 import { Texture } from "../texture/texture";
+import { Mat3 } from "../maths/math.mat3";
 
 export interface iMeshSkyboxOptions {
     cubeMap: Texture
@@ -55,13 +56,18 @@ export class MeshSkybox {
         //     addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
         //     addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
         // });
+        let mat3 = new Mat3();
         return new Material(this._engine, {
             vertexShader: vs,
             fragmentShader: `${gles3}\n${fs}`,
             uniforms: {
                 texture_envAtlas: {type: UniformsType.Texture, value: this._options.cubeMap},
                 exposure: {type: UniformsType.Float, value: 1},
-                mipLevel: {type: UniformsType.Float, value: 0}
+                mipLevel: {type: UniformsType.Float, value: 0},
+                cubeMapRotationMatrix: {
+                    type: UniformsType.Mat3,
+                    value: mat3
+                }
             }
         });
     }

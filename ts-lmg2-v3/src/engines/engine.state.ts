@@ -79,6 +79,8 @@ export class EngineState {
         this.setDepthTest(true);
         this._cullMode = CullFace.CULLFACE_NONE;
         this.setCullMode(CullFace.CULLFACE_BACK);
+
+        // gl.enable(gl.SCISSOR_TEST);
     }
 
     /**

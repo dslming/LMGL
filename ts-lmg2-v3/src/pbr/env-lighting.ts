@@ -249,15 +249,19 @@ export class EnvLighting {
     getCubeTexture(urls: string[]) {
         return new Promise((resolve, reject) => {
             const lightingTexture = new Texture(this._engine, {
+                name: "cube_map_faces",
                 urls: urls,
-                minFilter: TextureFilter.FILTER_LINEAR,
+                minFilter: TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR,
                 magFilter: TextureFilter.FILTER_LINEAR,
                 addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
                 addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
                 onLoad: () => {
                     resolve(lightingTexture);
                 },
-                projection: TextureProjection.TEXTUREPROJECTION_CUBE
+                projection: TextureProjection.TEXTUREPROJECTION_CUBE,
+                fixCubemapSeams: false,
+                flipY: false,
+                mipmaps: true,
             });
         });
     }
@@ -354,6 +358,7 @@ export class EnvLighting {
                 z: -p / innerWidth,
                 w: -p / innerHeight
             });
+
         } else {
             post.setUniform("uvMod", {x: 1, y: 1, z: 0, w: 0});
         }
@@ -382,12 +387,8 @@ export class EnvLighting {
         // for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
         for (let f = 0; f < 1; f++) {
             if (face === null || f === face) {
-                console.error(456);
-
                 const renderTarget = new RenderTarget(this._engine, {
                     bufferType: RenderTargetBufferType.colorBuffer,
-                    width: 512,
-                    height: 512,
                     name: "renderTarget",
                     depth: false,
                     colorBuffer: target
