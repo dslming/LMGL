@@ -326,7 +326,7 @@ export class EngineTexture {
     }
 
     private _uploadTextureCube(texture: Texture) {
-        const {gl} = this._engine
+        const {gl,webgl2} = this._engine
 
         // Upload the byte array
         const mipLevel = 0
@@ -338,16 +338,23 @@ export class EngineTexture {
             gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texImage)
         }
 
-        gl.generateMipmap(texture.glTarget)
+
     }
 
     uploadTexture(texture: Texture) {
         if (!texture.needsUpload && ((texture.needsMipmapsUpload && texture.mipmapsUploaded) || !texture.pot)) return;
 
         if (texture.cubemap) {
-            this._uploadTextureCube(texture)
+            this._uploadTextureCube(texture);
         } else {
-            this._uploadTexture2d(texture)
+            this._uploadTexture2d(texture);
+        }
+
+        const {gl, webgl2} = this._engine;
+
+        if (texture.mipmaps && texture.needsMipmapsUpload && (texture.pot || webgl2)) {
+            gl.generateMipmap(texture.glTarget)
+            // texture.mipmapsUploaded = true;
         }
     }
 

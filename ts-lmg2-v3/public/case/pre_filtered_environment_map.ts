@@ -52,12 +52,12 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
 
     envLighting.gen({
         urls: [
-            "public/images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_X.png",
-            "public/images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_X.png",
-            "public/images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Y.png",
-            "public/images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Y.png",
-            "public/images/cubeMap2/TEXTURE_CUBE_MAP_POSITIVE_Z.png",
-            "public/images/cubeMap2/TEXTURE_CUBE_MAP_NEGATIVE_Z.png"
+            "public/images/pisa/px.png",
+            "public/images/pisa/nx.png",
+            "public/images/pisa/py.png",
+            "public/images/pisa/ny.png",
+            "public/images/pisa/pz.png",
+            "public/images/pisa/nz.png"
         ]
     });
 

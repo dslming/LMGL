@@ -1,7 +1,7 @@
 import * as lmgl from "../../src/index";
 (window as any).lmgl = lmgl;
 
-// 先后处理,然后进行render
+// 渲染多次到一张纹理上
 
 function getPlane(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     const model = lmgl.planeBuilder(2, 2);
@@ -60,6 +60,10 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         green: {
             vertexShader: ["fullscreen.vert"],
             fragmentShader: ["green.frag"]
+        },
+        blue: {
+            vertexShader: ["fullscreen.vert"],
+            fragmentShader: ["blue.frag"]
         }
     });
 
@@ -76,15 +80,7 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         magFilter: lmgl.TextureFilter.FILTER_LINEAR
     });
     const size = app.getRenderSize();
-    const targetRed = new lmgl.RenderTarget(engine, {
-        bufferType: lmgl.RenderTargetBufferType.colorBuffer,
-        width: size.width,
-        height: size.height,
-        name: "renderTarget",
-        depth: true,
-        colorBuffer: result
-    });
-    const targetGreen = new lmgl.RenderTarget(engine, {
+    const target = new lmgl.RenderTarget(engine, {
         bufferType: lmgl.RenderTargetBufferType.colorBuffer,
         width: size.width,
         height: size.height,
@@ -93,10 +89,11 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         colorBuffer: result
     });
 
-    post.useProgram("green").setRenderTarget(targetGreen).viewport().clear().render();
-    post.useProgram("red").setRenderTarget(targetRed).viewport().clear().render();
-    targetRed.destroy();
-    targetGreen.destroy();
+    post.clear();
+    post.useProgram("green").setRenderTarget(target).viewport({x: 0, y: 0, width: 512, height: 256}).render();
+    post.useProgram("red").setRenderTarget(target).viewport({x: 0, y: 0, width: 256, height: 256}).render();
+    post.useProgram("blue").setRenderTarget(target).viewport({x: 0, y: 256, width: 256, height: 256}).render();
+    target.destroy();
 
     app.addUpdate("loop", () => {
         plane.material.uniforms.uTexture.value = result;

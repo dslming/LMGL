@@ -1,3 +1,32 @@
+
+#define varying in
+out highp vec4 pc_fragColor;
+#define gl_FragColor pc_fragColor
+#define texture2D texture
+#define textureCube texture
+#define texture2DProj textureProj
+#define texture2DLodEXT textureLod
+#define texture2DProjLodEXT textureProjLod
+#define textureCubeLodEXT textureLod
+#define texture2DGradEXT textureGrad
+#define texture2DProjGradEXT textureProjGrad
+#define textureCubeGradEXT textureGrad
+#define GL2
+#define SUPPORTS_TEXLOD
+precision highp float;
+#ifdef GL2
+precision highp sampler2DShadow;
+#endif
+
+#define PROCESS_FUNC reproject
+#define DECODE_FUNC decodeGamma
+#define ENCODE_FUNC encodeGamma
+#define SOURCE_FUNC sampleCubemap
+#define TARGET_FUNC getDirectionEquirect
+#define NUM_SAMPLES 1
+#define SUPPORTS_TEXLOD
+
+
 // This shader requires the following #DEFINEs:
 //
 // PROCESS_FUNC - must be one of reproject, prefilter
@@ -11,8 +40,8 @@
 //
 // SUPPORTS_TEXLOD - whether supports texlod is supported
 
-in vec2 vUv0;
-out vec4 FragColor;
+varying vec2 vUv0;
+
 // source
 uniform sampler2D sourceTex;
 uniform samplerCube sourceCube;
@@ -128,7 +157,7 @@ vec3 getDirectionEquirect() {
 
 vec4 sampleEquirect(vec2 sph) {
     vec2 uv = sph / vec2(PI * 2.0, PI) + 0.5;
-    return texture(sourceTex, vec2(uv.x, 1.0 - uv.y));
+    return texture2D(sourceTex, vec2(uv.x, 1.0 - uv.y));
 }
 
 vec4 sampleEquirect(vec3 dir) {
@@ -136,7 +165,7 @@ vec4 sampleEquirect(vec3 dir) {
 }
 
 vec4 sampleCubemap(vec3 dir) {
-    return texture(sourceCube, modifySeams(dir, 1.0 - sourceCubeSeamScale()));
+    return textureCube(sourceCube, modifySeams(dir, 1.0 - sourceCubeSeamScale()));
 }
 
 vec4 sampleCubemap(vec2 sph) {
@@ -146,9 +175,9 @@ vec4 sampleCubemap(vec2 sph) {
 vec4 sampleEquirect(vec2 sph, float mipLevel) {
     vec2 uv = sph / vec2(PI * 2.0, PI) + 0.5;
 #ifdef SUPPORTS_TEXLOD
-    return textureLod(sourceTex, vec2(uv.x, 1.0 - uv.y), mipLevel);
+    return texture2DLodEXT(sourceTex, vec2(uv.x, 1.0 - uv.y), mipLevel);
 #else
-    return texture(sourceTex, vec2(uv.x, 1.0 - uv.y));
+    return texture2D(sourceTex, vec2(uv.x, 1.0 - uv.y));
 #endif
 }
 
@@ -158,9 +187,9 @@ vec4 sampleEquirect(vec3 dir, float mipLevel) {
 
 vec4 sampleCubemap(vec3 dir, float mipLevel) {
 #ifdef SUPPORTS_TEXLOD
-    return textureLod(sourceCube, modifySeams(dir, 1.0 - exp2(mipLevel) * sourceCubeSeamScale()), mipLevel);
+    return textureCubeLodEXT(sourceCube, modifySeams(dir, 1.0 - exp2(mipLevel) * sourceCubeSeamScale()), mipLevel);
 #else
-    return texture(sourceCube, modifySeams(dir, 1.0 - exp2(mipLevel) * sourceCubeSeamScale()));
+    return textureCube(sourceCube, modifySeams(dir, 1.0 - exp2(mipLevel) * sourceCubeSeamScale()));
 #endif
 }
 
@@ -204,7 +233,7 @@ vec2 octEncode(in vec3 v) {
 
 vec4 sampleOctahedral(vec3 dir) {
     vec2 uv = octEncode(dir) * 0.5 + 0.5;
-    return texture(sourceTex, vec2(uv.x, 1.0 - uv.y));
+    return texture2D(sourceTex, vec2(uv.x, 1.0 - uv.y));
 }
 
 vec4 sampleOctahedral(vec2 sph) {
@@ -214,9 +243,9 @@ vec4 sampleOctahedral(vec2 sph) {
 vec4 sampleOctahedral(vec3 dir, float mipLevel) {
     vec2 uv = octEncode(dir) * 0.5 + 0.5;
 #ifdef SUPPORTS_TEXLOD
-    return textureLod(sourceTex, vec2(uv.x, 1.0 - uv.y), mipLevel);
+    return texture2DLodEXT(sourceTex, vec2(uv.x, 1.0 - uv.y), mipLevel);
 #else
-    return texture(sourceTex, vec2(uv.x, 1.0 - uv.y));
+    return texture2D(sourceTex, vec2(uv.x, 1.0 - uv.y));
 #endif
 }
 
@@ -296,10 +325,10 @@ void unpackSample(int i, out vec3 L, out float mipLevel) {
     float v = (floor(u) + 0.5) * samplesTexInverseSize.y;
 
     vec4 raw;
-    raw.x = dot(texture(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
-    raw.y = dot(texture(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
-    raw.z = dot(texture(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
-    raw.w = dot(texture(samplesTex, vec2(u, v)), unpackFloat);
+    raw.x = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
+    raw.y = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
+    raw.z = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
+    raw.w = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat);
 
     L.xyz = raw.xyz * 2.0 - 1.0;
     mipLevel = raw.w * 8.0;
@@ -343,6 +372,6 @@ vec4 prefilterSamplesUnweighted() {
 }
 
 void main(void) {
-    FragColor = PROCESS_FUNC();
-    // FragColor = vec4(1.,0.,0.,1.);
+    gl_FragColor = PROCESS_FUNC();
 }
+

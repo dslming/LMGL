@@ -310,7 +310,7 @@ export class EnvLighting {
         post.createProgram({
             programName: "envPre",
             vertexShader: reprojectVert,
-            fragmentShader: `${defines}\n${reprojectFrag}`,
+            fragmentShader: `${reprojectFrag}`,
             uniforms: {
                 uvMod: {
                     type: UniformsType.Vec4,
@@ -396,8 +396,6 @@ export class EnvLighting {
                 post.setRenderTarget(renderTarget)
                     .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
                     .setUniform("params2", {x: params2[0], y: params2[1]})
-                    .viewport()
-                    .clear()
                     .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
                     .render();
                 renderTarget.destroy();
@@ -416,12 +414,13 @@ export class EnvLighting {
             addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             minFilter: TextureFilter.FILTER_LINEAR,
-            magFilter: TextureFilter.FILTER_LINEAR
+            magFilter: TextureFilter.FILTER_LINEAR,
+            mipmaps: false
         });
         this.result = result;
 
         const rect = new Vec4(0, 0, 512, 256);
-        const levels = 1; //calcLevels(result.width, result.height);
+        const levels = 1//calcLevels(result.width, result.height);
 
         const lightingTexture: Texture = (await this.getCubeTexture(options.urls)) as any;
         this.cubeMapTexture = lightingTexture;
