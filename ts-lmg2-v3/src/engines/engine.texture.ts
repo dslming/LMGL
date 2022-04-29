@@ -225,6 +225,11 @@ export class EngineTexture {
                 gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture.pot ? texture.addressV : TextureAddress.ADDRESS_CLAMP_TO_EDGE])
             }
         }
+        if (flags & 16) {
+            if (webgl2) {
+                gl.texParameteri(target, gl.TEXTURE_WRAP_R, this.glAddress[texture.addressW]);
+            }
+        }
         if (flags & 32) {
             if (webgl2) {
                 gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, texture.compareOnRead ? gl.COMPARE_REF_TO_TEXTURE : gl.NONE)
@@ -233,6 +238,13 @@ export class EngineTexture {
         if (flags & 64) {
             if (webgl2) {
                 gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, glComparison[texture.compareFunc])
+            }
+        }
+
+        if (flags & 128) {
+            const ext = this._engine.extensions.extTextureFilterAnisotropic;
+            if (ext) {
+                gl.texParameterf(target, ext.TEXTURE_MAX_ANISOTROPY_EXT, Math.max(1, Math.min(Math.round(texture.anisotropy), this._engine.capabilities.maxAnisotropy)));
             }
         }
     }

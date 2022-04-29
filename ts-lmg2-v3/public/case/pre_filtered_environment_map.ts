@@ -67,7 +67,7 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
     mesh.name = "skyBox"
     scene.add(mesh);
 
-    // const plane = getPlane(engine, scene, app);
+    const plane = getPlane(engine, scene, app);
 
     app.addUpdate("loop", () => {
         if (envLighting.isReady) {

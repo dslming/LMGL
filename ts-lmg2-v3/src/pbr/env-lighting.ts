@@ -252,6 +252,7 @@ export class EnvLighting {
                 name: "cube_map_faces",
                 urls: urls,
                 minFilter: TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR,
+                mipmaps: true,
                 magFilter: TextureFilter.FILTER_LINEAR,
                 addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
                 addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
@@ -261,7 +262,6 @@ export class EnvLighting {
                 projection: TextureProjection.TEXTUREPROJECTION_CUBE,
                 fixCubemapSeams: false,
                 flipY: false,
-                mipmaps: true,
             });
         });
     }

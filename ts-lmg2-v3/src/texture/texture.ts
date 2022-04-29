@@ -4,6 +4,7 @@ import {Color4} from "../maths";
 import {IColor4Like} from "../maths/math.like";
 import {MathTool} from "../maths/math.tool";
 import {FileTools} from "../misc/fileTools";
+import { Logger } from "../misc/logger";
 import {Nullable} from "../types";
 
 export interface iTextureOptions {
@@ -28,6 +29,7 @@ export interface iTextureOptions {
      * Defaults to ADDRESS_REPEAT.
      */
     addressV?: TextureAddress;
+    addressW?: TextureAddress;
     /**
      * Defaults to false.
      */
@@ -56,6 +58,8 @@ export interface iTextureOptions {
     // 指定此立方体贴图纹理是否需要特殊的接缝修复着色器代码，使其看起来正确。默认为false。
     fixCubemapSeams?: boolean;
     mipmaps?: boolean;
+    // 各向异性
+    anisotropy?: number;
 }
 
 let id = 0;
@@ -72,6 +76,7 @@ export class Texture {
 
     private _addressU: TextureAddress;
     private _addressV: TextureAddress;
+    private _addressW: TextureAddress;
     private _flipY: boolean;
     private _fixCubemapSeams: boolean;
 
@@ -79,6 +84,7 @@ export class Texture {
     private _cubemap = false;
     private _volume = false;
 
+    private _anisotropy: number;
     private _width: number;
     private _height: number;
 
@@ -110,6 +116,7 @@ export class Texture {
         this._magFilter = options.magFilter !== undefined ? options.magFilter : TextureFilter.FILTER_LINEAR;
         this._addressU = options.addressU !== undefined ? options.addressU : TextureAddress.ADDRESS_REPEAT;
         this._addressV = options.addressV !== undefined ? options.addressV : TextureAddress.ADDRESS_REPEAT;
+        this._addressW = options.addressW !== undefined ? options.addressW : TextureAddress.ADDRESS_REPEAT;
         this._flipY = options.flipY !== undefined ? options.flipY : true;
         this._format = options.format !== undefined ? options.format : TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
         this._compareOnRead = options.compareOnRead !== undefined ? options.compareOnRead : false;
@@ -121,6 +128,7 @@ export class Texture {
 
         this._width = options.width !== undefined ? options.width : 0;
         this._height = options.height !== undefined ? options.height : 0;
+        this._anisotropy = options.anisotropy !== undefined ? options.anisotropy : 1;
 
         if (options.url) {
             FileTools.LoadImage({
@@ -151,6 +159,19 @@ export class Texture {
         this.name = options.name !== undefined ? options.name : "default";
         this._mipmaps = options.mipmaps !== undefined ? options.mipmaps : true;
         this.dirtyAll();
+    }
+    get anisotropy() {
+        return this._anisotropy;
+    }
+    /**
+     * Integer value specifying the level of anisotropic to apply to the texture ranging from 1 (no
+     * anisotropic filtering) to the {@link GraphicsDevice} property maxAnisotropy.
+     */
+    set anisotropy(v) {
+        if (this._anisotropy !== v) {
+            this._anisotropy = v;
+            this._parameterFlags |= 128;
+        }
     }
 
     set mipmaps(v) {
@@ -238,6 +259,30 @@ export class Texture {
     set addressV(v: TextureAddress) {
         this._addressV = v;
         this._parameterFlags |= 8;
+    }
+    /**
+     * The addressing mode to be applied to the 3D texture depth (WebGL2 only). Can be:
+     *
+     * - {@link ADDRESS_REPEAT}
+     * - {@link ADDRESS_CLAMP_TO_EDGE}
+     * - {@link ADDRESS_MIRRORED_REPEAT}
+     *
+     * @type {number}
+     */
+    set addressW(addressW) {
+        if (!this._engine.webgl2) return;
+        if (!this._volume) {
+            Logger.Warn("pc.Texture#addressW: Can't set W addressing mode for a non-3D texture.");
+            return;
+        }
+        if (addressW !== this._addressW) {
+            this._addressW = addressW;
+            this._parameterFlags |= 16;
+        }
+    }
+
+    get addressW() {
+        return this._addressW;
     }
 
     get format() {
