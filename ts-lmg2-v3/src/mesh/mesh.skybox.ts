@@ -66,7 +66,7 @@ export class MeshSkybox {
                 mipLevel: {type: UniformsType.Float, value: 0},
                 cubeMapRotationMatrix: {
                     type: UniformsType.Mat3,
-                    value: mat3
+                    value: mat3.data
                 }
             }
         });

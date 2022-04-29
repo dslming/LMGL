@@ -81,6 +81,8 @@ export class EngineState {
         this.setCullMode(CullFace.CULLFACE_BACK);
 
         // gl.enable(gl.SCISSOR_TEST);
+        gl.hint((gl as any).FRAGMENT_SHADER_DERIVATIVE_HINT, gl.NICEST);
+        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
     }
 
     /**
