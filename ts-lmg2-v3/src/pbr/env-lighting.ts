@@ -251,8 +251,8 @@ export class EnvLighting {
             const lightingTexture = new Texture(this._engine, {
                 name: "cube_map_faces",
                 urls: urls,
-                minFilter: TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR,
                 mipmaps: true,
+                minFilter: TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR,
                 magFilter: TextureFilter.FILTER_LINEAR,
                 addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
                 addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
@@ -393,7 +393,7 @@ export class EnvLighting {
                     colorBuffer: target
                 });
                 params[0] = f;
-                post.setRenderTarget(renderTarget)
+                post.setRenderTarget(null)
                     .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
                     .setUniform("params2", {x: params2[0], y: params2[1]})
                     .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})

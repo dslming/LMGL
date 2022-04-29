@@ -29,7 +29,7 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
                 //     // plane.material.uniforms.uTexture.value = envLighting.result;
                     // app.renderer.renderScene(scene, app.camera);
                 // }
-                app.renderer.renderScene(scene, app.camera);
+                // app.renderer.renderScene(scene, app.camera);
                 // app.renderer.renderMesh(mesh,app.camera)
             });
          }
