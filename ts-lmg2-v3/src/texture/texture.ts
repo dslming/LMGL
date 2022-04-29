@@ -50,6 +50,7 @@ export interface iTextureOptions {
     onLoad?: Nullable<() => void>;
     onError?: Nullable<() => void>;
 
+    // encoding type
     type?: TextureType;
     projection?: TextureProjection;
     // 指定此立方体贴图纹理是否需要特殊的接缝修复着色器代码，使其看起来正确。默认为false。

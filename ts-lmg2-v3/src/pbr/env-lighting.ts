@@ -405,7 +405,7 @@ export class EnvLighting {
 
     async gen(options: {urls: string[]}) {
         const result = new Texture(this._engine, {
-            name: "result",
+            name: "envAtlas",
             width: 512,
             height: 512,
             format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
