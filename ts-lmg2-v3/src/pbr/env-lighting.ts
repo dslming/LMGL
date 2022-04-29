@@ -403,7 +403,7 @@ export class EnvLighting {
         }
     }
 
-    async gen(options: {urls: string[]}) {
+    async gen(options: {urls: string[],cb:Function}) {
         const result = new Texture(this._engine, {
             name: "envAtlas",
             width: 512,
@@ -438,18 +438,21 @@ export class EnvLighting {
         }
 
         // rect.set(0, 256, 256, 128);
-        // for (let i = 1; i < 2; ++i) {
-        //     this.reprojectTexture(lightingTexture, result, {
-        //         numSamples: 1024,
-        //         distribution: "ggx",
-        //         specularPower: Math.max(1, 2048 >> (i * 2)),
-        //         rect: rect,
-        //         seamPixels: 1
-        //     });
-        //     rect.y += rect.w;
-        //     rect.z = Math.max(1, Math.floor(rect.z * 0.5));
-        //     rect.w = Math.max(1, Math.floor(rect.w * 0.5));
-        // }
-        this.isReady = true;
+        for (let i = 1; i < 7; ++i) {
+            this.reprojectTexture(lightingTexture, result, {
+                numSamples: 1024,
+                distribution: "ggx",
+                specularPower: Math.max(1, 2048 >> (i * 2)),
+                rect: rect,
+                seamPixels: 1
+            });
+            rect.y += rect.w;
+            rect.z = Math.max(1, Math.floor(rect.z * 0.5));
+            rect.w = Math.max(1, Math.floor(rect.w * 0.5));
+        }
+        // this.isReady = true;
+       setTimeout(() => {
+            options.cb(result);
+       }, 1000);
     }
 }

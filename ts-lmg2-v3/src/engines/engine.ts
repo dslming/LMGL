@@ -150,22 +150,23 @@ export class Engine {
             // EXT_disjoint_timer_query_webgl2
             extDisjointTimerQuery: getExtension(["EXT_disjoint_timer_query_webgl2", "EXT_disjoint_timer_query"]),
 
-            extDebugRendererInfo : getExtension(["WEBGL_debug_renderer_info"]),
-            extTextureFloatLinear : getExtension(["OES_texture_float_linear"]),
-            extTextureHalfFloatLinear : getExtension(["OES_texture_half_float_linear"]),
-            extFloatBlend : getExtension(["EXT_float_blend"]),
-            extTextureFilterAnisotropic : getExtension(["EXT_texture_filter_anisotropic", "WEBKIT_EXT_texture_filter_anisotropic"]),
-            extCompressedTextureETC1 : getExtension(["WEBGL_compressed_texture_etc1"]),
-            extCompressedTextureETC : getExtension(["WEBGL_compressed_texture_etc"]),
-            extCompressedTexturePVRTC : getExtension(["WEBGL_compressed_texture_pvrtc", "WEBKIT_WEBGL_compressed_texture_pvrtc"]),
-            extCompressedTextureS3TC : getExtension(["WEBGL_compressed_texture_s3tc", "WEBKIT_WEBGL_compressed_texture_s3tc"]),
-            extCompressedTextureATC : getExtension(["WEBGL_compressed_texture_atc"]),
-            extCompressedTextureASTC : getExtension(["WEBGL_compressed_texture_astc"]),
-            extParallelShaderCompile : getExtension(["KHR_parallel_shader_compile"]),
+            // RENDERER
+            extDebugRendererInfo: getExtension(["WEBGL_debug_renderer_info"]),
+            extTextureFloatLinear: getExtension(["OES_texture_float_linear"]),
+            extTextureHalfFloatLinear: getExtension(["OES_texture_half_float_linear"]),
+            extFloatBlend: getExtension(["EXT_float_blend"]),
+            extTextureFilterAnisotropic: getExtension(["EXT_texture_filter_anisotropic", "WEBKIT_EXT_texture_filter_anisotropic"]),
+            extCompressedTextureETC1: getExtension(["WEBGL_compressed_texture_etc1"]),
+            extCompressedTextureETC: getExtension(["WEBGL_compressed_texture_etc"]),
+            extCompressedTexturePVRTC: getExtension(["WEBGL_compressed_texture_pvrtc", "WEBKIT_WEBGL_compressed_texture_pvrtc"]),
+            extCompressedTextureS3TC: getExtension(["WEBGL_compressed_texture_s3tc", "WEBKIT_WEBGL_compressed_texture_s3tc"]),
+            extCompressedTextureATC: getExtension(["WEBGL_compressed_texture_atc"]),
+            extCompressedTextureASTC: getExtension(["WEBGL_compressed_texture_astc"]),
+            extParallelShaderCompile: getExtension(["KHR_parallel_shader_compile"]),
 
             // iOS exposes for half precision render targets on both Webgl1 and 2 from iOS v 14.5beta
-            extColorBufferHalfFloat : getExtension(["EXT_color_buffer_half_float"]),
-            supportsInstancing : true,
+            extColorBufferHalfFloat: getExtension(["EXT_color_buffer_half_float"]),
+            supportsInstancing: true
         };
 
 

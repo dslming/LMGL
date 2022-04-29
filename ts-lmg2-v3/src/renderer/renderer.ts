@@ -94,7 +94,7 @@ export default class Renderer {
             x: 0,
             y: 0,
             width,
-            height: height
+            height
         });
     }
 

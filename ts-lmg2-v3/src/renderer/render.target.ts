@@ -126,20 +126,5 @@ export class RenderTarget {
                 gl.deleteRenderbuffer(this.glDepthBuffer);
                 this.glDepthBuffer = null;
             }
-
-            // if (this._glResolveFrameBuffer) {
-            //     gl.deleteFramebuffer(this._glResolveFrameBuffer);
-            //     this._glResolveFrameBuffer = null;
-            // }
-
-            // if (this._glMsaaColorBuffer) {
-            //     gl.deleteRenderbuffer(this._glMsaaColorBuffer);
-            //     this._glMsaaColorBuffer = null;
-            // }
-
-            // if (this._glMsaaDepthBuffer) {
-            //     gl.deleteRenderbuffer(this._glMsaaDepthBuffer);
-            //     this._glMsaaDepthBuffer = null;
-            // }
         }
 }

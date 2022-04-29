@@ -20,7 +20,7 @@ precision highp sampler2DShadow;
 
 #define PROCESS_FUNC reproject
 #define DECODE_FUNC decodeGamma
-#define ENCODE_FUNC encodeRGBM
+#define ENCODE_FUNC encodeGamma
 #define SOURCE_FUNC sampleCubemap
 #define TARGET_FUNC getDirectionEquirect
 #define NUM_SAMPLES 1
