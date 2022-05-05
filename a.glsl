@@ -1,3 +1,28 @@
+#version 300 es
+precision highp float;
+    #define varying in
+out highp vec4 pc_fragColor;
+#define gl_FragColor pc_fragColor
+#define texture2D texture
+#define textureCube texture
+#define texture2DProj textureProj
+#define texture2DLodEXT textureLod
+#define texture2DProjLodEXT textureProjLod
+#define textureCubeLodEXT textureLod
+#define texture2DGradEXT textureGrad
+#define texture2DProjGradEXT textureProjGrad
+#define textureCubeGradEXT textureGrad
+#define GL2
+#define SUPPORTS_TEXLOD
+
+#define PROCESS_FUNC prefilterSamples
+#define DECODE_FUNC decodeGamma
+#define ENCODE_FUNC encodeGamma
+#define SOURCE_FUNC sampleCubemap
+#define TARGET_FUNC getDirectionEquirect
+#define NUM_SAMPLES 1024
+#define SUPPORTS_TEXLOD
+
 // This shader requires the following #DEFINEs:
 //
 // PROCESS_FUNC - must be one of reproject, prefilter
@@ -169,7 +194,7 @@ vec4 sampleCubemap(vec2 sph, float mipLevel) {
 }
 
 // octahedral code, based on http://jcgt.org/published/0003/02/01
-// "Survey of Efficient Representations for Independent Unit Vectors" by Cigolle, Donow, Evangelakos, Mara, McGuire, Meyer
+// \"Survey of Efficient Representations for Independent Unit Vectors\" by Cigolle, Donow, Evangelakos, Mara, McGuire, Meyer
 
 float signNotZero(float k){
     return(k >= 0.0) ? 1.0 : -1.0;
@@ -345,3 +370,6 @@ vec4 prefilterSamplesUnweighted() {
 void main(void) {
     gl_FragColor = PROCESS_FUNC();
 }
+"
+在线工具 由 OSCHINA.NET 所有 | @新浪微博 |阿里云提供服务器和带宽 |意见反馈 | 粤ICP备12009483号-6 | 深圳市奥思网络科技有限公司版权所有
+

@@ -4,8 +4,7 @@ import {Vec4} from "../maths/math.vec4";
 import {Texture} from "../texture/texture";
 import reprojectFrag from "../shaders/reproject.frag";
 import reprojectVert from "../shaders/reproject.vert";
-// import reprojectFrag from "../../public/case/shaders/test.frag";
-// import reprojectVert from "../../public/case/shaders/test.vert";
+import gles3 from '../shaders/gles3.frag'
 
 import {Postprocessing} from "../postprocessing/postprocessing";
 import {Application} from "../application";
@@ -112,6 +111,7 @@ const getRequiredSamplesGGX = (numSamples: number, specularPower: number) => {
 
 // generate a vector on the hemisphere with GGX distribution.
 // a is linear roughness^2
+// 在半球上生成具有GGX分布的向量。a是线性粗糙度^2
 const hemisphereSampleGGX = (dstVec: Vec3, x: number, y: number, a: number) => {
     const phi = y * 2 * Math.PI;
     const cosTheta = Math.sqrt((1 - x) / (1 + (a * a - 1) * x));
@@ -136,11 +136,12 @@ const generateGGXSamples = (numSamples: number, specularPower: number, sourceTot
     const result = [];
 
     const requiredSamples = getRequiredSamplesGGX(numSamples, specularPower);
-
+    console.error(requiredSamples);
     for (let i = 0; i < requiredSamples; ++i) {
         hemisphereSampleGGX(H, i / requiredSamples, random.radicalInverse(i), a);
 
-        const NoH = H.z; // since N is (0, 0, 1)
+        // since N is (0, 0, 1)
+        const NoH = H.z;
         L.set(H.x, H.y, H.z)
             .mulScalar(2 * NoH)
             .sub(N);
@@ -156,10 +157,13 @@ const generateGGXSamples = (numSamples: number, specularPower: number, sourceTot
         result.push(0, 0, 0, 0);
     }
 
+
     return result;
 };
 
 const generateGGXSamplesTex = (device: Engine, numSamples: number, specularPower: number, sourceTotalPixels: number) => {
+    console.error(numSamples, specularPower, sourceTotalPixels);
+
     const a = generateGGXSamples(numSamples, specularPower, sourceTotalPixels);
     const b = createSamplesTex(device, "123", a);
     return b;
@@ -222,15 +226,16 @@ const packSamples = (samples: any[]) => {
 // pack float samples data into an rgba8 texture
 const createSamplesTex = (device: Engine, name: string, samples: any[]) => {
     const packedSamples = packSamples(samples);
-    return new Texture(device, {
+    const texture= new Texture(device, {
         name: name,
         width: packedSamples.width,
         height: packedSamples.height,
         mipmaps: false,
         minFilter: TextureFilter.FILTER_NEAREST,
-        magFilter: TextureFilter.FILTER_NEAREST
-        // levels: [packedSamples.data]
+        magFilter: TextureFilter.FILTER_NEAREST,
     });
+    texture.source = packedSamples.data;
+    return texture;;
 };
 
 export class EnvLighting {
@@ -297,7 +302,7 @@ export class EnvLighting {
 
         const processFunc = funcNames[distribution];
         const decodeFunc = `decode${getCoding(source)}`;
-        const encodeFunc = `encode${getCoding(target)}`;
+        const encodeFunc = `encodeGamma`;//`encode${getCoding(target)}`;
         const sourceFunc = `sample${getProjectionName(source.projection)}`;
         const targetFunc = `getDirection${getProjectionName(target.projection)}`;
         const numSamples = options.hasOwnProperty("numSamples") ? options.numSamples : 1024;
@@ -312,10 +317,11 @@ export class EnvLighting {
             `#define SUPPORTS_TEXLOD\n`;
 
         const post = new Postprocessing(this._app);
+        (window as any).post = post;
         post.createProgram({
             programName: "envPre",
             vertexShader: reprojectVert,
-            fragmentShader: `${reprojectFrag}`,
+            fragmentShader: `${gles3}\n${defines}\n${reprojectFrag}`,
             uniforms: {
                 uvMod: {
                     type: UniformsType.Vec4,
@@ -394,7 +400,7 @@ export class EnvLighting {
                     colorBuffer: target
                 });
                 params[0] = f;
-                post.setRenderTarget(null)
+                post.setRenderTarget(renderTarget)
                     .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
                     .setUniform("params2", {x: params2[0], y: params2[1]})
                     .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
@@ -440,7 +446,7 @@ export class EnvLighting {
             }
 
             rect.set(0, 256, 256, 128);
-            for (let i = 1; i < 2; ++i) {
+            for (let i = 1; i < 7; ++i) {
                 this.reprojectTexture(lightingTexture, result, {
                     numSamples: 1024,
                     distribution: "ggx",

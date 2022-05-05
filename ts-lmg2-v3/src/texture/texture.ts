@@ -368,7 +368,7 @@ export class Texture extends EventHandler {
         if (Array.isArray(v)) {
             this._width = v[0].width;
             this._height = v[0].height;
-        } else if (v) {
+        } else if (v.width && v.height) {
             this._width = v.width;
             this._height = v.height;
         }

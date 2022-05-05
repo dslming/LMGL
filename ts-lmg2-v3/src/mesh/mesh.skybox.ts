@@ -54,7 +54,7 @@ export class MeshSkybox {
             uniforms: {
                 texture_envAtlas: {type: UniformsType.Texture, value: this._options.cubeMap},
                 exposure: {type: UniformsType.Float, value: 1},
-                mipLevel: {type: UniformsType.Float, value: 2},
+                mipLevel: {type: UniformsType.Float, value: 1},
                 cubeMapRotationMatrix: {
                     type: UniformsType.Mat3,
                     value: mat3.data
