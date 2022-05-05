@@ -88,12 +88,31 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         depth: true,
         colorBuffer: result
     });
+    const target1 = new lmgl.RenderTarget(engine, {
+        bufferType: lmgl.RenderTargetBufferType.colorBuffer,
+        width: size.width,
+        height: size.height,
+        name: "renderTarget",
+        depth: true,
+        colorBuffer: result
+    });
+
+    const target2 = new lmgl.RenderTarget(engine, {
+        bufferType: lmgl.RenderTargetBufferType.colorBuffer,
+        width: size.width,
+        height: size.height,
+        name: "renderTarget",
+        depth: true,
+        colorBuffer: result
+    });
 
     post.clear();
     post.useProgram("green").setRenderTarget(target).viewport({x: 0, y: 0, width: 512, height: 256}).render();
-    post.useProgram("red").setRenderTarget(target).viewport({x: 0, y: 0, width: 256, height: 256}).render();
-    post.useProgram("blue").setRenderTarget(target).viewport({x: 0, y: 256, width: 256, height: 256}).render();
     target.destroy();
+    post.useProgram("red").setRenderTarget(target1).viewport({x: 0, y: 0, width: 256, height: 256}).render();
+    target1.destroy();
+    post.useProgram("blue").setRenderTarget(target2).viewport({x: 0, y: 256, width: 256, height: 256}).render();
+    target2.destroy();
 
     app.addUpdate("loop", () => {
         plane.material.uniforms.uTexture.value = result;

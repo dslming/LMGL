@@ -5,7 +5,8 @@ import {IColor4Like} from "../maths/math.like";
 import {MathTool} from "../maths/math.tool";
 import {FileTools} from "../misc/fileTools";
 import { Logger } from "../misc/logger";
-import {Nullable} from "../types";
+import { Nullable } from "../types";
+import {EventHandler} from "../misc/event.handler";
 
 export interface iTextureOptions {
     name?: string;
@@ -64,7 +65,7 @@ export interface iTextureOptions {
 
 let id = 0;
 
-export class Texture {
+export class Texture extends EventHandler {
     public uuid = id++;
     private _engine: Engine;
     private _minFilter: TextureFilter;
@@ -105,6 +106,7 @@ export class Texture {
     private _mipmapsUploaded: boolean;
 
     constructor(engine: Engine, options?: iTextureOptions) {
+        super();
         this._engine = engine;
         this.needsUpload = false;
         if (!options) {
@@ -136,6 +138,7 @@ export class Texture {
                 onLoad: (img: MediaImage) => {
                     this.source = img;
                     options?.onLoad && options.onLoad();
+                    this.fire("loaded")
                 },
                 onError: (msg: string) => {
                     options?.onError && options.onError();
@@ -149,6 +152,7 @@ export class Texture {
                 onLoad: (img: MediaImage) => {
                     this.source = img;
                     options?.onLoad && options.onLoad();
+                    this.fire("loaded");
                 },
                 onError: (msg: string) => {
                     options?.onError && options.onError();
@@ -160,9 +164,11 @@ export class Texture {
         this._mipmaps = options.mipmaps !== undefined ? options.mipmaps : true;
         this.dirtyAll();
     }
+
     get anisotropy() {
         return this._anisotropy;
     }
+
     /**
      * Integer value specifying the level of anisotropic to apply to the texture ranging from 1 (no
      * anisotropic filtering) to the {@link GraphicsDevice} property maxAnisotropy.
@@ -407,5 +413,15 @@ export class Texture {
         }
 
         return "srgb";
+    }
+
+    syncWait() {
+        return new Promise((resolve, reject) => {
+            this.once("loaded", resolve);
+        });
+    }
+
+    distory() {
+        this.off("loaded");
     }
 }

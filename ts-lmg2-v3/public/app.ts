@@ -1,20 +1,22 @@
 import * as lmgl from "../src/index";
-// import { run } from "./case/triangle";
+// import {run} from "./case/triangle";
 // import { run } from "./case/box";
+// import {run} from "./case/sphere";
 // import { run } from "./case/sprite";
 // import { run } from "./case/particle";
 // import { run } from "./case/texture";
 // import { run } from "./case/instance_base";
 // import { run } from "./case/instance_rotation";
 // import { run } from "./case/instance_multilTriangle";
-// import { run } from "./case/skybox";
+// import {run} from "./case/skybox";
 import {run} from "./case/pre_filtered_environment_map";
 
 // ----------------------------------- postprocessing------------------------
 // import {run} from "./case/postprocessing_blackAndWhite";
-// import { run } from "./case/postprocessing_post_render";
-// import { run } from "./case/postprocessing_render_post";
-// import { run } from "./case/post_blackAndWhite_colorbuffer";
+// import {run} from "./case/postprocessing_post_render";
+// import {run} from "./case/postprocessing_render_post";
+// import {run} from "./case/post_blackAndWhite_colorbuffer";
+// import {run} from "./case/postprocessing_cubemap_to_panorama";
 
 let canvas: any;
 let engine: lmgl.Engine;
@@ -32,6 +34,7 @@ window.onload = () => {
         needAxis: false
     });
     (window as any).app = app;
+    (window as any).scene = scene;
 
     run(engine, scene, app);
 

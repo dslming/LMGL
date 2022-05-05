@@ -1,8 +1,9 @@
-import { Engine } from "../engines/engine";
-import { BlendEquation, BlendMode, BlendType, CompareFunc, CullFace, iProgrameCreateOptions, iProgrameDefines, iProgramUniforms, UniformsType } from "../engines/engine.enum";
-import { iUniformBlock } from "../engines/engine.uniformBuffer";
-import { ShaderLoader } from "../loader/shader.loader";
-import { cloneUniforms } from "../misc/tool";
+import {Engine} from "../engines/engine";
+import {BlendEquation, BlendMode, BlendType, CompareFunc, CullFace, iProgrameCreateOptions, iProgrameDefines, iProgramUniforms, UniformsType} from "../engines/engine.enum";
+import {iUniformBlock} from "../engines/engine.uniformBuffer";
+import {ShaderLoader} from "../loader/shader.loader";
+import {EventHandler} from "../misc/event.handler";
+import {cloneUniforms} from "../misc/tool";
 
 export interface iMaterialOptions {
     vertexShader?: string | string[];
@@ -17,7 +18,7 @@ export interface iMaterialOptions {
     uniforms?: iProgramUniforms;
     defines?: iProgrameDefines;
 }
-export class Material {
+export class Material extends EventHandler {
     program: any;
     uniforms: any;
     needUpdate: boolean;
@@ -45,6 +46,7 @@ export class Material {
     private _blendAlphaEquation: BlendEquation;
 
     constructor(engine: Engine, materialInfo: iMaterialOptions) {
+        super();
         this._engine = engine;
 
         const load = () => {
@@ -53,12 +55,13 @@ export class Material {
 
             const programInfo: any = engine.enginePrograms.createProgram({
                 vertexShader: this.vertexShader,
-                fragmentShader: this.fragmentShader,
+                fragmentShader: this.fragmentShader
             });
             this.program = programInfo.program;
 
             this.vertexShader = programInfo.vertexShader;
             this.fragmentShader = programInfo.fragmentShader;
+            this.fire("loaded");
         };
 
         if (materialInfo.vertexShader && materialInfo.fragmentShader) {
@@ -71,18 +74,18 @@ export class Material {
             const loader = new ShaderLoader(engine).setPath(materialInfo.shaderRootPath).load({
                 vsPaths: materialInfo.vertexShaderPaths,
                 fsPaths: materialInfo.fragmentShaderPaths,
-                onLoad: (ret: { vertexShader: string; fragmentShader: string }) => {
+                onLoad: (ret: {vertexShader: string; fragmentShader: string}) => {
                     this.inputVertexShader = ret.vertexShader;
                     this.inputFragmentShader = ret.fragmentShader;
                     load();
-                },
+                }
             });
         }
         this.uniforms = cloneUniforms(materialInfo.uniforms || {});
 
         this.uniformBlock = {
             blockCatch: new Map(),
-            blockIndex: 0,
+            blockIndex: 0
         };
 
         // 是否需要每帧更新uniform变量
@@ -264,7 +267,7 @@ export class Material {
     }
 
     setUniform() {
-        const { program, uniforms, uniformBlock } = this;
+        const {program, uniforms, uniformBlock} = this;
         this._engine.engineUniform.handleUniform(program, uniforms, uniformBlock);
     }
 
@@ -272,7 +275,13 @@ export class Material {
         return new Material(this._engine, {
             vertexShader: this.inputVertexShader,
             fragmentShader: this.inputFragmentShader,
-            uniforms: this.uniforms,
+            uniforms: this.uniforms
+        });
+    }
+
+    syncWait() {
+        return new Promise((resolve, reject) => {
+            this.once("loaded", resolve);
         });
     }
 }

@@ -73,6 +73,7 @@ export default class Renderer {
     setRenderTarget(target: RenderTarget | null) {
         this._target = target;
         this._engine.engineRenderTarget.setRenderTarget(target);
+        this._engine.engineRenderTarget.updateBegin();
     }
 
     clear() {
@@ -101,7 +102,7 @@ export default class Renderer {
     renderScene(scene: Scene, camera: Camera) {
         this.clear();
         this.viewport();
-
+        this._engine.engineRenderTarget.updateBegin();
         for (let i = 0; i < scene.childrenMesh.length; i++) {
             const child: Mesh = scene.childrenMesh[i];
             this.renderMesh(child, camera);

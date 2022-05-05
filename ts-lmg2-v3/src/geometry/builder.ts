@@ -1,6 +1,6 @@
-import { Vec2 } from "../maths/math.vec2";
-import { Vec3 } from "../maths/math.vec3";
-import { Nullable } from "../types";
+import {Vec2} from "../maths/math.vec2";
+import {Vec3} from "../maths/math.vec3";
+import {Nullable} from "../types";
 
 /**
  * 几何体构造器
@@ -154,14 +154,14 @@ export function boxBuilder(side?: number) {
         positions: coords,
         normals: normals,
         uvs: texCoords,
-        indices: indices,
+        indices: indices
     };
 }
-export function sphereBuilder(opts: any): iGeometryBuilder {
+export function sphereBuilder(opts?: any): iGeometryBuilder {
     // Check the supplied options and provide defaults for unspecified ones
     const radius = opts && opts.radius !== undefined ? opts.radius : 0.5;
-    const latitudeBands = opts && opts.latitudeBands !== undefined ? opts.latitudeBands : 16;
-    const longitudeBands = opts && opts.longitudeBands !== undefined ? opts.longitudeBands : 16;
+    const latitudeBands = opts && opts.latitudeBands !== undefined ? opts.latitudeBands : 32;
+    const longitudeBands = opts && opts.longitudeBands !== undefined ? opts.longitudeBands : 32;
     const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
 
     // Variable declarations
@@ -208,7 +208,7 @@ export function sphereBuilder(opts: any): iGeometryBuilder {
         normals: normals,
         uvs: uvs,
         // uvs1: uvs, // UV1 = UV0 for sphere
-        indices: indices,
+        indices: indices
     };
 
     // return createMesh(device, positions, options);
@@ -236,6 +236,6 @@ export function planeBuilder(width?: number, height?: number): iGeometryBuilder 
         positions: vert,
         normals: normal,
         uvs: [0, 1, 0, 0, 1, 0, 1, 1],
-        indices: indices,
+        indices: indices
     };
 }

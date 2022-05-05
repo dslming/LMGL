@@ -22,6 +22,9 @@ module.exports = {
           transpileOnly: true
         }
       }]
+    }, {
+      test: /\.[frag|vert]{2,4}$/,
+      loader: 'raw-loader'
     }]
   },
   resolve: {

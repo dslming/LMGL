@@ -1,10 +1,10 @@
-import { CameraControl } from "./cameras/camera.control";
-import { PerspectiveCamera } from "./cameras/PerspectiveCamera";
-import { Engine } from "./engines/engine";
-import { MeshAxis } from "./mesh/mesh.axis";
-import { ParticleSystem } from "./particles";
+import {CameraControl} from "./cameras/camera.control";
+import {PerspectiveCamera} from "./cameras/PerspectiveCamera";
+import {Engine} from "./engines/engine";
+import {MeshAxis} from "./mesh/mesh.axis";
+import {ParticleSystem} from "./particles";
 import Renderer from "./renderer/renderer";
-import { Scene } from "./scene";
+import {Scene} from "./scene";
 
 export class Application {
     public engine: Engine;
@@ -17,7 +17,7 @@ export class Application {
     autoRender: boolean;
     private _axis: MeshAxis;
 
-    constructor(engine: Engine, scene?: Scene, options?: { needAxis: boolean }) {
+    constructor(engine: Engine, scene?: Scene, options?: {needAxis: boolean}) {
         this.autoRender = true;
         this.engine = engine;
         scene && (this.scene = scene);
@@ -30,7 +30,7 @@ export class Application {
 
         this.control = new CameraControl(
             {
-                distance: this.camera.position.z,
+                distance: this.camera.position.z
                 // distRange: {
                 //     min: this.camera.near,
                 //     max: this.camera.far,
@@ -40,9 +40,8 @@ export class Application {
             this.engine.renderingCanvas
         );
         window.onresize = () => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            this.handleResize(width, height);
+            const parentElement: any = this.engine.renderingCanvas.parentElement;
+            this.handleResize(parentElement.clientWidth, parentElement.clientHeight);
         };
 
         if (options && options.needAxis) {
@@ -79,10 +78,10 @@ export class Application {
         canvas.style.height = height + "px";
     }
 
-    getRenderSize(): { width: number; height: number } {
+    getRenderSize(): {width: number; height: number} {
         return {
             width: this.engine.engineDraw.getRenderWidth(),
-            height: this.engine.engineDraw.getRenderHeight(),
+            height: this.engine.engineDraw.getRenderHeight()
         };
     }
 

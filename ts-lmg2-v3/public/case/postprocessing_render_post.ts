@@ -64,7 +64,7 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         addressU: lmgl.TextureAddress.ADDRESS_CLAMP_TO_EDGE,
         addressV: lmgl.TextureAddress.ADDRESS_CLAMP_TO_EDGE,
         minFilter: lmgl.TextureFilter.FILTER_LINEAR,
-        magFilter: lmgl.TextureFilter.FILTER_LINEAR,
+        magFilter: lmgl.TextureFilter.FILTER_LINEAR
     });
 
     const renderTarget = new lmgl.RenderTarget(engine, {
@@ -73,7 +73,7 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         height: size.height,
         name: "renderTarget",
         depth: true,
-        colorBuffer: result,
+        colorBuffer: result
     });
 
     app.addUpdate("loop", () => {
@@ -86,6 +86,6 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         app.renderer.renderScene(app.scene, app.camera);
 
         // prettier-ignore
-        post.useProgram("blackAndWhite").setRenderTarget(null).viewport().clear().setUniform("textureSampler", result).render();
+        post.useProgram("blackAndWhite").setRenderTarget(null).viewport().clear().setUniform("textureSampler", result,).render();
     });
 }

@@ -1,20 +1,20 @@
-import { Engine } from "../engines/engine";
-import { CullFace, TextureAddress, TextureFilter, UniformsType } from "../engines/engine.enum";
-import { boxBuilder } from "../geometry/builder";
-import { Geometry, iGeometryData } from "../geometry/geometry";
-import { Material } from "../material/material";
-import { IColor4Like } from "../maths/math.like";
-import { Mesh } from "./mesh";
+import {Engine} from "../engines/engine";
+import {CullFace, TextureAddress, TextureFilter, UniformsType} from "../engines/engine.enum";
+import {boxBuilder} from "../geometry/builder";
+import {Geometry, iGeometryData} from "../geometry/geometry";
+import {Material} from "../material/material";
+import {IColor4Like} from "../maths/math.like";
+import {Mesh} from "./mesh";
 
 import vs from "../shaders/skybox.vert";
 import fs from "../shaders/skybox.frag";
-import gles3 from '../shaders/gles3.frag'
+import gles3 from "../shaders/gles3.frag";
 
-import { Texture } from "../texture/texture";
-import { Mat3 } from "../maths/math.mat3";
+import {Texture} from "../texture/texture";
+import {Mat3} from "../maths/math.mat3";
 
 export interface iMeshSkyboxOptions {
-    cubeMap: Texture
+    cubeMap: Texture;
 }
 
 export class MeshSkybox {
@@ -34,28 +34,19 @@ export class MeshSkybox {
         const model = boxBuilder(1);
         return {
             indices: {
-                value: model.indices,
+                value: model.indices
             },
             attributes: [
                 {
                     name: "aPosition",
                     value: model.positions,
-                    itemSize: 3,
-                },
-            ],
+                    itemSize: 3
+                }
+            ]
         };
     }
 
     private _getMat(): Material {
-        // const { urls } = this._options;
-
-        // const skyboxTexture = new Texture(this._engine, {
-        //     urls,
-        //     minFilter: TextureFilter.FILTER_LINEAR,
-        //     magFilter: TextureFilter.FILTER_LINEAR,
-        //     addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-        //     addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-        // });
         let mat3 = new Mat3();
         return new Material(this._engine, {
             vertexShader: vs,
@@ -63,7 +54,7 @@ export class MeshSkybox {
             uniforms: {
                 texture_envAtlas: {type: UniformsType.Texture, value: this._options.cubeMap},
                 exposure: {type: UniformsType.Float, value: 1},
-                mipLevel: {type: UniformsType.Float, value: 0},
+                mipLevel: {type: UniformsType.Float, value: 2},
                 cubeMapRotationMatrix: {
                     type: UniformsType.Mat3,
                     value: mat3.data

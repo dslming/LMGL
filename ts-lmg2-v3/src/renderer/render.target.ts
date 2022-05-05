@@ -61,8 +61,6 @@ export class RenderTarget {
                   minFilter: options.colorBufferMinFilter ? options.colorBufferMinFilter : TextureFilter.FILTER_LINEAR,
                   magFilter: options.colorBufferMagFilter ? options.colorBufferMagFilter : TextureFilter.FILTER_LINEAR
               });
-        this.colorBuffer.needsUpload = true;
-
         if (options.bufferType == RenderTargetBufferType.depthBuffer) {
             this.depthBuffer = new Texture(engine, {
                 width: options.width,
@@ -73,7 +71,6 @@ export class RenderTarget {
                 minFilter: options.depthBufferMinFilter ? options.depthBufferMinFilter : TextureFilter.FILTER_NEAREST,
                 magFilter: options.depthBufferMagFilter ? options.depthBufferMagFilter : TextureFilter.FILTER_NEAREST
             });
-            this.depthBuffer.needsUpload = true;
         }
 
         this.depth = options.depth !== undefined ? options.depth : false;
@@ -115,16 +112,15 @@ export class RenderTarget {
     }
 
     destroy() {
-
-            const gl = this._engine.gl;
-            if (this.glFrameBuffer) {
-                gl.deleteFramebuffer(this.glFrameBuffer);
-                this.glFrameBuffer = null;
-            }
-
-            if (this.glDepthBuffer) {
-                gl.deleteRenderbuffer(this.glDepthBuffer);
-                this.glDepthBuffer = null;
-            }
+        const gl = this._engine.gl;
+        if (this.glFrameBuffer) {
+            gl.deleteFramebuffer(this.glFrameBuffer);
+            this.glFrameBuffer = null;
         }
+
+        if (this.glDepthBuffer) {
+            gl.deleteRenderbuffer(this.glDepthBuffer);
+            this.glDepthBuffer = null;
+        }
+    }
 }

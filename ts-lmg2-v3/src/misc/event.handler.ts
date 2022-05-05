@@ -65,7 +65,7 @@ class EventHandler {
    * });
    * obj.fire('test', 1, 2); // prints 3 to the console
    */
-  public on(name: string | number, callback: Function, scope: any): EventHandler {
+  public on(name: string | number, callback: Function, scope?: any): EventHandler {
     this._addCallback(name, callback, scope, false);
 
     return this;
@@ -90,7 +90,7 @@ class EventHandler {
    * obj.off('test', handler); // Removes all handler functions, called 'test'
    * obj.off('test', handler, this); // Removes all hander functions, called 'test' with scope this
    */
-  public off(name: string | number, callback: Function, scope: any): EventHandler {
+  public off(name: string | number, callback?: Function, scope?: any): EventHandler {
     if (name) {
       if (this._callbackActive[name] && this._callbackActive[name] === this._callbacks[name]) this._callbackActive[name] = this._callbackActive[name].slice();
     } else {
@@ -197,7 +197,7 @@ class EventHandler {
    * obj.fire('test', 1, 2); // prints 3 to the console
    * obj.fire('test', 1, 2); // not going to get handled
    */
-  public once(name: string | number, callback: any, scope: any): EventHandler {
+  public once(name: string | number, callback: any, scope?: any): EventHandler {
     this._addCallback(name, callback, scope, true);
     return this;
   }

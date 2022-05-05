@@ -239,80 +239,30 @@ export class EnvLighting {
     public isReady: boolean;
     result: Texture;
     cubeMapTexture: Texture;
+    post: Postprocessing;
 
     constructor(app: Application) {
         this._app = app;
         this._engine = app.engine;
         this._engine = app.engine;
         this.isReady = false;
-    }
 
-    getCubeTexture(urls: string[]) {
-        return new Promise((resolve, reject) => {
-            const lightingTexture = new Texture(this._engine, {
-                name: "cube_map_faces",
-                urls: urls,
-                mipmaps: true,
-                minFilter: TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR,
-                magFilter: TextureFilter.FILTER_LINEAR,
-                addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                onLoad: () => {
-                    resolve(lightingTexture);
-                },
-                projection: TextureProjection.TEXTUREPROJECTION_CUBE,
-                fixCubemapSeams: false,
-                flipY: false
-            });
+        this.result = new Texture(this._engine, {
+            name: "envAtlas",
+            width: 512,
+            height: 512,
+            format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
+            type: TextureType.TEXTURETYPE_RGBM,
+            projection: TextureProjection.TEXTUREPROJECTION_EQUIRECT,
+            addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+            addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+            minFilter: TextureFilter.FILTER_LINEAR,
+            magFilter: TextureFilter.FILTER_LINEAR,
+            mipmaps: false
         });
-    }
 
-    reprojectTexture(
-        source: Texture,
-        target: Texture,
-        options: {
-            // 可选镜面反射功率。当镜面反射功率指定时，源由提升到指定幂的phong加权内核进行卷积。否则，该函数将执行标准重采样。
-            specularPower?: number;
-            numSamples?: number;
-            // 指定卷积分布: 'null', 'lambert', 'phong', 'ggx'。默认值取决于specularPower。
-            distribution?: string;
-            // 视口矩形
-            rect: Vec4;
-            face?: any;
-            // 要渲染的接缝像素
-            seamPixels?: number;
-        }
-    ) {
-        // table of distribution -> function name
-        const funcNames: {[key: string]: string} = {
-            none: "reproject",
-            lambert: "prefilterSamplesUnweighted",
-            phong: "prefilterSamplesUnweighted",
-            ggx: "prefilterSamples"
-        };
-
-        const specularPower = options.hasOwnProperty("specularPower") ? options.specularPower : 1;
-        const face = options.hasOwnProperty("face") ? options.face : null;
-        const distribution: any = options.hasOwnProperty("distribution") ? options.distribution : specularPower === 1 ? "none" : "phong";
-
-        const processFunc = funcNames[distribution];
-        const decodeFunc = `decode${getCoding(source)}`;
-        const encodeFunc = `encode${getCoding(target)}`;
-        const sourceFunc = `sample${getProjectionName(source.projection)}`;
-        const targetFunc = `getDirection${getProjectionName(target.projection)}`;
-        const numSamples = options.hasOwnProperty("numSamples") ? options.numSamples : 1024;
-
-        const defines =
-            `#define PROCESS_FUNC ${processFunc}\n` +
-            `#define DECODE_FUNC ${decodeFunc}\n` +
-            `#define ENCODE_FUNC ${encodeFunc}\n` +
-            `#define SOURCE_FUNC ${sourceFunc}\n` +
-            `#define TARGET_FUNC ${targetFunc}\n` +
-            `#define NUM_SAMPLES ${numSamples}\n` +
-            `#define SUPPORTS_TEXLOD\n`;
-
-        const post = new Postprocessing(this._app);
-        post.createProgram({
+        this.post = new Postprocessing(this._app);
+        this.post.createProgram({
             programName: "envPre",
             vertexShader: reprojectVert,
             fragmentShader: `${reprojectFrag}`,
@@ -343,44 +293,109 @@ export class EnvLighting {
                 }
             }
         });
-        post.useProgram("envPre");
+    }
 
-        if (options?.seamPixels) {
-            const p = options.seamPixels;
-            const w = options.rect ? options.rect.z : target.width;
-            const h = options.rect ? options.rect.w : target.height;
-
-            const innerWidth = w - p * 2;
-            const innerHeight = h - p * 2;
-
-            post.setUniform("uvMod", {
-                x: (innerWidth + p * 2) / innerWidth,
-                y: (innerHeight + p * 2) / innerHeight,
-                z: -p / innerWidth,
-                w: -p / innerHeight
+    getCubeTexture(urls: string[]) {
+        return new Promise((resolve, reject) => {
+            const lightingTexture = new Texture(this._engine, {
+                name: "cube_map_faces",
+                urls: urls,
+                mipmaps: true,
+                minFilter: TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR,
+                magFilter: TextureFilter.FILTER_LINEAR,
+                addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+                addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+                onLoad: () => {
+                    resolve(lightingTexture);
+                },
+                projection: TextureProjection.TEXTUREPROJECTION_CUBE,
+                fixCubemapSeams: false,
+                flipY: false
             });
-        } else {
-            post.setUniform("uvMod", {x: 1, y: 1, z: 0, w: 0});
+        });
+    }
+
+    reprojectTexture(
+        target: Texture,
+        options: {
+            // 可选镜面反射功率。当镜面反射功率指定时，源由提升到指定幂的phong加权内核进行卷积。否则，该函数将执行标准重采样。
+            specularPower?: number;
+            numSamples?: number;
+            // 指定卷积分布: 'null', 'lambert', 'phong', 'ggx'。默认值取决于specularPower。
+            distribution?: string;
+            // 视口矩形
+            rect: Vec4;
+            face?: any;
+            // 要渲染的接缝像素
+            seamPixels?: number;
         }
+    ) {
+        // table of distribution -> function name
+        const funcNames: {[key: string]: string} = {
+            none: "reproject",
+            lambert: "prefilterSamplesUnweighted",
+            phong: "prefilterSamplesUnweighted",
+            ggx: "prefilterSamples"
+        };
 
-        const params = [
-            0,
-            specularPower,
-            source.fixCubemapSeams ? 1.0 / source.width : 0.0, // source seam scale
-            target.fixCubemapSeams ? 1.0 / target.width : 0.0 // target seam scale
-        ];
+        const specularPower = options.hasOwnProperty("specularPower") ? options.specularPower : 1;
+        const face = options.hasOwnProperty("face") ? options.face : null;
+        const distribution: any = options.hasOwnProperty("distribution") ? options.distribution : specularPower === 1 ? "none" : "phong";
 
-        const params2 = [target.width * target.height * (target.cubemap ? 6 : 1), source.width * source.height * (source.cubemap ? 6 : 1)];
+        const processFunc = funcNames[distribution];
+        // const decodeFunc = `decode${getCoding(source)}`;
+        const encodeFunc = `encode${getCoding(target)}`;
+        // const sourceFunc = `sample${getProjectionName(source.projection)}`;
+        const targetFunc = `getDirection${getProjectionName(target.projection)}`;
+        const numSamples = options.hasOwnProperty("numSamples") ? options.numSamples : 1024;
+
+        // const defines =
+        //     `#define PROCESS_FUNC ${processFunc}\n` +
+        //     `#define DECODE_FUNC ${decodeFunc}\n` +
+        //     `#define ENCODE_FUNC ${encodeFunc}\n` +
+        //     `#define SOURCE_FUNC ${sourceFunc}\n` +
+        //     `#define TARGET_FUNC ${targetFunc}\n` +
+        //     `#define NUM_SAMPLES ${numSamples}\n` +
+        //     `#define SUPPORTS_TEXLOD\n`;
+
+        this.post.useProgram("envPre");
+
+        // if (options?.seamPixels) {
+        //     const p = options.seamPixels;
+        //     const w = options.rect ? options.rect.z : target.width;
+        //     const h = options.rect ? options.rect.w : target.height;
+
+        //     const innerWidth = w - p * 2;
+        //     const innerHeight = h - p * 2;
+
+        //     this.post.setUniform("uvMod", {
+        //         x: (innerWidth + p * 2) / innerWidth,
+        //         y: (innerHeight + p * 2) / innerHeight,
+        //         z: -p / innerWidth,
+        //         w: -p / innerHeight
+        //     });
+        // } else {
+        //     this.post.setUniform("uvMod", {x: 1, y: 1, z: 0, w: 0});
+        // }
+
+        // const params = [
+        //     0,
+        //     specularPower,
+        //     source.fixCubemapSeams ? 1.0 / source.width : 0.0, // source seam scale
+        //     target.fixCubemapSeams ? 1.0 / target.width : 0.0 // target seam scale
+        // ];
+
+        // const params2 = [target.width * target.height * (target.cubemap ? 6 : 1), source.width * source.height * (source.cubemap ? 6 : 1)];
 
         if (processFunc.startsWith("prefilterSamples")) {
             // set or generate the pre-calculated samples data
-            const sourceTotalPixels = source.width * source.height * (source.cubemap ? 6 : 1);
-            const samplesTex = generateGGXSamplesTex(this._engine, numSamples || 1024, specularPower || 1, sourceTotalPixels);
-            post.setUniform("samplesTex", samplesTex);
-            post.setUniform("samplesTexInverseSize", {
-                x: 1.0 / samplesTex.width,
-                y: 1.0 / samplesTex.height
-            });
+            // const sourceTotalPixels = source.width * source.height * (source.cubemap ? 6 : 1);
+            // const samplesTex = generateGGXSamplesTex(this._engine, numSamples || 1024, specularPower || 1, sourceTotalPixels);
+            // post.setUniform("samplesTex", samplesTex);
+            // post.setUniform("samplesTexInverseSize", {
+            //     x: 1.0 / samplesTex.width,
+            //     y: 1.0 / samplesTex.height
+            // });
         }
 
         const viewport = options?.rect;
@@ -393,10 +408,13 @@ export class EnvLighting {
                     depth: false,
                     colorBuffer: target
                 });
-                params[0] = f;
-                post.setRenderTarget(null)
-                    .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
-                    .setUniform("params2", {x: params2[0], y: params2[1]})
+                // params[0] = f;
+
+                this.post
+                    .useProgram("envPre")
+                    .setRenderTarget(renderTarget)
+                    // .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
+                    // .setUniform("params2", {x: params2[0], y: params2[1]})
                     .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
                     .render();
                 renderTarget.destroy();
@@ -406,42 +424,27 @@ export class EnvLighting {
 
     gen(options: {urls: string[]}) {
         return new Promise(async (resolve, reject) => {
-            const result = new Texture(this._engine, {
-                name: "envAtlas",
-                width: 512,
-                height: 512,
-                format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
-                type: TextureType.TEXTURETYPE_RGBM,
-                projection: TextureProjection.TEXTUREPROJECTION_EQUIRECT,
-                addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                minFilter: TextureFilter.FILTER_LINEAR,
-                magFilter: TextureFilter.FILTER_LINEAR,
-                mipmaps: false
-            });
-            this.result = result;
-
             const rect = new Vec4(0, 0, 512, 256);
-            const levels = 1//calcLevels(result.width, result.height);
+            const levels = 1; //calcLevels(result.width, result.height);
 
-            const lightingTexture: Texture = (await this.getCubeTexture(options.urls)) as any;
-            this.cubeMapTexture = lightingTexture;
-            for (let i = 0; i < levels; ++i) {
-                this.reprojectTexture(lightingTexture, result, {
-                    numSamples: 1,
-                    rect: rect,
-                    seamPixels: 1
-                });
+            // const lightingTexture: Texture = (await this.getCubeTexture(options.urls)) as any;
+            // this.cubeMapTexture = lightingTexture;
+            // for (let i = 0; i < levels; ++i) {
+            //     this.reprojectTexture(lightingTexture, this.result, {
+            //         numSamples: 1,
+            //         rect: rect,
+            //         seamPixels: 1
+            //     });
 
-                rect.x += rect.w;
-                rect.y += rect.w;
-                rect.z = Math.max(1, Math.floor(rect.z * 0.5));
-                rect.w = Math.max(1, Math.floor(rect.w * 0.5));
-            }
+            //     rect.x += rect.w;
+            //     rect.y += rect.w;
+            //     rect.z = Math.max(1, Math.floor(rect.z * 0.5));
+            //     rect.w = Math.max(1, Math.floor(rect.w * 0.5));
+            // }
 
             rect.set(0, 256, 256, 128);
             for (let i = 1; i < 2; ++i) {
-                this.reprojectTexture(lightingTexture, result, {
+                this.reprojectTexture(this.result, {
                     numSamples: 1024,
                     distribution: "ggx",
                     specularPower: Math.max(1, 2048 >> (i * 2)),
@@ -452,7 +455,9 @@ export class EnvLighting {
                 rect.z = Math.max(1, Math.floor(rect.z * 0.5));
                 rect.w = Math.max(1, Math.floor(rect.w * 0.5));
             }
-            resolve(result);
+            // this.isReady = true;
+            // options.cb(result);
+            resolve(this.result);
         });
     }
 }

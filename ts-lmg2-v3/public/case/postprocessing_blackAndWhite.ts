@@ -4,7 +4,6 @@ import {BlendType} from "../../src/index";
 
 // 后处理-黑白
 
-
 function addBox(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     const model = lmgl.boxBuilder();
     const geoData = {
@@ -73,11 +72,6 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         app.renderer.renderScene(app.scene, app.camera);
 
         // prettier-ignore
-        post.useProgram("blackAndWhite")
-            .setRenderTarget(null)
-            .viewport()
-            .clear()
-            .setUniform("textureSampler", renderTarget.colorBuffer)
-            .render();
+        post.setRenderTarget(null).useProgram("blackAndWhite").viewport().clear().setUniform("textureSampler", renderTarget.colorBuffer).render();
     });
 }
