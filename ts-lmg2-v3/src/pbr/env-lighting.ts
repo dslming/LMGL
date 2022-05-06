@@ -202,7 +202,6 @@ const generateGGXSamples = (numSamples: number, specularPower: number, sourceTot
     const result = [];
 
     const requiredSamples = getRequiredSamplesGGX(numSamples, specularPower);
-    console.error(requiredSamples);
     for (let i = 0; i < requiredSamples; ++i) {
         hemisphereSampleGGX(H, i / requiredSamples, random.radicalInverse(i), a);
 

@@ -296,9 +296,15 @@ void unpackSample(int i, out vec3 L, out float mipLevel) {
     float v = (floor(u) + 0.5) * samplesTexInverseSize.y;
 
     vec4 raw;
-    raw.x = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
-    raw.y = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
-    raw.z = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat); u += samplesTexInverseSize.x;
+    raw.x = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat);
+    u += samplesTexInverseSize.x;
+
+    raw.y = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat);
+    u += samplesTexInverseSize.x;
+
+    raw.z = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat);
+    u += samplesTexInverseSize.x;
+
     raw.w = dot(texture2D(samplesTex, vec2(u, v)), unpackFloat);
 
     L.xyz = raw.xyz * 2.0 - 1.0;

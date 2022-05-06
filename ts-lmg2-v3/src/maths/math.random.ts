@@ -58,7 +58,7 @@ const random = {
      * 0 and 1. Defaults to 1.
      * @ignore
      */
-    spherePointDeterministic: function (point:Vec3, index:number, numPoints:number, start = 0, end = 1) {
+    spherePointDeterministic (point:Vec3, index:number, numPoints:number, start = 0, end = 1):void {
 
         // y coordinate needs to go from -1 (top) to 1 (bottom) for the full sphere
         // evaluate its value for this point and specified start and end
@@ -83,9 +83,8 @@ const random = {
      *
      * @param {number} i - The index in the sequence to return.
      * @returns {number} The pseudo-random value.
-     * @ignore
      */
-    radicalInverse: function (i:number) {
+    radicalInverse (i:number):number {
         let bits = ((i << 16) | (i >>> 16)) >>> 0;
         bits = (((bits & 0x55555555) << 1) | ((bits & 0xAAAAAAAA) >>> 1)) >>> 0;
         bits = (((bits & 0x33333333) << 2) | ((bits & 0xCCCCCCCC) >>> 2)) >>> 0;
