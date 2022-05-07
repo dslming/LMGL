@@ -1,6 +1,6 @@
 import { Engine } from "../engines/engine";
 
-export class Loader {
+export abstract class Loader {
     public rootPath: string;
     public engine: Engine;
 

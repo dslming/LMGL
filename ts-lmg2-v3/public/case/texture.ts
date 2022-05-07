@@ -1,7 +1,7 @@
 import * as lmgl from "../../src/index";
 (window as any).lmgl = lmgl;
 
-export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
+export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     const model = lmgl.planeBuilder(2, 2);
     const geoInfo = {
         indices: {
@@ -36,8 +36,8 @@ export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Applicatio
     const geometry = new lmgl.Geometry(engine, geoInfo);
     const material = new lmgl.Material(engine, matInfo);
     const mesh = new lmgl.Mesh(engine, geometry, material);
-    material.uniforms.uTexture.value = new lmgl.Texture(engine, {
-        url: "./public/images/test.png",
+    material.uniforms.uTexture.value = await new lmgl.TextureLoader(engine).load({
+        url: "./public/images/test.png"
     });
     scene.add(mesh);
 }

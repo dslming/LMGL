@@ -314,25 +314,6 @@ export class EnvLighting {
         this.isReady = false;
     }
 
-    getCubeTexture(urls: string[]) {
-        return new Promise((resolve, reject) => {
-            const lightingTexture = new Texture(this._engine, {
-                name: "cube_map_faces",
-                urls: urls,
-                mipmaps: true,
-                minFilter: TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR,
-                magFilter: TextureFilter.FILTER_LINEAR,
-                addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                onLoad: () => {
-                    resolve(lightingTexture);
-                },
-                projection: TextureProjection.TEXTUREPROJECTION_CUBE,
-                fixCubemapSeams: false,
-                flipY: false
-            });
-        });
-    }
 
     reprojectTexture(
         source: Texture,
@@ -364,7 +345,7 @@ export class EnvLighting {
 
         const processFunc = funcNames[distribution];
         const decodeFunc = `decode${getCoding(source)}`;
-        const encodeFunc = `encodeGamma`;//`encode${getCoding(target)}`;
+        const encodeFunc = `encodeGamma`; //`encode${getCoding(target)}`;
         const sourceFunc = `sample${getProjectionName(source.projection)}`;
         const targetFunc = `getDirection${getProjectionName(target.projection)}`;
         const numSamples = options.hasOwnProperty("numSamples") ? options.numSamples : 1024;
@@ -472,57 +453,51 @@ export class EnvLighting {
         }
     }
 
-    gen(options: { urls: string[] }) {
-        console.error(calculateRequiredSamplesGGX());
-
-        return new Promise(async (resolve, reject) => {
-            const result = new Texture(this._engine, {
-                name: "envAtlas",
-                width: 512,
-                height: 512,
-                format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
-                type: TextureType.TEXTURETYPE_RGBM,
-                projection: TextureProjection.TEXTUREPROJECTION_EQUIRECT,
-                addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-                minFilter: TextureFilter.FILTER_LINEAR,
-                magFilter: TextureFilter.FILTER_LINEAR,
-                mipmaps: false
-            });
-            this.result = result;
-
-            const rect = new Vec4(0, 0, 512, 256);
-            const levels = 1//calcLevels(result.width, result.height);
-
-            const lightingTexture: Texture = (await this.getCubeTexture(options.urls)) as any;
-            this.cubeMapTexture = lightingTexture;
-            for (let i = 0; i < levels; ++i) {
-                this.reprojectTexture(lightingTexture, result, {
-                    numSamples: 1,
-                    rect: rect,
-                    seamPixels: 1
-                });
-
-                rect.x += rect.w;
-                rect.y += rect.w;
-                rect.z = Math.max(1, Math.floor(rect.z * 0.5));
-                rect.w = Math.max(1, Math.floor(rect.w * 0.5));
-            }
-
-            rect.set(0, 256, 256, 128);
-            for (let i = 1; i < 7; ++i) {
-                this.reprojectTexture(lightingTexture, result, {
-                    numSamples: 1024,
-                    distribution: "ggx",
-                    specularPower: Math.max(1, 2048 >> (i * 2)),
-                    rect: rect,
-                    seamPixels: 1
-                });
-                rect.y += rect.w;
-                rect.z = Math.max(1, Math.floor(rect.z * 0.5));
-                rect.w = Math.max(1, Math.floor(rect.w * 0.5));
-            }
-            resolve(result);
+    gen(cubemapTexture: Texture) {
+        this.cubeMapTexture = cubemapTexture;
+        const result = new Texture(this._engine, {
+            name: "envAtlas",
+            width: 512,
+            height: 512,
+            format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
+            type: TextureType.TEXTURETYPE_RGBM,
+            projection: TextureProjection.TEXTUREPROJECTION_EQUIRECT,
+            addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+            addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+            minFilter: TextureFilter.FILTER_LINEAR,
+            magFilter: TextureFilter.FILTER_LINEAR,
+            mipmaps: false
         });
+        this.result = result;
+
+        const rect = new Vec4(0, 0, 512, 256);
+        const levels = 1; //calcLevels(result.width, result.height);
+
+        for (let i = 0; i < levels; ++i) {
+            this.reprojectTexture(this.cubeMapTexture, result, {
+                numSamples: 1,
+                rect: rect,
+                seamPixels: 1
+            });
+
+            rect.x += rect.w;
+            rect.y += rect.w;
+            rect.z = Math.max(1, Math.floor(rect.z * 0.5));
+            rect.w = Math.max(1, Math.floor(rect.w * 0.5));
+        }
+
+        rect.set(0, 256, 256, 128);
+        for (let i = 1; i < 7; ++i) {
+            this.reprojectTexture(this.cubeMapTexture, result, {
+                numSamples: 1024,
+                distribution: "ggx",
+                specularPower: Math.max(1, 2048 >> (i * 2)),
+                rect: rect,
+                seamPixels: 1
+            });
+            rect.y += rect.w;
+            rect.z = Math.max(1, Math.floor(rect.z * 0.5));
+            rect.w = Math.max(1, Math.floor(rect.w * 0.5));
+        }
     }
 }

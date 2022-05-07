@@ -47,11 +47,10 @@ export interface iTextureOptions {
 
     width?: number;
     height?: number;
+    cubemap?: boolean;
 
     url?: string;
     urls?: string[];
-    onLoad?: Nullable<() => void>;
-    onError?: Nullable<() => void>;
 
     // encoding type
     type?: TextureType;
@@ -132,35 +131,8 @@ export class Texture extends EventHandler {
         this._height = options.height !== undefined ? options.height : 0;
         this._anisotropy = options.anisotropy !== undefined ? options.anisotropy : 1;
 
-        if (options.url) {
-            FileTools.LoadImage({
-                url: options.url,
-                onLoad: (img: MediaImage) => {
-                    this.source = img;
-                    options?.onLoad && options.onLoad();
-                    this.fire("loaded")
-                },
-                onError: (msg: string) => {
-                    options?.onError && options.onError();
-                }
-            });
-            this._cubemap = false;
-        } else if (options.urls) {
-            this._cubemap = true;
-            FileTools.LoadCubeImages({
-                urls: options.urls,
-                onLoad: (img: MediaImage) => {
-                    this.source = img;
-                    options?.onLoad && options.onLoad();
-                    this.fire("loaded");
-                },
-                onError: (msg: string) => {
-                    options?.onError && options.onError();
-                }
-            });
-        }
-
         this.name = options.name !== undefined ? options.name : "default";
+        this._cubemap = options.cubemap !== undefined ? options.cubemap : false;
         this._mipmaps = options.mipmaps !== undefined ? options.mipmaps : true;
         this.dirtyAll();
     }
