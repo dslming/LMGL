@@ -21,7 +21,8 @@ import * as lmgl from "../src/index";
 // import {run} from "./case/postprocessing_cubemap_to_panorama";
 
 // ----------------------------------- skybox ------------------------
-import { run } from "./case/skybox_filtered";
+// import { run } from "./case/skybox_filtered";
+import { run } from "./case/skybox_dds";
 
 let canvas: any;
 let engine: lmgl.Engine;

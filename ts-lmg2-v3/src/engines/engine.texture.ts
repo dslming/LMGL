@@ -340,15 +340,51 @@ export class EngineTexture {
     private _uploadTextureCube(texture: Texture) {
         const {gl, webgl2} = this._engine;
 
-        // Upload the byte array
         const mipLevel = 0;
-        for (let face = 0; face < 6; face++) {
-            const texImage = texture.source[face];
+        if (isBrowserInterface(texture.source[0])) {
+            for (let face = 0; face < 6; face++) {
+                const texImage = texture.source[face];
 
-            this.setUnpackFlipY(false);
-            this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
-            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texImage);
+                this.setUnpackFlipY(false);
+                this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
+                gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texImage);
+            }
+        } else {
+            // Upload the byte array
+            let resMult = 1 / Math.pow(2, mipLevel);
+            for (let face = 0; face < 6; face++) {
+                // if (!texture._levelsUpdated[0][face]) continue;
+
+                const texData = texture.source[face];
+                if (texture.compressed) {
+                    gl.compressedTexImage2D(
+                        gl.TEXTURE_CUBE_MAP_POSITIVE_X + face,
+                        mipLevel,
+                        texture.glInternalFormat,
+                        Math.max(texture.width * resMult, 1),
+                        Math.max(texture.height * resMult, 1),
+                        0,
+                        texData
+                    );
+                } else {
+                    this.setUnpackFlipY(false);
+                    this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
+                    gl.texImage2D(
+                        gl.TEXTURE_CUBE_MAP_POSITIVE_X + face,
+                        mipLevel,
+                        texture.glInternalFormat,
+                        Math.max(texture.width * resMult, 1),
+                        Math.max(texture.height * resMult, 1),
+                        0,
+                        texture.glFormat,
+                        texture.glPixelType,
+                        texData
+                    );
+                }
+            }
         }
+        // Upload the byte array
+
     }
 
     uploadTexture(texture: Texture) {

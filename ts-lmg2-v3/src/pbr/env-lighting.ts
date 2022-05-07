@@ -12,6 +12,11 @@ import {RenderTarget, RenderTargetBufferType} from "../renderer/render.target";
 import {Vec3} from "../maths/math.vec3";
 import {random} from "../maths/math.random";
 
+// runtime lighting can be RGBM
+const lightingPixelFormat = () => {
+    return TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
+};
+
 // calculate the number of mipmap levels given texture dimensions
 const calcLevels = (width: number, height: number) => {
     return 1 + Math.floor(Math.log2(Math.max(width, height)));
@@ -310,10 +315,7 @@ export class EnvLighting {
     constructor(app: Application) {
         this._app = app;
         this._engine = app.engine;
-        this._engine = app.engine;
-        this.isReady = false;
     }
-
 
     reprojectTexture(
         source: Texture,
@@ -453,7 +455,7 @@ export class EnvLighting {
         }
     }
 
-    gen(cubemapTexture: Texture) {
+    generateAtlas(cubemapTexture: Texture) {
         this.cubeMapTexture = cubemapTexture;
         const result = new Texture(this._engine, {
             name: "envAtlas",
@@ -499,5 +501,102 @@ export class EnvLighting {
             rect.z = Math.max(1, Math.floor(rect.z * 0.5));
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
+    }
+
+    /**
+     * Generate the environment lighting atlas from prefiltered cubemap data.
+     *
+     * @param {Texture[]} sources - Array of 6 prefiltered textures.
+     * @param {object} options - The options object
+     * @param {Texture} [options.target] - The target texture. If one is not provided then a
+     * new texture will be created and returned.
+     * @param {number} [options.size] - Size of the target texture to create. Only used if
+     * target isn't specified. Defaults to 512.
+     * @param {boolean} [options.legacyAmbient] - Enable generating legacy ambient lighting.
+     * Default is false.
+     * @param {number} [options.numSamples] - Number of samples to use when generating ambient
+     * lighting. Default is 2048.
+     * @returns {Texture} The resulting atlas texture.
+     */
+    static generatePrefilteredAtlas(sources: Texture, options: {
+        target?: any,
+        size?:number
+    }) {
+        // const device = sources[0].device;
+        const format = lightingPixelFormat();
+
+        const result =
+            options?.target ||
+            new Texture(device, {
+                width: options?.size || 512,
+                height: options?.size || 512,
+                format: format,
+                type: format === PIXELFORMAT_R8_G8_B8_A8 ? TEXTURETYPE_RGBM : TEXTURETYPE_DEFAULT,
+                projection: TEXTUREPROJECTION_EQUIRECT,
+                addressU: ADDRESS_CLAMP_TO_EDGE,
+                addressV: ADDRESS_CLAMP_TO_EDGE,
+                mipmaps: false
+            });
+
+        DebugGraphics.pushGpuMarker(device, "mipmaps");
+
+        const s = result.width / 512;
+
+        // generate mipmaps
+        const rect = new Vec4(0, 0, 512 * s, 256 * s);
+        const levels = calcLevels(512);
+        for (let i = 0; i < levels; ++i) {
+            reprojectTexture(sources[0], result, {
+                numSamples: 1,
+                rect: rect,
+                seamPixels: s
+            });
+
+            rect.x += rect.w;
+            rect.y += rect.w;
+            rect.z = Math.max(1, Math.floor(rect.z * 0.5));
+            rect.w = Math.max(1, Math.floor(rect.w * 0.5));
+        }
+
+        DebugGraphics.popGpuMarker(device);
+        DebugGraphics.pushGpuMarker(device, "reflections");
+
+        // copy blurry reflections
+        rect.set(0, 256 * s, 256 * s, 128 * s);
+        for (let i = 1; i < sources.length; ++i) {
+            reprojectTexture(sources[i], result, {
+                numSamples: 1,
+                rect: rect,
+                seamPixels: s
+            });
+            rect.y += rect.w;
+            rect.z = Math.max(1, Math.floor(rect.z * 0.5));
+            rect.w = Math.max(1, Math.floor(rect.w * 0.5));
+        }
+
+        DebugGraphics.popGpuMarker(device);
+        DebugGraphics.pushGpuMarker(device, "ambient");
+
+        // generate ambient
+        rect.set(128 * s, (256 + 128) * s, 64 * s, 32 * s);
+        if (options?.legacyAmbient) {
+            reprojectTexture(sources[5], result, {
+                numSamples: 1,
+                rect: rect,
+                seamPixels: s
+            });
+        } else {
+            reprojectTexture(sources[0], result, {
+                numSamples: options?.numSamples || 2048,
+                distribution: "lambert",
+                rect: rect,
+                seamPixels: s
+            });
+        }
+
+        DebugGraphics.popGpuMarker(device);
+        DebugGraphics.popGpuMarker(device);
+
+        return result;
     }
 }

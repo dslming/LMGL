@@ -1,7 +1,7 @@
-import { extend } from './tool.js';
-import { now } from './time.js';
-import { path } from './path.js';
-import { URI } from './uri.js';
+import { extend } from './tool';
+import { now } from './time';
+import { path } from './path';
+import { URI } from './uri';
 
 import {MathTool} from "../maths/math.tool";
 
@@ -103,10 +103,6 @@ class Http {
      * @returns {XMLHttpRequest} The request object.
      */
     get(url: any, options: {}, callback: any) {
-        if (typeof options === "function") {
-            callback = options;
-            options = {};
-        }
         return this.request("GET", url, options, callback);
     }
 

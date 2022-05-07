@@ -134,11 +134,19 @@ export class Texture extends EventHandler {
         this.name = options.name !== undefined ? options.name : "default";
         this._cubemap = options.cubemap !== undefined ? options.cubemap : false;
         this._mipmaps = options.mipmaps !== undefined ? options.mipmaps : true;
-        this.dirtyAll();
+
+        if (options.projection === undefined && this._cubemap) {
+            this._projection = TextureProjection.TEXTUREPROJECTION_CUBE;
+        }
+            this.dirtyAll();
     }
 
     get anisotropy() {
         return this._anisotropy;
+    }
+
+    get compressed() {
+        return false;
     }
 
     /**

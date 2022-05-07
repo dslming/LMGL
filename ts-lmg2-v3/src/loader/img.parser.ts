@@ -1,10 +1,9 @@
 import { path } from '../misc/path';
 import { http } from '../misc/http';
-import { iLoadOptions } from './texture.loader';
+import { iLoadOptions, iTextureParser } from './texture.loader';
 import { Engine } from '../engines/engine';
 import { iTextureOptions, Texture } from '../texture/texture';
 import { TextureFormat } from '../engines/engine.enum';
-import { iTextureParser } from './texture.parser';
 
 // import { PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, TEXHINT_ASSET } from '../../../graphics/constants.js';
 // import { Texture } from '../../../graphics/texture.js';
