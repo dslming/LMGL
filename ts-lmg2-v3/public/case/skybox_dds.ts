@@ -33,11 +33,13 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
           resources[i].source = [tex.source[i]]
       }
 
-        const envLighting = new lmgl.EnvLighting(app);
-        envLighting.generatePrefilteredAtlas(resources);
+        // const envLighting = new lmgl.EnvLighting(app);
+        // envLighting.generatePrefilteredAtlas(resources);
+
         const mesh = new lmgl.MeshSkybox(engine, {
-            cubeMap: envLighting.result
-        }).mesh;
+            prefilteredCubemaps: resources
+        }).skyboxMesh;
+
         scene.add(mesh);
 
         app.addUpdate("loop", () => {

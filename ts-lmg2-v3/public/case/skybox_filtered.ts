@@ -27,10 +27,12 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
 
     const envLighting = new lmgl.EnvLighting(app);
     envLighting.generateAtlas(cubemapTexture);
-    const mesh = new lmgl.MeshSkybox(engine, {
-        cubeMap: envLighting.result,
-    }).mesh;
-    scene.add(mesh);
+    const skybox = new lmgl.MeshSkybox(engine, {
+        envAtlas: envLighting.result
+    });
+    (window as any).skybox = skybox;
+
+    scene.add(skybox.skyboxMesh);
 
     app.addUpdate("loop", () => {
         app.renderer.renderScene(scene, app.camera);
