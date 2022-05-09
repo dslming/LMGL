@@ -27,20 +27,20 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
               fixCubemapSeams: true,
               addressU: lmgl.TextureAddress.ADDRESS_CLAMP_TO_EDGE,
               addressV: lmgl.TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+              minFilter: lmgl.TextureFilter.FILTER_LINEAR,
+              magFilter: lmgl.TextureFilter.FILTER_LINEAR,
               // generate cubemaps on the top level only
               mipmaps: i === 0
           });
           resources[i].source = [tex.source[i]]
       }
 
-        // const envLighting = new lmgl.EnvLighting(app);
-        // envLighting.generatePrefilteredAtlas(resources);
-
-        const mesh = new lmgl.MeshSkybox(engine, {
+        const skybox = new lmgl.MeshSkybox(engine, {
             prefilteredCubemaps: resources
-        }).skyboxMesh;
+        });
+    (window as any).skybox = skybox;
 
-        scene.add(mesh);
+        scene.add(skybox.skyboxMesh);
 
         app.addUpdate("loop", () => {
             app.renderer.renderScene(scene, app.camera);

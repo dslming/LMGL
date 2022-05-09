@@ -35,10 +35,11 @@ export class MeshSkybox {
     constructor(engine: Engine, options: iMeshSkyboxOptions) {
         this._engine = engine;
         this._options = options;
+        this._skyboxMip = 1;
+
         const geometry = new Geometry(engine, this._getGeometryData());
         this.skyboxMesh = new Mesh(engine, geometry, this._getMat());
         this.skyboxMesh.material.cull = CullFace.CULLFACE_FRONT;
-        this._skyboxMip = 0;
     }
 
     private _getGeometryData(): iGeometryData {
@@ -101,7 +102,7 @@ export class MeshSkybox {
                 type: "cubemap",
                 rgbm: skyboxTex.type === TextureType.TEXTURETYPE_RGBM,
                 hdr: skyboxTex.type === TextureType.TEXTURETYPE_RGBM || skyboxTex.format === TextureFormat.PIXELFORMAT_RGBA32F,
-                mip: skyboxTex.fixCubemapSeams,
+                mip: this.skyboxMip,
                 fixSeams: skyboxTex.fixCubemapSeams,
                 gamma: Gamma.GAMMA_SRGB,
                 toneMapping: Tonemap.TONEMAP_LINEAR
@@ -127,7 +128,7 @@ export class MeshSkybox {
             const mip2size = [128, 64, /* 32 */ 16, 8, 4, 2];
 
             fshader = precisionCode(this._engine);
-            fshader += fixCubemapSeamsStretchPS;
+            fshader += options.mip ? fixCubemapSeamsStretchPS : fixCubemapSeamsNonePS;
             fshader += envConstPS;
             fshader += gammaCode(options.gamma);
             fshader += tonemapCode(options.toneMapping);
@@ -174,8 +175,6 @@ export class MeshSkybox {
              return;
          }
 
-
-
         // get the used texture
         const skyboxTex = this._getSkyboxTex();
         if (!skyboxTex) {
@@ -183,6 +182,7 @@ export class MeshSkybox {
         }
 
         if (skyboxTex.cubemap) {
+            this.skyboxMesh.material.uniforms["texture_cubeMap"].value = skyboxTex;
         } else {
             this.skyboxMesh.material.uniforms["mipLevel"].value = this._skyboxMip;
         }
