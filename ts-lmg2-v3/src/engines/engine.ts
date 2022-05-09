@@ -106,7 +106,7 @@ export class Engine {
             maxColorAttachments: gl.getParameter(gl.MAX_COLOR_ATTACHMENTS),
             maxVolumeSize: gl.getParameter(gl.MAX_3D_TEXTURE_SIZE),
             maxSamples: gl.getParameter(gl.SAMPLES),
-            supportsAreaLights: true,
+            supportsAreaLights: true
         };
 
         let ext = this.extensions.extDebugRendererInfo;
@@ -123,9 +123,9 @@ export class Engine {
     private _initializeExtensions() {
         const gl = this.gl;
 
-        const supportedExtensions:any = gl.getSupportedExtensions();
+        const supportedExtensions: any = gl.getSupportedExtensions();
 
-        const getExtension = function (list:any[]) {
+        const getExtension = function (list: any[]) {
             for (let i = 0; i < list.length; i++) {
                 if (supportedExtensions.indexOf(list[i]) !== -1) {
                     return gl.getExtension(list[i]);
@@ -168,7 +168,39 @@ export class Engine {
             extColorBufferHalfFloat: getExtension(["EXT_color_buffer_half_float"]),
             supportsInstancing: true
         };
+    }
 
+    /**
+     * Query the precision supported by ints and floats in vertex and fragment shaders. Note that
+     * getShaderPrecisionFormat is not guaranteed to be present (such as some instances of the
+     * default Android browser). In this case, assume highp is available.
+     *
+     * @returns {string} "highp", "mediump" or "lowp"
+     * @ignore
+     */
+    getPrecision() {
+        const gl = this.gl;
+        let precision = "highp";
 
+        if (gl.getShaderPrecisionFormat) {
+            const vertexShaderPrecisionHighpFloat:any = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
+            const vertexShaderPrecisionMediumpFloat:any = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
+
+            const fragmentShaderPrecisionHighpFloat :any= gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+            const fragmentShaderPrecisionMediumpFloat:any = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
+
+            const highpAvailable = vertexShaderPrecisionHighpFloat.precision > 0 && fragmentShaderPrecisionHighpFloat.precision > 0;
+            const mediumpAvailable = vertexShaderPrecisionMediumpFloat.precision > 0 && fragmentShaderPrecisionMediumpFloat.precision > 0;
+
+            if (!highpAvailable) {
+                if (mediumpAvailable) {
+                    precision = "mediump";
+                } else {
+                    precision = "lowp";
+                }
+            }
+        }
+
+        return precision;
     }
 }

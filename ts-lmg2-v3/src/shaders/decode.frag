@@ -1,57 +1,3 @@
-precision highp float;
-#ifdef GL2
-precision highp sampler2DShadow;
-#endif
-
-vec3 processEnvironment(vec3 color) {
-    return color;
-}
-
-vec3 gammaCorrectInput(vec3 color) {
-    return pow(color, vec3(2.2));
-}
-
-float gammaCorrectInput(float color) {
-    return pow(color, 2.2);
-}
-
-vec4 gammaCorrectInput(vec4 color) {
-    return vec4(pow(color.rgb, vec3(2.2)), color.a);
-}
-
-vec4 texture2DSRGB(sampler2D tex, vec2 uv) {
-    vec4 rgba = texture2D(tex, uv);
-    rgba.rgb = gammaCorrectInput(rgba.rgb);
-    return rgba;
-}
-
-vec4 texture2DSRGB(sampler2D tex, vec2 uv, float bias) {
-    vec4 rgba = texture2D(tex, uv, bias);
-    rgba.rgb = gammaCorrectInput(rgba.rgb);
-    return rgba;
-}
-
-vec4 textureCubeSRGB(samplerCube tex, vec3 uvw) {
-    vec4 rgba = textureCube(tex, uvw);
-    rgba.rgb = gammaCorrectInput(rgba.rgb);
-    return rgba;
-}
-
-vec3 gammaCorrectOutput(vec3 color) {
-    #ifdef HDR
-    return color;
-    #else
-    color += vec3(0.0000001);
-    return pow(color, vec3(0.45));
-    #endif
-}
-
-uniform float exposure;
-
-vec3 toneMap(vec3 color) {
-    return color * exposure;
-}
-
 vec3 decodeLinear(vec4 raw) {
     return raw.rgb;
 }
@@ -107,18 +53,3 @@ vec2 mapMip(vec2 uv, float level) {
     float t = 1.0 / exp2(level);
     return mapUv(uv, vec4(1.0 - t, 1.0 - t, t, t * 0.5));
 }
-
-varying vec3 vViewDir;
-
-uniform sampler2D texture_envAtlas;
-uniform float mipLevel;
-
-void main(void) {
-    vec3 dir = vViewDir * vec3(-1.0, 1.0, 1.0);
-    vec2 uv = toSphericalUv(normalize(dir));
-
-    vec3 linear = decodeGamma(texture2D(texture_envAtlas, mapRoughnessUv(uv, mipLevel)));
-
-    gl_FragColor = vec4(gammaCorrectOutput(toneMap(processEnvironment(linear))), 1.0);
-}
-

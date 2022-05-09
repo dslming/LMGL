@@ -12,6 +12,7 @@ import {RenderTarget, RenderTargetBufferType} from "../renderer/render.target";
 import {Vec3} from "../maths/math.vec3";
 import {random} from "../maths/math.random";
 
+
 // runtime lighting can be RGBM
 const lightingPixelFormat = () => {
     return TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
@@ -310,7 +311,6 @@ export class EnvLighting {
     private _engine: Engine;
     public isReady: boolean;
     result: Texture;
-    cubeMapTexture: Texture;
 
     constructor(app: Application) {
         this._app = app;
@@ -347,7 +347,8 @@ export class EnvLighting {
 
         const processFunc = funcNames[distribution];
         const decodeFunc = `decode${getCoding(source)}`;
-        const encodeFunc = `encodeGamma`; //`encode${getCoding(target)}`;
+        // const encodeFunc = 'encodeGamma'//`encode${getCoding(target)}`;
+        const encodeFunc = `encode${getCoding(target)}`;
         const sourceFunc = `sample${getProjectionName(source.projection)}`;
         const targetFunc = `getDirection${getProjectionName(target.projection)}`;
         const numSamples = options.hasOwnProperty("numSamples") ? options.numSamples : 1024;
@@ -386,15 +387,18 @@ export class EnvLighting {
                 },
                 sourceCube: {
                     type: UniformsType.Texture,
-                    value: this.cubeMapTexture
+                    value: null
                 },
                 samplesTex: {
                     type: UniformsType.Texture,
-                    value: this.cubeMapTexture
+                    value: null
                 }
             }
         });
         post.useProgram("envPre");
+
+        const textureName = source.cubemap ? "sourceCube" : "sourceTex";
+        post.setUniform(textureName, source);
 
         if (options?.seamPixels) {
             const p = options.seamPixels;
@@ -455,8 +459,11 @@ export class EnvLighting {
         }
     }
 
-    generateAtlas(cubemapTexture: Texture) {
-        this.cubeMapTexture = cubemapTexture;
+    /**
+     *
+     * @param source  This is either a 2d texture in equirect format or a cubemap.
+     */
+    generateAtlas(source: Texture) {
         const result = new Texture(this._engine, {
             name: "envAtlas",
             width: 512,
@@ -476,7 +483,7 @@ export class EnvLighting {
         const levels = 1; //calcLevels(result.width, result.height);
 
         for (let i = 0; i < levels; ++i) {
-            this.reprojectTexture(this.cubeMapTexture, result, {
+            this.reprojectTexture(source, result, {
                 numSamples: 1,
                 rect: rect,
                 seamPixels: 1
@@ -490,7 +497,7 @@ export class EnvLighting {
 
         rect.set(0, 256, 256, 128);
         for (let i = 1; i < 7; ++i) {
-            this.reprojectTexture(this.cubeMapTexture, result, {
+            this.reprojectTexture(source, result, {
                 numSamples: 1024,
                 distribution: "ggx",
                 specularPower: Math.max(1, 2048 >> (i * 2)),
@@ -518,35 +525,31 @@ export class EnvLighting {
      * lighting. Default is 2048.
      * @returns {Texture} The resulting atlas texture.
      */
-    static generatePrefilteredAtlas(sources: Texture, options: {
-        target?: any,
-        size?:number
-    }) {
+    generatePrefilteredAtlas(sources: Texture[]) {
         // const device = sources[0].device;
         const format = lightingPixelFormat();
 
-        const result =
-            options?.target ||
-            new Texture(device, {
-                width: options?.size || 512,
-                height: options?.size || 512,
-                format: format,
-                type: format === PIXELFORMAT_R8_G8_B8_A8 ? TEXTURETYPE_RGBM : TEXTURETYPE_DEFAULT,
-                projection: TEXTUREPROJECTION_EQUIRECT,
-                addressU: ADDRESS_CLAMP_TO_EDGE,
-                addressV: ADDRESS_CLAMP_TO_EDGE,
-                mipmaps: false
-            });
-
-        DebugGraphics.pushGpuMarker(device, "mipmaps");
+        const result = new Texture(this._engine, {
+            width: 512,
+            height: 512,
+            format: format,
+            type: TextureType.TEXTURETYPE_RGBM,
+            projection: TextureProjection.TEXTUREPROJECTION_EQUIRECT,
+            addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+            addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+            minFilter: TextureFilter.FILTER_LINEAR,
+            magFilter: TextureFilter.FILTER_LINEAR,
+            mipmaps: false
+        });
+        this.result = result;
 
         const s = result.width / 512;
 
         // generate mipmaps
         const rect = new Vec4(0, 0, 512 * s, 256 * s);
-        const levels = calcLevels(512);
+        const levels = 1; //calcLevels(512,0);
         for (let i = 0; i < levels; ++i) {
-            reprojectTexture(sources[0], result, {
+            this.reprojectTexture(sources[0], result, {
                 numSamples: 1,
                 rect: rect,
                 seamPixels: s
@@ -558,44 +561,29 @@ export class EnvLighting {
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
 
-        DebugGraphics.popGpuMarker(device);
-        DebugGraphics.pushGpuMarker(device, "reflections");
 
         // copy blurry reflections
-        rect.set(0, 256 * s, 256 * s, 128 * s);
-        for (let i = 1; i < sources.length; ++i) {
-            reprojectTexture(sources[i], result, {
-                numSamples: 1,
-                rect: rect,
-                seamPixels: s
-            });
-            rect.y += rect.w;
-            rect.z = Math.max(1, Math.floor(rect.z * 0.5));
-            rect.w = Math.max(1, Math.floor(rect.w * 0.5));
-        }
+        // rect.set(0, 256 * s, 256 * s, 128 * s);
+        // for (let i = 1; i < sources.length; ++i) {
+        //     reprojectTexture(sources[i], result, {
+        //         numSamples: 1,
+        //         rect: rect,
+        //         seamPixels: s
+        //     });
+        //     rect.y += rect.w;
+        //     rect.z = Math.max(1, Math.floor(rect.z * 0.5));
+        //     rect.w = Math.max(1, Math.floor(rect.w * 0.5));
+        // }
 
-        DebugGraphics.popGpuMarker(device);
-        DebugGraphics.pushGpuMarker(device, "ambient");
 
         // generate ambient
-        rect.set(128 * s, (256 + 128) * s, 64 * s, 32 * s);
-        if (options?.legacyAmbient) {
-            reprojectTexture(sources[5], result, {
-                numSamples: 1,
-                rect: rect,
-                seamPixels: s
-            });
-        } else {
-            reprojectTexture(sources[0], result, {
-                numSamples: options?.numSamples || 2048,
-                distribution: "lambert",
-                rect: rect,
-                seamPixels: s
-            });
-        }
-
-        DebugGraphics.popGpuMarker(device);
-        DebugGraphics.popGpuMarker(device);
+        // rect.set(128 * s, (256 + 128) * s, 64 * s, 32 * s);
+        // this.reprojectTexture(sources[0], result, {
+        //      numSamples: options?.numSamples || 2048,
+        //      distribution: "lambert",
+        //      rect: rect,
+        //      seamPixels: s
+        //  });
 
         return result;
     }

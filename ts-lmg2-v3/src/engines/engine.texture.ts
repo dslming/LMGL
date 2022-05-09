@@ -351,11 +351,12 @@ export class EngineTexture {
             }
         } else {
             // Upload the byte array
+            let mipObject = texture.source[mipLevel];
             let resMult = 1 / Math.pow(2, mipLevel);
             for (let face = 0; face < 6; face++) {
                 // if (!texture._levelsUpdated[0][face]) continue;
 
-                const texData = texture.source[face];
+                const texData = mipObject[face];
                 if (texture.compressed) {
                     gl.compressedTexImage2D(
                         gl.TEXTURE_CUBE_MAP_POSITIVE_X + face,

@@ -7,11 +7,15 @@ import {IColor4Like} from "../maths/math.like";
 import {Mesh} from "./mesh";
 
 import vs from "../shaders/skybox.vert";
-import fs from "../shaders/skybox.frag";
+import skyboxEnvPS from "../shaders/skyboxEnv.frag";
 import gles3 from "../shaders/gles3.frag";
+import decodePS from "../shaders/decode.frag";
+import envConstPS from "../shaders/envConst.frag";
 
 import {Texture} from "../texture/texture";
 import {Mat3} from "../maths/math.mat3";
+import {precisionCode, gammaCode, tonemapCode} from "../shaders/common";
+import { Gamma, Tonemap } from "../enum/enum";
 
 export interface iMeshSkyboxOptions {
     cubeMap: Texture;
@@ -46,11 +50,34 @@ export class MeshSkybox {
         };
     }
 
+
+
     private _getMat(): Material {
         let mat3 = new Mat3();
+         let decodeTable:any = {
+             rgbm: "decodeRGBM",
+             rgbe: "decodeRGBE",
+             linear: "decodeLinear"
+         };
+
+        const options = {
+            gamma: Gamma.GAMMA_SRGB,
+            toneMapping: Tonemap.TONEMAP_LINEAR
+        };
+
+        let fshader = "";
+        if (this._options.cubeMap.cubemap === false) {
+            fshader = precisionCode(this._engine);
+            fshader += envConstPS;
+            fshader += gammaCode(options.gamma);
+            fshader += tonemapCode(options.toneMapping);
+            fshader += decodePS;
+            fshader += skyboxEnvPS.replace(/\$DECODE/g, decodeTable[this._options.cubeMap.encoding] || "decodeGamma");
+        }
+
         return new Material(this._engine, {
             vertexShader: vs,
-            fragmentShader: `${gles3}\n${fs}`,
+            fragmentShader: `${gles3}\n${fshader}`,
             uniforms: {
                 texture_envAtlas: {type: UniformsType.Texture, value: this._options.cubeMap},
                 exposure: {type: UniformsType.Float, value: 1},

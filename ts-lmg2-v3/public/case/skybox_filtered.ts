@@ -3,7 +3,6 @@ import * as lmgl from "../../src/index";
 
 export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     app.autoRender = false;
-    const envLighting = new lmgl.EnvLighting(app);
 
     const cubemapTexture:any = await new lmgl.TextureLoader(engine).load({
         name: "cube_map_faces",
@@ -26,9 +25,10 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         cubemap: true
     });
 
-    envLighting.gen(cubemapTexture);
+    const envLighting = new lmgl.EnvLighting(app);
+    envLighting.generateAtlas(cubemapTexture);
     const mesh = new lmgl.MeshSkybox(engine, {
-        cubeMap: envLighting.result
+        cubeMap: envLighting.result,
     }).mesh;
     scene.add(mesh);
 
