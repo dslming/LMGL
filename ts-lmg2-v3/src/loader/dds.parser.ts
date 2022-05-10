@@ -27,7 +27,6 @@ import { iLoadOptions, iTextureParser } from "./texture.loader";
  */
 class DdsParser implements iTextureParser {
     constructor() {
-        // this.maxRetries = 0;
     }
 
     load(options: iLoadOptions) {

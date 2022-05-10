@@ -134,7 +134,9 @@ export class MeshSkybox {
             fshader += tonemapCode(options.toneMapping);
             fshader += decodePS;
             fshader += rgbmPS;
-            fshader += skyboxHDRPS.replace(/\$textureCubeSAMPLE/g, "textureCubeRGBM").replace(/\$FIXCONST/g, 1 - 1 / mip2size[options.mip] + "");
+            // textureCube,textureCubeRGBM,textureCubeSRGB
+            const sample = options.rgbm ? "textureCubeRGBM" : options.hdr ? "textureCube" : "textureCubeSRGB";
+            fshader += skyboxHDRPS.replace(/\$textureCubeSAMPLE/g, sample).replace(/\$FIXCONST/g, 1 - 1 / mip2size[options.mip] + "");
         }
 
         let material: any;

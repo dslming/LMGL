@@ -4,12 +4,11 @@ import * as lmgl from "../../src/index";
 export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     app.autoRender = false;
 
-    const texture:any = await new lmgl.TextureLoader(engine).load({
+    const texture: any = await new lmgl.TextureLoader(engine).load({
         url: "./public/images/helipad.dds",
-        type: lmgl.TextureType.TEXTURETYPE_RGBM
+        // type: lmgl.TextureType.TEXTURETYPE_RGBM
     });
     texture.needsUpload = true;
-    // console.error(texture);
 
     let tex = texture;
     let cubemapAsset = {
