@@ -7,6 +7,7 @@ import {ImgParser} from "./img.parser";
 import { path } from "../misc/path";
 import { DdsParser } from "./dds.parser";
 import { TextureFormat } from "../engines";
+import { HdrParser } from "./hdr.parser";
 
 export interface iTextureParser {
     load(options: iLoadOptions): any;
@@ -97,7 +98,8 @@ export class TextureLoader extends Loader {
         super(engine);
         this.imgParser = new ImgParser();
         this.parsers = {
-            "dds": new DdsParser()
+            "dds": new DdsParser(),
+            "hdr": new HdrParser()
         };
     }
 

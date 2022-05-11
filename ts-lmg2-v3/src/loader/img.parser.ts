@@ -41,16 +41,17 @@ class ImgParser implements iTextureParser {
         const ext = path.getExtension(url).toLowerCase();
         const format = ext === ".jpg" || ext === ".jpeg" ? TextureFormat.PIXELFORMAT_R8_G8_B8 : TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
 
-        const options = Object.assign({
+        const options = Object.assign(
+            {
                 name: url,
                 width: data.width,
                 height: data.height,
-                format: format
+                format: format,
+                source: data
             },
             textureOptions
         );
         const texture = new Texture(engine, options);
-        texture.source = data;
         return texture;
     }
 }

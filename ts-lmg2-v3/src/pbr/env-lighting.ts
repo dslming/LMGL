@@ -18,6 +18,21 @@ const lightingPixelFormat = () => {
     return TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
 };
 
+const createCubemap = (device:Engine, size:number, format:TextureFormat, mipmaps:boolean) => {
+    return new Texture(device, {
+        name: `lighting-${size}`,
+        cubemap: true,
+        width: size,
+        height: size,
+        format: format,
+        type: format === TextureFormat.PIXELFORMAT_R8_G8_B8_A8 ? TextureType.TEXTURETYPE_RGBM : TextureType.TEXTURETYPE_DEFAULT,
+        addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+        addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+        fixCubemapSeams: true,
+        mipmaps: !!mipmaps
+    });
+};
+
 // calculate the number of mipmap levels given texture dimensions
 const calcLevels = (width: number, height: number) => {
     return 1 + Math.floor(Math.log2(Math.max(width, height)));
@@ -327,7 +342,7 @@ export class EnvLighting {
             // 指定卷积分布: 'null', 'lambert', 'phong', 'ggx'。默认值取决于specularPower。
             distribution?: string;
             // 视口矩形
-            rect: Vec4;
+            rect?: Vec4;
             face?: any;
             // 要渲染的接缝像素
             seamPixels?: number;
@@ -389,6 +404,10 @@ export class EnvLighting {
                     type: UniformsType.Texture,
                     value: null
                 },
+                sourceTex: {
+                    type: UniformsType.Texture,
+                    value: null
+                },
                 samplesTex: {
                     type: UniformsType.Texture,
                     value: null
@@ -438,14 +457,18 @@ export class EnvLighting {
             });
         }
 
-        const viewport = options?.rect;
-        // for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
-        for (let f = 0; f < 1; f++) {
+        const viewport = options?.rect || {
+            x: 0,
+            y: 0,
+            z: target.width,
+            w: target.height
+        };
+        for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
             if (face === null || f === face) {
                 const renderTarget = new RenderTarget(this._engine, {
                     bufferType: RenderTargetBufferType.colorBuffer,
-                    name: "renderTarget",
                     depth: false,
+                    face: f,
                     colorBuffer: target
                 });
                 params[0] = f;
@@ -561,7 +584,6 @@ export class EnvLighting {
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
 
-
         // copy blurry reflections
         // rect.set(0, 256 * s, 256 * s, 128 * s);
         // for (let i = 1; i < sources.length; ++i) {
@@ -575,7 +597,6 @@ export class EnvLighting {
         //     rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         // }
 
-
         // generate ambient
         // rect.set(128 * s, (256 + 128) * s, 64 * s, 32 * s);
         // this.reprojectTexture(sources[0], result, {
@@ -584,6 +605,26 @@ export class EnvLighting {
         //      rect: rect,
         //      seamPixels: s
         //  });
+
+        return result;
+    }
+
+    /**
+     * Generate a skybox cubemap in the correct pixel format from the source texture.
+     *
+     * @param {Texture} source - The source texture. This is either a 2d texture in equirect format
+     * or a cubemap.
+     * @param {number} [size] - Size of the resulting texture. Otherwise use automatic sizing.
+     * @returns {Texture} The resulting cubemap.
+     */
+    generateSkyboxCubemap(source:Texture, size?:number) {
+        // const device = source.device;
+
+        const result = createCubemap(this._engine, size || (source.cubemap ? source.width : source.width / 4), TextureFormat.PIXELFORMAT_R8_G8_B8_A8, false);
+
+        this.reprojectTexture(source, result, {
+            numSamples: 1024
+        });
 
         return result;
     }

@@ -44,7 +44,7 @@ export interface iTextureOptions {
     compareFunc?: CompareFunc;
 
     premultiplyAlpha?: boolean;
-
+    source?: any;
     width?: number;
     height?: number;
     cubemap?: boolean;
@@ -138,7 +138,17 @@ export class Texture extends EventHandler {
         if (options.projection === undefined && this._cubemap) {
             this._projection = TextureProjection.TEXTUREPROJECTION_CUBE;
         }
-            this.dirtyAll();
+
+        if (this._cubemap === true) {
+            this._source = [[null, null, null, null, null, null]];
+        } else {
+            this._source = null;
+        }
+
+        if (options.source !== undefined) {
+            this._source = options.source;
+        }
+        this.dirtyAll();
     }
 
     get anisotropy() {
@@ -342,7 +352,6 @@ export class Texture extends EventHandler {
     }
 
     set source(v) {
-        this._source = null;
         this._source = v;
 
         if (Array.isArray(v) && v[0].width !== undefined && v[0].height !== undefined) {

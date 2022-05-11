@@ -1,23 +1,9 @@
-// import { Debug } from '../../../core/debug.js';
-// import { Asset } from '../../../asset/asset.js';
-// import { Texture } from '../../../graphics/texture.js';
-
 import { TextureAddress, TextureFormat } from "../engines";
 import { Engine } from "../engines/engine";
 import { http } from "../misc/http";
 import { Logger } from "../misc/logger";
 import { iTextureOptions, Texture } from "../texture";
 import { iLoadOptions, iTextureParser } from "./texture.loader";
-
-// import {
-//     ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT,
-//     PIXELFORMAT_DXT1, PIXELFORMAT_DXT5,
-//     PIXELFORMAT_ETC1,
-//     PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1,
-//     PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8,
-//     PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F,
-//     TEXHINT_ASSET
-// } from '../../../graphics/constants.js';
 
 /**
  * Legacy texture parser for dds files.

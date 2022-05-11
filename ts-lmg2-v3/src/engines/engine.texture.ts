@@ -290,6 +290,9 @@ export class EngineTexture {
 
         if (flags & 1) {
             let filter = texture.minFilter;
+            if (!texture.mipmaps) {
+                filter = TextureFilter.FILTER_NEAREST;
+            }
             gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, this.glFilter[filter]);
         }
         if (flags & 2) {
@@ -427,7 +430,7 @@ export class EngineTexture {
         const {gl, webgl2} = this._engine;
 
         const mipLevel = 0;
-        if (isBrowserInterface(texture.source[0])) {
+        if (texture.source && isBrowserInterface(texture.source[0])) {
             for (let face = 0; face < 6; face++) {
                 const texImage = texture.source[face];
 

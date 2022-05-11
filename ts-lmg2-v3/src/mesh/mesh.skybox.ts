@@ -22,8 +22,12 @@ import {precisionCode, gammaCode, tonemapCode} from "../shaders/common";
 import { Gamma, Tonemap } from "../enum/enum";
 
 export interface iMeshSkyboxOptions {
+    // 预过滤的6张天空盒子
     prefilteredCubemaps?: Texture[];
+    //
     envAtlas?: Texture;
+    // 没有过滤的天空盒
+    skyboxCubeMap?: Texture;
 }
 
 export class MeshSkybox {
@@ -35,7 +39,7 @@ export class MeshSkybox {
     constructor(engine: Engine, options: iMeshSkyboxOptions) {
         this._engine = engine;
         this._options = options;
-        this._skyboxMip = 1;
+        this._skyboxMip = 0;
 
         const geometry = new Geometry(engine, this._getGeometryData());
         this.skyboxMesh = new Mesh(engine, geometry, this._getMat());
@@ -71,6 +75,7 @@ export class MeshSkybox {
     private _getSkyboxTex() {
         const cubemaps: any = this._options.prefilteredCubemaps || [];
         const envAtlas: any = this._options.envAtlas;
+        const cubemap: any = this._options.skyboxCubeMap;
 
         if (this._skyboxMip) {
             // skybox selection for some reason has always skipped the 32x32 prefiltered mipmap, presumably a bug.
@@ -83,7 +88,7 @@ export class MeshSkybox {
             return cubemaps[skyboxMapping[this._skyboxMip]] || envAtlas || cubemaps[0];
         }
 
-        return cubemaps[0] || envAtlas;
+        return cubemap || cubemaps[0] || envAtlas;
     }
 
     private _getMat(): Material {
