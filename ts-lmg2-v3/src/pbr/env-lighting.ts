@@ -18,6 +18,19 @@ const lightingPixelFormat = () => {
     return TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
 };
 
+const supportsFloat16 = (device:Engine) => {
+    return device.extensions.extTextureHalfFloat && device.textureHalfFloatRenderable;
+};
+
+const supportsFloat32 = (device: Engine) => {
+    return device.extensions.extTextureFloat && device.textureFloatRenderable;
+};
+
+// lighting source should be stored HDR
+const lightingSourcePixelFormat = (device:Engine) => {
+    return supportsFloat16(device) ? TextureFormat.PIXELFORMAT_RGBA16F : supportsFloat32(device) ? TextureFormat.PIXELFORMAT_RGBA32F : TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
+};
+
 const createCubemap = (device:Engine, size:number, format:TextureFormat, mipmaps:boolean) => {
     return new Texture(device, {
         name: `lighting-${size}`,
@@ -457,12 +470,7 @@ export class EnvLighting {
             });
         }
 
-        const viewport = options?.rect || {
-            x: 0,
-            y: 0,
-            z: target.width,
-            w: target.height
-        };
+
         for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
             if (face === null || f === face) {
                 const renderTarget = new RenderTarget(this._engine, {
@@ -475,7 +483,7 @@ export class EnvLighting {
                 post.setRenderTarget(renderTarget)
                     .setUniform("params", {x: params[0], y: params[1], z: params[2], w: params[3]})
                     .setUniform("params2", {x: params2[0], y: params2[1]})
-                    .viewport({x: viewport.x, y: viewport.y, width: viewport.z, height: viewport.w})
+                    .viewport(options?.rect)
                     .render();
                 renderTarget.destroy();
             }
@@ -496,20 +504,19 @@ export class EnvLighting {
             projection: TextureProjection.TEXTUREPROJECTION_EQUIRECT,
             addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
             addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-            minFilter: TextureFilter.FILTER_LINEAR,
-            magFilter: TextureFilter.FILTER_LINEAR,
-            mipmaps: false
+            mipmaps: false,
+            flipY: false
         });
-        this.result = result;
 
-        const rect = new Vec4(0, 0, 512, 256);
+        const s = result.width / 512;
+        const rect = new Vec4(0, 0, 512*s, 256*s);
         const levels = 1; //calcLevels(result.width, result.height);
 
         for (let i = 0; i < levels; ++i) {
             this.reprojectTexture(source, result, {
                 numSamples: 1,
                 rect: rect,
-                seamPixels: 1
+                seamPixels: s
             });
 
             rect.x += rect.w;
@@ -518,19 +525,20 @@ export class EnvLighting {
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
 
-        rect.set(0, 256, 256, 128);
+        rect.set(0, 256*s, 256*s, 128*s);
         for (let i = 1; i < 7; ++i) {
             this.reprojectTexture(source, result, {
                 numSamples: 1024,
                 distribution: "ggx",
                 specularPower: Math.max(1, 2048 >> (i * 2)),
                 rect: rect,
-                seamPixels: 1
+                seamPixels: s
             });
             rect.y += rect.w;
             rect.z = Math.max(1, Math.floor(rect.z * 0.5));
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
+        return result;
     }
 
     /**
@@ -564,7 +572,6 @@ export class EnvLighting {
             magFilter: TextureFilter.FILTER_LINEAR,
             mipmaps: false
         });
-        this.result = result;
 
         const s = result.width / 512;
 
@@ -617,7 +624,7 @@ export class EnvLighting {
      * @param {number} [size] - Size of the resulting texture. Otherwise use automatic sizing.
      * @returns {Texture} The resulting cubemap.
      */
-    generateSkyboxCubemap(source:Texture, size?:number) {
+    generateSkyboxCubemap(source: Texture, size?: number) {
         // const device = source.device;
 
         const result = createCubemap(this._engine, size || (source.cubemap ? source.width : source.width / 4), TextureFormat.PIXELFORMAT_R8_G8_B8_A8, false);
@@ -626,6 +633,46 @@ export class EnvLighting {
             numSamples: 1024
         });
 
+        return result;
+    }
+
+    /**
+     * Create a texture in the format needed to precalculate lighting data.
+     *
+     * @param {Texture} source - The source texture. This is either a 2d texture in equirect format
+     * or a cubemap.
+     * @param {object} [options] - Specify generation options.
+     * @param {Texture} [options.target] - The target texture. If one is not provided then a
+     * new texture will be created and returned.
+     * @param {number} [options.size] - Size of the lighting source cubemap texture. Only used
+     * if target isn't specified. Defaults to 128.
+     * @returns {Texture} The resulting cubemap.
+     */
+    generateLightingSource(source:Texture) {
+        // const device = source.device;
+
+        // DebugGraphics.pushGpuMarker(device, "genLightingSource");
+
+        const format = lightingSourcePixelFormat(this._engine);
+        const result = new Texture(this._engine, {
+            name: `lighting-source`,
+            cubemap: true,
+            width: 128,
+            height: 128,
+            format: format,
+            type: format === TextureFormat.PIXELFORMAT_R8_G8_B8_A8 ? TextureType.TEXTURETYPE_RGBM : TextureType.TEXTURETYPE_DEFAULT,
+            addressU: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+            addressV: TextureAddress.ADDRESS_CLAMP_TO_EDGE,
+            fixCubemapSeams: false,
+            mipmaps: true
+        });
+
+        // copy into top level
+        this.reprojectTexture(source, result, {
+            numSamples: source.mipmaps ? 1 : 1024
+        });
+
+        // generate mipmaps
         return result;
     }
 }

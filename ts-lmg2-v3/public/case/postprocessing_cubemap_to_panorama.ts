@@ -95,6 +95,6 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
 
     app.addUpdate("loop", () => {
         // app.renderer.renderScene(scene, app.camera);
-        post.useProgram("red").setRenderTarget(null).viewport({x: 0, y: 0, width: 800, height: 600}).render();
+        post.useProgram("red").setRenderTarget(null).viewport({x: 0, y: 0, z: 800, w: 600}).render();
     });
 }

@@ -4,7 +4,7 @@ import {Engine} from "./engine";
 
 export class EngineRenderTarget {
     private _engine: Engine;
-    private _renderTarget: Nullable<RenderTarget>;
+    public renderTarget: Nullable<RenderTarget>;
     activeFramebuffer: any;
     maxRenderBufferSize: number;
 
@@ -108,7 +108,7 @@ export class EngineRenderTarget {
      * device.setRenderTarget(null);
      */
     setRenderTarget(renderTarget: RenderTarget | null) {
-        this._renderTarget = renderTarget;
+        this.renderTarget = renderTarget;
     }
 
     /**
@@ -147,7 +147,7 @@ export class EngineRenderTarget {
      */
     updateBegin() {
         // Set the render target
-        const target = this._renderTarget;
+        const target = this.renderTarget;
         if (target) {
             // Create a new WebGL frame buffer object
             if (!target.glFrameBuffer) {
@@ -175,7 +175,7 @@ export class EngineRenderTarget {
         // }
 
         // Unset the render target
-        const target = this._renderTarget;
+        const target = this.renderTarget;
         if (target) {
             // If the active render target is auto-mipmapped, generate its mip chain
             const colorBuffer = target.colorBuffer;

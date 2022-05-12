@@ -54,6 +54,8 @@ export class Engine {
     public engineRenderTarget: EngineRenderTarget;
     public engineState: EngineState;
     public glComparison: number[];
+    public textureHalfFloatRenderable: boolean;
+    public textureFloatRenderable: boolean;
 
     constructor(canvas: HTMLCanvasElement) {
         if (!canvas) return;
@@ -168,6 +170,28 @@ export class Engine {
             extColorBufferHalfFloat: getExtension(["EXT_color_buffer_half_float"]),
             supportsInstancing: true
         };
+
+
+        if (this.extensions.extTextureFloat) {
+            if (this.webgl2) {
+                // In WebGL2 float texture renderability is dictated by the EXT_color_buffer_float extension
+                this.textureFloatRenderable = !!this.extensions.extColorBufferFloat;
+            }
+        } else {
+            this.textureFloatRenderable = false;
+        }
+
+        // two extensions allow us to render to half float buffers
+        if (this.extensions.extColorBufferHalfFloat) {
+            this.textureHalfFloatRenderable = !!this.extensions.extColorBufferHalfFloat;
+        } else if (this.extensions.extTextureHalfFloat) {
+            if (this.webgl2) {
+                // EXT_color_buffer_float should affect both float and halffloat formats
+                this.textureHalfFloatRenderable = !!this.extensions.extColorBufferFloat;
+            }
+        } else {
+            this.textureHalfFloatRenderable = false;
+        }
     }
 
     /**
@@ -183,11 +207,11 @@ export class Engine {
         let precision = "highp";
 
         if (gl.getShaderPrecisionFormat) {
-            const vertexShaderPrecisionHighpFloat:any = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
-            const vertexShaderPrecisionMediumpFloat:any = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
+            const vertexShaderPrecisionHighpFloat: any = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
+            const vertexShaderPrecisionMediumpFloat: any = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
 
-            const fragmentShaderPrecisionHighpFloat :any= gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
-            const fragmentShaderPrecisionMediumpFloat:any = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
+            const fragmentShaderPrecisionHighpFloat: any = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+            const fragmentShaderPrecisionMediumpFloat: any = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
 
             const highpAvailable = vertexShaderPrecisionHighpFloat.precision > 0 && fragmentShaderPrecisionHighpFloat.precision > 0;
             const mediumpAvailable = vertexShaderPrecisionMediumpFloat.precision > 0 && fragmentShaderPrecisionMediumpFloat.precision > 0;

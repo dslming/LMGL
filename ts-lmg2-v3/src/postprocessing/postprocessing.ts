@@ -5,7 +5,7 @@ import {iUniformBlock} from "../engines/engine.uniformBuffer";
 import {Geometry, iGeometryData, planeBuilder} from "../geometry";
 import {ShaderLoader} from "../loader/shader.loader";
 import {Color4} from "../maths/math.color";
-import {IViewportLike} from "../maths/math.like";
+import {IVector4Like} from "../maths/math.like";
 import {RenderTarget} from "../renderer";
 
 export interface iCreateProgramsFromFiles {
@@ -137,18 +137,18 @@ export class Postprocessing {
         return this;
     }
 
-    viewport(viewport?: IViewportLike): Postprocessing {
+    viewport(viewport?: IVector4Like): Postprocessing {
         const width = this._engine.renderingCanvas.clientWidth;
         const height = this._engine.renderingCanvas.clientHeight;
+        const target = this._engine.engineRenderTarget.renderTarget;
 
-        this._engine.engineViewPort.setViewport(
-            viewport || {
-                x: 0,
-                y: 0,
-                width,
-                height
-            }
-        );
+        const view = {
+            x: viewport?.x || 0,
+            y: viewport?.y || 0,
+            width: viewport?.z || target?.width||width,
+            height: viewport?.w || target?.height||height
+        };
+        this._engine.engineViewPort.setViewport(view);
         return this;
     }
 

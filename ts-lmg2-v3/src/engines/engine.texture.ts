@@ -291,7 +291,11 @@ export class EngineTexture {
         if (flags & 1) {
             let filter = texture.minFilter;
             if (!texture.mipmaps) {
-                filter = TextureFilter.FILTER_NEAREST;
+                if (filter === TextureFilter.FILTER_NEAREST_MIPMAP_NEAREST || filter === TextureFilter.FILTER_NEAREST_MIPMAP_LINEAR) {
+                    filter = TextureFilter.FILTER_NEAREST;
+                } else if (filter === TextureFilter.FILTER_LINEAR_MIPMAP_NEAREST || filter === TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR) {
+                    filter = TextureFilter.FILTER_LINEAR;
+                }
             }
             gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, this.glFilter[filter]);
         }

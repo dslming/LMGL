@@ -5,17 +5,22 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     app.autoRender = false;
 
     const cubemapTexture: any = await new lmgl.TextureLoader(engine).load({
-        url: "./public/images/moonless_golf_1k.hdr",
+        url: "./public/images/moonless_golf_1k.hdr"
     });
 
     const envLighting = new lmgl.EnvLighting(app);
-    const skyboxCubeMap = envLighting.generateSkyboxCubemap(cubemapTexture);
+    // const skyboxCubeMap = envLighting.generateSkyboxCubemap(cubemapTexture);
+
+    // generate prefiltered lighting (reflections and ambient)
+    const lighting = envLighting.generateLightingSource(cubemapTexture);
+    const envAtlas: any = envLighting.generateAtlas(lighting);
+    // console.error(envAtlas);
 
     const skybox = new lmgl.MeshSkybox(engine, {
-        skyboxCubeMap: skyboxCubeMap
+        // skyboxCubeMap: skyboxCubeMap,
+        envAtlas: envAtlas
     });
-    // (window as any).skybox = skybox;
-
+    skybox.skyboxMip = 0;
     scene.add(skybox.skyboxMesh);
 
     app.addUpdate("loop", () => {

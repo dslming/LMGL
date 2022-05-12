@@ -107,11 +107,11 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     });
 
     post.clear();
-    post.useProgram("green").setRenderTarget(target).viewport({x: 0, y: 0, width: 512, height: 256}).render();
+    post.useProgram("green").setRenderTarget(target).viewport({x: 0, y: 0, z: 512, w: 256}).render();
     target.destroy();
-    post.useProgram("red").setRenderTarget(target1).viewport({x: 0, y: 0, width: 256, height: 256}).render();
+    post.useProgram("red").setRenderTarget(target1).viewport({x: 0, y: 0, z: 256, w: 256}).render();
     target1.destroy();
-    post.useProgram("blue").setRenderTarget(target2).viewport({x: 0, y: 256, width: 256, height: 256}).render();
+    post.useProgram("blue").setRenderTarget(target2).viewport({x: 0, y: 256, z: 256, w: 256}).render();
     target2.destroy();
 
     app.addUpdate("loop", () => {
