@@ -1,6 +1,6 @@
-import { Engine } from "../engines";
-import { FileTools } from "../misc/fileTools";
-import { Loader } from "./loader";
+import {Engine} from "../engines";
+import {FileTools} from "../misc/fileTools";
+import {Loader} from "./loader";
 
 export interface iLoadShaderOptions {
     vsPaths: string[];
@@ -33,7 +33,7 @@ export class ShaderLoader extends Loader {
 
                 const ret = {
                     vertexShader: vertexShaderSources.join("\n"),
-                    fragmentShader: fragmentShaderSources.join("\n"),
+                    fragmentShader: fragmentShaderSources.join("\n")
                 };
                 options.onLoad && options.onLoad(ret);
                 resolve(ret);

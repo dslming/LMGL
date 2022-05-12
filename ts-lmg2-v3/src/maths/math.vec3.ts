@@ -1,5 +1,5 @@
-import { Mat4 } from "./math.mat4";
-import { Quat } from "./math.quat";
+import {Mat4} from "./math.mat4";
+import {Quat} from "./math.quat";
 
 /**
  * 3-dimensional vector.
@@ -70,6 +70,14 @@ class Vec3 {
         this.x = x || 0;
         this.y = y || 0;
         this.z = z || 0;
+    }
+
+    fromArray(array: any[], offset = 0) {
+        this.x = array[offset];
+        this.y = array[offset + 1];
+        this.z = array[offset + 2];
+
+        return this;
     }
 
     /**
@@ -742,4 +750,4 @@ class Vec3 {
     }
 }
 
-export { Vec3 };
+export {Vec3};

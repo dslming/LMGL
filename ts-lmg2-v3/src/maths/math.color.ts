@@ -1,14 +1,13 @@
-import { DeepImmutable, FloatArray } from '../types';
-import { Scalar } from './math.scalar';
-import { ToLinearSpace, ToGammaSpace } from './math.constants';
-import { ArrayTools } from '../misc/arrayTools';
-import { _TypeStore } from '../misc/typeStore';
+import {DeepImmutable, FloatArray} from "../types";
+import {Scalar} from "./math.scalar";
+import {ToLinearSpace, ToGammaSpace} from "./math.constants";
+import {ArrayTools} from "../misc/arrayTools";
+import {_TypeStore} from "../misc/typeStore";
 
 /**
  * Class used to hold a RBG color
  */
 export class Color3 {
-
     /**
      * Creates a new Color3 object from red, green, blue values, all between 0 and 1
      * @param r defines the red component (between 0 and 1, default is 0)
@@ -27,8 +26,8 @@ export class Color3 {
         /**
          * Defines the blue component (between 0 and 1, default is 0)
          */
-        public b: number = 0) {
-    }
+        public b: number = 0
+    ) {}
 
     /**
      * Creates a string with the Color3 current values
@@ -186,6 +185,12 @@ export class Color3 {
         result.g += this.g * scale;
         result.b += this.b * scale;
         return this;
+    }
+
+    public setRGB(r: number, g: number, b: number) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
     }
 
     /**
@@ -438,7 +443,7 @@ export class Color3 {
         }
 
         var m = value - chroma;
-        result.set((r + m), (g + m), (b + m));
+        result.set(r + m, g + m, b + m);
     }
 
     /**
@@ -512,35 +517,43 @@ export class Color3 {
      * @param result defines the Color3 object where to store the result
      */
     public static LerpToRef(left: DeepImmutable<Color3>, right: DeepImmutable<Color3>, amount: number, result: Color3): void {
-        result.r = left.r + ((right.r - left.r) * amount);
-        result.g = left.g + ((right.g - left.g) * amount);
-        result.b = left.b + ((right.b - left.b) * amount);
+        result.r = left.r + (right.r - left.r) * amount;
+        result.g = left.g + (right.g - left.g) * amount;
+        result.b = left.b + (right.b - left.b) * amount;
     }
 
     /**
      * Returns a Color3 value containing a red color
      * @returns a new Color3 object
      */
-    public static Red(): Color3 { return new Color3(1, 0, 0); }
+    public static Red(): Color3 {
+        return new Color3(1, 0, 0);
+    }
     /**
      * Returns a Color3 value containing a green color
      * @returns a new Color3 object
      */
-    public static Green(): Color3 { return new Color3(0, 1, 0); }
+    public static Green(): Color3 {
+        return new Color3(0, 1, 0);
+    }
     /**
      * Returns a Color3 value containing a blue color
      * @returns a new Color3 object
      */
-    public static Blue(): Color3 { return new Color3(0, 0, 1); }
+    public static Blue(): Color3 {
+        return new Color3(0, 0, 1);
+    }
     /**
      * Returns a Color3 value containing a black color
      * @returns a new Color3 object
      */
-    public static Black(): Color3 { return new Color3(0, 0, 0); }
+    public static Black(): Color3 {
+        return new Color3(0, 0, 0);
+    }
 
     /**
-      * Gets a Color3 value containing a black color that must not be updated
-      */
+     * Gets a Color3 value containing a black color that must not be updated
+     */
     public static get BlackReadOnly(): DeepImmutable<Color3> {
         return Color3._BlackReadOnly;
     }
@@ -549,37 +562,51 @@ export class Color3 {
      * Returns a Color3 value containing a white color
      * @returns a new Color3 object
      */
-    public static White(): Color3 { return new Color3(1, 1, 1); }
+    public static White(): Color3 {
+        return new Color3(1, 1, 1);
+    }
     /**
      * Returns a Color3 value containing a purple color
      * @returns a new Color3 object
      */
-    public static Purple(): Color3 { return new Color3(0.5, 0, 0.5); }
+    public static Purple(): Color3 {
+        return new Color3(0.5, 0, 0.5);
+    }
     /**
      * Returns a Color3 value containing a magenta color
      * @returns a new Color3 object
      */
-    public static Magenta(): Color3 { return new Color3(1, 0, 1); }
+    public static Magenta(): Color3 {
+        return new Color3(1, 0, 1);
+    }
     /**
      * Returns a Color3 value containing a yellow color
      * @returns a new Color3 object
      */
-    public static Yellow(): Color3 { return new Color3(1, 1, 0); }
+    public static Yellow(): Color3 {
+        return new Color3(1, 1, 0);
+    }
     /**
      * Returns a Color3 value containing a gray color
      * @returns a new Color3 object
      */
-    public static Gray(): Color3 { return new Color3(0.5, 0.5, 0.5); }
+    public static Gray(): Color3 {
+        return new Color3(0.5, 0.5, 0.5);
+    }
     /**
      * Returns a Color3 value containing a teal color
      * @returns a new Color3 object
      */
-    public static Teal(): Color3 { return new Color3(0, 1.0, 1.0); }
+    public static Teal(): Color3 {
+        return new Color3(0, 1.0, 1.0);
+    }
     /**
      * Returns a Color3 value containing a random color
      * @returns a new Color3 object
      */
-    public static Random(): Color3 { return new Color3(Math.random(), Math.random(), Math.random()); }
+    public static Random(): Color3 {
+        return new Color3(Math.random(), Math.random(), Math.random());
+    }
 }
 
 /**
@@ -609,8 +636,8 @@ export class Color4 {
         /**
          * Defines the alpha component (between 0 and 1, default is 1)
          */
-        public a: number = 1) {
-    }
+        public a: number = 1
+    ) {}
 
     // Operators
 
@@ -756,10 +783,10 @@ export class Color4 {
     }
 
     /**
-      * Multipy an Color4 value by another and return a new Color4 object
-      * @param color defines the Color4 value to multiply by
-      * @returns a new Color4 object
-      */
+     * Multipy an Color4 value by another and return a new Color4 object
+     * @param color defines the Color4 value to multiply by
+     * @returns a new Color4 object
+     */
     public multiply(color: Color4): Color4 {
         return new Color4(this.r * color.r, this.g * color.g, this.b * color.b, this.a * color.a);
     }
