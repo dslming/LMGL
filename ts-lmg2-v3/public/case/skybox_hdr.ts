@@ -9,7 +9,7 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     });
 
     const envLighting = new lmgl.EnvLighting(app);
-    // const skyboxCubeMap = envLighting.generateSkyboxCubemap(cubemapTexture);
+    const skyboxCubeMap = envLighting.generateSkyboxCubemap(cubemapTexture);
 
     // generate prefiltered lighting (reflections and ambient)
     const lighting = envLighting.generateLightingSource(cubemapTexture);
@@ -17,10 +17,11 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     // console.error(envAtlas);
 
     const skybox = new lmgl.MeshSkybox(engine, {
-        // skyboxCubeMap: skyboxCubeMap,
-        envAtlas: envAtlas
+        skyboxCubeMap: skyboxCubeMap,
+        envAtlas: envAtlas,
+        skyboxMip: 2,
     });
-    skybox.skyboxMip = 0;
+    (window as any).skybox = skybox;
     scene.add(skybox.skyboxMesh);
 
     app.addUpdate("loop", () => {

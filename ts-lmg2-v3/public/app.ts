@@ -20,9 +20,9 @@ import * as lmgl from "../src/index";
 // ----------------------------------- skybox ------------------------
 // import { run } from "./case/skybox_filtered";
 // import { run } from "./case/skybox_dds";
-// import { run } from "./case/skybox_hdr";
+import { run } from "./case/skybox_hdr";
 
-import {run} from "./case/obj";
+// import {run} from "./case/obj";
 
 let canvas: any;
 let engine: lmgl.Engine;

@@ -18,7 +18,6 @@ export class ShaderProcess {
 
     static getHead() {
         const header = `#version 300 es
-precision highp float;
     `;
         return header;
     }

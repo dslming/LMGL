@@ -28,6 +28,7 @@ export interface iMeshSkyboxOptions {
     envAtlas?: Texture;
     // 没有过滤的天空盒
     skyboxCubeMap?: Texture;
+    skyboxMip?: number;
 }
 
 export class MeshSkybox {
@@ -39,7 +40,7 @@ export class MeshSkybox {
     constructor(engine: Engine, options: iMeshSkyboxOptions) {
         this._engine = engine;
         this._options = options;
-        this._skyboxMip = 0;
+        this._skyboxMip = options.skyboxMip !== undefined ? options.skyboxMip : 0;
 
         const geometry = new Geometry(engine, this._getGeometryData());
         this.skyboxMesh = new Mesh(engine, geometry, this._getMat());

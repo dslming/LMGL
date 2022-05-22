@@ -182,9 +182,9 @@ export class EngineRenderTarget {
             if (colorBuffer && colorBuffer.glTexture && colorBuffer.mipmaps && (colorBuffer.pot || webgl2)) {
                 // FIXME: if colorBuffer is a cubemap currently we're re-generating mipmaps after
                 // updating each face!
-                // this.activeTexture(this.maxCombinedTextures - 1);
-                // this.bindTexture(colorBuffer);
-                // gl.generateMipmap(colorBuffer._glTarget);
+                this._engine.engineTexture.activeTexture(this._engine.capabilities.maxCombinedTextures - 1);
+                this._engine.engineTexture.bindTexture(colorBuffer);
+                gl.generateMipmap(colorBuffer.glTarget);
             }
 
             // Resolve MSAA if needed

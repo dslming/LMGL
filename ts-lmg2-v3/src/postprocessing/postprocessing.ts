@@ -196,6 +196,7 @@ export class Postprocessing {
         this._engine.engineState.setDepthWrite(oldDepthWrite);
         this._engine.engineState.setCullMode(oldCullMode);
 
+        this._engine.engineRenderTarget.updateEnd();
         this._engine.engineRenderTarget.setRenderTarget(null);
         return this;
     }

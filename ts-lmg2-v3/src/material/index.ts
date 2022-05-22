@@ -1,1 +1,2 @@
-export * from "./material"
+export * from "./material";
+export * from "./standard.material";
