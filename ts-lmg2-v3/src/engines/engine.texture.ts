@@ -27,6 +27,19 @@ export class EngineTexture {
         this.glFilter = [gl.NEAREST, gl.LINEAR, gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR, gl.LINEAR_MIPMAP_NEAREST, gl.LINEAR_MIPMAP_LINEAR];
 
         this.glAddress = [gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT];
+
+        gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
+        gl.disable(gl.RASTERIZER_DISCARD);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+
+        gl.hint((gl as any).FRAGMENT_SHADER_DERIVATIVE_HINT, gl.NICEST);
+        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+
+        // https://webgl2fundamentals.org/webgl/lessons/webgl-data-textures.html
+        // 有效的对齐值是 1、2、4 和 8。
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     }
 
     /**
@@ -290,7 +303,7 @@ export class EngineTexture {
 
         if (flags & 1) {
             let filter = texture.minFilter;
-            if (!texture.mipmaps) {
+            if (!texture.mipmaps || (texture.compressed && texture.levels.length === 1)) {
                 if (filter === TextureFilter.FILTER_NEAREST_MIPMAP_NEAREST || filter === TextureFilter.FILTER_NEAREST_MIPMAP_LINEAR) {
                     filter = TextureFilter.FILTER_NEAREST;
                 } else if (filter === TextureFilter.FILTER_LINEAR_MIPMAP_NEAREST || filter === TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR) {
@@ -411,32 +424,43 @@ export class EngineTexture {
         }
     }
 
-    private _uploadTexture2d(texture: Texture) {
+    private _uploadTexture2d(texture: Texture, mipObject: any, mipLevel: number) {
         const {gl} = this._engine;
-        let mipLevel = 0;
 
-        if (isBrowserInterface(texture.source)) {
+        // this.setUnpackFlipY(texture.flipY);
+        if (isBrowserInterface(mipObject)) {
             // Upload the image, canvas or video
-            this.setUnpackFlipY(texture.flipY);
             this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
 
-            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, texture.source);
+            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.glFormat, texture.glPixelType, mipObject);
             gl.generateMipmap(texture.glTarget);
         } else {
-            this.setUnpackFlipY(false);
-            this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texture.width, texture.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-            gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, texture.source);
+            if (texture.compressed) {
+                const resMult = 1 / Math.pow(2, mipLevel);
+                gl.compressedTexImage2D(
+                    gl.TEXTURE_2D,
+                    mipLevel,
+                    texture.glInternalFormat,
+                    Math.max(Math.floor(texture.width * resMult), 1),
+                    Math.max(Math.floor(texture.height * resMult), 1),
+                    0,
+                    mipObject
+                );
+            } else {
+                this.setUnpackFlipY(false);
+                this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
+                gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture.glInternalFormat, texture.width, texture.height, 0, texture.glFormat, texture.glPixelType, mipObject);
+            }
         }
     }
 
-    private _uploadTextureCube(texture: Texture) {
+    private _uploadTextureCube(texture: Texture, mipObject: any, mipLevel: any) {
         const {gl, webgl2} = this._engine;
 
-        const mipLevel = 0;
-        if (texture.source && isBrowserInterface(texture.source[0])) {
+        // const mipLevel = 0;
+        if (texture.levels && isBrowserInterface(texture.levels[0])) {
             for (let face = 0; face < 6; face++) {
-                const texImage = texture.source[face];
+                const texImage = texture.levels[face];
 
                 this.setUnpackFlipY(false);
                 this.setUnpackPremultiplyAlpha(texture.premultiplyAlpha);
@@ -444,7 +468,6 @@ export class EngineTexture {
             }
         } else {
             // Upload the byte array
-            let mipObject = texture.source[mipLevel];
             let resMult = 1 / Math.pow(2, mipLevel);
             for (let face = 0; face < 6; face++) {
                 // if (!texture._levelsUpdated[0][face]) continue;
@@ -478,23 +501,42 @@ export class EngineTexture {
             }
         }
         // Upload the byte array
-
     }
 
     uploadTexture(texture: Texture) {
         if (!texture.needsUpload && ((texture.needsMipmapsUpload && texture.mipmapsUploaded) || !texture.pot)) return;
 
-        if (texture.cubemap) {
-            this._uploadTextureCube(texture);
-        } else {
-            this._uploadTexture2d(texture);
-        }
+        let mipLevel = 0;
+        let mipObject;
+        while (texture.levels[mipLevel] || mipLevel === 0) {
+            // if (!texture.needsUpload && mipLevel === 0) {
+            //     mipLevel++;
+            //     continue;
+            // } else if (mipLevel && (!texture.needsMipmapsUpload || !texture.mipmaps)) {
+            //     break;
+            // }
+            // console.error(123);
 
-        const {gl, webgl2} = this._engine;
+            mipObject = texture.levels[mipLevel];
+            if (texture.cubemap) {
+                this._uploadTextureCube(texture, mipObject, mipLevel);
+            } else {
+                this._uploadTexture2d(texture, mipObject, mipLevel);
+            }
 
-        if (texture.mipmaps && texture.needsMipmapsUpload && (texture.pot || webgl2)) {
-            gl.generateMipmap(texture.glTarget);
-            // texture.mipmapsUploaded = true;
+            const {gl, webgl2} = this._engine;
+
+            if (!texture.compressed && texture.mipmaps && texture.needsMipmapsUpload && (texture.pot || webgl2)) {
+                gl.generateMipmap(texture.glTarget);
+                // texture.mipmapsUploaded = true;
+            }
+
+            mipLevel++;
+            // if (mipLevel === 0) {
+            //     texture.mipmapsUploaded = false;
+            // } else {
+            //     texture.mipmapsUploaded = true;
+            // }
         }
     }
 

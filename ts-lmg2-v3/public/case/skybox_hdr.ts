@@ -14,12 +14,11 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     // generate prefiltered lighting (reflections and ambient)
     const lighting = envLighting.generateLightingSource(cubemapTexture);
     const envAtlas: any = envLighting.generateAtlas(lighting);
-    // console.error(envAtlas);
 
     const skybox = new lmgl.MeshSkybox(engine, {
         skyboxCubeMap: skyboxCubeMap,
         envAtlas: envAtlas,
-        skyboxMip: 2,
+        skyboxMip: 2
     });
     (window as any).skybox = skybox;
     scene.add(skybox.skyboxMesh);

@@ -1,3 +1,4 @@
 node_modules
 build
 /ts/dist/*
+ts-lmg2-v3/public/.DS_Store

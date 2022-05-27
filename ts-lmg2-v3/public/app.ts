@@ -5,10 +5,13 @@ import * as lmgl from "../src/index";
 // import {run} from "./case/sphere";
 // import { run } from "./case/sprite";
 // import { run } from "./case/particle";
-// import { run } from "./case/texture";
 // import { run } from "./case/instance_base";
 // import { run } from "./case/instance_rotation";
 // import { run } from "./case/instance_multilTriangle";
+
+// ----------------------------------- texture ------------------------
+// import {run} from "./case/texture_base";
+import {run} from "./case/texture_basis";
 
 // ----------------------------------- postprocessing------------------------
 // import {run} from "./case/postprocessing_blackAndWhite";
@@ -18,9 +21,10 @@ import * as lmgl from "../src/index";
 // import {run} from "./case/postprocessing_cubemap_to_panorama";
 
 // ----------------------------------- skybox ------------------------
-// import { run } from "./case/skybox_filtered";
-// import { run } from "./case/skybox_dds";
-import { run } from "./case/skybox_hdr";
+// import {run} from "./case/skybox_filtered";
+// import {run} from "./case/skybox_dds";
+// import {run} from "./case/skybox_hdr";
+// import {run} from "./case/skybox";
 
 // import {run} from "./case/obj";
 

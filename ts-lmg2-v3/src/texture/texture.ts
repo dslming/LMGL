@@ -4,8 +4,7 @@ import {Color4} from "../maths";
 import {IColor4Like} from "../maths/math.like";
 import {MathTool} from "../maths/math.tool";
 import {FileTools} from "../misc/fileTools";
-import { Logger } from "../misc/logger";
-import { Nullable } from "../types";
+import {Logger} from "../misc/logger";
 import {EventHandler} from "../misc/event.handler";
 
 export interface iTextureOptions {
@@ -44,7 +43,7 @@ export interface iTextureOptions {
     compareFunc?: CompareFunc;
 
     premultiplyAlpha?: boolean;
-    source?: any;
+    levels?: any[];
     width?: number;
     height?: number;
     cubemap?: boolean;
@@ -80,7 +79,7 @@ export class Texture extends EventHandler {
     private _flipY: boolean;
     private _fixCubemapSeams: boolean;
 
-    private _source: any;
+    private _levels: any[];
     private _cubemap = false;
     private _volume = false;
 
@@ -103,6 +102,7 @@ export class Texture extends EventHandler {
     private _needsMipmapsUpload: boolean;
     public name: string;
     private _mipmapsUploaded: boolean;
+    private _compressed: boolean;
 
     constructor(engine: Engine, options?: iTextureOptions) {
         super();
@@ -112,7 +112,7 @@ export class Texture extends EventHandler {
             options = {};
         }
         this._mipmaps = true;
-        this._source = null;
+        this._levels = [null];
         this._minFilter = options.minFilter !== undefined ? options.minFilter : TextureFilter.FILTER_LINEAR_MIPMAP_LINEAR;
         this._magFilter = options.magFilter !== undefined ? options.magFilter : TextureFilter.FILTER_LINEAR;
         this._addressU = options.addressU !== undefined ? options.addressU : TextureAddress.ADDRESS_REPEAT;
@@ -140,14 +140,20 @@ export class Texture extends EventHandler {
         }
 
         if (this._cubemap === true) {
-            this._source = [[null, null, null, null, null, null]];
+            this._levels = [[null, null, null, null, null, null]];
         } else {
-            this._source = null;
+            this._levels = [null];
         }
 
-        if (options.source !== undefined) {
-            this._source = options.source;
+        if (options.levels !== undefined) {
+            this._levels = options.levels;
         }
+
+        this._compressed =
+            this._format === TextureFormat.PIXELFORMAT_DXT1 ||
+            this._format === TextureFormat.PIXELFORMAT_DXT3 ||
+            this._format === TextureFormat.PIXELFORMAT_DXT5 ||
+            this._format >= TextureFormat.PIXELFORMAT_ETC1;
         this.dirtyAll();
     }
 
@@ -156,7 +162,7 @@ export class Texture extends EventHandler {
     }
 
     get compressed() {
-        return false;
+        return this._compressed;
     }
 
     /**
@@ -326,10 +332,6 @@ export class Texture extends EventHandler {
         return this._compareFunc;
     }
 
-    get source() {
-        return this._source;
-    }
-
     get width() {
         return this._width;
     }
@@ -351,17 +353,13 @@ export class Texture extends EventHandler {
         return this._mipmapsUploaded;
     }
 
-    set source(v) {
-        this._source = v;
+    get levels() {
+        return this._levels;
+    }
 
-        if (Array.isArray(v) && v[0].width !== undefined && v[0].height !== undefined) {
-            this._width = v[0].width;
-            this._height = v[0].height;
-        } else if (v.width && v.height) {
-            this._width = v.width;
-            this._height = v.height;
-        }
-
+    // 数组
+    set levels(v) {
+        this._levels = v;
         this.upload();
     }
 

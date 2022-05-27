@@ -1,9 +1,9 @@
-import { TextureAddress, TextureFormat } from "../engines";
-import { Engine } from "../engines/engine";
-import { http } from "../misc/http";
-import { Logger } from "../misc/logger";
-import { iTextureOptions, Texture } from "../texture";
-import { iLoadOptions, iTextureParser } from "./texture.loader";
+import {TextureAddress, TextureFormat} from "../engines";
+import {Engine} from "../engines/engine";
+import {http} from "../misc/http";
+import {Logger} from "../misc/logger";
+import {iTextureOptions, Texture} from "../texture";
+import {iLoadOptions, iTextureParser} from "./texture.loader";
 
 /**
  * Legacy texture parser for dds files.
@@ -12,8 +12,7 @@ import { iLoadOptions, iTextureParser } from "./texture.loader";
  * @ignore
  */
 class DdsParser implements iTextureParser {
-    constructor() {
-    }
+    constructor() {}
 
     load(options: iLoadOptions) {
         return new Promise((resolve, reject) => {
@@ -30,7 +29,7 @@ class DdsParser implements iTextureParser {
                     resolve(data);
                 }
             );
-        })
+        });
     }
 
     createTexture(url: string, data: any, engine: Engine, textureOptions: iTextureOptions) {
@@ -46,8 +45,8 @@ class DdsParser implements iTextureParser {
 
         const FCC_DXT1 = 827611204; // DXT1
         const FCC_DXT5 = 894720068; // DXT5
-        const FCC_FP16 = 113;       // RGBA16f
-        const FCC_FP32 = 116;       // RGBA32f
+        const FCC_FP16 = 113; // RGBA16f
+        const FCC_FP32 = 116; // RGBA32f
 
         // non standard
         const FCC_ETC1 = 826496069;
@@ -104,7 +103,7 @@ class DdsParser implements iTextureParser {
                 height: 4,
                 format: TextureFormat.PIXELFORMAT_R8_G8_B8
             });
-            texture.name = 'dds-legacy-empty';
+            texture.name = "dds-legacy-empty";
             return texture;
         }
 
@@ -127,7 +126,7 @@ class DdsParser implements iTextureParser {
         const DXT_BLOCK_HEIGHT = 4;
         const blockSize = fcc === FCC_DXT1 ? 8 : 16;
         let numBlocksAcross, numBlocksDown, numBlocks;
-        let _levels:any = [];
+        let _levels: any = [];
 
         for (let face = 0; face < faces; face++) {
             let mipWidth = width;
@@ -137,9 +136,9 @@ class DdsParser implements iTextureParser {
                     if (etc1) {
                         mipSize = Math.floor((mipWidth + 3) / 4) * Math.floor((mipHeight + 3) / 4) * 8;
                     } else if (pvrtc2) {
-                        mipSize = Math.max(mipWidth, 16) * Math.max(mipHeight, 8) / 4;
+                        mipSize = (Math.max(mipWidth, 16) * Math.max(mipHeight, 8)) / 4;
                     } else if (pvrtc4) {
-                        mipSize = Math.max(mipWidth, 8) * Math.max(mipHeight, 8) / 2;
+                        mipSize = (Math.max(mipWidth, 8) * Math.max(mipHeight, 8)) / 2;
                     } else {
                         numBlocksAcross = Math.floor((mipWidth + DXT_BLOCK_WIDTH - 1) / DXT_BLOCK_WIDTH);
                         numBlocksDown = Math.floor((mipHeight + DXT_BLOCK_HEIGHT - 1) / DXT_BLOCK_HEIGHT);
@@ -169,10 +168,10 @@ class DdsParser implements iTextureParser {
             }
         }
 
-        texture.source = _levels;
+        texture.levels = _levels;
         texture.upload();
         return texture;
     }
 }
 
-export { DdsParser };
+export {DdsParser};

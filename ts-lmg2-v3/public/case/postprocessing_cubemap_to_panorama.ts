@@ -38,7 +38,7 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         //  flipY: false
     });
     await lightingTexture.syncWait();
-    rotate_img(lightingTexture.source[2], 90);
+    rotate_img(lightingTexture.levels[2], 90);
     // await rotate_img(lightingTexture.source[3], -90);
     const post = new lmgl.Postprocessing(app);
     post.setRootPath("./public/case/shaders/");

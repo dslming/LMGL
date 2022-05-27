@@ -1,13 +1,14 @@
-import { Engine } from "../engines/engine";
-import { FileTools } from "../misc/fileTools";
-import { iTextureOptions, Texture } from "../texture";
-import { Loader } from "./loader";
+import {Engine} from "../engines/engine";
+import {FileTools} from "../misc/fileTools";
+import {iTextureOptions, Texture} from "../texture";
+import {Loader} from "./loader";
 
 import {ImgParser} from "./img.parser";
-import { path } from "../misc/path";
-import { DdsParser } from "./dds.parser";
-import { TextureFormat } from "../engines";
-import { HdrParser } from "./hdr.parser";
+import {path} from "../misc/path";
+import {DdsParser} from "./dds.parser";
+import {TextureFormat} from "../engines";
+import {HdrParser} from "./hdr.parser";
+import {BasisParser} from "./basis.parser";
 
 export interface iTextureParser {
     load(options: iLoadOptions): any;
@@ -20,29 +21,26 @@ export interface iLoadOptions extends iTextureOptions {
     rootPath?: string;
 }
 
-
 // In the case where a texture has more than 1 level of mip data specified, but not the full
 // mip chain, we generate the missing levels here.
 // This is to overcome an issue where iphone xr and xs ignores further updates to the mip data
 // after invoking gl.generateMipmap on the texture (which was the previous method of ensuring
 // the texture's full mip chain was complete).
 // NOTE: this function only resamples RGBA8 and RGBAFloat32 data.
-const _completePartialMipmapChain = function (texture:Texture) {
-
+const _completePartialMipmapChain = function (texture: Texture) {
     const requiredMipLevels = Math.log2(Math.max(texture.width, texture.height)) + 1;
 
-    const isHtmlElement = function (object:any) {
-        return (object instanceof HTMLCanvasElement) ||
-               (object instanceof HTMLImageElement) ||
-               (object instanceof HTMLVideoElement);
+    const isHtmlElement = function (object: any) {
+        return object instanceof HTMLCanvasElement || object instanceof HTMLImageElement || object instanceof HTMLVideoElement;
     };
 
-    if (!(texture.format === TextureFormat.PIXELFORMAT_R8_G8_B8_A8 ||
-          texture.format === TextureFormat.PIXELFORMAT_RGBA32F) ||
-          texture.volume ||
-          texture.source.length === 1 ||
-          texture.source.length === requiredMipLevels ||
-          isHtmlElement(texture.cubemap ? texture.source[0][0] : texture.source[0])) {
+    if (
+        !(texture.format === TextureFormat.PIXELFORMAT_R8_G8_B8_A8 || texture.format === TextureFormat.PIXELFORMAT_RGBA32F) ||
+        texture.volume ||
+        texture.levels.length === 1 ||
+        texture.levels.length === requiredMipLevels ||
+        isHtmlElement(texture.cubemap ? texture.levels[0][0] : texture.levels[0])
+    ) {
         return;
     }
 
@@ -73,17 +71,17 @@ const _completePartialMipmapChain = function (texture:Texture) {
     };
 
     // step through levels
-    for (let level = texture.source.length; level < requiredMipLevels; ++level) {
+    for (let level = texture.levels.length; level < requiredMipLevels; ++level) {
         const width = Math.max(1, texture.width >> (level - 1));
         const height = Math.max(1, texture.height >> (level - 1));
         if (texture.cubemap) {
             const mips = [];
             for (let face = 0; face < 6; ++face) {
-                mips.push(downsample(width, height, texture.source[level - 1][face]));
+                mips.push(downsample(width, height, texture.levels[level - 1][face]));
             }
-            texture.source.push(mips);
+            texture.levels.push(mips);
         } else {
-            texture.source.push(downsample(width, height, texture.source[level - 1]));
+            texture.levels.push(downsample(width, height, texture.levels[level - 1]));
         }
     }
 
@@ -98,8 +96,9 @@ export class TextureLoader extends Loader {
         super(engine);
         this.imgParser = new ImgParser();
         this.parsers = {
-            "dds": new DdsParser(),
-            "hdr": new HdrParser()
+            dds: new DdsParser(),
+            hdr: new HdrParser(),
+            basis: new BasisParser(engine)
         };
     }
 
@@ -112,7 +111,7 @@ export class TextureLoader extends Loader {
         return this.parsers[ext] || this.imgParser;
     }
 
-    async load(options: iLoadOptions): Promise<Texture | null> {
+    async load(options: iLoadOptions): Promise<Texture> {
         return new Promise(async (resolve, reject) => {
             if (options.url) {
                 const parser = this._getParser(options.url);
@@ -125,11 +124,11 @@ export class TextureLoader extends Loader {
 
                 resolve(texture);
             } else if (options.urls) {
-                const data = await FileTools.LoadCubeImages({
+                const data: any = await FileTools.LoadCubeImages({
                     urls: options.urls
                 });
                 const texture = new Texture(this.engine, options);
-                texture.source = data;
+                texture.levels = data;
                 resolve(texture);
             }
             return null;

@@ -1,10 +1,10 @@
-import { ReadStream } from '../misc/read-stream';
+import {ReadStream} from "../misc/read-stream";
 import {http} from "../misc/http";
-import { iLoadOptions } from './texture.loader';
-import { Engine } from '../engines/engine';
-import { iTextureOptions, Texture } from '../texture/texture';
-import { TextureAddress, TextureFilter, TextureFormat, TextureType } from '../engines/engine.enum';
-import { Logger } from '../misc/logger';
+import {iLoadOptions} from "./texture.loader";
+import {Engine} from "../engines/engine";
+import {iTextureOptions, Texture} from "../texture/texture";
+import {TextureAddress, TextureFilter, TextureFormat, TextureType} from "../engines/engine.enum";
+import {Logger} from "../misc/logger";
 
 /**
  * Texture parser for hdr files.
@@ -54,17 +54,17 @@ class HdrParser {
             format: TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
             type: TextureType.TEXTURETYPE_RGBE,
             // RGBE can't be filtered, so mipmaps are out of the question! (unless we generated them ourselves)
-            mipmaps: false
+            mipmaps: false,
+            levels: textureData.levels
         });
 
-        texture.source = textureData.levels[0];
         texture.upload();
 
         return texture;
     }
 
     // https://floyd.lbl.gov/radiance/refer/filefmts.pdf with help from http://www.graphics.cornell.edu/~bjw/rgbe/rgbe.c
-    parse(data:any) {
+    parse(data: any) {
         const readStream = new ReadStream(data);
 
         // require magic
@@ -75,7 +75,7 @@ class HdrParser {
         }
 
         // read header variables
-        const variables :any= {};
+        const variables: any = {};
         while (true) {
             const line = readStream.readLine();
             if (line.length === 0) {
@@ -187,9 +187,9 @@ class HdrParser {
         return view;
     }
 
-    private _readPixelsFlat(readStream: { remainingBytes: number; arraybuffer: ArrayBufferLike; offset: number | undefined; }, width: number, height: number) {
+    private _readPixelsFlat(readStream: {remainingBytes: number; arraybuffer: ArrayBufferLike; offset: number | undefined}, width: number, height: number) {
         return readStream.remainingBytes === width * height * 4 ? new Uint8Array(readStream.arraybuffer, readStream.offset) : null;
     }
 }
 
-export { HdrParser };
+export {HdrParser};

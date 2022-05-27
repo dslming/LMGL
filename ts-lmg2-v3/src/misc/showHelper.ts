@@ -1,10 +1,10 @@
-import { Texture } from "../texture/texture";
+import {Texture} from "../texture/texture";
 
-function downLoad(blob:any) {
+function downLoad(blob: any) {
     let url = "";
     let fileReader = new FileReader();
     fileReader.readAsDataURL(blob); //读取文件保存在result中
-    fileReader.onload = function (e:any) {
+    fileReader.onload = function (e: any) {
         url = e.target.result; //读取的结果在result中
         if (url.length < 6) {
             return;
@@ -25,14 +25,14 @@ export function showImage(texture: Texture) {
     var ctx = canvas.getContext("2d");
 
     var imgData = ctx.createImageData(texture.width, texture.height);
-    for (var i = 0; i < texture.source.length; i += 4) {
-        imgData.data[i + 0] = texture.source[i+0];
-        imgData.data[i + 1] = texture.source[i + 1];
-        imgData.data[i + 2] = texture.source[i + 2];
-        imgData.data[i + 3] = texture.source[i + 3];
+    for (var i = 0; i < texture.levels.length; i += 4) {
+        imgData.data[i + 0] = texture.levels[i + 0];
+        imgData.data[i + 1] = texture.levels[i + 1];
+        imgData.data[i + 2] = texture.levels[i + 2];
+        imgData.data[i + 3] = texture.levels[i + 3];
     }
     ctx.putImageData(imgData, 0, 0);
-    canvas.toBlob((blob:any) => {
+    canvas.toBlob((blob: any) => {
         downLoad(blob);
     });
 }

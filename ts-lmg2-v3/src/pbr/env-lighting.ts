@@ -4,7 +4,7 @@ import {Vec4} from "../maths/math.vec4";
 import {Texture} from "../texture/texture";
 import reprojectFrag from "../shaders/reproject.frag";
 import reprojectVert from "../shaders/reproject.vert";
-import gles3 from '../shaders/gles3.frag'
+import gles3 from "../shaders/gles3.frag";
 
 import {Postprocessing} from "../postprocessing/postprocessing";
 import {Application} from "../application";
@@ -12,13 +12,12 @@ import {RenderTarget, RenderTargetBufferType} from "../renderer/render.target";
 import {Vec3} from "../maths/math.vec3";
 import {random} from "../maths/math.random";
 
-
 // runtime lighting can be RGBM
 const lightingPixelFormat = () => {
     return TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
 };
 
-const supportsFloat16 = (device:Engine) => {
+const supportsFloat16 = (device: Engine) => {
     return device.extensions.extTextureHalfFloat && device.textureHalfFloatRenderable;
 };
 
@@ -27,11 +26,11 @@ const supportsFloat32 = (device: Engine) => {
 };
 
 // lighting source should be stored HDR
-const lightingSourcePixelFormat = (device:Engine) => {
+const lightingSourcePixelFormat = (device: Engine) => {
     return supportsFloat16(device) ? TextureFormat.PIXELFORMAT_RGBA16F : supportsFloat32(device) ? TextureFormat.PIXELFORMAT_RGBA32F : TextureFormat.PIXELFORMAT_R8_G8_B8_A8;
 };
 
-const createCubemap = (device:Engine, size:number, format:TextureFormat, mipmaps:boolean) => {
+const createCubemap = (device: Engine, size: number, format: TextureFormat, mipmaps: boolean) => {
     return new Texture(device, {
         name: `lighting-${size}`,
         cubemap: true,
@@ -116,10 +115,10 @@ const calculateRequiredSamplesGGX = () => {
     const numSamples = [1024, 128, 32, 16];
     const specularPowers = [512, 128, 32, 8, 2];
 
-    const requiredTable:any = {};
-    numSamples.forEach((numSamples) => {
-        const table:any = { };
-        specularPowers.forEach((specularPower) => {
+    const requiredTable: any = {};
+    numSamples.forEach(numSamples => {
+        const table: any = {};
+        specularPowers.forEach(specularPower => {
             let requiredSamples = numSamples;
             while (countValidSamplesGGX(requiredSamples, specularPower) < numSamples) {
                 requiredSamples++;
@@ -322,16 +321,17 @@ const packSamples = (samples: any[]) => {
 // pack float samples data into an rgba8 texture
 const createSamplesTex = (device: Engine, name: string, samples: any[]) => {
     const packedSamples = packSamples(samples);
-    const texture= new Texture(device, {
+    const texture = new Texture(device, {
         name: name,
         width: packedSamples.width,
         height: packedSamples.height,
         mipmaps: false,
         minFilter: TextureFilter.FILTER_NEAREST,
         magFilter: TextureFilter.FILTER_NEAREST,
+        flipY: false
     });
-    texture.source = packedSamples.data;
-    return texture;;
+    texture.levels = [packedSamples.data];
+    return texture;
 };
 
 export class EnvLighting {
@@ -375,7 +375,7 @@ export class EnvLighting {
 
         const processFunc = funcNames[distribution];
         const decodeFunc = `decode${getCoding(source)}`;
-        // const encodeFunc = 'encodeGamma'//`encode${getCoding(target)}`;
+        // const encodeFunc = "encodeLinear";
         const encodeFunc = `encode${getCoding(target)}`;
         const sourceFunc = `sample${getProjectionName(source.projection)}`;
         const targetFunc = `getDirection${getProjectionName(target.projection)}`;
@@ -470,7 +470,6 @@ export class EnvLighting {
             });
         }
 
-
         for (let f = 0; f < (target.cubemap ? 6 : 1); f++) {
             if (face === null || f === face) {
                 const renderTarget = new RenderTarget(this._engine, {
@@ -509,7 +508,7 @@ export class EnvLighting {
         });
 
         const s = result.width / 512;
-        const rect = new Vec4(0, 0, 512*s, 256*s);
+        const rect = new Vec4(0, 0, 512 * s, 256 * s);
         const levels = 1; //calcLevels(result.width, result.height);
 
         for (let i = 0; i < levels; ++i) {
@@ -525,7 +524,7 @@ export class EnvLighting {
             rect.w = Math.max(1, Math.floor(rect.w * 0.5));
         }
 
-        rect.set(0, 256*s, 256*s, 128*s);
+        rect.set(0, 256 * s, 256 * s, 128 * s);
         for (let i = 1; i < 7; ++i) {
             this.reprojectTexture(source, result, {
                 numSamples: 1024,
@@ -648,7 +647,7 @@ export class EnvLighting {
      * if target isn't specified. Defaults to 128.
      * @returns {Texture} The resulting cubemap.
      */
-    generateLightingSource(source:Texture) {
+    generateLightingSource(source: Texture) {
         // const device = source.device;
 
         // DebugGraphics.pushGpuMarker(device, "genLightingSource");

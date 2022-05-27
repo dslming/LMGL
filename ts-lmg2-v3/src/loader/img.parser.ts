@@ -1,15 +1,9 @@
-import { path } from '../misc/path';
-import { http } from '../misc/http';
-import { iLoadOptions, iTextureParser } from './texture.loader';
-import { Engine } from '../engines/engine';
-import { iTextureOptions, Texture } from '../texture/texture';
-import { TextureFormat } from '../engines/engine.enum';
+import {path} from "../misc/path";
+import {iLoadOptions, iTextureParser} from "./texture.loader";
+import {Engine} from "../engines/engine";
+import {iTextureOptions, Texture} from "../texture/texture";
+import {TextureFormat} from "../engines/engine.enum";
 
-// import { PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, TEXHINT_ASSET } from '../../../graphics/constants.js';
-// import { Texture } from '../../../graphics/texture.js';
-
-// import { ABSOLUTE_URL } from '../../../asset/constants.js';
-const ABSOLUTE_URL:any = "";
 
 /**
  * Parser for browser-supported image formats.
@@ -47,7 +41,7 @@ class ImgParser implements iTextureParser {
                 width: data.width,
                 height: data.height,
                 format: format,
-                source: data
+                levels: [data]
             },
             textureOptions
         );
@@ -56,4 +50,4 @@ class ImgParser implements iTextureParser {
     }
 }
 
-export { ImgParser };
+export {ImgParser};
