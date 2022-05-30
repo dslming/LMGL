@@ -11,7 +11,7 @@ import * as lmgl from "../src/index";
 
 // ----------------------------------- texture ------------------------
 // import {run} from "./case/texture_base";
-import {run} from "./case/texture_basis";
+// import {run} from "./case/texture_basis";
 
 // ----------------------------------- postprocessing------------------------
 // import {run} from "./case/postprocessing_blackAndWhite";
@@ -26,7 +26,7 @@ import {run} from "./case/texture_basis";
 // import {run} from "./case/skybox_hdr";
 // import {run} from "./case/skybox";
 
-// import {run} from "./case/obj";
+import {run} from "./case/star-lord";
 
 let canvas: any;
 let engine: lmgl.Engine;

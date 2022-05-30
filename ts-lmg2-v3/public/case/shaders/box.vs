@@ -1,3 +1,5 @@
+precision highp float;
+
 in vec3 aPosition;
 in vec4 aColor;
 out vec4 vColor;
