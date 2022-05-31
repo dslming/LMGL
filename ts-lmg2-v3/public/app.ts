@@ -26,7 +26,11 @@ import * as lmgl from "../src/index";
 // import {run} from "./case/skybox_hdr";
 // import {run} from "./case/skybox";
 
-import {run} from "./case/star-lord";
+// import {run} from "./case/star-lord";
+
+// ----------------------------------- material ------------------------
+import {run} from "./case/material_pbr";
+
 
 let canvas: any;
 let engine: lmgl.Engine;

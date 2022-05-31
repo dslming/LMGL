@@ -1,6 +1,7 @@
 import {Engine} from "../engines";
 import {Color3} from "../maths";
 import { Texture } from "../texture";
+import { GenerateShader } from "./generate.shader";
 
 // https://doc.babylonjs.com/divingDeeper/materials/using/introToPBR
 
@@ -31,5 +32,14 @@ export interface iStandardMaterialOptions {
 }
 
 export class StandardMaterial {
-    constructor(engine: Engine, options: iStandardMaterialOptions) {}
+    private _engine: Engine;
+    constructor(engine: Engine, options?: iStandardMaterialOptions) {
+        this._engine = engine;
+        this.getShader();
+    }
+
+    getShader() {
+        const gener = new GenerateShader(this._engine);
+        // gener.vsShader();
+    }
 }
