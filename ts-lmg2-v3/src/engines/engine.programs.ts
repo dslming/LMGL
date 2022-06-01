@@ -1,6 +1,7 @@
 import { ShaderProcess } from "../misc/shaderProcess";
 import { Engine } from "./engine";
 import { iProgrameDefines } from "./engine.enum";
+import { checkShaderError } from "../misc/check";
 
 // 查询信息类型
 enum SHADER_INFO_TYPE {
@@ -38,8 +39,10 @@ export class EngineProgram {
         if (success) {
             return shader;
         }
+        checkShaderError(gl, shader, source, type,"");
         console.error(gl.getShaderInfoLog(shader), source);
         this._deleteShader(shader);
+
         return true;
     }
 
@@ -86,8 +89,10 @@ export class EngineProgram {
 
         const header = ShaderProcess.getHead();
         const defines = ShaderProcess.generateDefines(shaderSource.defines);
-        vs = header +defines+ vs;
-        fs = header +defines+ fs;
+        // vs = header +defines+ vs;
+        // fs = header +defines+ fs;
+        // vs = header +defines+ vs;
+        // fs = header +defines+ fs;
 
         //创建顶点着色器
         const vertexShader = this._getShader(SHADER_TYPE.VERTEX_SHADER, vs);

@@ -2,7 +2,9 @@ import {Engine} from "../engines";
 import {Color3} from "../maths";
 import { Texture } from "../texture";
 import { GenerateShader } from "./generate.shader";
-
+import { Material } from "./material";
+import pbrVS from '../shaders/pbr.vert'
+import pbrFS from "../shaders/pbr.frag";
 // https://doc.babylonjs.com/divingDeeper/materials/using/introToPBR
 
 export interface iStandardMaterialOptions {
@@ -31,15 +33,12 @@ export interface iStandardMaterialOptions {
     specularMapChannel: string;
 }
 
-export class StandardMaterial {
-    private _engine: Engine;
+export class StandardMaterial extends Material {
     constructor(engine: Engine, options?: iStandardMaterialOptions) {
-        this._engine = engine;
-        this.getShader();
-    }
-
-    getShader() {
-        const gener = new GenerateShader(this._engine);
-        // gener.vsShader();
+        let a = 1;
+        super(engine, {
+            vertexShader: pbrVS,
+            fragmentShader: pbrFS,
+        });
     }
 }

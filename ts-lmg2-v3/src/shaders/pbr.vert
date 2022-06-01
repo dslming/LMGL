@@ -6,21 +6,21 @@ out vec3 vNormalW;
 in vec3 vertex_position;
 in vec3 vertex_normal;
 
-uniform mat4 matrix_viewProjection;
+// uniform mat4 matrix_viewProjection;
+uniform mat4 matrix_projection;
 uniform mat4 matrix_model;
 uniform mat3 matrix_normal;
+uniform mat3 matrix_view;
 
 vec3 dPositionW;
 mat4 dModelMatrix;
 mat3 dNormalMatrix;
 
 vec4 getPosition() {
-    dModelMatrix = matrix_model;
 
-    vec4 posW = dModelMatrix * vec4(vertex_position, 1.0);
+    vec4 posW = matrix_model * vec4(vertex_position, 1.0);
     dPositionW = posW.xyz;
-
-    return matrix_viewProjection * posW;
+    return matrix_projection * matrix_view * posW;
 }
 
 vec3 getWorldPosition() {

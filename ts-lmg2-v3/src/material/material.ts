@@ -22,7 +22,7 @@ export class Material extends EventHandler {
     program: any;
     uniforms: any;
     needUpdate: boolean;
-    private _engine: Engine;
+    protected _engine: Engine;
     private _blend: boolean;
 
     vertexShader: string;
