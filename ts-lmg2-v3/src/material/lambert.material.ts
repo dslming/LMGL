@@ -1,12 +1,12 @@
 import { Engine } from "../engines/engine";
+import { getShaderFS, getShaderVS } from "../shaders/programs/lambert";
 import { Material } from "./material";
 
 export class LambertMaterial extends Material {
     constructor(engine: Engine) {
-        let a = 1;
         super(engine, {
-            vertexShader: "",
-            fragmentShader: ""
+            vertexShader: getShaderVS(engine),
+            fragmentShader: getShaderFS(engine)
         });
     }
 }

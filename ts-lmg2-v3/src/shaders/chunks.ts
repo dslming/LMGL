@@ -24,6 +24,8 @@ import tonemappingHejlPS from "./chunks/tonemapping/tonemappingHejl.frag";
 import tonemappingLinearPS from "./chunks/tonemapping/tonemappingLinear.frag";
 import tonemappingNonePS from "./chunks/tonemapping/tonemappingNone.frag";
 
+import lambertVS from './chunks/lambert.vert'
+
 const shaderChunks = {
     gamma1_0PS,
     gamma2_2PS,
@@ -49,7 +51,9 @@ const shaderChunks = {
     skyboxHDRPS,
     decodePS,
     envConstPS,
-    rgbmPS
+    rgbmPS,
+
+    lambertVS
 };
 
 export {shaderChunks};
