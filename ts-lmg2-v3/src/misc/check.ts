@@ -57,7 +57,7 @@ function decodeB64 (str:any) {
 }
 
 function raise(message:any) {
-    var error = new Error("(regl) " + message);
+    var error = new Error("(lmgl) " + message);
     console.error(error);
     throw error;
 }
@@ -268,7 +268,8 @@ export function checkShaderError(gl: any, shader: any, source: any, type: any, c
                     push(line.line + endl, "color:red");
                 }
             });
-            console.log(strings.join(""));
+            styles[0] = strings.join("%c");
+            console.log.apply(console, styles);
         });
 
         raise("Error compiling " + typeName + " shader, " + files[0].name);

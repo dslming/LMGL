@@ -10,7 +10,7 @@ out vec3 vColor;
 out vec3 vPosition;
 
 uniform float sineTime;
-uniform mat4 projectionMatrix;
+uniform mat4 matrix_projection;
 uniform mat4 modelViewMatrix;
 
 void main() {
@@ -21,5 +21,5 @@ void main() {
 
     vColor = color;
 
-    gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
+    gl_Position = matrix_projection * modelViewMatrix * vec4( vPosition, 1.0 );
 }

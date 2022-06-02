@@ -40,7 +40,6 @@ export class EngineProgram {
             return shader;
         }
         checkShaderError(gl, shader, source, type,"");
-        console.error(gl.getShaderInfoLog(shader), source);
         this._deleteShader(shader);
 
         return true;

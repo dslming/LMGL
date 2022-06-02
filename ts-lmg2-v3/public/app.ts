@@ -1,6 +1,6 @@
 import * as lmgl from "../src/index";
 
-// import {run} from "./case/triangle";
+import {run} from "./case/mesh/triangle";
 // import { run } from "./case/box";
 // import {run} from "./case/sphere";
 // import { run } from "./case/sprite";
@@ -29,7 +29,7 @@ import * as lmgl from "../src/index";
 // import {run} from "./case/star-lord";
 
 // ----------------------------------- material ------------------------
-import {run} from "./case/material_pbr";
+// import {run} from "./case/material_pbr";
 
 
 let canvas: any;

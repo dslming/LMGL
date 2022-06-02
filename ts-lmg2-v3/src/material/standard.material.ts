@@ -3,8 +3,8 @@ import {Color3} from "../maths";
 import { Texture } from "../texture";
 import { GenerateShader } from "./generate.shader";
 import { Material } from "./material";
-import pbrVS from '../shaders/pbr.vert'
-import pbrFS from "../shaders/pbr.frag";
+import pbrVS from '../shaders/chunks/pbr.vert'
+import pbrFS from "../shaders/chunks/pbr.frag";
 // https://doc.babylonjs.com/divingDeeper/materials/using/introToPBR
 
 export interface iStandardMaterialOptions {

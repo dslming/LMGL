@@ -37,19 +37,21 @@ export default class Renderer {
         camera.updateProjectionMatrix();
         mesh.updateMatrix();
 
-        this._engine.engineUniform.setUniform(program, "projectionMatrix", camera.projectionMatrix.data, UniformsType.Mat4);
+        this._engine.engineUniform.setUniform(program, "matrix_projection", camera.projectionMatrix.data, UniformsType.Mat4);
 
-        const modelViewMatrix = new Mat4();
-        modelViewMatrix.mul2(camera.matrixWorldInverse, mesh.matrix);
-        this._engine.engineUniform.setUniform(program, "modelViewMatrix", modelViewMatrix.data, UniformsType.Mat4);
+        // const modelViewMatrix = new Mat4();
+        // modelViewMatrix.mul2(camera.matrixWorldInverse, mesh.matrix);
+        // this._engine.engineUniform.setUniform(program, "modelViewMatrix", modelViewMatrix.data, UniformsType.Mat4);
+        this._engine.engineUniform.setUniform(program, "matrix_model", mesh.matrix.data, UniformsType.Mat4);
+        this._engine.engineUniform.setUniform(program, "matrix_view", camera.matrixWorldInverse.data, UniformsType.Mat4);
 
-        this._engine.engineUniform.setUniform(program, "world", mesh.matrix.data, UniformsType.Mat4);
+        // this._engine.engineUniform.setUniform(program, "world", mesh.matrix.data, UniformsType.Mat4);
 
         // 法线: world -> eye
-        mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
-        this._engine.engineUniform.setUniform(program, "normalMatrix", mesh.normalMatrix.data, UniformsType.Mat4);
+        // mesh.normalMatrix.getNormalMatrix(modelViewMatrix);
+        // this._engine.engineUniform.setUniform(program, "normalMatrix", mesh.normalMatrix.data, UniformsType.Mat4);
 
-        this._engine.engineUniform.setUniform(program, "modelMatrix", mesh.matrix.data, UniformsType.Mat4);
+        // this._engine.engineUniform.setUniform(program, "modelMatrix", mesh.matrix.data, UniformsType.Mat4);
 
         // 与mesh无关的uniform变量
         this._engine.engineUniform.setSystemUniform(program, camera);

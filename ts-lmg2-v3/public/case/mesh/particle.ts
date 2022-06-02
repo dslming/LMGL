@@ -1,4 +1,4 @@
-import * as lmgl from "../../src/index";
+import * as lmgl from "../../../src/index";
 (window as any).lmgl = lmgl;
 
 export function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {

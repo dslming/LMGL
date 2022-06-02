@@ -1,4 +1,4 @@
-import * as lmgl from "../../src/index";
+import * as lmgl from "../../../src/index";
 (window as any).lmgl = lmgl;
 
 // 全景图天空盒
@@ -6,10 +6,10 @@ import * as lmgl from "../../src/index";
 export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     const loader = new lmgl.OBJLoader(engine);
     const objects: any = await loader.load({
-        url: "./public/obj/star-lord.obj"
+        url: "./public/obj/ring.obj"
     });
 
-    const model = objects[0];
+    const model = objects[2];
     const geoData = {
         attributes: [
             {
@@ -29,6 +29,6 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     const geometry = new lmgl.Geometry(engine, geoData);
     const material = new lmgl.Material(engine, matInfo);
     const mesh = new lmgl.Mesh(engine, geometry, material);
-    mesh.scale.mulScalar(0.02);
+    mesh.scale.mulScalar(70);
     scene.add(mesh);
 }

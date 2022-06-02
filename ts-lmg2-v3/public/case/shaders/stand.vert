@@ -12,7 +12,7 @@ attribute vec4 vertex_tangent;
 attribute vec2 vertex_texCoord0;
 attribute vec2 vertex_texCoord1;
 attribute vec4 vertex_color;
-uniform mat4 projectionMatrix;
+uniform mat4 matrix_projection;
 uniform mat4 modelMatrix;
 uniform mat4 world;
 
@@ -61,7 +61,7 @@ vec4 getPosition() {
     vec4 posW = dModelMatrix * vec4(localPos, 1.0);
     dPositionW = posW.xyz;
     vec4 screenPos;
-    screenPos = projectionMatrix * posW;
+    screenPos = matrix_projection * posW;
     return screenPos;
 }
 

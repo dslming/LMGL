@@ -1,4 +1,4 @@
-import * as lmgl from "../../src/index";
+import * as lmgl from "../../../src/index";
 (window as any).lmgl = lmgl;
 
 // cubemap转全景图

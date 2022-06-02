@@ -1,27 +1,7 @@
-import { Engine } from "../engines";
+
+import {Engine} from "../engines";
 import { Gamma, Tonemap } from "../enum/enum";
-
-import gamma1_0PS from "./gamma1_0.frag";
-import gamma2_2PS from "./gamma2_2.frag";
-
-
-import tonemappingAcesPS from './tonemapping/tonemappingAces.frag';
-import tonemappingAces2PS from './tonemapping/tonemappingAces2.frag';
-import tonemappingFilmicPS from './tonemapping/tonemappingFilmic.frag';
-import tonemappingHejlPS from './tonemapping/tonemappingHejl.frag';
-import tonemappingLinearPS from './tonemapping/tonemappingLinear.frag';
-import tonemappingNonePS from './tonemapping/tonemappingNone.frag';
-
-const chunks = {
-  gamma1_0PS,
-  gamma2_2PS,
-  tonemappingAcesPS,
-  tonemappingAces2PS,
-  tonemappingFilmicPS,
-  tonemappingHejlPS,
-  tonemappingLinearPS,
-  tonemappingNonePS
-};
+import { shaderChunks as chunks } from './chunks'
 
 export function gammaCode(value:Gamma) {
     if (value === Gamma.GAMMA_SRGB || value === Gamma.GAMMA_SRGBFAST) {

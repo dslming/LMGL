@@ -2,7 +2,7 @@ in vec3 aPosition;
 in vec3 aNormal;
 
 uniform mat4 world;
-uniform mat4 projectionMatrix;
+uniform mat4 matrix_projection;
 uniform mat4 modelViewMatrix;
 uniform vec3 lightDirction;
 
@@ -17,7 +17,7 @@ vec3 lambert(vec3 normal, vec3 lightDir) {
 
 void main() {
   mat3 normalWorld = mat3(world);
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(aPosition, 1.0);
+  gl_Position = matrix_projection * modelViewMatrix * vec4(aPosition, 1.0);
   vec3 normal = normalize(normalWorld * aNormal);
   vColor = lambert(normal, lightDirction);
   vColor += 0.2;

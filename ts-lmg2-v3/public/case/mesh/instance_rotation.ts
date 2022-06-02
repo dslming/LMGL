@@ -1,4 +1,4 @@
-import * as lmgl from "../../src/index";
+import * as lmgl from "../../../src/index";
 (window as any).lmgl = lmgl;
 
 // https://webglfundamentals.org/webgl/webgl-instanced-drawing-projection-view.html

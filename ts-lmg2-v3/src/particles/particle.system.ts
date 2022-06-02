@@ -5,8 +5,8 @@ import { Texture } from "../texture/texture";
 import { Nullable } from "../types";
 import { Particle } from "./particle";
 
-import vs from "../shaders/particles.vert";
-import fs from "../shaders/particles.frag";
+import vs from "../shaders/chunks/particles.vert";
+import fs from "../shaders/chunks/particles.frag";
 import { Material } from "../material";
 import { Mesh } from "../mesh";
 import { Vec2 } from "../maths";

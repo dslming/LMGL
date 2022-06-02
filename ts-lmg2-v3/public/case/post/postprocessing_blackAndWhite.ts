@@ -1,7 +1,8 @@
-import * as lmgl from "../../src/index";
+import * as lmgl from "../../../src/index";
+import {BlendType} from "../../../src/index";
 (window as any).lmgl = lmgl;
 
-// 先render,然后进行后处理
+// 后处理-黑白
 
 function addBox(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Application) {
     const model = lmgl.boxBuilder();
@@ -53,27 +54,12 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
     });
 
     const size = app.getRenderSize();
-
-    const result = new lmgl.Texture(engine, {
-        name: "result",
-        width: 512,
-        height: 512,
-        format: lmgl.TextureFormat.PIXELFORMAT_R8_G8_B8_A8,
-        type: lmgl.TextureType.TEXTURETYPE_RGBM,
-        projection: lmgl.TextureProjection.TEXTUREPROJECTION_EQUIRECT,
-        addressU: lmgl.TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-        addressV: lmgl.TextureAddress.ADDRESS_CLAMP_TO_EDGE,
-        minFilter: lmgl.TextureFilter.FILTER_LINEAR,
-        magFilter: lmgl.TextureFilter.FILTER_LINEAR
-    });
-
     const renderTarget = new lmgl.RenderTarget(engine, {
         bufferType: lmgl.RenderTargetBufferType.colorBuffer,
         width: size.width,
         height: size.height,
         name: "renderTarget",
-        depth: true,
-        colorBuffer: result
+        depth: true
     });
 
     app.addUpdate("loop", () => {
@@ -86,6 +72,6 @@ export async function run(engine: lmgl.Engine, scene: lmgl.Scene, app: lmgl.Appl
         app.renderer.renderScene(app.scene, app.camera);
 
         // prettier-ignore
-        post.useProgram("blackAndWhite").setRenderTarget(null).viewport().clear().setUniform("textureSampler", result,).render();
+        post.setRenderTarget(null).useProgram("blackAndWhite").viewport().clear().setUniform("textureSampler", renderTarget.colorBuffer).render();
     });
 }

@@ -2,9 +2,9 @@ import {Engine} from "../engines/engine";
 import {TextureAddress, TextureFilter, TextureFormat, TextureProjection, TextureType, UniformsType} from "../engines/engine.enum";
 import {Vec4} from "../maths/math.vec4";
 import {Texture} from "../texture/texture";
-import reprojectFrag from "../shaders/reproject.frag";
-import reprojectVert from "../shaders/reproject.vert";
-import gles3 from "../shaders/gles3.frag";
+import reprojectFrag from "../shaders/chunks/reproject.frag";
+import reprojectVert from "../shaders/chunks/reproject.vert";
+import gles3 from "../shaders/chunks/gles3.frag";
 
 import {Postprocessing} from "../postprocessing/postprocessing";
 import {Application} from "../application";

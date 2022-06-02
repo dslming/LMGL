@@ -6,20 +6,13 @@ import {Material} from "../material/material";
 import {IColor4Like} from "../maths/math.like";
 import {Mesh} from "./mesh";
 
-import vs from "../shaders/skybox.vert";
-import skyboxEnvPS from "../shaders/skyboxEnv.frag";
-import skyboxHDRPS from "../shaders/skyboxHDR.frag";
-import gles3 from "../shaders/gles3.frag";
-import decodePS from "../shaders/decode.frag";
-import envConstPS from "../shaders/envConst.frag";
-import fixCubemapSeamsStretchPS from "../shaders/fixCubemapSeamsStretch.frag";
-import fixCubemapSeamsNonePS from "../shaders/fixCubemapSeamsNone.frag";
-import rgbmPS from "../shaders/rgbm.frag";
+import vs from "../shaders/chunks/skybox.vert";
+
 
 import {Texture} from "../texture/texture";
 import {Mat3} from "../maths/math.mat3";
-import {precisionCode, gammaCode, tonemapCode} from "../shaders/common";
 import { Gamma, Tonemap } from "../enum/enum";
+import { getShaderFS } from "../shaders/programs/skybox";
 
 export interface iMeshSkyboxOptions {
     // 预过滤的6张天空盒子
@@ -94,11 +87,7 @@ export class MeshSkybox {
 
     private _getMat(): Material {
         let mat3 = new Mat3();
-        let decodeTable: any = {
-            rgbm: "decodeRGBM",
-            rgbe: "decodeRGBE",
-            linear: "decodeLinear"
-        };
+
 
         let options: any;
 
@@ -122,34 +111,13 @@ export class MeshSkybox {
             };
         }
 
-        let fshader = "";
-        if (options.type == "envAtlas") {
-            fshader = precisionCode(this._engine);
-            fshader += envConstPS;
-            fshader += gammaCode(options.gamma);
-            fshader += tonemapCode(options.toneMapping);
-            fshader += decodePS;
-            fshader += skyboxEnvPS.replace(/\$DECODE/g, decodeTable[options.encoding] || "decodeGamma");
-        } else if (options.type === "cubemap") {
-            const mip2size = [128, 64, /* 32 */ 16, 8, 4, 2];
-
-            fshader = precisionCode(this._engine);
-            fshader += options.mip ? fixCubemapSeamsStretchPS : fixCubemapSeamsNonePS;
-            fshader += envConstPS;
-            fshader += gammaCode(options.gamma);
-            fshader += tonemapCode(options.toneMapping);
-            fshader += decodePS;
-            fshader += rgbmPS;
-            // textureCube,textureCubeRGBM,textureCubeSRGB
-            const sample = options.rgbm ? "textureCubeRGBM" : options.hdr ? "textureCube" : "textureCubeSRGB";
-            fshader += skyboxHDRPS.replace(/\$textureCubeSAMPLE/g, sample).replace(/\$FIXCONST/g, 1 - 1 / mip2size[options.mip] + "");
-        }
+        const fs = getShaderFS(this._engine, options)
 
         let material: any;
         if (options.type == "envAtlas") {
             material = new Material(this._engine, {
                 vertexShader: vs,
-                fragmentShader: `${gles3}\n${fshader}`,
+                fragmentShader: fs,
                 uniforms: {
                     texture_envAtlas: {type: UniformsType.Texture, value: skyboxTex},
                     exposure: {type: UniformsType.Float, value: 1},
@@ -163,7 +131,7 @@ export class MeshSkybox {
         } else if (options.type === "cubemap") {
             material = new Material(this._engine, {
                 vertexShader: vs,
-                fragmentShader: `${gles3}\n${fshader}`,
+                fragmentShader: fs,
                 uniforms: {
                     texture_cubeMap: {type: UniformsType.Texture, value: skyboxTex},
                     exposure: {type: UniformsType.Float, value: 1},

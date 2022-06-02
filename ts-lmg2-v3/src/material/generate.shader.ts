@@ -1,7 +1,7 @@
 import { Engine } from "../engines";
 import {precisionCode, versionCode} from "../shaders/common";
 
-import {shaderChunks} from "../shaders/index";
+import {shaderChunks} from "../shaders/chunks";
 
 export class GenerateShader {
     private _engine: Engine;
